@@ -39,6 +39,8 @@ Awesome stuff!
 
 ## Bugs
 
+- Some class members are named incorrectly. I started out trying to name things nicer, but then realized that the naming should be consistent with the C structs. The inconsistencies should be fixed.
+- The class objects for the different sub-statements, sub-expressions, and sub-constants get inherited for instances of these classes. This is kindof ugly (ie, pyvex.IRStmt.NoOp().WrTmp is a valid reference to the WrTmp class).
 - help() is sorely lacking
 - pretty-printing an emptyIRSB segfaults
 - there is no memory management. VEX is kind of weird with this, so care will have to be taken... It shouldn't be an issue when doing the normal VEX workflow, but for long-running static analysis, the blocks will probably have to be copied out with a rewritten deepCopier.
