@@ -1,5 +1,5 @@
 #include <Python.h>
-#include "pyvex_vexir.h"
+#include "pyvex_static.h"
 #include "pyvex_logging.h"
 #include "pyvex_types.h"
 
@@ -77,6 +77,8 @@ initpyvex(void)
 	//printf("VexException added...\n");
 
 	//debug_on = 1;
+#ifndef PYVEX_NOSTATIC
 	vex_init();
+#endif
 	//printf("Done\n");
 }

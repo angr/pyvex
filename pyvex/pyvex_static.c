@@ -23,7 +23,7 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <assert.h>
 #include <libvex.h>
 
-#include "pyvex_vexir.h"
+#include "pyvex_static.h"
 #include "pyvex_logging.h"
 
 #define AMD64

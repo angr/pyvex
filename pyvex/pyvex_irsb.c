@@ -5,7 +5,7 @@
 #include "pyvex_enums.h"
 #include "pyvex_types.h"
 #include "pyvex_macros.h"
-#include "pyvex_vexir.h"
+#include "pyvex_static.h"
 
 PYVEX_NEW(IRSB)
 PYVEX_DEALLOC(IRSB)
@@ -18,6 +18,7 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 	if (!kwargs) { self->wrapped = emptyIRSB(); return 0; }
 	PYVEX_WRAP_CONSTRUCTOR(IRSB);
 
+#ifndef PYVEX_NOSTATIC
 	unsigned char *bytes = NULL;
 	unsigned int mem_addr = 0;
 	int num_inst = -1;
@@ -44,6 +45,10 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 
 	PyErr_SetString(VexException, "Not enough arguments provided.");
 	return -1;
+#else
+	PyErr_SetString(VexException, "Statically creating IRSBs is disabled.");
+	return -1;
+#endif
 }
 
 static PyMemberDef pyIRSB_members[] = { {NULL} };
