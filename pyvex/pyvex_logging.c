@@ -1,3 +1,5 @@
+// This code is GPLed by Yan Shoshitaishvili
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>

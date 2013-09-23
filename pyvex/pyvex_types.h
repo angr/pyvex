@@ -1,3 +1,5 @@
+// This code is GPLed by Yan Shoshitaishvili
+
 #ifndef __PYVEX_TYPES_H
 #define __PYVEX_TYPES_H
 

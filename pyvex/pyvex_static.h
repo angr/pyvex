@@ -1,3 +1,5 @@
+// This code is GPLed by Yan Shoshitaishvili
+
 #ifndef __VEXIR_H
 #define __VEXIR_H
 

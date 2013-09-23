@@ -1,3 +1,5 @@
+// This code is GPLed by Yan Shoshitaishvili
+
 #pragma once
 
 // expression tags

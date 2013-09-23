@@ -1,3 +1,5 @@
+// This code is GPLed by Yan Shoshitaishvili
+
 #include <Python.h>
 #include <structmember.h>
 #include <libvex.h>

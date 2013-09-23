@@ -1,3 +1,5 @@
+// This code is GPLed by Yan Shoshitaishvili
+
 #include <libvex.h>
 #include <stdio.h>
 #include <string.h>

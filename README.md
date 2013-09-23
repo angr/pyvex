@@ -4,7 +4,7 @@ A python interface into Valgrind's VEX IR!
 
 ## Build
 
-For now, pyvex is tricky to build. First, valgrind needs to be compiled with fPIC:
+For now, pyvex requires valgrind to be compiled with fPIC:
 
 	mkdir ~/valgrind
 	cd ~/valgrind
