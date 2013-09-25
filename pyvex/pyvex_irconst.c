@@ -25,9 +25,9 @@ pyIRConst_init(pyIRConst *self, PyObject *args, PyObject *kwargs)
 	return -1;
 }
 
-PYVEX_SETTER(IRConst, wrapped)
-PYVEX_GETTER(IRConst, wrapped)
-PYVEX_ACCESSOR_ENUM(IRConst, IRConst, wrapped->tag, tag, IRConstTag)
+PYVEX_ACCESSOR_WRAPPED(IRConst, IRConst, self->wrapped, wrapped, IRConst)
+PYVEX_ACCESSOR_ENUM(IRConst, IRConst, self->wrapped->tag, tag, IRConstTag)
+PYVEX_GETTER_ENUM(IRConst, IRConst, typeOfIRConst(self->wrapped), type, IRType)
 
 PyObject *pyIRConst_equals(pyIRConst *self, pyIRConst *other)
 {
@@ -41,6 +41,7 @@ static PyGetSetDef pyIRConst_getseters[] =
 {
 	PYVEX_ACCESSOR_DEF(IRConst, tag),
 	PYVEX_ACCESSOR_DEF(IRConst, wrapped),
+	{"type", (getter)pyIRConst_get_type, NULL, "IRType of the constant", NULL},
 	{NULL}
 };
 
@@ -103,7 +104,7 @@ PyObject *wrap_IRConst(IRConst *i)
 		return 0; \
 	} \
 	 \
-	PYVEX_ACCESSOR_BUILDVAL(IRConst##tag, IRConst, wrapped->Ico.tag, value, format) \
+	PYVEX_ACCESSOR_BUILDVAL(IRConst##tag, IRConst, self->wrapped->Ico.tag, value, format) \
 	 \
 	PyGetSetDef pyIRConst##tag##_getseters[] = \
 	{ \

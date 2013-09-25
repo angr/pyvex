@@ -34,11 +34,10 @@ pyIRRegArray_init(pyIRRegArray *self, PyObject *args, PyObject *kwargs)
 	return 0;
 }
 
-PYVEX_SETTER(IRRegArray, wrapped)
-PYVEX_GETTER(IRRegArray, wrapped)
-PYVEX_ACCESSOR_BUILDVAL(IRRegArray, IRRegArray, wrapped->base, base, "i")
-PYVEX_ACCESSOR_ENUM(IRRegArray, IRRegArray, wrapped->elemTy, element_type, IRType)
-PYVEX_ACCESSOR_BUILDVAL(IRRegArray, IRRegArray, wrapped->nElems, num_elements, "i")
+PYVEX_ACCESSOR_WRAPPED(IRRegArray, IRRegArray, self->wrapped, wrapped, IRRegArray)
+PYVEX_ACCESSOR_BUILDVAL(IRRegArray, IRRegArray, self->wrapped->base, base, "i")
+PYVEX_ACCESSOR_ENUM(IRRegArray, IRRegArray, self->wrapped->elemTy, element_type, IRType)
+PYVEX_ACCESSOR_BUILDVAL(IRRegArray, IRRegArray, self->wrapped->nElems, num_elements, "i")
 
 PyObject *pyIRRegArray_equals(pyIRRegArray *self, pyIRRegArray *other)
 {

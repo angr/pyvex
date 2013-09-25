@@ -40,6 +40,7 @@ class PyVEXTest(unittest.TestCase):
 		self.assertEqual(cursize + 1, len(irsb.tyenv.types()))
 		self.assertEqual(irsb.tyenv.typeOf(new_tmp), "Ity_I32")
 
+		self.assertEqual(irsb.tyenv.typeOf(irsb.statements()[16].data), 'Ity_I64')
 
 	def test_irsb_deepCopy(self):
 		irsb = pyvex.IRSB(bytes='\x5d\xc3')
@@ -299,6 +300,9 @@ class PyVEXTest(unittest.TestCase):
 		self.assertFalse(c.equals(d))
 		self.assertFalse(d.equals(c))
 		self.assertFalse(c.equals("test"))
+
+		# TODO: actually check value
+		self.assertEquals(c.type, d.type)
 
 	def test_irconst(self):
 		self.helper_const_subtype(pyvex.IRConst.U1, "Ico_U1", 1)

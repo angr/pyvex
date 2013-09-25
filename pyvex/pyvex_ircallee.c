@@ -34,12 +34,11 @@ pyIRCallee_init(pyIRCallee *self, PyObject *args, PyObject *kwargs)
 
 static PyMemberDef pyIRCallee_members[] = { {NULL} };
 
-PYVEX_SETTER(IRCallee, wrapped)
-PYVEX_GETTER(IRCallee, wrapped)
-PYVEX_ACCESSOR_BUILDVAL(IRCallee, IRCallee, wrapped->regparms, regparms, "i")
-PYVEX_ACCESSOR_BUILDVAL(IRCallee, IRCallee, wrapped->name, name, "s")
-PYVEX_ACCESSOR_BUILDVAL(IRCallee, IRCallee, wrapped->mcx_mask, mcx_mask, "I")
-PYVEX_ACCESSOR_BUILDVAL(IRCallee, IRCallee, wrapped->addr, addr, "K")
+PYVEX_ACCESSOR_WRAPPED(IRCallee, IRCallee, self->wrapped, wrapped, IRCallee)
+PYVEX_ACCESSOR_BUILDVAL(IRCallee, IRCallee, self->wrapped->regparms, regparms, "i")
+PYVEX_ACCESSOR_BUILDVAL(IRCallee, IRCallee, self->wrapped->name, name, "s")
+PYVEX_ACCESSOR_BUILDVAL(IRCallee, IRCallee, self->wrapped->mcx_mask, mcx_mask, "I")
+PYVEX_ACCESSOR_BUILDVAL(IRCallee, IRCallee, self->wrapped->addr, addr, "K")
 
 static PyGetSetDef pyIRCallee_getseters[] =
 {

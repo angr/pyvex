@@ -55,12 +55,11 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 
 static PyMemberDef pyIRSB_members[] = { {NULL} };
 
-PYVEX_SETTER(IRSB, wrapped)
-PYVEX_GETTER(IRSB, wrapped)
-PYVEX_ACCESSOR_WRAPPED(IRSB, IRSB, wrapped->tyenv, tyenv, IRTypeEnv)
-PYVEX_ACCESSOR_WRAPPED(IRSB, IRSB, wrapped->next, next, IRExpr)
-PYVEX_ACCESSOR_ENUM(IRSB, IRSB, wrapped->jumpkind, jumpkind, IRJumpKind)
-PYVEX_ACCESSOR_BUILDVAL(IRSB, IRSB, wrapped->offsIP, offsIP, "i")
+PYVEX_ACCESSOR_WRAPPED(IRSB, IRSB, self->wrapped, wrapped, IRSB)
+PYVEX_ACCESSOR_WRAPPED(IRSB, IRSB, self->wrapped->tyenv, tyenv, IRTypeEnv)
+PYVEX_ACCESSOR_WRAPPED(IRSB, IRSB, self->wrapped->next, next, IRExpr)
+PYVEX_ACCESSOR_ENUM(IRSB, IRSB, self->wrapped->jumpkind, jumpkind, IRJumpKind)
+PYVEX_ACCESSOR_BUILDVAL(IRSB, IRSB, self->wrapped->offsIP, offsIP, "i")
 
 static PyGetSetDef pyIRSB_getseters[] =
 {

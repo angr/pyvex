@@ -38,25 +38,25 @@
 #define PYVEX_GETTER_BUILDVAL(type, intype, attr, name, format) \
 	static PyObject *py##type##_get_##name(py##intype *self, void *closure) \
 	{ \
-		PyObject *o = Py_BuildValue(format, self->attr); \
+		PyObject *o = Py_BuildValue(format, attr); \
 		if (!o) { PyErr_SetString(VexException, "Error in py"#type"_get_"#name"\n"); return NULL; } \
 		return o; \
 	}
 #define PYVEX_SETTER_BUILDVAL(type, intype, attr, name, format) \
 	static int py##type##_set_##name(py##intype *self, PyObject *value, void *closure) \
 	{ \
-		if (!PyArg_Parse(value, format, &(self->attr))) return -1; \
+		if (!PyArg_Parse(value, format, &(attr))) return -1; \
 		return 0; \
 	}
 #define PYVEX_ACCESSOR_BUILDVAL(a,b,c,d,e) PYVEX_SETTER_BUILDVAL(a,b,c,d,e) PYVEX_GETTER_BUILDVAL(a,b,c,d,e)
 
 #define PYVEX_GETTER_CAPSULE(type, intype, attr, name, ctype) \
-	static PyObject *py##type##_get_##name(py##intype *self, void *closure) { return PyCapsule_New(self->attr, #ctype, NULL); }
+	static PyObject *py##type##_get_##name(py##intype *self, void *closure) { return PyCapsule_New(attr, #ctype, NULL); }
 #define PYVEX_SETTER_CAPSULE(type, intype, attr, name, ctype) \
 	static int py##type##_set_##name(py##intype *self, PyObject *value, void *closure) \
 	{ \
 		ctype *i = (ctype *)PyCapsule_GetPointer(value, #ctype); \
-		if (i) { self->attr = i; return 0; } \
+		if (i) { attr = i; return 0; } \
 		else return -1; \
 	}
 #define PYVEX_ACCESSOR_CAPSULE(a,b,c,d,e) PYVEX_SETTER_CAPSULE(a,b,c,d,e) PYVEX_GETTER_CAPSULE(a,b,c,d,e)
@@ -64,7 +64,7 @@
 #define PYVEX_GETTER_WRAPPED(type, intype, attr, name, attrtype) \
 	static PyObject *py##type##_get_##name(py##intype *self, void *closure) \
 	{ \
-		PyObject *o = wrap_##attrtype(self->attr); \
+		PyObject *o = wrap_##attrtype(attr); \
 		if (!o) { PyErr_SetString(VexException, "Error in py"#type"_get_"#name"\n"); return NULL; } \
 		return o; \
 	}
@@ -72,19 +72,16 @@
 	static int py##type##_set_##name(py##intype *self, PyObject *value, void *closure) \
 	{ \
 		PYVEX_CHECKTYPE(value, py##attrtype##Type, return -1); \
-		self->attr = ((py##attrtype *) value)->wrapped; \
+		attr = ((py##attrtype *) value)->wrapped; \
 		return 0; \
 	}
 #define PYVEX_ACCESSOR_WRAPPED(a,b,c,d,e) PYVEX_SETTER_WRAPPED(a,b,c,d,e) PYVEX_GETTER_WRAPPED(a,b,c,d,e)
-
-#define PYVEX_SETTER(type, attr) PYVEX_SETTER_CAPSULE(type, type, attr, attr, type)
-#define PYVEX_GETTER(type, attr) PYVEX_GETTER_CAPSULE(type, type, attr, attr, type)
 
 // tag
 #define PYVEX_GETTER_ENUM(type, intype, attr, name, enum) \
 	static PyObject *py##type##_get_##name(py##intype *self, void *closure) \
 	{ \
-		const char *tstr = enum##_to_str(self->attr); \
+		const char *tstr = enum##_to_str(attr); \
 		if (tstr) return PyString_FromString(tstr); \
 		PyErr_SetString(VexException, "Unrecognized "#enum); \
 		return NULL; \
@@ -94,7 +91,7 @@
 	{ \
 		const char *tstr = PyString_AsString(value); \
 		enum t = str_to_##enum(tstr); \
-		if (t) { self->attr = t; return 0; } \
+		if (t) { attr = t; return 0; } \
 		else { PyErr_SetString(VexException, "Unrecognized "#enum); return -1; } \
 	}
 #define PYVEX_ACCESSOR_ENUM(a,b,c,d,e) PYVEX_SETTER_ENUM(a,b,c,d,e) PYVEX_GETTER_ENUM(a,b,c,d,e)
