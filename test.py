@@ -42,6 +42,15 @@ class PyVEXTest(unittest.TestCase):
 
 		self.assertEqual(irsb.tyenv.typeOf(irsb.statements()[16].data), 'Ity_I64')
 
+	def test_two_irsb(self):
+		irsb1 = pyvex.IRSB(bytes='\x5d\xc3')
+		irsb2 = pyvex.IRSB(bytes='\x5d\x5d\x5d\x5d')
+
+		stmts1 = irsb1.statements()
+		stmts2 = irsb2.statements()
+
+		self.assertNotEqual(len(stmts1), len(stmts2))
+
 	def test_irsb_deepCopy(self):
 		irsb = pyvex.IRSB(bytes='\x5d\xc3')
 		stmts = irsb.statements()
@@ -340,9 +349,6 @@ class PyVEXTest(unittest.TestCase):
 		self.assertRaises(Exception, pyvex.IRExpr.GetI, ())
 
 	def test_irexpr_rdtmp(self):
-		irsb = pyvex.IRSB(bytes='\x90\x5d\xc3')
-		self.assertEqual(irsb.next.tmp, irsb.next.deepCopy().tmp)
-
 		m = pyvex.IRExpr.RdTmp(123)
 		self.assertEqual(m.tag, "Iex_RdTmp")
 		self.assertEqual(m.tmp, m.deepCopy().tmp)
@@ -352,6 +358,12 @@ class PyVEXTest(unittest.TestCase):
 		self.assertEqual(m.tmp, 1337)
 		self.assertRaises(Exception, pyvex.IRExpr.RdTmp, ())
 		self.assertEqual(type(m), type(m.deepCopy()))
+
+		print "FUCK"
+		irsb = pyvex.IRSB(bytes='\x90\x5d\xc3')
+		print "TMP:",irsb.next.tmp
+		self.assertEqual(irsb.next.tmp, irsb.next.deepCopy().tmp)
+
 
 	def test_irexpr_get(self):
 		m = pyvex.IRExpr.Get(0, "Ity_I64")

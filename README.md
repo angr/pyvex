@@ -31,6 +31,14 @@ You can use pyvex pretty easily. For now, it only supports translation and prett
 
 Awesome stuff!
 
+## Static gotchas
+
+To use PyVEX statically, VEX's memory management needs to be worked around. The issue is that all of the nice, helpful, constructor functions (ie, emptyIRSB(), mkIRCallee(), etc) allocate memory managed by VEX, and VEX is liable to free it or reuse it at any time. Thus, everything needs to be deepCopied out of VEX.
+
+There are a few approaches to solving this. To work around the issue, we could simply pull all of these functions out of VEX and use our local copies, using reasonable memory management. However, that's a lot of functions to pull out and keep synced. We took the (possibly worse) approach of deepCopying everything away from VEX. The file generate\_deepcopy.sh copies out the deepCopy operations out of VEX, does some sedding to rename the functions, and we call those to pull everything out from VEX.
+
+One issue with that the fact that we need to explicitly replace functions, hence the giant list of defines in that shell script. Whenever Valgrind adds more of these, pyvex might silently segfault until they're added to the replacement list.
+
 ## Next steps
 
 - Get pyvex working in Valgrind, dynamically.
