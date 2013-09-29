@@ -8,6 +8,11 @@
 #include "pyvex_types.h"
 #include "pyvex_macros.h"
 
+#ifdef PYVEX_STATIC
+	#include "pyvex_static.h"
+	#include "pyvex_deepcopy.h"
+#endif
+
 ////////////////////////
 // IRRegArray base class //
 ////////////////////////
@@ -30,7 +35,7 @@ pyIRRegArray_init(pyIRRegArray *self, PyObject *args, PyObject *kwargs)
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "isi", kwlist, &base, &elemTy_str, &nElems)) return -1;
 	PYVEX_ENUM_FROMSTR(IRType, elemTy, elemTy_str, return -1)
 
-	self->wrapped = mkIRRegArray(base, elemTy, nElems);
+	self->wrapped = PYVEX_COPYOUT(IRRegArray, mkIRRegArray(base, elemTy, nElems));
 	return 0;
 }
 

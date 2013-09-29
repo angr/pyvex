@@ -9,6 +9,12 @@
 #include "pyvex_macros.h"
 #include "pyvex_logging.h"
 
+#ifdef PYVEX_STATIC
+	#include "pyvex_static.h"
+	#include "pyvex_deepcopy.h"
+#endif
+
+
 ///////////////////////
 // IRStmt base class //
 ///////////////////////
@@ -89,7 +95,7 @@ PyObject *wrap_IRStmt(IRStmt *i)
 static int
 pyIRStmtNoOp_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	if (!kwargs) { self->wrapped = IRStmt_NoOp(); return 0; }
+	if (!kwargs) { self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_NoOp()); return 0; }
 	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
 
 	PyErr_SetString(VexException, "Unexpected arguments provided to constructor.");
@@ -116,7 +122,7 @@ pyIRStmtIMark_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	static char *kwlist[] = {"addr", "len", "delta", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Kib", kwlist, &addr, &len, &delta)) return -1;
 
-	self->wrapped = IRStmt_IMark(addr, len, delta);
+	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_IMark(addr, len, delta));
 	return 0;
 }
 
@@ -153,7 +159,7 @@ pyIRStmtAbiHint_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	PYVEX_CHECKTYPE(base, pyIRExprType, return -1)
 	PYVEX_CHECKTYPE(nia, pyIRExprType, return -1)
 
-	self->wrapped = IRStmt_AbiHint(base->wrapped, len, nia->wrapped);
+	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_AbiHint(base->wrapped, len, nia->wrapped));
 	return 0;
 }
 
@@ -188,7 +194,7 @@ pyIRStmtPut_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iO", kwlist, &offset, &data)) return -1;
 	PYVEX_CHECKTYPE(data, pyIRExprType, return -1)
 
-	self->wrapped = IRStmt_Put(offset, data->wrapped);
+	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_Put(offset, data->wrapped));
 	return 0;
 }
 
@@ -225,7 +231,7 @@ pyIRStmtPutI_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	PYVEX_CHECKTYPE(ix, pyIRExprType, return -1)
 	PYVEX_CHECKTYPE(data, pyIRExprType, return -1)
 
-	self->wrapped = IRStmt_PutI(mkIRPutI(descr->wrapped, ix->wrapped, bias, data->wrapped));
+	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_PutI(mkIRPutI(descr->wrapped, ix->wrapped, bias, data->wrapped)));
 	return 0;
 }
 
@@ -262,7 +268,7 @@ pyIRStmtWrTmp_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IO", kwlist, &tmp, &data)) return -1;
 	PYVEX_CHECKTYPE(data, pyIRExprType, return -1)
 
-	self->wrapped = IRStmt_WrTmp(tmp, data->wrapped);
+	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_WrTmp(tmp, data->wrapped));
 	return 0;
 }
 
@@ -299,7 +305,7 @@ pyIRStmtStore_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	PYVEX_CHECKTYPE(data, pyIRExprType, return -1)
 	PYVEX_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
 
-	self->wrapped = IRStmt_Store(endness, addr->wrapped, data->wrapped);
+	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_Store(endness, addr->wrapped, data->wrapped));
 	return 0;
 }
 
@@ -346,8 +352,7 @@ pyIRStmtCAS_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	PYVEX_CHECKTYPE(dataLo, pyIRExprType, return -1)
 	PYVEX_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
 
-	self->wrapped = IRStmt_CAS(mkIRCAS(oldHi, oldLo, endness, addr->wrapped, expdHi->wrapped, expdLo->wrapped,
-				dataHi->wrapped, dataLo->wrapped));
+	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_CAS(mkIRCAS(oldHi, oldLo, endness, addr->wrapped, expdHi->wrapped, expdLo->wrapped, dataHi->wrapped, dataLo->wrapped)));
 	return 0;
 }
 
@@ -397,7 +402,7 @@ pyIRStmtLLSC_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	PYVEX_CHECKTYPE(storedata, pyIRExprType, return -1)
 	PYVEX_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
 
-	self->wrapped = IRStmt_LLSC(endness, result, addr->wrapped, storedata->wrapped);
+	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_LLSC(endness, result, addr->wrapped, storedata->wrapped));
 	return 0;
 }
 
@@ -433,7 +438,7 @@ pyIRStmtMBE_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s", kwlist, &mb_str)) return -1;
 	PYVEX_ENUM_FROMSTR(IRMBusEvent, mb, mb_str, return -1);
 
-	self->wrapped = IRStmt_MBE(mb);
+	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_MBE(mb));
 	return 0;
 }
 
@@ -468,7 +473,7 @@ pyIRStmtExit_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	PYVEX_CHECKTYPE(dst, pyIRConstType, return -1)
 	PYVEX_ENUM_FROMSTR(IRJumpKind, jk, jk_str, return -1);
 
-	self->wrapped = IRStmt_Exit(guard->wrapped, jk, dst->wrapped, offsIP);
+	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_Exit(guard->wrapped, jk, dst->wrapped, offsIP));
 	return 0;
 }
 
@@ -520,10 +525,10 @@ pyIRStmtDirty_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
         cargs[i] = NULL;
 
         IRDirty *dirty;
-        if (PyDict_GetItemString(kwargs, "tmp")) dirty = unsafeIRDirty_1_N(dest, regparms, (char*) name, (void *)addr, cargs);
+        if (PyDict_GetItemString(kwargs, "tmp")) dirty = PYVEX_COPYOUT(IRDirty, unsafeIRDirty_1_N(dest, regparms, (char*) name, (void *)addr, cargs));
         else dirty = unsafeIRDirty_0_N(regparms, (char*)name, (void *)addr, cargs);
 
-	self->wrapped = IRStmt_Dirty(dirty);
+	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_Dirty(dirty));
 	return 0;
 }
 

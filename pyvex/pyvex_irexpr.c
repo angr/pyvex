@@ -9,6 +9,11 @@
 #include "pyvex_macros.h"
 #include "pyvex_logging.h"
 
+#ifdef PYVEX_STATIC
+	#include "pyvex_static.h"
+	#include "pyvex_deepcopy.h"
+#endif
+
 ///////////////////////
 // IRExpr base class //
 ///////////////////////
@@ -95,7 +100,7 @@ pyIRExprBinder_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	static char *kwlist[] = {"binder", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &binder)) return -1;
 
-	self->wrapped = IRExpr_Binder(binder);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Binder(binder));
 	return 0;
 }
 
@@ -130,7 +135,7 @@ pyIRExprGetI_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	PYVEX_CHECKTYPE(descr, pyIRRegArrayType, return -1);
 	PYVEX_CHECKTYPE(ix, pyIRExprType, return -1);
 
-	self->wrapped = IRExpr_GetI(descr->wrapped, ix->wrapped, bias);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_GetI(descr->wrapped, ix->wrapped, bias));
 	return 0;
 }
 
@@ -166,7 +171,7 @@ pyIRExprGet_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, &offset, &type_str)) return -1;
 	PYVEX_ENUM_FROMSTR(IRType, type, type_str, return -1);
 
-	self->wrapped = IRExpr_Get(offset, type);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Get(offset, type));
 	return 0;
 }
 
@@ -228,14 +233,14 @@ pyIRExprQop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	pyIRExpr *arg4;
 
 	static char *kwlist[] = {"op", "arg1", "arg2", "arg3", "arg4", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOOOO|O", kwlist, &op_str, &arg1, &arg2, &arg3, &arg4, &wrap_object)) return -1;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOOOO|O", kwlist, &op_str, &arg1, &arg2, &arg3, &arg4)) return -1;
 	PYVEX_ENUM_FROMSTR(IROp, op, op_str, return -1);
 	PYVEX_CHECKTYPE(arg1, pyIRExprType, return -1);
 	PYVEX_CHECKTYPE(arg2, pyIRExprType, return -1);
 	PYVEX_CHECKTYPE(arg3, pyIRExprType, return -1);
 	PYVEX_CHECKTYPE(arg4, pyIRExprType, return -1);
 
-	self->wrapped = IRExpr_Qop(op, arg1->wrapped, arg2->wrapped, arg3->wrapped, arg4->wrapped);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Qop(op, arg1->wrapped, arg2->wrapped, arg3->wrapped, arg4->wrapped));
 	return 0;
 }
 
@@ -289,7 +294,7 @@ pyIRExprTriop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	PYVEX_CHECKTYPE(arg2, pyIRExprType, return -1);
 	PYVEX_CHECKTYPE(arg3, pyIRExprType, return -1);
 
-	self->wrapped = IRExpr_Triop(op, arg1->wrapped, arg2->wrapped, arg3->wrapped);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Triop(op, arg1->wrapped, arg2->wrapped, arg3->wrapped));
 	return 0;
 }
 
@@ -338,7 +343,7 @@ pyIRExprBinop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	PYVEX_CHECKTYPE(arg1, pyIRExprType, return -1);
 	PYVEX_CHECKTYPE(arg2, pyIRExprType, return -1);
 
-	self->wrapped = IRExpr_Binop(op, arg1->wrapped, arg2->wrapped);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Binop(op, arg1->wrapped, arg2->wrapped));
 	return 0;
 }
 
@@ -382,7 +387,7 @@ pyIRExprUnop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	PYVEX_ENUM_FROMSTR(IROp, op, op_str, return -1);
 	PYVEX_CHECKTYPE(arg1, pyIRExprType, return -1);
 
-	self->wrapped = IRExpr_Unop(op, arg1->wrapped);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Unop(op, arg1->wrapped));
 	return 0;
 }
 
@@ -426,7 +431,7 @@ pyIRExprLoad_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	PYVEX_ENUM_FROMSTR(IRType, type, type_str, return -1);
 	PYVEX_CHECKTYPE(addr, pyIRExprType, return -1);
 
-	self->wrapped = IRExpr_Load(endness, type, addr->wrapped);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Load(endness, type, addr->wrapped));
 	return 0;
 }
 
@@ -460,7 +465,7 @@ pyIRExprConst_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &con)) return -1;
 	PYVEX_CHECKTYPE(con, pyIRConstType, return -1);
 
-	self->wrapped = IRExpr_Const(con->wrapped);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Const(con->wrapped));
 	return 0;
 }
 
@@ -494,7 +499,7 @@ pyIRExprMux0X_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	PYVEX_CHECKTYPE(expr0, pyIRExprType, return -1);
 	PYVEX_CHECKTYPE(exprX, pyIRExprType, return -1);
 
-	self->wrapped = IRExpr_Mux0X(cond->wrapped, expr0->wrapped, exprX->wrapped);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Mux0X(cond->wrapped, expr0->wrapped, exprX->wrapped));
 	return 0;
 }
 
@@ -543,7 +548,7 @@ pyIRExprCCall_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	}
 	cargs[i] = NULL;
 
-	self->wrapped = IRExpr_CCall(callee->wrapped, ret_type, cargs);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_CCall(callee->wrapped, ret_type, cargs));
 	return 0;
 }
 PYVEX_ACCESSOR_WRAPPED(IRExprCCall, IRExpr, self->wrapped->Iex.CCall.cee, callee, IRCallee)

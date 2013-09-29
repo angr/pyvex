@@ -8,6 +8,11 @@
 #include "pyvex_types.h"
 #include "pyvex_macros.h"
 
+#ifdef PYVEX_STATIC
+	#include "pyvex_static.h"
+	#include "pyvex_deepcopy.h"
+#endif
+
 //////////////////
 // Python stuff //
 //////////////////
@@ -20,7 +25,7 @@ PYVEX_METH_STANDARD(IRTypeEnv)
 static int
 pyIRTypeEnv_init(pyIRTypeEnv *self, PyObject *args, PyObject *kwargs)
 {
-	if (!kwargs) { self->wrapped = emptyIRTypeEnv(); return 0; }
+	if (!kwargs) { self->wrapped = PYVEX_COPYOUT(IRTypeEnv, emptyIRTypeEnv()); return 0; }
 	PYVEX_WRAP_CONSTRUCTOR(IRTypeEnv);
 
 	PyErr_SetString(VexException, "Unexpected arguments provided.");

@@ -7,7 +7,11 @@
 #include "pyvex_enums.h"
 #include "pyvex_types.h"
 #include "pyvex_macros.h"
-#include "pyvex_static.h"
+
+#ifdef PYVEX_STATIC
+	#include "pyvex_static.h"
+	#include "pyvex_deepcopy.h"
+#endif
 
 PYVEX_NEW(IRSB)
 PYVEX_DEALLOC(IRSB)
@@ -17,10 +21,10 @@ PYVEX_METH_STANDARD(IRSB)
 static int
 pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 {
-	if (!kwargs) { self->wrapped = emptyIRSB(); return 0; }
+	if (!kwargs) { self->wrapped = PYVEX_COPYOUT(IRSB, emptyIRSB()); return 0; }
 	PYVEX_WRAP_CONSTRUCTOR(IRSB);
 
-#ifndef PYVEX_NOSTATIC
+#ifdef PYVEX_STATIC
 	unsigned char *bytes = NULL;
 	unsigned int mem_addr = 0;
 	int num_inst = -1;

@@ -9,6 +9,11 @@
 #include "pyvex_macros.h"
 #include "pyvex_logging.h"
 
+#ifdef PYVEX_STATIC
+	#include "pyvex_static.h"
+	#include "pyvex_deepcopy.h"
+#endif
+
 ////////////////////////
 // IRConst base class //
 ////////////////////////
@@ -100,7 +105,7 @@ PyObject *wrap_IRConst(IRConst *i)
 		type value; \
 		static char *kwlist[] = {"value", NULL}; \
 		if (!PyArg_ParseTupleAndKeywords(args, kwargs, format, kwlist, &value)) return -1; \
-		self->wrapped = IRConst_##tag(value); \
+		self->wrapped = PYVEX_COPYOUT(IRConst, IRConst_##tag(value)); \
 		return 0; \
 	} \
 	 \

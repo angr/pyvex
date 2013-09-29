@@ -40,13 +40,14 @@ Awesome stuff!
 ## Bugs
 
 - Some class members are named incorrectly. I started out trying to name things nicer, but then realized that the naming should be consistent with the C structs. The inconsistencies should be fixed.
-- The class objects for the different sub-statements, sub-expressions, and sub-constants get inherited for instances of these classes. This is kindof ugly (ie, pyvex.IRStmt.NoOp().WrTmp is a valid reference to the WrTmp class).
 - help() is sorely lacking
+- The class objects for the different sub-statements, sub-expressions, and sub-constants get inherited for instances of these classes. This is kindof ugly (ie, pyvex.IRStmt.NoOp().WrTmp is a valid reference to the WrTmp class).
 - pretty-printing an emptyIRSB segfaults
-- there is no memory management. VEX is kind of weird with this, so care will have to be taken... It shouldn't be an issue when doing the normal VEX workflow, but for long-running static analysis, the blocks will probably have to be copied out with a rewritten deepCopier.
+- when used statically, memory is never freed
 - converting from string to tag is currently very slow (a hastily written consecutive bunch of strcmps)
 - IRCallee assumes that addresses are 64-bytes long, and will corrupt memory otherwise. This can be fixed by writing a getter/setter instead of using the macroed ones.
 - CCalls are created by creating the IRCallee and manually building the args list, instead of by calling the helper functions. Not sure if this is good or bad. On the other hand, Dirty statements are created through helper functions.
 - deepCopying a binder IRExpr seems to crash VEX
+- deepCopying a V256 const is not implemented by VEX's deepCopy stuff
 - IRDirty's fxState array access is untested
 - equality (for those things that easily have it) should be implemented as a rich comparator

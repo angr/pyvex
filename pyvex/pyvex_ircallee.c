@@ -8,6 +8,11 @@
 #include "pyvex_types.h"
 #include "pyvex_macros.h"
 
+#ifdef PYVEX_STATIC
+	#include "pyvex_static.h"
+	#include "pyvex_deepcopy.h"
+#endif
+
 PYVEX_NEW(IRCallee)
 PYVEX_DEALLOC(IRCallee)
 PYVEX_WRAP(IRCallee)
@@ -27,7 +32,7 @@ pyIRCallee_init(pyIRCallee *self, PyObject *args, PyObject *kwargs)
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "isK|I", kwlist, &regparms, &name, &addr, &mcx_mask)) return -1;
 	if (regparms < 0 || regparms > 3) { PyErr_SetString(VexException, "regparms out of range"); return -1; }
 
-	self->wrapped = mkIRCallee(regparms, name, (void *)addr);
+	self->wrapped = PYVEX_COPYOUT(IRCallee, mkIRCallee(regparms, name, (void *)addr));
 	if (mcx_mask != 123456789) self->wrapped->mcx_mask = mcx_mask;
 	return 0;
 }

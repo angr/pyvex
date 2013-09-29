@@ -79,7 +79,7 @@ initpyvex(void)
 	//printf("VexException added...\n");
 
 	//debug_on = 1;
-#ifndef PYVEX_NOSTATIC
+#ifdef PYVEX_STATIC
 	vex_init();
 #endif
 	//printf("Done\n");
