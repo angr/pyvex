@@ -45,6 +45,8 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 		if (num_inst > -1) self->wrapped = vex_block_inst(VexArchAMD64, bytes, mem_addr, num_inst);
 		else self->wrapped = vex_block_bytes(VexArchAMD64, bytes, mem_addr, num_bytes);
 
+		self->wrapped = PYVEX_COPYOUT(IRSB, self->wrapped);
+
 		if (self->wrapped == NULL) { PyErr_SetString(VexException, "Error creating IR."); return -1; }
 		return 0;
 	}

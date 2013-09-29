@@ -227,9 +227,7 @@ IRSB* pyvex_deepCopyIRSB ( IRSB* bb )
 {
    Int      i;
    IRStmt** sts2;
-   error("copying %p without statements\n", bb);
    IRSB* bb2 = pyvex_deepCopyIRSBExceptStmts(bb);
-   error("done copying without statements\n");
    bb2->stmts_used = bb2->stmts_size = bb->stmts_used;
    sts2 = malloc(bb2->stmts_used * sizeof(IRStmt*));
    for (i = 0; i < bb2->stmts_used; i++)
