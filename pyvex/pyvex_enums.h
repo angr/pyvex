@@ -2,6 +2,10 @@
 
 #pragma once
 
+// vex architectures
+const char *VexArch_to_str(VexArch);
+VexArch str_to_VexArch(const char *);
+
 // expression tags
 const char *IRExprTag_to_str(IRExprTag);
 IRExprTag str_to_IRExprTag(const char *);

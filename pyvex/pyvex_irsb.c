@@ -29,9 +29,14 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 	unsigned int mem_addr = 0;
 	int num_inst = -1;
 	int num_bytes = -1;
+	const char *arch_str = NULL;
+	VexArch arch = VexArch_INVALID;
 
-	static char *kwlist[] = {"bytes", "mem_addr", "num_inst", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s#ii", kwlist, &bytes, &num_bytes, &mem_addr, &num_inst)) return -1;
+	static char *kwlist[] = {"bytes", "mem_addr", "num_inst", "arch", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s#iis", kwlist, &bytes, &num_bytes, &mem_addr, &num_inst, &arch_str)) return -1;
+
+	if (!arch_str) arch_str = "VexArchAMD64";
+	PYVEX_ENUM_FROMSTR(VexArch, arch, arch_str, return -1);
 
 	if (num_bytes == 0)
 	{
@@ -42,8 +47,8 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 	if (num_bytes > 0)
 	{
 		vex_init();
-		if (num_inst > -1) self->wrapped = vex_block_inst(VexArchAMD64, bytes, mem_addr, num_inst);
-		else self->wrapped = vex_block_bytes(VexArchAMD64, bytes, mem_addr, num_bytes);
+		if (num_inst > -1) self->wrapped = vex_block_inst(arch, bytes, mem_addr, num_inst);
+		else self->wrapped = vex_block_bytes(arch, bytes, mem_addr, num_bytes);
 
 		self->wrapped = PYVEX_COPYOUT(IRSB, self->wrapped);
 

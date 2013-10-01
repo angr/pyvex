@@ -23,10 +23,10 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <assert.h>
 #include <libvex.h>
 
+#define HOST_ARCH VexArchAMD64
+
 #include "pyvex_static.h"
 #include "pyvex_logging.h"
-
-#define AMD64
 
 // these are problematic because we need to link with vex statically to use them, I think
 extern VexControl vex_control;
@@ -39,20 +39,13 @@ extern Bool vex_initdone;
 //======================================================================
 
 // Some info required for translation
-VexArchInfo         vai;
+VexArchInfo         vai_host;
+VexArchInfo         vai_guest;
 VexGuestExtents     vge;
 VexTranslateArgs    vta;
 VexTranslateResult  vtr;
 VexAbiInfo	    vbi;
 VexControl vc;
-
-// Define a temp buffer to hold the vexed bytes
-// Not needed with patched VEX
-#ifndef AMD64
-#define             TMPBUF_SIZE 2000
-UChar               tmpbuf[TMPBUF_SIZE];
-Int                 tmpbuf_used;
-#endif
 
 // Global for saving the intermediate results of translation from
 // within the callback (instrument1)
@@ -151,7 +144,8 @@ void vex_init()
 	            &vc );
 	debug("LibVEX_Init() done....\n");
 
-	LibVEX_default_VexArchInfo(&vai);
+	LibVEX_default_VexArchInfo(&vai_guest);
+	LibVEX_default_VexArchInfo(&vai_host);
 	LibVEX_default_VexAbiInfo(&vbi);
 	vbi.guest_stack_redzone_size = 128;
 
@@ -164,14 +158,10 @@ void vex_init()
 	vta.arch_guest          = VexArch_INVALID; // to be assigned later
 	//vta.arch_guest          = VexArchARM;
 	//vta.arch_guest          = VexArchX86;               // Source arch
-	vta.archinfo_guest      = vai;
+	//vta.archinfo_guest      = vai_guest;
 	// FIXME: detect this one automatically
-#ifdef AMD64
-	vta.arch_host           = VexArchAMD64;
-#else
-	vta.arch_host           = VexArchX86;               // Target arch
-#endif
-	vta.archinfo_host       = vai;
+	vta.arch_host           = HOST_ARCH;
+	vta.archinfo_host       = vai_host;
 	vta.abiinfo_both	= vbi;
 
 	//
@@ -202,18 +192,44 @@ void vex_init()
 	#endif
 
 	vta.guest_extents       = &vge;
-#ifdef AMD64
 	vta.host_bytes          = NULL;           // Buffer for storing the output binary
 	vta.host_bytes_size     = 0;
 	vta.host_bytes_used     = NULL;
-#else
-	vta.host_bytes          = tmpbuf;           // Buffer for storing the output binary
-	vta.host_bytes_size     = TMPBUF_SIZE;
-	vta.host_bytes_used     = &tmpbuf_used;
-#endif
 	// doesn't exist? vta.do_self_check       = False;
 	vta.traceflags          = 0;                // Debug verbosity
 	//vta.traceflags          = -1;                // Debug verbosity
+}
+
+// Prepare the VexArchInfo struct
+void vex_prepare_vai(VexArch arch, VexArchInfo *vai)
+{
+	switch (arch)
+	{
+		case VexArchX86:
+			vai->hwcaps = 0;
+			break;
+		case VexArchAMD64:
+			vai->hwcaps = 0;
+			break;
+		case VexArchARM:
+			vai->hwcaps = 7;
+			break;
+		case VexArchPPC32:
+			vai->hwcaps = 0;
+			break;
+		case VexArchPPC64:
+			vai->hwcaps = 0;
+			break;
+		case VexArchS390X:
+			vai->hwcaps = 0x00010000;
+			break;
+		case VexArchMIPS32:
+			vai->hwcaps = 0;
+			break;
+		default:
+			error("Invalid arch in vex_prepare_vai.\n");
+			break;
+	}
 }
 
 //----------------------------------------------------------------------
@@ -221,6 +237,9 @@ void vex_init()
 //----------------------------------------------------------------------
 IRSB *vex_inst(VexArch guest, unsigned char *insn_start, unsigned int insn_addr, int max_insns)
 {
+	vex_prepare_vai(guest, &vai_guest);
+
+	vta.archinfo_guest = vai_guest;
 	vta.arch_guest = guest;
 	vta.guest_bytes         = (UChar *)(insn_start);  // Ptr to actual bytes of start of instruction
 	vta.guest_bytes_addr    = (Addr64)(insn_addr);

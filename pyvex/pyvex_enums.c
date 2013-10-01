@@ -6,6 +6,40 @@
 #include "pyvex_macros.h"
 #include "pyvex_logging.h"
 
+////////////////////////
+// VexArch translator //
+////////////////////////
+const char *VexArch_to_str(VexArch va)
+{
+	switch (va)
+	{
+		PYVEX_ENUMCONV_TOSTRCASE(VexArchX86)
+		PYVEX_ENUMCONV_TOSTRCASE(VexArchAMD64)
+		PYVEX_ENUMCONV_TOSTRCASE(VexArchARM)
+		PYVEX_ENUMCONV_TOSTRCASE(VexArchPPC32)
+		PYVEX_ENUMCONV_TOSTRCASE(VexArchPPC64)
+		PYVEX_ENUMCONV_TOSTRCASE(VexArchS390X)
+		PYVEX_ENUMCONV_TOSTRCASE(VexArchMIPS32)
+		default:
+			error("PyVEX: Unknown VexArch");
+			return NULL;
+	}
+}
+
+VexArch str_to_VexArch(const char *s)
+{
+	PYVEX_ENUMCONV_FROMSTR(Iex_Binder)
+	PYVEX_ENUMCONV_FROMSTR(VexArchX86)
+	PYVEX_ENUMCONV_FROMSTR(VexArchAMD64)
+	PYVEX_ENUMCONV_FROMSTR(VexArchARM)
+	PYVEX_ENUMCONV_FROMSTR(VexArchPPC32)
+	PYVEX_ENUMCONV_FROMSTR(VexArchPPC64)
+	PYVEX_ENUMCONV_FROMSTR(VexArchS390X)
+	PYVEX_ENUMCONV_FROMSTR(VexArchMIPS32)
+
+	return -1;
+}
+
 //////////////////////////
 // IRExprTag translator //
 //////////////////////////

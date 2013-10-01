@@ -25,6 +25,10 @@ class PyVEXTest(unittest.TestCase):
 		stmts = irsb.statements()
 		self.assertEqual(len(stmts), 0)
 
+	def test_irsb_arm(self):
+		irsb = pyvex.IRSB(bytes='\x33\xff\x2f\xe1', arch="VexArchARM")
+		self.assertEqual(sum([ 1 for i in irsb.statements() if type(i) == pyvex.IRStmt.IMark ]), 1)
+
 	def test_irsb_popret(self):
 		irsb = pyvex.IRSB(bytes='\x5d\xc3')
 		stmts = irsb.statements()

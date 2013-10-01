@@ -45,7 +45,7 @@ One issue with that the fact that we need to explicitly replace functions, hence
  - this requires getting the python interpreter to play nice with Valgrind. It's unclear if this is possible.
 - Debug this stuff.
 
-## Bugs
+## Bugs/Issues
 
 - Some class members are named incorrectly. I started out trying to name things nicer, but then realized that the naming should be consistent with the C structs. The inconsistencies should be fixed.
 - help() is sorely lacking
@@ -59,3 +59,4 @@ One issue with that the fact that we need to explicitly replace functions, hence
 - deepCopying a V256 const is not implemented by VEX's deepCopy stuff
 - IRDirty's fxState array access is untested
 - equality (for those things that easily have it) should be implemented as a rich comparator
+- the hwcaps for the various guest architectures are currently hardcoded. It should be possible to set them from Python.
