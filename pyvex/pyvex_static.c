@@ -288,8 +288,14 @@ IRSB *vex_block_bytes(VexArch guest, unsigned char *instructions, unsigned long 
 {
 	int count = vex_count_instructions(guest, instructions, block_addr, num_bytes);
 	if (count == 0)
-	{ error("vex_block_bytes: unable to get instruction count of %d bytes with block_addr %x\n", num_bytes, block_addr); return NULL; }
-	if (count > 99) { error("vex_block_bytes: maximum instruction count is 99."); count = 99; }
+	{
+		error("vex_block_bytes: unable to get instruction count of %d bytes with block_addr %x\n", num_bytes, block_addr);
+		return emptyIRSB();
+	}
+	if (count > 99)
+	{
+		error("vex_block_bytes: maximum instruction count is 99."); count = 99;
+	}
 
 	IRSB *sb = vex_inst(guest, instructions, block_addr, count);
 	if (vge.len[0] != num_bytes) { error("vex_block_bytes: only translated %d bytes out of %d in block_addr %x\n", vge.len[0], num_bytes, block_addr); }
