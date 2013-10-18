@@ -60,3 +60,4 @@ One issue with that the fact that we need to explicitly replace functions, hence
 - IRDirty's fxState array access is untested
 - equality (for those things that easily have it) should be implemented as a rich comparator
 - the hwcaps for the various guest architectures are currently hardcoded. It should be possible to set them from Python.
+- You may come acorss a "a.out.h not found" error while compiling the Valgrind. Please turn to http://git.buildroot.net/buildroot/plain/package/valgrind/valgrind-dont-include-a-out-header.patch for a workaround.
