@@ -220,10 +220,10 @@ void vex_prepare_vai(VexArch arch, VexArchInfo *vai)
 			vai->hwcaps = 0;
 			break;
 		case VexArchS390X:
-			vai->hwcaps = 0x00010000;
+			vai->hwcaps = 0;
 			break;
 		case VexArchMIPS32:
-			vai->hwcaps = 0;
+			vai->hwcaps = 0x00010000;
 			break;
 		default:
 			error("Invalid arch in vex_prepare_vai.\n");
