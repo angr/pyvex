@@ -4,13 +4,22 @@ A python interface into Valgrind's VEX IR! This was created mainly to utilize VE
 
 ## Build
 
-For now, pyvex requires valgrind to be compiled with fPIC:
+### Compiling VEX
+
+First, get the VEX code.
 
 	mkdir ~/valgrind
 	cd ~/valgrind
 	wget http://valgrind.org/downloads/valgrind-3.8.1.tar.bz2
 	tar xvfj valgrind-3.8.1.tar.bz2
 	cd valgrind-3.8.1
+
+If you want to be able to VEX stuff for different platforms than what you're running on, you need to disable VEX's native code generation, as that'll just make everything crash. You can apply a patch to disable this:
+
+	patch -p1 < /path/to/pyvex/valgrind_static_3.8.1.patch
+
+For now, pyvex requires valgrind to be compiled with fPIC:
+
 	CFLAGS=-fPIC ./configure --prefix=$HOME/valgrind/inst
 	make
 	make install
