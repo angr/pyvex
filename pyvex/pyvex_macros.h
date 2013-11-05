@@ -184,6 +184,7 @@
 #define PYVEX_GETTER_WRAPPED(type, intype, attr, name, attrtype) \
 	static PyObject *py##type##_get_##name(py##intype *self, void *closure) \
 	{ \
+		if (attr == NULL) { Py_RETURN_NONE; } \
 		PyObject *o = wrap_##attrtype(attr); \
 		if (!o) { PyErr_SetString(VexException, "Error in py"#type"_get_"#name"\n"); return NULL; } \
 		return o; \
