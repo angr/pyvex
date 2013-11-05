@@ -166,7 +166,11 @@
 
 // - getters and setters which encapsulate the members using PyCapsule
 #define PYVEX_GETTER_CAPSULE(type, intype, attr, name, ctype) \
-	static PyObject *py##type##_get_##name(py##intype *self, void *closure) { return PyCapsule_New(attr, #ctype, NULL); }
+	static PyObject *py##type##_get_##name(py##intype *self, void *closure) \
+	{ \
+		if (attr == NULL) { Py_RETURN_NONE; } \
+		return PyCapsule_New(attr, #ctype, NULL); \
+	}
 #define PYVEX_SETTER_CAPSULE(type, intype, attr, name, ctype) \
 	static int py##type##_set_##name(py##intype *self, PyObject *value, void *closure) \
 	{ \
