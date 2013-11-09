@@ -23,8 +23,6 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <assert.h>
 #include <libvex.h>
 
-#define HOST_ARCH VexArchAMD64
-
 #include "pyvex_static.h"
 #include "pyvex_logging.h"
 
@@ -155,11 +153,7 @@ void vex_init()
 	// Architecture info
 	//
 	vta.arch_guest          = VexArch_INVALID; // to be assigned later
-	//vta.arch_guest          = VexArchARM;
-	//vta.arch_guest          = VexArchX86;               // Source arch
-	//vta.archinfo_guest      = vai_guest;
-	vta.arch_host           = HOST_ARCH;
-	vta.archinfo_host       = vai_host;
+	vta.arch_host          = VexArch_INVALID; // to be assigned later
 	vta.abiinfo_both	= vbi;
 
 	//
@@ -239,12 +233,13 @@ IRSB *vex_inst(VexArch guest, unsigned char *insn_start, unsigned int insn_addr,
 
 	debug("Guest arch: %d\n", guest);
 	debug("Guest arch hwcaps: %08x\n", vai_guest.hwcaps);
+	vta.traceflags = 0xffffffff;
 
-	//vta.archinfo_host = vai_guest;
-	//vta.arch_host = guest;
-	//vta.traceflags = 0xffffffff;
+	vta.archinfo_host = vai_guest;
+	vta.arch_host = guest;
 	vta.archinfo_guest = vai_guest;
 	vta.arch_guest = guest;
+
 	vta.guest_bytes         = (UChar *)(insn_start);  // Ptr to actual bytes of start of instruction
 	vta.guest_bytes_addr    = (Addr64)(insn_addr);
 
