@@ -233,7 +233,7 @@ IRSB *vex_inst(VexArch guest, unsigned char *insn_start, unsigned int insn_addr,
 
 	debug("Guest arch: %d\n", guest);
 	debug("Guest arch hwcaps: %08x\n", vai_guest.hwcaps);
-	vta.traceflags = 0xffffffff;
+	//vta.traceflags = 0xffffffff;
 
 	vta.archinfo_host = vai_guest;
 	vta.arch_host = guest;
