@@ -1,7 +1,28 @@
-diff -Naur valgrind-3.8.1/VEX/priv/main_main.c valgrind-3.8.1-static/VEX/priv/main_main.c
+diff -rupN valgrind-3.8.1/VEX/priv/guest_mips_toIR.c valgrind-3.8.1-static/VEX/priv/guest_mips_toIR.c
+--- valgrind-3.8.1/VEX/priv/guest_mips_toIR.c	2012-08-17 00:00:00.000000000 -0700
++++ valgrind-3.8.1-static/VEX/priv/guest_mips_toIR.c	2013-11-08 20:36:54.789667536 -0800
+@@ -249,17 +249,10 @@ static UInt floatGuestRegOffset(UInt fre
+ static inline UInt getUInt(UChar * p)
+ {
+    UInt w = 0;
+-#if defined (_MIPSEL)
+-   w = (w << 8) | p[3];
+-   w = (w << 8) | p[2];
+-   w = (w << 8) | p[1];
+-   w = (w << 8) | p[0];
+-#elif defined (_MIPSEB)
+    w = (w << 8) | p[0];
+    w = (w << 8) | p[1];
+    w = (w << 8) | p[2];
+    w = (w << 8) | p[3];
+-#endif
+    return w;
+ }
+ 
+diff -rupN valgrind-3.8.1/VEX/priv/main_main.c valgrind-3.8.1-static/VEX/priv/main_main.c
 --- valgrind-3.8.1/VEX/priv/main_main.c	2012-08-17 00:00:00.000000000 -0700
-+++ valgrind-3.8.1-static/VEX/priv/main_main.c	2013-10-30 14:53:54.982739570 -0700
-@@ -749,115 +749,115 @@
++++ valgrind-3.8.1-static/VEX/priv/main_main.c	2013-11-08 20:36:14.841666530 -0800
+@@ -749,115 +749,115 @@ VexTranslateResult LibVEX_Translate ( Ve
                     " Instruction selection "
                     "------------------------\n");
  

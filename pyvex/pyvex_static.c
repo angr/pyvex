@@ -237,8 +237,12 @@ IRSB *vex_inst(VexArch guest, unsigned char *insn_start, unsigned int insn_addr,
 {
 	vex_prepare_vai(guest, &vai_guest);
 
+	debug("Guest arch: %d\n", guest);
+	debug("Guest arch hwcaps: %08x\n", vai_guest.hwcaps);
+
 	//vta.archinfo_host = vai_guest;
 	//vta.arch_host = guest;
+	//vta.traceflags = 0xffffffff;
 	vta.archinfo_guest = vai_guest;
 	vta.arch_guest = guest;
 	vta.guest_bytes         = (UChar *)(insn_start);  // Ptr to actual bytes of start of instruction
