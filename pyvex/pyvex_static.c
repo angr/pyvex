@@ -257,7 +257,7 @@ IRSB *vex_inst(VexArch guest, unsigned char *insn_start, unsigned int insn_addr,
 	return irbb_current;
 }
 
-int vex_count_instructions(VexArch guest, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes)
+int vex_count_instructions(VexArch guest, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
 {
 	int count = 0;
 	int processed = 0;
@@ -265,7 +265,7 @@ int vex_count_instructions(VexArch guest, unsigned char *instructions, unsigned 
 	while (processed < num_bytes)
 	{
 		debug("Next byte: %02x\n", instructions[processed]);
-		vex_inst(guest, instructions + processed, block_addr + processed, 1);
+		IRSB *sb = vex_inst(guest, instructions + processed, block_addr + processed, 1);
 
 		if (vge.len[0] == 0)
 		{
@@ -278,14 +278,22 @@ int vex_count_instructions(VexArch guest, unsigned char *instructions, unsigned 
 
 		assert(vge.n_used == 1);
 		count++;
+
+		// stop getting instructions if we are looking for non-extended basic blocks and we see an exit
+		if (basic_only)
+		{
+			for (int i = 0; i < sb->stmts_used; i++)
+				if (sb->stmts[i]->tag == Ist_Exit) break;
+		}
+
 	}
 
 	return count;
 }
 
-IRSB *vex_block_bytes(VexArch guest, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes)
+IRSB *vex_block_bytes(VexArch guest, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
 {
-	int count = vex_count_instructions(guest, instructions, block_addr, num_bytes);
+	int count = vex_count_instructions(guest, instructions, block_addr, num_bytes, basic_only);
 	if (count == 0)
 	{
 		error("vex_block_bytes: unable to get instruction count of %d bytes with block_addr %x\n", num_bytes, block_addr);
@@ -293,7 +301,7 @@ IRSB *vex_block_bytes(VexArch guest, unsigned char *instructions, unsigned long 
 	}
 	if (count > 99)
 	{
-		error("vex_block_bytes: maximum instruction count is 99."); count = 99;
+		info("vex_block_bytes: maximum instruction count is 99.\n"); count = 99;
 	}
 
 	IRSB *sb = vex_inst(guest, instructions, block_addr, count);
