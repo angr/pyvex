@@ -84,3 +84,10 @@ initpyvex(void)
 #endif
 	//printf("Done\n");
 }
+
+#ifdef PYVEX_STATIC_PYTHON
+int main(int argc, char **argv) {
+	PyImport_AppendInittab("pyvex", initpyvex);
+	return Py_Main(argc, argv);
+}
+#endif

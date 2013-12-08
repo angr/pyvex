@@ -51,8 +51,6 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 		if (num_inst > -1) self->wrapped = vex_block_inst(arch, bytes, mem_addr, num_inst);
 		else self->wrapped = vex_block_bytes(arch, bytes, mem_addr, num_bytes, basic);
 
-		self->wrapped = PYVEX_COPYOUT(IRSB, self->wrapped);
-
 		if (self->wrapped == NULL) { PyErr_SetString(VexException, "Error creating IR."); return -1; }
 		return 0;
 	}
@@ -95,7 +93,11 @@ pyIRSB_statements(pyIRSB* self)
 	return result;
 }
 
-static PyObject *pyIRSB_deepCopyExceptStmts(pyIRSB* self) { return (PyObject *)wrap_IRSB(deepCopyIRSBExceptStmts(self->wrapped)); }
+static PyObject *pyIRSB_deepCopyExceptStmts(pyIRSB* self)
+{
+	return (PyObject *)wrap_IRSB(deepCopyIRSBExceptStmts(self->wrapped));
+}
+
 static PyObject *pyIRSB_addStatement(pyIRSB* self, PyObject *stmt)
 {
 	PYVEX_CHECKTYPE(stmt, pyIRStmtType, return NULL);
@@ -118,7 +120,8 @@ static PyObject *pyIRSB_size(pyIRSB *self)
 	long size = 0;
 	for (int i = 0; i < self->wrapped->stmts_used; i++)
 	{
-		if (self->wrapped->stmts[i]->tag == Ist_IMark) size += self->wrapped->stmts[i]->Ist.IMark.len;
+		if (self->wrapped->stmts[i]->tag == Ist_IMark)
+			size += self->wrapped->stmts[i]->Ist.IMark.len;
 	}
 
 	return PyInt_FromLong(size);

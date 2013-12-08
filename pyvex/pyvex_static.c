@@ -25,6 +25,8 @@ web site at: http://bitblaze.cs.berkeley.edu/
 
 #include "pyvex_static.h"
 #include "pyvex_logging.h"
+#include "pyvex_deepcopy.h"
+#include "pyvex_macros.h"
 
 // these are problematic because we need to link with vex statically to use them, I think
 extern VexControl vex_control;
@@ -257,10 +259,46 @@ IRSB *vex_inst(VexArch guest, unsigned char *insn_start, unsigned int insn_addr,
 	return irbb_current;
 }
 
-int vex_count_instructions(VexArch guest, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
+// Wow, such hack, very wrong
+// Seriously this ignores that stuff like the jump target, etc on an IRSB
+// and just uses it as some sort of container for statements.
+// also doesn't free it, etc.
+static void IRSB_Merge(IRSB *a, IRSB *b)
+{
+	int new_needed = a->stmts_used + b->stmts_used;
+	if (a->stmts_size < new_needed)
+	{
+		a->stmts = realloc(a->stmts, sizeof(a->stmts[0])*new_needed);
+	}
+	int i;
+	// When merging two IRSBs throw away NoOps at the beginning
+	// of the second one
+	for (i = 0; i < b->stmts_used; i++)
+	{
+		if (b->stmts[i]->tag != Ist_NoOp) break;
+	}
+	for( ; i < b->stmts_used; i++)
+	{
+		IRStmt *s = b->stmts[i];
+		a->stmts[a->stmts_used] = s;
+		a->stmts_used++;
+	}
+}
+
+static int IRSB_contains_exit(IRSB *a)
+{
+	for (int i = 0; i < a->stmts_used; i++)
+	{
+		if (a->stmts[0]->tag == Ist_Exit) return 1;
+	}
+	return 0;
+}
+
+IRSB *vex_block_bytes(VexArch guest, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
 {
 	int count = 0;
 	int processed = 0;
+	IRSB *res = NULL;
 
 	while (processed < num_bytes)
 	{
@@ -269,46 +307,30 @@ int vex_count_instructions(VexArch guest, unsigned char *instructions, unsigned 
 
 		if (vge.len[0] == 0)
 		{
-			error("Something went wrong in IR translation at position %x of addr %x in vex_count_instructions.\n", processed,block_addr);
+			error("Something went wrong in IR translation at position %d of addr %x in vex_block_bytes.\n", processed, block_addr);
 			break;
 		}
 
 		processed += vge.len[0];
 		debug("Processed %d bytes\n", processed);
-
 		assert(vge.n_used == 1);
+
+		sb = PYVEX_COPYOUT(IRSB, sb);
+
+		if (res == NULL) {
+			res = sb;
+		} else {
+			IRSB_Merge(res, sb);
+		}
+
 		count++;
 
 		// stop getting instructions if we are looking for non-extended basic blocks and we see an exit
-		if (basic_only)
-		{
-			for (int i = 0; i < sb->stmts_used; i++)
-				if (sb->stmts[i]->tag == Ist_Exit) break;
-		}
-
+		if (basic_only && IRSB_contains_exit(sb)) break;
 	}
 
-	return count;
-}
-
-IRSB *vex_block_bytes(VexArch guest, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
-{
-	int count = vex_count_instructions(guest, instructions, block_addr, num_bytes, basic_only);
-	if (count == 0)
-	{
-		error("vex_block_bytes: unable to get instruction count of %d bytes with block_addr %x\n", num_bytes, block_addr);
-		return emptyIRSB();
-	}
-	if (count > 99)
-	{
-		info("vex_block_bytes: maximum instruction count is 99.\n"); count = 99;
-	}
-
-	IRSB *sb = vex_inst(guest, instructions, block_addr, count);
-	if (vge.len[0] != num_bytes) { error("vex_block_bytes: only translated %d bytes out of %d in block_addr %x\n", vge.len[0], num_bytes, block_addr); }
-	//assert(vge.len[0] == num_bytes);
-
-	return sb;
+	if (processed != num_bytes) { error("vex_block_bytes: only translated %d bytes out of %d in block_addr %x\n", processed, num_bytes, block_addr); }
+	return res;
 }
 
 IRSB *vex_block_inst(VexArch guest, unsigned char *instructions, unsigned long long block_addr, unsigned int num_inst)
@@ -318,5 +340,5 @@ IRSB *vex_block_inst(VexArch guest, unsigned char *instructions, unsigned long l
 	IRSB *fullblock = vex_inst(guest, instructions, block_addr, num_inst);
 	assert(vge.n_used == 1);
 
-	return fullblock;
+	return PYVEX_COPYOUT(IRSB, fullblock);
 }
