@@ -54,7 +54,9 @@
 	PyObject *wrap_##type(type *);
 
 // - type object
-#define PYVEX_TYPEOBJECT(type) \
+#define PYVEX_TYPEOBJECT(type) PYVEX_TYPEOBJECT_DESC(type, "Bindings for "#type" objects")
+
+#define PYVEX_TYPEOBJECT_DESC(type, desc) \
 	PyTypeObject py##type##Type = \
 	{ \
 		PyObject_HEAD_INIT(NULL) \
@@ -78,7 +80,7 @@
 		0,						/*tp_setattro*/ \
 		0,						/*tp_as_buffer*/ \
 		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,	/*tp_flags*/ \
-		"Bindings for "#type" objects",		 	/* tp_doc */ \
+		desc,					 	/* tp_doc */ \
 		0,					 	/* tp_traverse */ \
 		0,					 	/* tp_clear */ \
 		0,					 	/* tp_richcompare */ \
