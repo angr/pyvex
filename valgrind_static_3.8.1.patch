@@ -1,7 +1,7 @@
-diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-static/VEX/priv/guest_arm_toIR.c
---- valgrind-3.8.1/VEX/priv/guest_arm_toIR.c	2012-09-17 10:57:37.000000000 -0700
-+++ valgrind-3.8.1-static/VEX/priv/guest_arm_toIR.c	2013-11-08 23:03:02.557888339 -0800
-@@ -187,23 +187,41 @@ static IRTemp r15kind;
+diff -Naur valgrind-3.8.1-orig/VEX/priv/guest_arm_toIR.c valgrind-3.8.1/VEX/priv/guest_arm_toIR.c
+--- valgrind-3.8.1-orig/VEX/priv/guest_arm_toIR.c	2012-09-17 10:57:37.000000000 -0700
++++ valgrind-3.8.1/VEX/priv/guest_arm_toIR.c	2014-01-31 12:43:40.588207309 -0800
+@@ -187,23 +187,41 @@
  
  /* Do a little-endian load of a 32-bit word, regardless of the
     endianness of the underlying host. */
@@ -51,7 +51,7 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-st
     return w;
  }
  
-@@ -12598,7 +12616,7 @@ DisResult disInstr_ARM_WRK (
+@@ -12598,7 +12616,7 @@
     /* At least this is simple on ARM: insns are all 4 bytes long, and
        4-aligned.  So just fish the whole thing out of memory right now
        and have done. */
@@ -60,7 +60,7 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-st
  
     if (0) vex_printf("insn: 0x%x\n", insn);
  
-@@ -12622,12 +12640,12 @@ DisResult disInstr_ARM_WRK (
+@@ -12622,12 +12640,12 @@
        UInt word2 = 0xE1A0C6EC;
        UInt word3 = 0xE1A0CEEC;
        UInt word4 = 0xE1A0C9EC;
@@ -78,7 +78,7 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-st
                                                 /* orr r10,r10,r10 */) {
              /* R3 = client_request ( R4 ) */
              DIP("r3 = client_request ( %%r4 )\n");
-@@ -12637,7 +12655,7 @@ DisResult disInstr_ARM_WRK (
+@@ -12637,7 +12655,7 @@
              goto decode_success;
           }
           else
@@ -87,7 +87,7 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-st
                                                 /* orr r11,r11,r11 */) {
              /* R3 = guest_NRADDR */
              DIP("r3 = guest_NRADDR\n");
-@@ -12646,7 +12664,7 @@ DisResult disInstr_ARM_WRK (
+@@ -12646,7 +12664,7 @@
              goto decode_success;
           }
           else
@@ -96,7 +96,7 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-st
                                                 /* orr r12,r12,r12 */) {
              /*  branch-and-link-to-noredir R4 */
              DIP("branch-and-link-to-noredir r4\n");
-@@ -12658,7 +12676,7 @@ DisResult disInstr_ARM_WRK (
+@@ -12658,7 +12676,7 @@
           }
           /* We don't know what it is.  Set opc1/opc2 so decode_failure
              can print the insn following the Special-insn preamble. */
@@ -105,7 +105,7 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-st
           goto decode_failure;
           /*NOTREACHED*/
        }
-@@ -14801,7 +14819,7 @@ DisResult disInstr_THUMB_WRK (
+@@ -14801,7 +14819,7 @@
        get them both out immediately because it risks a fault (very
        unlikely, but ..) if the second 16 bits aren't actually
        necessary. */
@@ -114,7 +114,7 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-st
     insn1 = 0; /* We'll get it later, once we know we need it. */
  
     /* Similarly, will set this later. */
-@@ -14828,13 +14846,13 @@ DisResult disInstr_THUMB_WRK (
+@@ -14828,13 +14846,13 @@
        UInt word2 = 0x3C7CEA4F;
        UInt word3 = 0x7C7CEA4F;
        UInt word4 = 0x4CFCEA4F;
@@ -133,7 +133,7 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-st
                                                 /* orr.w r10,r10,r10 */) {
              /* R3 = client_request ( R4 ) */
              DIP("r3 = client_request ( %%r4 )\n");
-@@ -14845,7 +14863,7 @@ DisResult disInstr_THUMB_WRK (
+@@ -14845,7 +14863,7 @@
           }
           else
           // 0x 0B 0B EA 4B
@@ -142,7 +142,7 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-st
                                                 /* orr r11,r11,r11 */) {
              /* R3 = guest_NRADDR */
              DIP("r3 = guest_NRADDR\n");
-@@ -14855,7 +14873,7 @@ DisResult disInstr_THUMB_WRK (
+@@ -14855,7 +14873,7 @@
           }
           else
           // 0x 0C 0C EA 4C
@@ -151,7 +151,7 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-st
                                                 /* orr r12,r12,r12 */) {
              /*  branch-and-link-to-noredir R4 */
              DIP("branch-and-link-to-noredir r4\n");
-@@ -14867,7 +14885,7 @@ DisResult disInstr_THUMB_WRK (
+@@ -14867,7 +14885,7 @@
           }
           /* We don't know what it is.  Set insn0 so decode_failure
              can print the insn following the Special-insn preamble. */
@@ -160,7 +160,101 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-st
           goto decode_failure;
           /*NOTREACHED*/
        }
-@@ -16478,7 +16496,7 @@ DisResult disInstr_THUMB_WRK (
+@@ -14922,48 +14940,51 @@
+          suboptimal. */
+       vassert(guaranteedUnconditional == False);
+ 
+-      UInt pc = guest_R15_curr_instr_notENC;
+-      vassert(0 == (pc & 1));
+-
+-      UInt pageoff = pc & 0xFFF;
+-      if (pageoff >= 18) {
+-         /* It's safe to poke about in the 9 halfwords preceding this
+-            insn.  So, have a look at them. */
+-         guaranteedUnconditional = True; /* assume no 'it' insn found,
+-                                            till we do */
+-         UShort* hwp = (UShort*)(HWord)pc;
+-         Int i;
+-         for (i = -1; i >= -9; i--) {
+-            /* We're in the same page.  (True, but commented out due
+-               to expense.) */
+-            /*
+-            vassert( ( ((UInt)(&hwp[i])) & 0xFFFFF000 )
+-                      == ( pc & 0xFFFFF000 ) );
+-            */
+-            /* All valid IT instructions must have the form 0xBFxy,
+-               where x can be anything, but y must be nonzero.  Find
+-               the number of insns covered by it (1 .. 4) and check to
+-               see if it can possibly reach up to the instruction in
+-               question.  Some (x,y) combinations mean UNPREDICTABLE,
+-               and the table is constructed to be conservative by
+-               returning 4 for those cases, so the analysis is safe
+-               even if the code uses unpredictable IT instructions (in
+-               which case its authors are nuts, but hey.)  */
+-            UShort hwp_i = hwp[i];
+-            if (UNLIKELY((hwp_i & 0xFF00) == 0xBF00 && (hwp_i & 0xF) != 0)) {
+-               /* might be an 'it' insn. */
+-               /* # guarded insns */
+-               Int n_guarded = (Int)it_length_table[hwp_i & 0xFF];
+-               vassert(n_guarded >= 1 && n_guarded <= 4);
+-               if (n_guarded * 2 /* # guarded HWs, worst case */
+-                   > (-(i+1)))   /* -(i+1): # remaining HWs after the IT */
+-                   /* -(i+0) also seems to work, even though I think
+-                      it's wrong.  I don't understand that. */
+-                  guaranteedUnconditional = False;
+-               break;
+-            }
+-         }
+-      }
++      // PYVEX: this is commented out for pyvex because it expects the guest
++      // 	instructions to be in their specific address in memory
++      //
++      //UInt pc = guest_R15_curr_instr_notENC;
++      //vassert(0 == (pc & 1));
++      //
++      //UInt pageoff = pc & 0xFFF;
++      //if (pageoff >= 18) {
++      //   /* It's safe to poke about in the 9 halfwords preceding this
++      //      insn.  So, have a look at them. */
++      //   guaranteedUnconditional = True; /* assume no 'it' insn found,
++      //                                      till we do */
++      //   UShort* hwp = (UShort*)(HWord)pc;
++      //   Int i;
++      //   for (i = -1; i >= -9; i--) {
++      //      /* We're in the same page.  (True, but commented out due
++      //         to expense.) */
++      //      /*
++      //      vassert( ( ((UInt)(&hwp[i])) & 0xFFFFF000 )
++      //                == ( pc & 0xFFFFF000 ) );
++      //      */
++      //      /* All valid IT instructions must have the form 0xBFxy,
++      //         where x can be anything, but y must be nonzero.  Find
++      //         the number of insns covered by it (1 .. 4) and check to
++      //         see if it can possibly reach up to the instruction in
++      //         question.  Some (x,y) combinations mean UNPREDICTABLE,
++      //         and the table is constructed to be conservative by
++      //         returning 4 for those cases, so the analysis is safe
++      //         even if the code uses unpredictable IT instructions (in
++      //         which case its authors are nuts, but hey.)  */
++      //      UShort hwp_i = hwp[i];
++      //      if (UNLIKELY((hwp_i & 0xFF00) == 0xBF00 && (hwp_i & 0xF) != 0)) {
++      //         /* might be an 'it' insn. */
++      //         /* # guarded insns */
++      //         Int n_guarded = (Int)it_length_table[hwp_i & 0xFF];
++      //         vassert(n_guarded >= 1 && n_guarded <= 4);
++      //         if (n_guarded * 2 /* # guarded HWs, worst case */
++      //             > (-(i+1)))   /* -(i+1): # remaining HWs after the IT */
++      //             /* -(i+0) also seems to work, even though I think
++      //                it's wrong.  I don't understand that. */
++      //            guaranteedUnconditional = False;
++      //         break;
++      //      }
++      //   }
++      //}
+    }
+    /* --- END ITxxx optimisation analysis --- */
+ 
+@@ -16478,7 +16499,7 @@
  
     /* second 16 bits of the instruction, if any */
     vassert(insn1 == 0);
@@ -169,9 +263,9 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_arm_toIR.c valgrind-3.8.1-st
  
     anOp   = Iop_INVALID; /* paranoia */
     anOpNm = NULL;        /* paranoia */
-diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_mips_toIR.c valgrind-3.8.1-static/VEX/priv/guest_mips_toIR.c
---- valgrind-3.8.1/VEX/priv/guest_mips_toIR.c	2012-08-17 00:00:00.000000000 -0700
-+++ valgrind-3.8.1-static/VEX/priv/guest_mips_toIR.c	2013-11-08 22:55:17.501876627 -0800
+diff -Naur valgrind-3.8.1-orig/VEX/priv/guest_mips_toIR.c valgrind-3.8.1/VEX/priv/guest_mips_toIR.c
+--- valgrind-3.8.1-orig/VEX/priv/guest_mips_toIR.c	2012-08-17 00:00:00.000000000 -0700
++++ valgrind-3.8.1/VEX/priv/guest_mips_toIR.c	2014-01-31 12:42:43.808209452 -0800
 @@ -30,6 +30,12 @@
  
  /* Translates MIPS code to IR. */
@@ -185,9 +279,9 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/guest_mips_toIR.c valgrind-3.8.1-s
  #include "libvex_basictypes.h"
  #include "libvex_ir.h"
  #include "libvex.h"
-diff -rup -x config.h valgrind-3.8.1/VEX/priv/main_main.c valgrind-3.8.1-static/VEX/priv/main_main.c
---- valgrind-3.8.1/VEX/priv/main_main.c	2012-08-17 00:00:00.000000000 -0700
-+++ valgrind-3.8.1-static/VEX/priv/main_main.c	2013-11-08 23:04:02.657889852 -0800
+diff -Naur valgrind-3.8.1-orig/VEX/priv/main_main.c valgrind-3.8.1/VEX/priv/main_main.c
+--- valgrind-3.8.1-orig/VEX/priv/main_main.c	2012-08-17 00:00:00.000000000 -0700
++++ valgrind-3.8.1/VEX/priv/main_main.c	2014-01-31 12:42:43.808209452 -0800
 @@ -33,6 +33,12 @@
     without prior written permission.
  */
@@ -201,7 +295,7 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/main_main.c valgrind-3.8.1-static/
  #include "libvex.h"
  #include "libvex_emwarn.h"
  #include "libvex_guest_x86.h"
-@@ -393,7 +399,11 @@ VexTranslateResult LibVEX_Translate ( Ve
+@@ -393,7 +399,11 @@
           emit        = (Int(*)(Bool*,UChar*,Int,HInstr*,Bool,
                                 void*,void*,void*,void*))
                         emit_ARMInstr;
@@ -213,7 +307,7 @@ diff -rup -x config.h valgrind-3.8.1/VEX/priv/main_main.c valgrind-3.8.1-static/
           host_word_type    = Ity_I32;
           vassert(are_valid_hwcaps(VexArchARM, vta->archinfo_host.hwcaps));
           break;
-@@ -749,115 +759,115 @@ VexTranslateResult LibVEX_Translate ( Ve
+@@ -749,115 +759,115 @@
                     " Instruction selection "
                     "------------------------\n");
  
