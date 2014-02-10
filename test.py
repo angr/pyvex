@@ -225,6 +225,49 @@ class PyVEXTest(unittest.TestCase):
 		self.assertEqual(m.endness, "Iend_BE")
 		self.assertEqual(type(m), type(m.deepCopy()))
 
+	def test_irstmt_loadg(self):
+		self.assertRaises(Exception, pyvex.IRStmt.LoadG, ())
+
+		a = pyvex.IRExpr.RdTmp(10)
+		alt = pyvex.IRExpr.RdTmp(11)
+		guard = pyvex.IRExpr.RdTmp(12)
+
+		args = { "dst": 1, "end": "Iend_LE", "addr": a,
+	                 "alt": alt, "guard": guard, "cvt": "ILGop_Ident32" }
+
+		m = pyvex.IRStmt.LoadG(**args)
+		self.assertEqual(m.tag, "Ist_LoadG")
+		self.assertEqual(m.end, "Iend_LE")
+		self.assertEqual(m.cvt, "ILGop_Ident32")
+		self.assertEqual(m.dst, 1)
+		self.assertEqual(m.addr.tmp, a.tmp)
+		self.assertEqual(m.alt.tmp, alt.tmp)
+		self.assertEqual(m.guard.tmp, guard.tmp)
+
+		m.end = "Iend_BE"
+		self.assertEqual(m.end, "Iend_BE")
+		self.assertEqual(type(m), type(m.deepCopy()))
+
+	def test_irstmt_storeg(self):
+		self.assertRaises(Exception, pyvex.IRStmt.LoadG, ())
+
+		a = pyvex.IRExpr.RdTmp(10)
+		data = pyvex.IRExpr.RdTmp(11)
+		guard = pyvex.IRExpr.RdTmp(12)
+
+		args = { "end": "Iend_LE", "addr": a, "data": data, "guard": guard }
+
+		m = pyvex.IRStmt.StoreG(**args)
+		self.assertEqual(m.tag, "Ist_StoreG")
+		self.assertEqual(m.end, "Iend_LE")
+		self.assertEqual(m.addr.tmp, a.tmp)
+		self.assertEqual(m.data.tmp, data.tmp)
+		self.assertEqual(m.guard.tmp, guard.tmp)
+
+		m.end = "Iend_BE"
+		self.assertEqual(m.end, "Iend_BE")
+		self.assertEqual(type(m), type(m.deepCopy()))
+
 	def test_irstmt_llsc(self):
 		self.assertRaises(Exception, pyvex.IRStmt.LLSC, ())
 
