@@ -261,10 +261,12 @@ IRSB *vex_inst(VexArch guest, unsigned char *insn_start, unsigned int insn_addr,
 
 int vex_count_instructions(VexArch guest, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
 {
-	int count = 0;
-	int processed = 0;
+	debug("Counting instructions in %d bytes starting at 0x%x, basic %d\n", num_bytes, block_addr, basic_only);
 
-	while (processed < num_bytes)
+	unsigned int count = 0;
+	unsigned int processed = 0;
+
+	while (processed < num_bytes && count < 99)
 	{
 		debug("Next byte: %02x\n", instructions[processed]);
 		IRSB *sb = vex_inst(guest, instructions + processed, block_addr + processed, 1);
@@ -290,24 +292,21 @@ int vex_count_instructions(VexArch guest, unsigned char *instructions, unsigned 
 
 	}
 
+	debug("... found %d instructions!\n", count);
 	return count;
 }
 
 IRSB *vex_block_bytes(VexArch guest, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
 {
-	int count = vex_count_instructions(guest, instructions, block_addr, num_bytes, basic_only);
-	if (count == 0)
+	unsigned int count = vex_count_instructions(guest, instructions, block_addr, num_bytes, basic_only);
+	IRSB *sb = vex_block_inst(guest, instructions, block_addr, count);
+	// this is a workaround. Basically, on MIPS, leaving this (the second translation of the same crap)
+	// out leads to exits being dropped in some IRSBs
+	sb = vex_block_inst(guest, instructions, block_addr, count);
+	if (vge.len[0] != num_bytes)
 	{
-		error("vex_block_bytes: unable to get instruction count of %d bytes with block_addr %x\n", num_bytes, block_addr);
-		return emptyIRSB();
+		info("vex_block_bytes: only translated %d bytes out of %d in block_addr %x\n", vge.len[0], num_bytes, block_addr);
 	}
-	if (count > 99)
-	{
-		info("vex_block_bytes: maximum instruction count is 99.\n"); count = 99;
-	}
-
-	IRSB *sb = vex_inst(guest, instructions, block_addr, count);
-	if (vge.len[0] != num_bytes) { error("vex_block_bytes: only translated %d bytes out of %d in block_addr %x\n", vge.len[0], num_bytes, block_addr); }
 	//assert(vge.len[0] == num_bytes);
 
 	return sb;
@@ -315,8 +314,19 @@ IRSB *vex_block_bytes(VexArch guest, unsigned char *instructions, unsigned long 
 
 IRSB *vex_block_inst(VexArch guest, unsigned char *instructions, unsigned long long block_addr, unsigned int num_inst)
 {
-	if (num_inst == 0) { error("vex_block_inst: can't create IRSB with 0 instructions, at block_addr %x\n", block_addr); return NULL; }
-	if (num_inst > 99) { error("vex_block_inst: maximum instruction count is 99."); num_inst = 99; }
+	debug("Translating %d instructions starting at 0x%x\n", num_inst, block_addr);
+
+	if (num_inst == 0)
+	{
+		error("vex_block_inst: asked to create IRSB with 0 instructions, at block_addr %x\n", block_addr);
+		return emptyIRSB();
+	}
+	else if (num_inst > 99)
+	{
+		error("vex_block_inst: maximum instruction count is 99.\n");
+		num_inst = 99;
+	}
+
 	IRSB *fullblock = vex_inst(guest, instructions, block_addr, num_inst);
 	assert(vge.n_used == 1);
 
