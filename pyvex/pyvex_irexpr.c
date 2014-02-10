@@ -493,13 +493,13 @@ pyIRExprITE_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	pyIRExpr *expr0;
 	pyIRExpr *exprX;
 
-	static char *kwlist[] = {"cond", "expr0", "exprX", NULL};
+	static char *kwlist[] = {"cond", "iffalse", "iftrue", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO", kwlist, &cond, &expr0, &exprX)) return -1;
 	PYVEX_CHECKTYPE(cond, pyIRExprType, return -1);
 	PYVEX_CHECKTYPE(expr0, pyIRExprType, return -1);
 	PYVEX_CHECKTYPE(exprX, pyIRExprType, return -1);
 
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_ITE(cond->wrapped, expr0->wrapped, exprX->wrapped));
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_ITE(cond->wrapped, exprX->wrapped, expr0->wrapped));
 	return 0;
 }
 
