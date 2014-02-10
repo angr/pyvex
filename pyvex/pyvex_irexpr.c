@@ -73,7 +73,7 @@ PyObject *wrap_IRExpr(IRExpr *i)
 		PYVEX_WRAPCASE(IRExpr, Iex_, Unop)
 		PYVEX_WRAPCASE(IRExpr, Iex_, Load)
 		PYVEX_WRAPCASE(IRExpr, Iex_, Const)
-		PYVEX_WRAPCASE(IRExpr, Iex_, Mux0X)
+		PYVEX_WRAPCASE(IRExpr, Iex_, ITE)
 		PYVEX_WRAPCASE(IRExpr, Iex_, CCall)
 		default:
 			error("PyVEX: Unknown/unsupported IRExprTag %s\n", IRExprTag_to_str(i->tag));
@@ -481,11 +481,11 @@ static PyMethodDef pyIRExprConst_methods[] = { {NULL} };
 PYVEX_SUBTYPEOBJECT(Const, IRExpr);
 
 //////////////////
-// Mux0X IRExpr //
+// ITE IRExpr //
 //////////////////
 
 static int
-pyIRExprMux0X_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
+pyIRExprITE_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
 	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
 
@@ -499,24 +499,24 @@ pyIRExprMux0X_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	PYVEX_CHECKTYPE(expr0, pyIRExprType, return -1);
 	PYVEX_CHECKTYPE(exprX, pyIRExprType, return -1);
 
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Mux0X(cond->wrapped, expr0->wrapped, exprX->wrapped));
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_ITE(cond->wrapped, expr0->wrapped, exprX->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_WRAPPED(IRExprMux0X, IRExpr, self->wrapped->Iex.Mux0X.cond, cond, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprMux0X, IRExpr, self->wrapped->Iex.Mux0X.expr0, expr0, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprMux0X, IRExpr, self->wrapped->Iex.Mux0X.exprX, exprX, IRExpr)
+PYVEX_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.cond, cond, IRExpr)
+PYVEX_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.iffalse, expr0, IRExpr)
+PYVEX_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.iftrue, exprX, IRExpr)
 
-static PyGetSetDef pyIRExprMux0X_getseters[] =
+static PyGetSetDef pyIRExprITE_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprMux0X, cond),
-	PYVEX_ACCESSOR_DEF(IRExprMux0X, expr0),
-	PYVEX_ACCESSOR_DEF(IRExprMux0X, exprX),
+	PYVEX_ACCESSOR_DEF(IRExprITE, cond),
+	PYVEX_ACCESSOR_DEF(IRExprITE, expr0),
+	PYVEX_ACCESSOR_DEF(IRExprITE, exprX),
 	{NULL}
 };
 
-static PyMethodDef pyIRExprMux0X_methods[] = { {NULL} };
-PYVEX_SUBTYPEOBJECT(Mux0X, IRExpr);
+static PyMethodDef pyIRExprITE_methods[] = { {NULL} };
+PYVEX_SUBTYPEOBJECT(ITE, IRExpr);
 
 //////////////////
 // CCall IRExpr //
