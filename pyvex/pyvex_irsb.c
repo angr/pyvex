@@ -35,7 +35,7 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 	int bytes_offset = 0;
 
 	static char *kwlist[] = {"bytes", "mem_addr", "num_inst", "arch", "basic", "bytes_offset", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s#iisii", kwlist, &bytes, &num_bytes, &mem_addr, &num_inst, &arch_str, &basic, &bytes_offset)) return -1;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s#IIsIi", kwlist, &bytes, &num_bytes, &mem_addr, &num_inst, &arch_str, &basic, &bytes_offset)) return -1;
 
 	if (!arch_str) arch_str = "VexArchAMD64";
 	PYVEX_ENUM_FROMSTR(VexArch, arch, arch_str, return -1);
