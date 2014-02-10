@@ -538,7 +538,6 @@ PYVEX_ACCESSOR_BUILDVAL(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->t
 PYVEX_ACCESSOR_ENUM(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->mFx, mFx, IREffect)
 PYVEX_ACCESSOR_WRAPPED(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->mAddr, mAddr, IRExpr)
 PYVEX_ACCESSOR_BUILDVAL(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->mSize, mSize, "I")
-PYVEX_ACCESSOR_BUILDVAL(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->needsBBP, needsBBP, "b")
 PYVEX_ACCESSOR_BUILDVAL(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->nFxState, nFxState, "i")
 
 static PyGetSetDef pyIRStmtDirty_getseters[] =
@@ -549,7 +548,6 @@ static PyGetSetDef pyIRStmtDirty_getseters[] =
 	PYVEX_ACCESSOR_DEF(IRStmtDirty, mFx),
 	PYVEX_ACCESSOR_DEF(IRStmtDirty, mAddr),
 	PYVEX_ACCESSOR_DEF(IRStmtDirty, mSize),
-	PYVEX_ACCESSOR_DEF(IRStmtDirty, needsBBP),
 	PYVEX_ACCESSOR_DEF(IRStmtDirty, nFxState),
 	{NULL}
 };
