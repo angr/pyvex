@@ -480,9 +480,9 @@ static PyGetSetDef pyIRExprConst_getseters[] =
 static PyMethodDef pyIRExprConst_methods[] = { {NULL} };
 PYVEX_SUBTYPEOBJECT(Const, IRExpr);
 
-//////////////////
+////////////////
 // ITE IRExpr //
-//////////////////
+////////////////
 
 static int
 pyIRExprITE_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
@@ -493,8 +493,8 @@ pyIRExprITE_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	pyIRExpr *expr0;
 	pyIRExpr *exprX;
 
-	static char *kwlist[] = {"cond", "iffalse", "iftrue", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO", kwlist, &cond, &expr0, &exprX)) return -1;
+	static char *kwlist[] = {"cond", "iftrue", "iffalse", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO", kwlist, &cond, &exprX, &expr0)) return -1;
 	PYVEX_CHECKTYPE(cond, pyIRExprType, return -1);
 	PYVEX_CHECKTYPE(expr0, pyIRExprType, return -1);
 	PYVEX_CHECKTYPE(exprX, pyIRExprType, return -1);

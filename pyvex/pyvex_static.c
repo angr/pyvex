@@ -205,20 +205,25 @@ void vex_prepare_vai(VexArch arch, VexArchInfo *vai)
 			break;
 		case VexArchARM:
 			vai->hwcaps = 7;
+			vai->endness = Iend_LE; // unsure if correct
 			break;
 		case VexArchPPC32:
 			vai->hwcaps = 0;
 			vai->ppc_icache_line_szB = 32; // unsure if correct
+			vai->endness = Iend_BE; // unsure if correct
 			break;
 		case VexArchPPC64:
 			vai->hwcaps = 0;
 			vai->ppc_icache_line_szB = 64; // unsure if correct
+			vai->endness = Iend_BE; // unsure if correct
 			break;
 		case VexArchS390X:
 			vai->hwcaps = 0;
+			// WHICH? vai->endness = Iend_BE; // unsure if correct
 			break;
 		case VexArchMIPS32:
 			vai->hwcaps = 0x00010000;
+			vai->endness = Iend_LE; // unsure if correct
 			break;
 		default:
 			error("Invalid arch in vex_prepare_vai.\n");

@@ -1,3 +1,4 @@
+
 #include <libvex.h>
 #include <stdio.h>
 #include <string.h>
@@ -2249,6 +2250,34 @@ IROp str_to_IROp(const char *s)
 	PYVEX_ENUMCONV_FROMSTR(Iop_Max64Fx4)
 	PYVEX_ENUMCONV_FROMSTR(Iop_Min64Fx4)
 	PYVEX_ENUMCONV_FROMSTR(Iop_LAST)
+
+	return -1;
+}
+
+const char *IRLoadGOp_to_str(IRLoadGOp e)
+{
+	switch(e)
+	{
+		PYVEX_ENUMCONV_TOSTRCASE(ILGop_8Uto32)
+		PYVEX_ENUMCONV_TOSTRCASE(ILGop_INVALID)
+		PYVEX_ENUMCONV_TOSTRCASE(ILGop_Ident32)
+		PYVEX_ENUMCONV_TOSTRCASE(ILGop_16Uto32)
+		PYVEX_ENUMCONV_TOSTRCASE(ILGop_16Sto32)
+		PYVEX_ENUMCONV_TOSTRCASE(ILGop_8Sto32)
+		default:
+			error("PyVEX: Unknown IRLoadGOp");
+			return NULL;
+	}
+}
+
+IRLoadGOp str_to_IRLoadGOp(const char *s)
+{
+	PYVEX_ENUMCONV_FROMSTR(ILGop_8Uto32)
+	PYVEX_ENUMCONV_FROMSTR(ILGop_INVALID)
+	PYVEX_ENUMCONV_FROMSTR(ILGop_Ident32)
+	PYVEX_ENUMCONV_FROMSTR(ILGop_16Uto32)
+	PYVEX_ENUMCONV_FROMSTR(ILGop_16Sto32)
+	PYVEX_ENUMCONV_FROMSTR(ILGop_8Sto32)
 
 	return -1;
 }

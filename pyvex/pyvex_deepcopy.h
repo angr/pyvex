@@ -8,6 +8,8 @@ IRExpr* pyvex_deepCopyIRExpr ( IRExpr* e );
 IRDirty* pyvex_deepCopyIRDirty ( IRDirty* d );
 IRCAS* pyvex_deepCopyIRCAS ( IRCAS* cas );
 IRPutI* pyvex_deepCopyIRPutI ( IRPutI * puti );
+IRPutI* pyvex_deepCopyIRLoadG ( IRLoadG * loadg );
+IRPutI* pyvex_deepCopyIRStoreG ( IRStoreG * storeg );
 IRStmt* pyvex_deepCopyIRStmt ( IRStmt* s );
 IRTypeEnv* pyvex_deepCopyIRTypeEnv ( IRTypeEnv* src );
 IRSB* pyvex_deepCopyIRSB ( IRSB* bb );

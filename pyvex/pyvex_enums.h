@@ -41,3 +41,7 @@ IRType str_to_IRType(const char *);
 // IROp
 const char *IROp_to_str(IROp);
 IROp str_to_IROp(const char *);
+
+// IRLoadGOp
+const char *IRLoadGOp_to_str(IROp);
+IROp str_to_IRLoadGOp(const char *);

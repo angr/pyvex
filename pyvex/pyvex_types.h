@@ -47,6 +47,8 @@ extern PyTypeObject pyIRStmtLLSCType;
 extern PyTypeObject pyIRStmtMBEType;
 extern PyTypeObject pyIRStmtDirtyType;
 extern PyTypeObject pyIRStmtExitType;
+extern PyTypeObject pyIRStmtLoadGType;
+extern PyTypeObject pyIRStmtStoreGType;
 
 // expressions
 PYVEX_TYPEHEADER(IRExpr);
