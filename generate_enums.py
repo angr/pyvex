@@ -2,7 +2,7 @@
 
 import re
 
-valgrind_home = "/usr"
+valgrind_home = "/home/yans/valgrind/inst39"
 
 input = open(valgrind_home + "/include/valgrind/libvex_ir.h").read()
 input += open(valgrind_home + "/include/valgrind/libvex.h").read()
@@ -29,7 +29,10 @@ enums = [
 	("IRConstTag", r"Ico_\w+"),
 	("IRType", r"Ity_\w+"),
 	("IROp", r"Iop_\w+"),
+	("IRLoadGOp", r"ILGop_\w+"),
 ]
+
+ignore = { "Ity_Bit", "Iex_Tmp", "Iex_Store", "Ijk_Sys_", "Iop_PwFoo16x4", "Iop_PAddL16Ux4", "Iop_PAddL16Ux4" }
 
 to_str = """
 const char *{0}_to_str({0} e)
@@ -62,9 +65,9 @@ def uniq(seq):
 for ty,enum in enums:
 	insts = uniq(re.findall(enum, input))
 	insts = [x for x in insts if x not in errors]
-	to_strs = "\n".join("\t\tPYVEX_ENUMCONV_TOSTRCASE("+x+")" for x in insts)
+	to_strs = "\n".join("\t\tPYVEX_ENUMCONV_TOSTRCASE("+x+")" for x in insts if x not in ignore)
 	out += to_str.format(ty, to_strs)
-	from_strs = "\n".join("\tPYVEX_ENUMCONV_FROMSTR("+x+")" for x in insts)
+	from_strs = "\n".join("\tPYVEX_ENUMCONV_FROMSTR("+x+")" for x in insts if x not in ignore)
 	out += from_str.format(ty, from_strs)
 
 print out
