@@ -254,7 +254,6 @@ class PyVEXTest(unittest.TestCase):
 		self.assertEquals(type(m.guard), pyvex.IRExpr.Const)
 		self.assertEquals(m.tmp, 15)
 		self.assertEquals(m.mFx, "Ifx_None")
-		self.assertEquals(m.needsBBP, 0)
 		self.assertEquals(m.nFxState, 0)
 
 		for n,a in enumerate(m.args()):
@@ -461,17 +460,17 @@ class PyVEXTest(unittest.TestCase):
 		self.assertEqual(type(ue), type(fe.deepCopy()))
 		self.assertEqual(fe.con.value, fe.deepCopy().con.value)
 
-	def test_irexpr_triop(self):
+	def test_irexpr_ite(self):
 		a = pyvex.IRExpr.Get(0, "Ity_I64")
 		b = pyvex.IRExpr.Const(pyvex.IRConst.U8(200))
 		c = pyvex.IRExpr.RdTmp(1)
 
-		m = pyvex.IRExpr.Mux0X(a, b, c)
+		m = pyvex.IRExpr.ITE(a, b, c)
 
 		self.assertEqual(type(m), type(m.deepCopy()))
 		self.assertEqual(m.cond.type, m.deepCopy().cond.type)
-		self.assertEqual(m.expr0.con.value, b.con.value)
-		self.assertEqual(m.exprX.tmp, m.deepCopy().exprX.tmp)
+		self.assertEqual(m.iftrue.con.value, b.con.value)
+		self.assertEqual(m.iffalse.tmp, m.deepCopy().iffalse.tmp)
 
 	def test_irexpr_ccall(self):
 		callee = pyvex.IRCallee(3, "test_name", 1234, 0xFFFFFF)

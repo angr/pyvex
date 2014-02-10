@@ -208,11 +208,11 @@ void vex_prepare_vai(VexArch arch, VexArchInfo *vai)
 			break;
 		case VexArchPPC32:
 			vai->hwcaps = 0;
-			vai->ppc_cache_line_szB = 32; // unsure if correct
+			vai->ppc_icache_line_szB = 32; // unsure if correct
 			break;
 		case VexArchPPC64:
 			vai->hwcaps = 0;
-			vai->ppc_cache_line_szB = 64; // unsure if correct
+			vai->ppc_icache_line_szB = 64; // unsure if correct
 			break;
 		case VexArchS390X:
 			vai->hwcaps = 0;

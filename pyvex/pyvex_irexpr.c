@@ -504,14 +504,14 @@ pyIRExprITE_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 }
 
 PYVEX_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.cond, cond, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.iffalse, expr0, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.iftrue, exprX, IRExpr)
+PYVEX_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.iffalse, iffalse, IRExpr)
+PYVEX_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.iftrue, iftrue, IRExpr)
 
 static PyGetSetDef pyIRExprITE_getseters[] =
 {
 	PYVEX_ACCESSOR_DEF(IRExprITE, cond),
-	PYVEX_ACCESSOR_DEF(IRExprITE, expr0),
-	PYVEX_ACCESSOR_DEF(IRExprITE, exprX),
+	PYVEX_ACCESSOR_DEF(IRExprITE, iffalse),
+	PYVEX_ACCESSOR_DEF(IRExprITE, iftrue),
 	{NULL}
 };
 

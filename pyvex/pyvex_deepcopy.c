@@ -181,10 +181,16 @@ IRExpr* pyvex_deepCopyIRExpr ( IRExpr* e )
                              e->Iex.CCall.retty,
                              pyvex_deepCopyIRExprVec(e->Iex.CCall.args));
 
-      case Iex_Mux0X: 
-         return IRExpr_Mux0X(pyvex_deepCopyIRExpr(e->Iex.Mux0X.cond),
-                             pyvex_deepCopyIRExpr(e->Iex.Mux0X.expr0),
-                             pyvex_deepCopyIRExpr(e->Iex.Mux0X.exprX));
+      case Iex_ITE: 
+         return IRExpr_ITE(pyvex_deepCopyIRExpr(e->Iex.ITE.cond),
+                           pyvex_deepCopyIRExpr(e->Iex.ITE.iftrue),
+                           pyvex_deepCopyIRExpr(e->Iex.ITE.iffalse));
+      case Iex_VECRET:
+         return IRExpr_VECRET();
+
+      case Iex_BBPTR:
+         return IRExpr_BBPTR();
+
       default:
          vpanic("pyvex_deepCopyIRExpr");
    }
@@ -201,7 +207,6 @@ IRDirty* pyvex_deepCopyIRDirty ( IRDirty* d )
    d2->mFx   = d->mFx;
    d2->mAddr = d->mAddr==NULL ? NULL : pyvex_deepCopyIRExpr(d->mAddr);
    d2->mSize = d->mSize;
-   d2->needsBBP = d->needsBBP;
    d2->nFxState = d->nFxState;
    for (i = 0; i < d2->nFxState; i++)
       d2->fxState[i] = d->fxState[i];
@@ -251,6 +256,20 @@ IRStmt* pyvex_deepCopyIRStmt ( IRStmt* s )
          return IRStmt_Store(s->Ist.Store.end,
                              pyvex_deepCopyIRExpr(s->Ist.Store.addr),
                              pyvex_deepCopyIRExpr(s->Ist.Store.data));
+      case Ist_StoreG: {
+         IRStoreG* sg = s->Ist.StoreG.details;
+         return IRStmt_StoreG(sg->end,
+                              pyvex_deepCopyIRExpr(sg->addr),
+                              pyvex_deepCopyIRExpr(sg->data),
+                              pyvex_deepCopyIRExpr(sg->guard));
+      }
+      case Ist_LoadG: {
+         IRLoadG* lg = s->Ist.LoadG.details;
+         return IRStmt_LoadG(lg->end, lg->cvt, lg->dst,
+                             pyvex_deepCopyIRExpr(lg->addr),
+                             pyvex_deepCopyIRExpr(lg->alt),
+                             pyvex_deepCopyIRExpr(lg->guard));
+      }
       case Ist_CAS:
          return IRStmt_CAS(pyvex_deepCopyIRCAS(s->Ist.CAS.details));
       case Ist_LLSC:
