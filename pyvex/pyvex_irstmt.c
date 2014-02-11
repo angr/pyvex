@@ -637,6 +637,15 @@ PYVEX_ACCESSOR_WRAPPED(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->ad
 PYVEX_ACCESSOR_WRAPPED(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->alt, alt, IRExpr)
 PYVEX_ACCESSOR_WRAPPED(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->guard, guard, IRExpr)
 
+PyObject *pyIRStmtLoadG_cvt_types(pyIRStmt* self)
+{
+	IRType out;
+	IRType in;
+
+	typeOfIRLoadGOp(self->wrapped->Ist.LoadG.details->cvt, &out, &in);
+	return Py_BuildValue("(ss)", IRType_to_str(in), IRType_to_str(out));
+}
+
 static PyGetSetDef pyIRStmtLoadG_getseters[] =
 {
 	PYVEX_ACCESSOR_DEF(IRStmtLoadG, end),
@@ -648,7 +657,11 @@ static PyGetSetDef pyIRStmtLoadG_getseters[] =
 	{NULL}
 };
 
-static PyMethodDef pyIRStmtLoadG_methods[] = { {NULL} };
+static PyMethodDef pyIRStmtLoadG_methods[] =
+{
+	{"cvt_types", (PyCFunction)pyIRStmtLoadG_cvt_types, METH_NOARGS, "Returns a tuple (in, out) of the IRTypes associated with the IRLoadGOp"},
+	{NULL}
+};
 PYVEX_SUBTYPEOBJECT(LoadG, IRStmt);
 
 ///////////////////
