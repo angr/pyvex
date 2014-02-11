@@ -436,13 +436,17 @@ pyIRExprLoad_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 }
 
 PYVEX_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.end, endness, IREndness)
+PYVEX_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.end, end, IREndness)
 PYVEX_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.ty, type, IRType)
+PYVEX_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.ty, ty, IRType)
 PYVEX_ACCESSOR_WRAPPED(IRExprLoad, IRExpr, self->wrapped->Iex.Load.addr, addr, IRExpr)
 
 static PyGetSetDef pyIRExprLoad_getseters[] =
 {
 	PYVEX_ACCESSOR_DEF(IRExprLoad, endness),
+	PYVEX_ACCESSOR_DEF(IRExprLoad, end),
 	PYVEX_ACCESSOR_DEF(IRExprLoad, type),
+	PYVEX_ACCESSOR_DEF(IRExprLoad, ty),
 	PYVEX_ACCESSOR_DEF(IRExprLoad, addr),
 	{NULL}
 };
