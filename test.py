@@ -244,6 +244,10 @@ class PyVEXTest(unittest.TestCase):
 		self.assertEqual(m.alt.tmp, alt.tmp)
 		self.assertEqual(m.guard.tmp, guard.tmp)
 
+		self.assertEqual(m.cvt_types(), ("Ity_I32", "Ity_I32"))
+		m.cvt = "ILGop_8Sto32"
+		self.assertEqual(m.cvt_types(), ("Ity_I8", "Ity_I32"))
+
 		m.end = "Iend_BE"
 		self.assertEqual(m.end, "Iend_BE")
 		self.assertEqual(type(m), type(m.deepCopy()))
