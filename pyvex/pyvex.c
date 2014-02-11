@@ -58,6 +58,8 @@ initpyvex(void)
 	PYVEX_INITSUBTYPE(IRStmt, MBE);
 	PYVEX_INITSUBTYPE(IRStmt, Dirty);
 	PYVEX_INITSUBTYPE(IRStmt, Exit);
+	PYVEX_INITSUBTYPE(IRStmt, LoadG);
+	PYVEX_INITSUBTYPE(IRStmt, StoreG);
 
 	// expressions
 	PYVEX_INITTYPE(IRExpr);
@@ -71,7 +73,7 @@ initpyvex(void)
 	PYVEX_INITSUBTYPE(IRExpr, Unop);
 	PYVEX_INITSUBTYPE(IRExpr, Load);
 	PYVEX_INITSUBTYPE(IRExpr, Const);
-	PYVEX_INITSUBTYPE(IRExpr, Mux0X);
+	PYVEX_INITSUBTYPE(IRExpr, ITE);
 	PYVEX_INITSUBTYPE(IRExpr, CCall);
 
 	VexException = PyErr_NewException("pyvex.VexException", NULL, NULL);
