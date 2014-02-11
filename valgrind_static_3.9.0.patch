@@ -1,0 +1,698 @@
+diff -Naur valgrind-3.9.0-orig/VEX/priv/guest_arm_toIR.c valgrind-3.9.0-pyvex/VEX/priv/guest_arm_toIR.c
+--- valgrind-3.9.0-orig/VEX/priv/guest_arm_toIR.c	2013-10-23 12:50:39.000000000 +0200
++++ valgrind-3.9.0-pyvex/VEX/priv/guest_arm_toIR.c	2014-02-11 01:41:36.912683401 +0100
+@@ -128,6 +128,10 @@
+    out. */
+ static Bool host_is_bigendian;
+ 
++/* CONST: is the guest bigendian?  This is currently used for reading
++   words and dwords from guest memory. */
++static Bool guest_is_bigendian;
++
+ /* CONST: The guest address for the instruction currently being
+    translated.  This is the real, "decoded" address (not subject
+    to the CPSR.T kludge). */
+@@ -190,23 +194,41 @@
+ 
+ /* Do a little-endian load of a 32-bit word, regardless of the
+    endianness of the underlying host. */
+-static inline UInt getUIntLittleEndianly ( UChar* p )
++static inline UInt getUInt( UChar* p )
+ {
+    UInt w = 0;
++   if (guest_is_bigendian)
++   {
++   	w = (w << 8) | p[0];
++   	w = (w << 8) | p[1];
++   	w = (w << 8) | p[2];
++   	w = (w << 8) | p[3];
++   }
++   else
++   {
+    w = (w << 8) | p[3];
+    w = (w << 8) | p[2];
+    w = (w << 8) | p[1];
+    w = (w << 8) | p[0];
++   }
+    return w;
+ }
+ 
+ /* Do a little-endian load of a 16-bit word, regardless of the
+    endianness of the underlying host. */
+-static inline UShort getUShortLittleEndianly ( UChar* p )
++static inline UShort getUShort( UChar* p )
+ {
+    UShort w = 0;
++   if (guest_is_bigendian)
++   {
++   	w = (w << 8) | p[0];
++   	w = (w << 8) | p[1];
++   }
++   else
++   {
+    w = (w << 8) | p[1];
+    w = (w << 8) | p[0];
++   }
+    return w;
+ }
+ 
+@@ -14509,7 +14531,7 @@
+    /* At least this is simple on ARM: insns are all 4 bytes long, and
+       4-aligned.  So just fish the whole thing out of memory right now
+       and have done. */
+-   insn = getUIntLittleEndianly( guest_instr );
++   insn = getUInt( guest_instr );
+ 
+    if (0) vex_printf("insn: 0x%x\n", insn);
+ 
+@@ -14533,12 +14555,12 @@
+       UInt word2 = 0xE1A0C6EC;
+       UInt word3 = 0xE1A0CEEC;
+       UInt word4 = 0xE1A0C9EC;
+-      if (getUIntLittleEndianly(code+ 0) == word1 &&
+-          getUIntLittleEndianly(code+ 4) == word2 &&
+-          getUIntLittleEndianly(code+ 8) == word3 &&
+-          getUIntLittleEndianly(code+12) == word4) {
++      if (getUInt(code+ 0) == word1 &&
++          getUInt(code+ 4) == word2 &&
++          getUInt(code+ 8) == word3 &&
++          getUInt(code+12) == word4) {
+          /* Got a "Special" instruction preamble.  Which one is it? */
+-         if (getUIntLittleEndianly(code+16) == 0xE18AA00A
++         if (getUInt(code+16) == 0xE18AA00A
+                                                /* orr r10,r10,r10 */) {
+             /* R3 = client_request ( R4 ) */
+             DIP("r3 = client_request ( %%r4 )\n");
+@@ -14548,7 +14570,7 @@
+             goto decode_success;
+          }
+          else
+-         if (getUIntLittleEndianly(code+16) == 0xE18BB00B
++         if (getUInt(code+16) == 0xE18BB00B
+                                                /* orr r11,r11,r11 */) {
+             /* R3 = guest_NRADDR */
+             DIP("r3 = guest_NRADDR\n");
+@@ -14557,7 +14579,7 @@
+             goto decode_success;
+          }
+          else
+-         if (getUIntLittleEndianly(code+16) == 0xE18CC00C
++         if (getUInt(code+16) == 0xE18CC00C
+                                                /* orr r12,r12,r12 */) {
+             /*  branch-and-link-to-noredir R4 */
+             DIP("branch-and-link-to-noredir r4\n");
+@@ -14568,7 +14590,7 @@
+             goto decode_success;
+          }
+          else
+-         if (getUIntLittleEndianly(code+16) == 0xE1899009
++         if (getUInt(code+16) == 0xE1899009
+                                                /* orr r9,r9,r9 */) {
+             /* IR injection */
+             DIP("IR injection\n");
+@@ -14586,7 +14608,7 @@
+          }
+          /* We don't know what it is.  Set opc1/opc2 so decode_failure
+             can print the insn following the Special-insn preamble. */
+-         insn = getUIntLittleEndianly(code+16);
++         insn = getUInt(code+16);
+          goto decode_failure;
+          /*NOTREACHED*/
+       }
+@@ -17347,7 +17369,7 @@
+       get them both out immediately because it risks a fault (very
+       unlikely, but ..) if the second 16 bits aren't actually
+       necessary. */
+-   insn0 = getUShortLittleEndianly( guest_instr );
++   insn0 = getUShort( guest_instr );
+    insn1 = 0; /* We'll get it later, once we know we need it. */
+ 
+    /* Similarly, will set this later. */
+@@ -17374,13 +17396,13 @@
+       UInt word2 = 0x3C7CEA4F;
+       UInt word3 = 0x7C7CEA4F;
+       UInt word4 = 0x4CFCEA4F;
+-      if (getUIntLittleEndianly(code+ 0) == word1 &&
+-          getUIntLittleEndianly(code+ 4) == word2 &&
+-          getUIntLittleEndianly(code+ 8) == word3 &&
+-          getUIntLittleEndianly(code+12) == word4) {
++      if (getUInt(code+ 0) == word1 &&
++          getUInt(code+ 4) == word2 &&
++          getUInt(code+ 8) == word3 &&
++          getUInt(code+12) == word4) {
+          /* Got a "Special" instruction preamble.  Which one is it? */
+          // 0x 0A 0A EA 4A
+-         if (getUIntLittleEndianly(code+16) == 0x0A0AEA4A
++         if (getUInt(code+16) == 0x0A0AEA4A
+                                                /* orr.w r10,r10,r10 */) {
+             /* R3 = client_request ( R4 ) */
+             DIP("r3 = client_request ( %%r4 )\n");
+@@ -17391,7 +17413,7 @@
+          }
+          else
+          // 0x 0B 0B EA 4B
+-         if (getUIntLittleEndianly(code+16) == 0x0B0BEA4B
++         if (getUInt(code+16) == 0x0B0BEA4B
+                                                /* orr r11,r11,r11 */) {
+             /* R3 = guest_NRADDR */
+             DIP("r3 = guest_NRADDR\n");
+@@ -17401,7 +17423,7 @@
+          }
+          else
+          // 0x 0C 0C EA 4C
+-         if (getUIntLittleEndianly(code+16) == 0x0C0CEA4C
++         if (getUInt(code+16) == 0x0C0CEA4C
+                                                /* orr r12,r12,r12 */) {
+             /*  branch-and-link-to-noredir R4 */
+             DIP("branch-and-link-to-noredir r4\n");
+@@ -17413,7 +17435,7 @@
+          }
+          else
+          // 0x 09 09 EA 49
+-         if (getUIntLittleEndianly(code+16) == 0x0909EA49
++         if (getUInt(code+16) == 0x0909EA49
+                                                /* orr r9,r9,r9 */) {
+             /* IR injection */
+             DIP("IR injection\n");
+@@ -17431,7 +17453,7 @@
+          }
+          /* We don't know what it is.  Set insn0 so decode_failure
+             can print the insn following the Special-insn preamble. */
+-         insn0 = getUShortLittleEndianly(code+16);
++         insn0 = getUShort(code+16);
+          goto decode_failure;
+          /*NOTREACHED*/
+       }
+@@ -17486,48 +17508,48 @@
+          suboptimal. */
+       vassert(guaranteedUnconditional == False);
+ 
+-      UInt pc = guest_R15_curr_instr_notENC;
+-      vassert(0 == (pc & 1));
++      //UInt pc = guest_R15_curr_instr_notENC;
++      //vassert(0 == (pc & 1));
+ 
+-      UInt pageoff = pc & 0xFFF;
+-      if (pageoff >= 18) {
+-         /* It's safe to poke about in the 9 halfwords preceding this
+-            insn.  So, have a look at them. */
+-         guaranteedUnconditional = True; /* assume no 'it' insn found,
+-                                            till we do */
+-         UShort* hwp = (UShort*)(HWord)pc;
+-         Int i;
+-         for (i = -1; i >= -9; i--) {
+-            /* We're in the same page.  (True, but commented out due
+-               to expense.) */
+-            /*
+-            vassert( ( ((UInt)(&hwp[i])) & 0xFFFFF000 )
+-                      == ( pc & 0xFFFFF000 ) );
+-            */
+-            /* All valid IT instructions must have the form 0xBFxy,
+-               where x can be anything, but y must be nonzero.  Find
+-               the number of insns covered by it (1 .. 4) and check to
+-               see if it can possibly reach up to the instruction in
+-               question.  Some (x,y) combinations mean UNPREDICTABLE,
+-               and the table is constructed to be conservative by
+-               returning 4 for those cases, so the analysis is safe
+-               even if the code uses unpredictable IT instructions (in
+-               which case its authors are nuts, but hey.)  */
+-            UShort hwp_i = hwp[i];
+-            if (UNLIKELY((hwp_i & 0xFF00) == 0xBF00 && (hwp_i & 0xF) != 0)) {
+-               /* might be an 'it' insn. */
+-               /* # guarded insns */
+-               Int n_guarded = (Int)it_length_table[hwp_i & 0xFF];
+-               vassert(n_guarded >= 1 && n_guarded <= 4);
+-               if (n_guarded * 2 /* # guarded HWs, worst case */
+-                   > (-(i+1)))   /* -(i+1): # remaining HWs after the IT */
+-                   /* -(i+0) also seems to work, even though I think
+-                      it's wrong.  I don't understand that. */
+-                  guaranteedUnconditional = False;
+-               break;
+-            }
+-         }
+-      }
++      // COMMENTED OUT FOR PYVEX: UInt pageoff = pc & 0xFFF;
++      // COMMENTED OUT FOR PYVEX: if (pageoff >= 18) {
++      // COMMENTED OUT FOR PYVEX:    /* It's safe to poke about in the 9 halfwords preceding this
++      // COMMENTED OUT FOR PYVEX:       insn.  So, have a look at them. */
++      // COMMENTED OUT FOR PYVEX:    guaranteedUnconditional = True; /* assume no 'it' insn found,
++      // COMMENTED OUT FOR PYVEX:                                       till we do */
++      // COMMENTED OUT FOR PYVEX:    UShort* hwp = (UShort*)(HWord)pc;
++      // COMMENTED OUT FOR PYVEX:    Int i;
++      // COMMENTED OUT FOR PYVEX:    for (i = -1; i >= -9; i--) {
++      // COMMENTED OUT FOR PYVEX:       /* We're in the same page.  (True, but commented out due
++      // COMMENTED OUT FOR PYVEX:          to expense.) */
++      // COMMENTED OUT FOR PYVEX:       /*
++      // COMMENTED OUT FOR PYVEX:       vassert( ( ((UInt)(&hwp[i])) & 0xFFFFF000 )
++      // COMMENTED OUT FOR PYVEX:                 == ( pc & 0xFFFFF000 ) );
++      // COMMENTED OUT FOR PYVEX:       */
++      // COMMENTED OUT FOR PYVEX:       /* All valid IT instructions must have the form 0xBFxy,
++      // COMMENTED OUT FOR PYVEX:          where x can be anything, but y must be nonzero.  Find
++      // COMMENTED OUT FOR PYVEX:          the number of insns covered by it (1 .. 4) and check to
++      // COMMENTED OUT FOR PYVEX:          see if it can possibly reach up to the instruction in
++      // COMMENTED OUT FOR PYVEX:          question.  Some (x,y) combinations mean UNPREDICTABLE,
++      // COMMENTED OUT FOR PYVEX:          and the table is constructed to be conservative by
++      // COMMENTED OUT FOR PYVEX:          returning 4 for those cases, so the analysis is safe
++      // COMMENTED OUT FOR PYVEX:          even if the code uses unpredictable IT instructions (in
++      // COMMENTED OUT FOR PYVEX:          which case its authors are nuts, but hey.)  */
++      // COMMENTED OUT FOR PYVEX:       UShort hwp_i = hwp[i];
++      // COMMENTED OUT FOR PYVEX:       if (UNLIKELY((hwp_i & 0xFF00) == 0xBF00 && (hwp_i & 0xF) != 0)) {
++      // COMMENTED OUT FOR PYVEX:          /* might be an 'it' insn. */
++      // COMMENTED OUT FOR PYVEX:          /* # guarded insns */
++      // COMMENTED OUT FOR PYVEX:          Int n_guarded = (Int)it_length_table[hwp_i & 0xFF];
++      // COMMENTED OUT FOR PYVEX:          vassert(n_guarded >= 1 && n_guarded <= 4);
++      // COMMENTED OUT FOR PYVEX:          if (n_guarded * 2 /* # guarded HWs, worst case */
++      // COMMENTED OUT FOR PYVEX:              > (-(i+1)))   /* -(i+1): # remaining HWs after the IT */
++      // COMMENTED OUT FOR PYVEX:              /* -(i+0) also seems to work, even though I think
++      // COMMENTED OUT FOR PYVEX:                 it's wrong.  I don't understand that. */
++      // COMMENTED OUT FOR PYVEX:             guaranteedUnconditional = False;
++      // COMMENTED OUT FOR PYVEX:          break;
++      // COMMENTED OUT FOR PYVEX:       }
++      // COMMENTED OUT FOR PYVEX:    }
++      // COMMENTED OUT FOR PYVEX: }
+    }
+    /* --- END ITxxx optimisation analysis --- */
+ 
+@@ -19067,7 +19089,7 @@
+ 
+    /* second 16 bits of the instruction, if any */
+    vassert(insn1 == 0);
+-   insn1 = getUShortLittleEndianly( guest_instr+2 );
++   insn1 = getUShort( guest_instr+2 );
+ 
+    anOp   = Iop_INVALID; /* paranoia */
+    anOpNm = NULL;        /* paranoia */
+@@ -21910,6 +21932,7 @@
+ 
+    irsb              = irsb_IN;
+    host_is_bigendian = host_bigendian_IN;
++   guest_is_bigendian = archinfo->endness == Iend_BE;
+    __curr_is_Thumb   = isThumb;
+ 
+    if (isThumb) {
+diff -Naur valgrind-3.9.0-orig/VEX/priv/guest_mips_toIR.c valgrind-3.9.0-pyvex/VEX/priv/guest_mips_toIR.c
+--- valgrind-3.9.0-orig/VEX/priv/guest_mips_toIR.c	2013-10-23 12:50:39.000000000 +0200
++++ valgrind-3.9.0-pyvex/VEX/priv/guest_mips_toIR.c	2014-02-11 01:41:41.660683341 +0100
+@@ -40,6 +40,7 @@
+ #include "main_globals.h"
+ #include "guest_generic_bb_to_IR.h"
+ #include "guest_mips_defs.h"
++#include "host_mips_defs.h"
+ 
+ /*------------------------------------------------------------*/
+ /*---                      Globals                         ---*/
+diff -Naur valgrind-3.9.0-orig/VEX/priv/host_mips_defs.h valgrind-3.9.0-pyvex/VEX/priv/host_mips_defs.h
+--- valgrind-3.9.0-orig/VEX/priv/host_mips_defs.h	2013-10-23 12:50:39.000000000 +0200
++++ valgrind-3.9.0-pyvex/VEX/priv/host_mips_defs.h	2014-02-11 01:41:45.680683286 +0100
+@@ -28,6 +28,10 @@
+    The GNU General Public License is contained in the file COPYING.
+ */
+ 
++// DEFINES FOR PYVEX
++#define VGP_mips32_linux
++#define _MIPSEL
++
+ #ifndef __VEX_HOST_MIPS_DEFS_H
+ #define __VEX_HOST_MIPS_DEFS_H
+ 
+@@ -163,6 +167,9 @@
+ #define MIPS_N_ARGREGS 4
+ #endif
+ 
++#define VGP_mips32_linux
++#define _
++
+ /* --------- Condition codes, Intel encoding. --------- */
+ typedef enum {
+    MIPScc_EQ = 0,   /* equal */
+diff -Naur valgrind-3.9.0-orig/VEX/priv/main_main.c valgrind-3.9.0-pyvex/VEX/priv/main_main.c
+--- valgrind-3.9.0-orig/VEX/priv/main_main.c	2013-10-23 12:50:39.000000000 +0200
++++ valgrind-3.9.0-pyvex/VEX/priv/main_main.c	2014-02-11 01:41:53.148683188 +0100
+@@ -766,176 +766,176 @@
+       sanityCheckIRSB( irsb, "after instrumentation",
+                        True/*must be flat*/, guest_word_type );
+ 
+-   /* Do a post-instrumentation cleanup pass. */
+-   if (vta->instrument1 || vta->instrument2) {
+-      do_deadcode_BB( irsb );
+-      irsb = cprop_BB( irsb );
+-      do_deadcode_BB( irsb );
+-      sanityCheckIRSB( irsb, "after post-instrumentation cleanup",
+-                       True/*must be flat*/, guest_word_type );
+-   }
+-
+-   vexAllocSanityCheck();
+-
+-   if (vex_traceflags & VEX_TRACE_OPT2) {
+-      vex_printf("\n------------------------" 
+-                   " After post-instr IR optimisation "
+-                   "------------------------\n\n");
+-      ppIRSB ( irsb );
+-      vex_printf("\n");
+-   }
+-
+-   /* Turn it into virtual-registerised code.  Build trees -- this
+-      also throws away any dead bindings. */
+-   max_ga = ado_treebuild_BB( irsb, preciseMemExnsFn );
+-
+-   if (vta->finaltidy) {
+-      irsb = vta->finaltidy(irsb);
+-   }
+-
+-   vexAllocSanityCheck();
+-
+-   if (vex_traceflags & VEX_TRACE_TREES) {
+-      vex_printf("\n------------------------" 
+-                   "  After tree-building "
+-                   "------------------------\n\n");
+-      ppIRSB ( irsb );
+-      vex_printf("\n");
+-   }
+-
+-   /* HACK */
+-   if (0) {
+-      *(vta->host_bytes_used) = 0;
+-      res.status = VexTransOK; return res;
+-   }
+-   /* end HACK */
+-
+-   if (vex_traceflags & VEX_TRACE_VCODE)
+-      vex_printf("\n------------------------" 
+-                   " Instruction selection "
+-                   "------------------------\n");
+-
+-   /* No guest has its IP field at offset zero.  If this fails it
+-      means some transformation pass somewhere failed to update/copy
+-      irsb->offsIP properly. */
+-   vassert(irsb->offsIP >= 16);
+-
+-   vcode = iselSB ( irsb, vta->arch_host,
+-                    &vta->archinfo_host, 
+-                    &vta->abiinfo_both,
+-                    offB_HOST_EvC_COUNTER,
+-                    offB_HOST_EvC_FAILADDR,
+-                    chainingAllowed,
+-                    vta->addProfInc,
+-                    max_ga );
+-
+-   vexAllocSanityCheck();
+-
+-   if (vex_traceflags & VEX_TRACE_VCODE)
+-      vex_printf("\n");
+-
+-   if (vex_traceflags & VEX_TRACE_VCODE) {
+-      for (i = 0; i < vcode->arr_used; i++) {
+-         vex_printf("%3d   ", i);
+-         ppInstr(vcode->arr[i], mode64);
+-         vex_printf("\n");
+-      }
+-      vex_printf("\n");
+-   }
+-
+-   /* Register allocate. */
+-   rcode = doRegisterAllocation ( vcode, available_real_regs,
+-                                  n_available_real_regs,
+-                                  isMove, getRegUsage, mapRegs, 
+-                                  genSpill, genReload, directReload, 
+-                                  guest_sizeB,
+-                                  ppInstr, ppReg, mode64 );
+-
+-   vexAllocSanityCheck();
+-
+-   if (vex_traceflags & VEX_TRACE_RCODE) {
+-      vex_printf("\n------------------------" 
+-                   " Register-allocated code "
+-                   "------------------------\n\n");
+-      for (i = 0; i < rcode->arr_used; i++) {
+-         vex_printf("%3d   ", i);
+-         ppInstr(rcode->arr[i], mode64);
+-         vex_printf("\n");
+-      }
+-      vex_printf("\n");
+-   }
+-
+-   /* HACK */
+-   if (0) { 
+-      *(vta->host_bytes_used) = 0;
+-      res.status = VexTransOK; return res;
+-   }
+-   /* end HACK */
+-
+-   /* Assemble */
+-   if (vex_traceflags & VEX_TRACE_ASM) {
+-      vex_printf("\n------------------------" 
+-                   " Assembly "
+-                   "------------------------\n\n");
+-   }
+-
+-   out_used = 0; /* tracks along the host_bytes array */
+-   for (i = 0; i < rcode->arr_used; i++) {
+-      HInstr* hi           = rcode->arr[i];
+-      Bool    hi_isProfInc = False;
+-      if (UNLIKELY(vex_traceflags & VEX_TRACE_ASM)) {
+-         ppInstr(hi, mode64);
+-         vex_printf("\n");
+-      }
+-      j = emit( &hi_isProfInc,
+-                insn_bytes, sizeof insn_bytes, hi, mode64,
+-                vta->disp_cp_chain_me_to_slowEP,
+-                vta->disp_cp_chain_me_to_fastEP,
+-                vta->disp_cp_xindir,
+-                vta->disp_cp_xassisted );
+-      if (UNLIKELY(vex_traceflags & VEX_TRACE_ASM)) {
+-         for (k = 0; k < j; k++)
+-            if (insn_bytes[k] < 16)
+-               vex_printf("0%x ",  (UInt)insn_bytes[k]);
+-            else
+-               vex_printf("%x ", (UInt)insn_bytes[k]);
+-         vex_printf("\n\n");
+-      }
+-      if (UNLIKELY(out_used + j > vta->host_bytes_size)) {
+-         vexSetAllocModeTEMP_and_clear();
+-         vex_traceflags = 0;
+-         res.status = VexTransOutputFull;
+-         return res;
+-      }
+-      if (UNLIKELY(hi_isProfInc)) {
+-         vassert(vta->addProfInc); /* else where did it come from? */
+-         vassert(res.offs_profInc == -1); /* there can be only one (tm) */
+-         vassert(out_used >= 0);
+-         res.offs_profInc = out_used;
+-      }
+-      { UChar* dst = &vta->host_bytes[out_used];
+-        for (k = 0; k < j; k++) {
+-           dst[k] = insn_bytes[k];
+-        }
+-        out_used += j;
+-      }
+-      vassert(out_used <= vta->host_bytes_size);
+-   }
+-   *(vta->host_bytes_used) = out_used;
+-
+-   vexAllocSanityCheck();
+-
+-   vexSetAllocModeTEMP_and_clear();
+-
+-   if (vex_traceflags) {
+-      /* Print the expansion ratio for this SB. */
+-      j = 0; /* total guest bytes */
+-      for (i = 0; i < vta->guest_extents->n_used; i++) {
+-         j += vta->guest_extents->len[i];
+-      }
+-      if (1) vex_printf("VexExpansionRatio %d %d   %d :10\n\n",
+-                        j, out_used, (10 * out_used) / (j == 0 ? 1 : j));
+-   }
++   // COMMENTED OUT FOR PYVEX: /* Do a post-instrumentation cleanup pass. */
++   // COMMENTED OUT FOR PYVEX: if (vta->instrument1 || vta->instrument2) {
++   // COMMENTED OUT FOR PYVEX:    do_deadcode_BB( irsb );
++   // COMMENTED OUT FOR PYVEX:    irsb = cprop_BB( irsb );
++   // COMMENTED OUT FOR PYVEX:    do_deadcode_BB( irsb );
++   // COMMENTED OUT FOR PYVEX:    sanityCheckIRSB( irsb, "after post-instrumentation cleanup",
++   // COMMENTED OUT FOR PYVEX:                     True/*must be flat*/, guest_word_type );
++   // COMMENTED OUT FOR PYVEX: }
++
++   // COMMENTED OUT FOR PYVEX: vexAllocSanityCheck();
++
++   // COMMENTED OUT FOR PYVEX: if (vex_traceflags & VEX_TRACE_OPT2) {
++   // COMMENTED OUT FOR PYVEX:    vex_printf("\n------------------------" 
++   // COMMENTED OUT FOR PYVEX:                 " After post-instr IR optimisation "
++   // COMMENTED OUT FOR PYVEX:                 "------------------------\n\n");
++   // COMMENTED OUT FOR PYVEX:    ppIRSB ( irsb );
++   // COMMENTED OUT FOR PYVEX:    vex_printf("\n");
++   // COMMENTED OUT FOR PYVEX: }
++
++   // COMMENTED OUT FOR PYVEX: /* Turn it into virtual-registerised code.  Build trees -- this
++   // COMMENTED OUT FOR PYVEX:    also throws away any dead bindings. */
++   // COMMENTED OUT FOR PYVEX: max_ga = ado_treebuild_BB( irsb, preciseMemExnsFn );
++
++   // COMMENTED OUT FOR PYVEX: if (vta->finaltidy) {
++   // COMMENTED OUT FOR PYVEX:    irsb = vta->finaltidy(irsb);
++   // COMMENTED OUT FOR PYVEX: }
++
++   // COMMENTED OUT FOR PYVEX: vexAllocSanityCheck();
++
++   // COMMENTED OUT FOR PYVEX: if (vex_traceflags & VEX_TRACE_TREES) {
++   // COMMENTED OUT FOR PYVEX:    vex_printf("\n------------------------" 
++   // COMMENTED OUT FOR PYVEX:                 "  After tree-building "
++   // COMMENTED OUT FOR PYVEX:                 "------------------------\n\n");
++   // COMMENTED OUT FOR PYVEX:    ppIRSB ( irsb );
++   // COMMENTED OUT FOR PYVEX:    vex_printf("\n");
++   // COMMENTED OUT FOR PYVEX: }
++
++   // COMMENTED OUT FOR PYVEX: /* HACK */
++   // COMMENTED OUT FOR PYVEX: if (0) {
++   // COMMENTED OUT FOR PYVEX:    *(vta->host_bytes_used) = 0;
++   // COMMENTED OUT FOR PYVEX:    res.status = VexTransOK; return res;
++   // COMMENTED OUT FOR PYVEX: }
++   // COMMENTED OUT FOR PYVEX: /* end HACK */
++
++   // COMMENTED OUT FOR PYVEX: if (vex_traceflags & VEX_TRACE_VCODE)
++   // COMMENTED OUT FOR PYVEX:    vex_printf("\n------------------------" 
++   // COMMENTED OUT FOR PYVEX:                 " Instruction selection "
++   // COMMENTED OUT FOR PYVEX:                 "------------------------\n");
++
++   // COMMENTED OUT FOR PYVEX: /* No guest has its IP field at offset zero.  If this fails it
++   // COMMENTED OUT FOR PYVEX:    means some transformation pass somewhere failed to update/copy
++   // COMMENTED OUT FOR PYVEX:    irsb->offsIP properly. */
++   // COMMENTED OUT FOR PYVEX: vassert(irsb->offsIP >= 16);
++
++   // COMMENTED OUT FOR PYVEX: vcode = iselSB ( irsb, vta->arch_host,
++   // COMMENTED OUT FOR PYVEX:                  &vta->archinfo_host, 
++   // COMMENTED OUT FOR PYVEX:                  &vta->abiinfo_both,
++   // COMMENTED OUT FOR PYVEX:                  offB_HOST_EvC_COUNTER,
++   // COMMENTED OUT FOR PYVEX:                  offB_HOST_EvC_FAILADDR,
++   // COMMENTED OUT FOR PYVEX:                  chainingAllowed,
++   // COMMENTED OUT FOR PYVEX:                  vta->addProfInc,
++   // COMMENTED OUT FOR PYVEX:                  max_ga );
++
++   // COMMENTED OUT FOR PYVEX: vexAllocSanityCheck();
++
++   // COMMENTED OUT FOR PYVEX: if (vex_traceflags & VEX_TRACE_VCODE)
++   // COMMENTED OUT FOR PYVEX:    vex_printf("\n");
++
++   // COMMENTED OUT FOR PYVEX: if (vex_traceflags & VEX_TRACE_VCODE) {
++   // COMMENTED OUT FOR PYVEX:    for (i = 0; i < vcode->arr_used; i++) {
++   // COMMENTED OUT FOR PYVEX:       vex_printf("%3d   ", i);
++   // COMMENTED OUT FOR PYVEX:       ppInstr(vcode->arr[i], mode64);
++   // COMMENTED OUT FOR PYVEX:       vex_printf("\n");
++   // COMMENTED OUT FOR PYVEX:    }
++   // COMMENTED OUT FOR PYVEX:    vex_printf("\n");
++   // COMMENTED OUT FOR PYVEX: }
++
++   // COMMENTED OUT FOR PYVEX: /* Register allocate. */
++   // COMMENTED OUT FOR PYVEX: rcode = doRegisterAllocation ( vcode, available_real_regs,
++   // COMMENTED OUT FOR PYVEX:                                n_available_real_regs,
++   // COMMENTED OUT FOR PYVEX:                                isMove, getRegUsage, mapRegs, 
++   // COMMENTED OUT FOR PYVEX:                                genSpill, genReload, directReload, 
++   // COMMENTED OUT FOR PYVEX:                                guest_sizeB,
++   // COMMENTED OUT FOR PYVEX:                                ppInstr, ppReg, mode64 );
++
++   // COMMENTED OUT FOR PYVEX: vexAllocSanityCheck();
++
++   // COMMENTED OUT FOR PYVEX: if (vex_traceflags & VEX_TRACE_RCODE) {
++   // COMMENTED OUT FOR PYVEX:    vex_printf("\n------------------------" 
++   // COMMENTED OUT FOR PYVEX:                 " Register-allocated code "
++   // COMMENTED OUT FOR PYVEX:                 "------------------------\n\n");
++   // COMMENTED OUT FOR PYVEX:    for (i = 0; i < rcode->arr_used; i++) {
++   // COMMENTED OUT FOR PYVEX:       vex_printf("%3d   ", i);
++   // COMMENTED OUT FOR PYVEX:       ppInstr(rcode->arr[i], mode64);
++   // COMMENTED OUT FOR PYVEX:       vex_printf("\n");
++   // COMMENTED OUT FOR PYVEX:    }
++   // COMMENTED OUT FOR PYVEX:    vex_printf("\n");
++   // COMMENTED OUT FOR PYVEX: }
++
++   // COMMENTED OUT FOR PYVEX: /* HACK */
++   // COMMENTED OUT FOR PYVEX: if (0) { 
++   // COMMENTED OUT FOR PYVEX:    *(vta->host_bytes_used) = 0;
++   // COMMENTED OUT FOR PYVEX:    res.status = VexTransOK; return res;
++   // COMMENTED OUT FOR PYVEX: }
++   // COMMENTED OUT FOR PYVEX: /* end HACK */
++
++   // COMMENTED OUT FOR PYVEX: /* Assemble */
++   // COMMENTED OUT FOR PYVEX: if (vex_traceflags & VEX_TRACE_ASM) {
++   // COMMENTED OUT FOR PYVEX:    vex_printf("\n------------------------" 
++   // COMMENTED OUT FOR PYVEX:                 " Assembly "
++   // COMMENTED OUT FOR PYVEX:                 "------------------------\n\n");
++   // COMMENTED OUT FOR PYVEX: }
++
++   // COMMENTED OUT FOR PYVEX: out_used = 0; /* tracks along the host_bytes array */
++   // COMMENTED OUT FOR PYVEX: for (i = 0; i < rcode->arr_used; i++) {
++   // COMMENTED OUT FOR PYVEX:    HInstr* hi           = rcode->arr[i];
++   // COMMENTED OUT FOR PYVEX:    Bool    hi_isProfInc = False;
++   // COMMENTED OUT FOR PYVEX:    if (UNLIKELY(vex_traceflags & VEX_TRACE_ASM)) {
++   // COMMENTED OUT FOR PYVEX:       ppInstr(hi, mode64);
++   // COMMENTED OUT FOR PYVEX:       vex_printf("\n");
++   // COMMENTED OUT FOR PYVEX:    }
++   // COMMENTED OUT FOR PYVEX:    j = emit( &hi_isProfInc,
++   // COMMENTED OUT FOR PYVEX:              insn_bytes, sizeof insn_bytes, hi, mode64,
++   // COMMENTED OUT FOR PYVEX:              vta->disp_cp_chain_me_to_slowEP,
++   // COMMENTED OUT FOR PYVEX:              vta->disp_cp_chain_me_to_fastEP,
++   // COMMENTED OUT FOR PYVEX:              vta->disp_cp_xindir,
++   // COMMENTED OUT FOR PYVEX:              vta->disp_cp_xassisted );
++   // COMMENTED OUT FOR PYVEX:    if (UNLIKELY(vex_traceflags & VEX_TRACE_ASM)) {
++   // COMMENTED OUT FOR PYVEX:       for (k = 0; k < j; k++)
++   // COMMENTED OUT FOR PYVEX:          if (insn_bytes[k] < 16)
++   // COMMENTED OUT FOR PYVEX:             vex_printf("0%x ",  (UInt)insn_bytes[k]);
++   // COMMENTED OUT FOR PYVEX:          else
++   // COMMENTED OUT FOR PYVEX:             vex_printf("%x ", (UInt)insn_bytes[k]);
++   // COMMENTED OUT FOR PYVEX:       vex_printf("\n\n");
++   // COMMENTED OUT FOR PYVEX:    }
++   // COMMENTED OUT FOR PYVEX:    if (UNLIKELY(out_used + j > vta->host_bytes_size)) {
++   // COMMENTED OUT FOR PYVEX:       vexSetAllocModeTEMP_and_clear();
++   // COMMENTED OUT FOR PYVEX:       vex_traceflags = 0;
++   // COMMENTED OUT FOR PYVEX:       res.status = VexTransOutputFull;
++   // COMMENTED OUT FOR PYVEX:       return res;
++   // COMMENTED OUT FOR PYVEX:    }
++   // COMMENTED OUT FOR PYVEX:    if (UNLIKELY(hi_isProfInc)) {
++   // COMMENTED OUT FOR PYVEX:       vassert(vta->addProfInc); /* else where did it come from? */
++   // COMMENTED OUT FOR PYVEX:       vassert(res.offs_profInc == -1); /* there can be only one (tm) */
++   // COMMENTED OUT FOR PYVEX:       vassert(out_used >= 0);
++   // COMMENTED OUT FOR PYVEX:       res.offs_profInc = out_used;
++   // COMMENTED OUT FOR PYVEX:    }
++   // COMMENTED OUT FOR PYVEX:    { UChar* dst = &vta->host_bytes[out_used];
++   // COMMENTED OUT FOR PYVEX:      for (k = 0; k < j; k++) {
++   // COMMENTED OUT FOR PYVEX:         dst[k] = insn_bytes[k];
++   // COMMENTED OUT FOR PYVEX:      }
++   // COMMENTED OUT FOR PYVEX:      out_used += j;
++   // COMMENTED OUT FOR PYVEX:    }
++   // COMMENTED OUT FOR PYVEX:    vassert(out_used <= vta->host_bytes_size);
++   // COMMENTED OUT FOR PYVEX: }
++   // COMMENTED OUT FOR PYVEX: *(vta->host_bytes_used) = out_used;
++
++   // COMMENTED OUT FOR PYVEX: vexAllocSanityCheck();
++
++   // COMMENTED OUT FOR PYVEX: vexSetAllocModeTEMP_and_clear();
++
++   // COMMENTED OUT FOR PYVEX: if (vex_traceflags) {
++   // COMMENTED OUT FOR PYVEX:    /* Print the expansion ratio for this SB. */
++   // COMMENTED OUT FOR PYVEX:    j = 0; /* total guest bytes */
++   // COMMENTED OUT FOR PYVEX:    for (i = 0; i < vta->guest_extents->n_used; i++) {
++   // COMMENTED OUT FOR PYVEX:       j += vta->guest_extents->len[i];
++   // COMMENTED OUT FOR PYVEX:    }
++   // COMMENTED OUT FOR PYVEX:    if (1) vex_printf("VexExpansionRatio %d %d   %d :10\n\n",
++   // COMMENTED OUT FOR PYVEX:                      j, out_used, (10 * out_used) / (j == 0 ? 1 : j));
++   // COMMENTED OUT FOR PYVEX: }
+ 
+    vex_traceflags = 0;
+    res.status = VexTransOK;
+@@ -1175,6 +1175,7 @@
+    vai->ppc_icache_line_szB = 0;
+    vai->ppc_dcbz_szB        = 0;
+    vai->ppc_dcbzl_szB       = 0;
++   vai->endness = Iend_LE;
+ 
+    vai->hwcache_info.num_levels = 0;
+    vai->hwcache_info.num_caches = 0;
+diff -Naur valgrind-3.9.0-orig/VEX/pub/libvex.h valgrind-3.9.0-pyvex/VEX/pub/libvex.h
+--- valgrind-3.9.0-orig/VEX/pub/libvex.h	2013-10-23 12:50:40.000000000 +0200
++++ valgrind-3.9.0-pyvex/VEX/pub/libvex.h	2014-02-11 01:41:56.916683137 +0100
+@@ -269,6 +269,9 @@
+        * (bug#135264) */
+       UInt ppc_dcbz_szB;
+       UInt ppc_dcbzl_szB; /* 0 means unsupported (SIGILL) */
++
++      /* The endianness of the architecture */
++      IREndness endness;
+    }
+    VexArchInfo;
+ 
