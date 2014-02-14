@@ -40,7 +40,7 @@ PYVEX_SHALLOW_FUNC(IRExpr)
 #define IRExpr_Load(...) pyvex_shallowCopy_IRExpr(IRExpr_Load(__VA_ARGS__))
 #define IRExpr_Const(...) pyvex_shallowCopy_IRExpr(IRExpr_Const(__VA_ARGS__))
 #define IRExpr_CCall(...) pyvex_shallowCopy_IRExpr(IRExpr_CCall(__VA_ARGS__))
-#define IRExpr_Mux0X(...) pyvex_shallowCopy_IRExpr(IRExpr_Mux0X(__VA_ARGS__))
+#define IRExpr_ITE(...) pyvex_shallowCopy_IRExpr(IRExpr_ITE(__VA_ARGS__))
 
 PYVEX_SHALLOW_FUNC(IRDirty)
 #define emptyIRDirty(...) pyvex_shallowCopy_IRDirty(emptyIRDirty(__VA_ARGS__))
@@ -64,6 +64,8 @@ PYVEX_SHALLOW_FUNC(IRStmt)
 #define IRStmt_Dirty(...) pyvex_shallowCopy_IRStmt(IRStmt_Dirty(__VA_ARGS__))
 #define IRStmt_MBE(...) pyvex_shallowCopy_IRStmt(IRStmt_MBE(__VA_ARGS__))
 #define IRStmt_Exit(...) pyvex_shallowCopy_IRStmt(IRStmt_Exit(__VA_ARGS__))
+#define IRStmt_StoreG(...) pyvex_shallowCopy_IRStmt(IRStmt_StoreG(__VA_ARGS__))
+#define IRStmt_LoadG(...) pyvex_shallowCopy_IRStmt(IRStmt_LoadG(__VA_ARGS__))
 
 PYVEX_SHALLOW_FUNC(IRTypeEnv)
 // nothing for this guy
@@ -355,7 +357,7 @@ IRSB* pyvex_deepCopyIRSBExceptStmts ( IRSB* bb )
 #undef IRExpr_Load
 #undef IRExpr_Const
 #undef IRExpr_CCall
-#undef IRExpr_Mux0X
+#undef IRExpr_ITE
 #undef emptyIRDirty
 #undef mkIRCAS
 #undef mkIRPutI
@@ -371,4 +373,6 @@ IRSB* pyvex_deepCopyIRSBExceptStmts ( IRSB* bb )
 #undef IRStmt_Dirty
 #undef IRStmt_MBE
 #undef IRStmt_Exit
+#undef IRStmt_StoreG
+#undef IRStmt_LoadG
 #undef emptyIRSB

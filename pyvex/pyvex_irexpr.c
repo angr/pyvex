@@ -201,7 +201,7 @@ pyIRExprRdTmp_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	static char *kwlist[] = {"tmp", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "I", kwlist, &tmp)) return -1;
 
-	self->wrapped = IRExpr_RdTmp(tmp);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_RdTmp(tmp));
 	return 0;
 }
 
