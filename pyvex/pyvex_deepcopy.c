@@ -8,9 +8,9 @@
 
 #define vpanic(x) { error(x "\n"); assert(0); }
 
-#define PYVEX_SHALLOW_FUNC(type) type *pyvex_shallowCopy_##type(type *x) { type *o = malloc(sizeof(type)); memcpy(o, x, sizeof(type)); return o; }
+#define PYMARE_SHALLOW_FUNC(type) type *pyvex_shallowCopy_##type(type *x) { type *o = malloc(sizeof(type)); memcpy(o, x, sizeof(type)); return o; }
 
-PYVEX_SHALLOW_FUNC(IRConst)
+PYMARE_SHALLOW_FUNC(IRConst)
 #define IRConst_U1(...) pyvex_shallowCopy_IRConst(IRConst_U1(__VA_ARGS__))
 #define IRConst_U8(...) pyvex_shallowCopy_IRConst(IRConst_U8(__VA_ARGS__))
 #define IRConst_U16(...) pyvex_shallowCopy_IRConst(IRConst_U16(__VA_ARGS__))
@@ -23,13 +23,13 @@ PYVEX_SHALLOW_FUNC(IRConst)
 #define IRConst_V128(...) pyvex_shallowCopy_IRConst(IRConst_V128(__VA_ARGS__))
 #define IRConst_V256(...) pyvex_shallowCopy_IRConst(IRConst_V256(__VA_ARGS__))
 
-PYVEX_SHALLOW_FUNC(IRCallee)
+PYMARE_SHALLOW_FUNC(IRCallee)
 #define mkIRCallee(...) pyvex_shallowCopy_IRCallee(mkIRCallee(__VA_ARGS__))
 
-PYVEX_SHALLOW_FUNC(IRRegArray)
+PYMARE_SHALLOW_FUNC(IRRegArray)
 #define mkIRRegArray(...) pyvex_shallowCopy_IRRegArray(mkIRRegArray(__VA_ARGS__))
 
-PYVEX_SHALLOW_FUNC(IRExpr)
+PYMARE_SHALLOW_FUNC(IRExpr)
 #define IRExpr_Get(...) pyvex_shallowCopy_IRExpr(IRExpr_Get(__VA_ARGS__))
 #define IRExpr_GetI(...) pyvex_shallowCopy_IRExpr(IRExpr_GetI(__VA_ARGS__))
 #define IRExpr_RdTmp(...) pyvex_shallowCopy_IRExpr(IRExpr_RdTmp(__VA_ARGS__))
@@ -42,16 +42,16 @@ PYVEX_SHALLOW_FUNC(IRExpr)
 #define IRExpr_CCall(...) pyvex_shallowCopy_IRExpr(IRExpr_CCall(__VA_ARGS__))
 #define IRExpr_ITE(...) pyvex_shallowCopy_IRExpr(IRExpr_ITE(__VA_ARGS__))
 
-PYVEX_SHALLOW_FUNC(IRDirty)
+PYMARE_SHALLOW_FUNC(IRDirty)
 #define emptyIRDirty(...) pyvex_shallowCopy_IRDirty(emptyIRDirty(__VA_ARGS__))
 
-PYVEX_SHALLOW_FUNC(IRCAS)
+PYMARE_SHALLOW_FUNC(IRCAS)
 #define mkIRCAS(...) pyvex_shallowCopy_IRCAS(mkIRCAS(__VA_ARGS__))
 
-PYVEX_SHALLOW_FUNC(IRPutI)
+PYMARE_SHALLOW_FUNC(IRPutI)
 #define mkIRPutI(...) pyvex_shallowCopy_IRPutI(mkIRPutI(__VA_ARGS__))
 
-PYVEX_SHALLOW_FUNC(IRStmt)
+PYMARE_SHALLOW_FUNC(IRStmt)
 #define IRStmt_NoOp(...) pyvex_shallowCopy_IRStmt(IRStmt_NoOp(__VA_ARGS__))
 #define IRStmt_AbiHint(...) pyvex_shallowCopy_IRStmt(IRStmt_AbiHint(__VA_ARGS__))
 #define IRStmt_IMark(...) pyvex_shallowCopy_IRStmt(IRStmt_IMark(__VA_ARGS__))
@@ -67,10 +67,10 @@ PYVEX_SHALLOW_FUNC(IRStmt)
 #define IRStmt_StoreG(...) pyvex_shallowCopy_IRStmt(IRStmt_StoreG(__VA_ARGS__))
 #define IRStmt_LoadG(...) pyvex_shallowCopy_IRStmt(IRStmt_LoadG(__VA_ARGS__))
 
-PYVEX_SHALLOW_FUNC(IRTypeEnv)
+PYMARE_SHALLOW_FUNC(IRTypeEnv)
 // nothing for this guy
 
-PYVEX_SHALLOW_FUNC(IRSB)
+PYMARE_SHALLOW_FUNC(IRSB)
 #define emptyIRSB(...) pyvex_shallowCopy_IRSB(emptyIRSB(__VA_ARGS__))
 /*--- (Deep) copy constructors.  These make complete copies   ---*/
 /*--- the original, which can be modified without affecting   ---*/

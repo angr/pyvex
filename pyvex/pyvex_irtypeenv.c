@@ -17,16 +17,16 @@
 // Python stuff //
 //////////////////
 
-PYVEX_NEW(IRTypeEnv)
-PYVEX_DEALLOC(IRTypeEnv)
-PYVEX_WRAP(IRTypeEnv)
+PYMARE_NEW(IRTypeEnv)
+PYMARE_DEALLOC(IRTypeEnv)
+PYMARE_WRAP(IRTypeEnv)
 PYVEX_METH_STANDARD(IRTypeEnv)
 
 static int
 pyIRTypeEnv_init(pyIRTypeEnv *self, PyObject *args, PyObject *kwargs)
 {
 	if (!kwargs) { self->wrapped = PYVEX_COPYOUT(IRTypeEnv, emptyIRTypeEnv()); return 0; }
-	PYVEX_WRAP_CONSTRUCTOR(IRTypeEnv);
+	PYMARE_WRAP_CONSTRUCTOR(IRTypeEnv);
 
 	PyErr_SetString(VexException, "Unexpected arguments provided.");
 	return -1;
@@ -37,7 +37,7 @@ static PyMemberDef pyIRTypeEnv_members[] =
 	{NULL}
 };
 
-PYVEX_ACCESSOR_WRAPPED(IRTypeEnv, IRTypeEnv, self->wrapped, wrapped, IRTypeEnv)
+PYMARE_ACCESSOR_WRAPPED(IRTypeEnv, IRTypeEnv, self->wrapped, wrapped, IRTypeEnv)
 
 PyObject *pyIRTypeEnv_types(pyIRTypeEnv *self)
 {
@@ -45,7 +45,7 @@ PyObject *pyIRTypeEnv_types(pyIRTypeEnv *self)
 	for (int i = 0; i < self->wrapped->types_used; i++)
 	{
 		const char *type_str;
-		PYVEX_ENUM_TOSTR(IRType, self->wrapped->types[i], type_str, return NULL);
+		PYMARE_ENUM_TOSTR(IRType, self->wrapped->types[i], type_str, return NULL);
 
 		PyObject *wrapped = PyString_FromString(type_str);
 		PyTuple_SetItem(result, i, wrapped);
@@ -58,7 +58,7 @@ PyObject *pyIRTypeEnv_newTemp(pyIRTypeEnv *self, PyObject *type)
 	IRType t;
 	const char *t_str = PyString_AsString(type);
 	if (!t_str) { PyErr_SetString(VexException, "Unrecognized type argument to IRTypeEnv.newTemp"); return NULL; }
-	PYVEX_ENUM_FROMSTR(IRType, t, t_str, return NULL);
+	PYMARE_ENUM_FROMSTR(IRType, t, t_str, return NULL);
 
 	return PyInt_FromLong(newIRTemp(self->wrapped, t));
 }
@@ -75,7 +75,7 @@ PyObject *pyIRTypeEnv_typeOf(pyIRTypeEnv *self, PyObject *o)
 		}
 
 		const char *typestr;
-		PYVEX_ENUM_TOSTR(IRType, typeOfIRTemp(self->wrapped, t), typestr, return NULL);
+		PYMARE_ENUM_TOSTR(IRType, typeOfIRTemp(self->wrapped, t), typestr, return NULL);
 		return PyString_FromString(typestr);
 	}
 	else if (PyObject_TypeCheck(o, &pyIRExprType))
@@ -83,7 +83,7 @@ PyObject *pyIRTypeEnv_typeOf(pyIRTypeEnv *self, PyObject *o)
 		pyIRExpr *e = (pyIRExpr *)o;
 
 		const char *typestr;
-		PYVEX_ENUM_TOSTR(IRType, typeOfIRExpr(self->wrapped, e->wrapped), typestr, return NULL);
+		PYMARE_ENUM_TOSTR(IRType, typeOfIRExpr(self->wrapped, e->wrapped), typestr, return NULL);
 		return PyString_FromString(typestr);
 	}
 
@@ -93,7 +93,7 @@ PyObject *pyIRTypeEnv_typeOf(pyIRTypeEnv *self, PyObject *o)
 
 static PyGetSetDef pyIRTypeEnv_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRTypeEnv, wrapped),
+	PYMARE_ACCESSOR_DEF(IRTypeEnv, wrapped),
 	{NULL}
 };
 
@@ -106,4 +106,4 @@ static PyMethodDef pyIRTypeEnv_methods[] =
 	{NULL}
 };
 
-PYVEX_TYPEOBJECT(IRTypeEnv);
+PYMARE_TYPEOBJECT("pyvex", IRTypeEnv);

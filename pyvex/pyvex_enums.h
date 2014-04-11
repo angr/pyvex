@@ -2,46 +2,18 @@
 
 #pragma once
 
-// vex architectures
-const char *VexArch_to_str(VexArch);
-VexArch str_to_VexArch(const char *);
+#include <libvex_ir.h>
+#include "pymare.h"
 
-// expression tags
-const char *IRExprTag_to_str(IRExprTag);
-IRExprTag str_to_IRExprTag(const char *);
-
-// statement tags
-const char *IRStmtTag_to_str(IRStmtTag);
-IRStmtTag str_to_IRStmtTag(const char *);
-
-// endness
-const char *IREndness_to_str(IREndness);
-IREndness str_to_IREndness(const char *);
-
-// mbusevent
-const char *IRMBusEvent_to_str(IRMBusEvent);
-IRMBusEvent str_to_IRMBusEvent(const char *);
-
-// ireffect
-const char *IREffect_to_str(IREffect);
-IREffect str_to_IREffect(const char *);
-
-// jump kind
-const char *IRJumpKind_to_str(IRJumpKind);
-IRJumpKind str_to_IRJumpKind(const char *);
-
-// constant type
-const char *IRConstTag_to_str(IRConstTag);
-IRConstTag str_to_IRConstTag(const char *);
-
-// IR type
-const char *IRType_to_str(IRType);
-IRType str_to_IRType(const char *);
-
-// IROp
-const char *IROp_to_str(IROp);
-IROp str_to_IROp(const char *);
-
-// IRLoadGOp
-const char *IRLoadGOp_to_str(IROp);
-IROp str_to_IRLoadGOp(const char *);
+PYMARE_ENUM_HEADER(VexArch)
+PYMARE_ENUM_HEADER(IRExprTag)
+PYMARE_ENUM_HEADER(IRStmtTag)
+PYMARE_ENUM_HEADER(IREndness)
+PYMARE_ENUM_HEADER(IRMBusEvent)
+PYMARE_ENUM_HEADER(IREffect)
+PYMARE_ENUM_HEADER(IRJumpKind)
+PYMARE_ENUM_HEADER(IRConstTag)
+PYMARE_ENUM_HEADER(IRType)
+PYMARE_ENUM_HEADER(IROp)
+PYMARE_ENUM_HEADER(IRLoadGOp)
+void pyvex_init_enums(void);

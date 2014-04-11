@@ -64,10 +64,8 @@ def uniq(seq):
 
 for ty,enum in enums:
 	insts = uniq(re.findall(enum, input))
-	insts = [x for x in insts if x not in errors]
-	to_strs = "\n".join("\t\tPYVEX_ENUMCONV_TOSTRCASE("+x+")" for x in insts if x not in ignore)
-	out += to_str.format(ty, to_strs)
-	from_strs = "\n".join("\tPYVEX_ENUMCONV_FROMSTR("+x+")" for x in insts if x not in ignore)
-	out += from_str.format(ty, from_strs)
+	insts = [x for x in insts if x not in errors and x not in ignore ]
+	for i in insts:
+		print "PYMARE_ENUM_ADD(%s, %s)" % (ty, i)
 
-print out
+#print out

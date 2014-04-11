@@ -18,25 +18,25 @@
 // IRExpr base class //
 ///////////////////////
 
-PYVEX_NEW(IRExpr)
-PYVEX_DEALLOC(IRExpr)
+PYMARE_NEW(IRExpr)
+PYMARE_DEALLOC(IRExpr)
 PYVEX_METH_STANDARD(IRExpr)
 
 static int
 pyIRExpr_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 	PyErr_SetString(VexException, "Base IRExpr creation not supported..");
 	return -1;
 }
 
-PYVEX_ACCESSOR_WRAPPED(IRExpr, IRExpr, self->wrapped, wrapped, IRExpr)
-PYVEX_ACCESSOR_ENUM(IRExpr, IRExpr, self->wrapped->tag, tag, IRExprTag)
+PYMARE_ACCESSOR_WRAPPED(IRExpr, IRExpr, self->wrapped, wrapped, IRExpr)
+PYMARE_ACCESSOR_ENUM(IRExpr, IRExpr, self->wrapped->tag, tag, IRExprTag)
 
 static PyGetSetDef pyIRExpr_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExpr, wrapped),
-	PYVEX_ACCESSOR_DEF(IRExpr, tag),
+	PYMARE_ACCESSOR_DEF(IRExpr, wrapped),
+	PYMARE_ACCESSOR_DEF(IRExpr, tag),
 	{NULL}
 };
 
@@ -54,7 +54,7 @@ static PyMethodDef pyIRExpr_methods[] =
 };
 
 static PyMemberDef pyIRExpr_members[] = { {NULL} };
-PYVEX_TYPEOBJECT(IRExpr);
+PYMARE_TYPEOBJECT("pyvex", IRExpr);
 
 // wrap functionality
 PyObject *wrap_IRExpr(IRExpr *i)
@@ -94,7 +94,7 @@ PyObject *wrap_IRExpr(IRExpr *i)
 static int
 pyIRExprBinder_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 
 	Int binder;
 	static char *kwlist[] = {"binder", NULL};
@@ -104,11 +104,11 @@ pyIRExprBinder_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	return 0;
 }
 
-PYVEX_ACCESSOR_BUILDVAL(IRExprBinder, IRExpr, self->wrapped->Iex.Binder.binder, binder, "i")
+PYMARE_ACCESSOR_BUILDVAL(IRExprBinder, IRExpr, self->wrapped->Iex.Binder.binder, binder, "i")
 
 static PyGetSetDef pyIRExprBinder_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprBinder, binder),
+	PYMARE_ACCESSOR_DEF(IRExprBinder, binder),
 	{NULL}
 };
 
@@ -124,7 +124,7 @@ PYVEX_SUBTYPEOBJECT(Binder, IRExpr);
 static int
 pyIRExprGetI_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 
 	pyIRRegArray *descr;
 	pyIRExpr *ix;
@@ -132,22 +132,22 @@ pyIRExprGetI_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"description", "index", "bias", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOi", kwlist, &descr, &ix, &bias)) return -1;
-	PYVEX_CHECKTYPE(descr, pyIRRegArrayType, return -1);
-	PYVEX_CHECKTYPE(ix, pyIRExprType, return -1);
+	PYMARE_CHECKTYPE(descr, pyIRRegArrayType, return -1);
+	PYMARE_CHECKTYPE(ix, pyIRExprType, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_GetI(descr->wrapped, ix->wrapped, bias));
 	return 0;
 }
 
-PYVEX_ACCESSOR_WRAPPED(IRExprGetI, IRExpr, self->wrapped->Iex.GetI.descr, description, IRRegArray)
-PYVEX_ACCESSOR_WRAPPED(IRExprGetI, IRExpr, self->wrapped->Iex.GetI.ix, index, IRExpr)
-PYVEX_ACCESSOR_BUILDVAL(IRExprGetI, IRExpr, self->wrapped->Iex.GetI.bias, bias, "i")
+PYMARE_ACCESSOR_WRAPPED(IRExprGetI, IRExpr, self->wrapped->Iex.GetI.descr, description, IRRegArray)
+PYMARE_ACCESSOR_WRAPPED(IRExprGetI, IRExpr, self->wrapped->Iex.GetI.ix, index, IRExpr)
+PYMARE_ACCESSOR_BUILDVAL(IRExprGetI, IRExpr, self->wrapped->Iex.GetI.bias, bias, "i")
 
 static PyGetSetDef pyIRExprGetI_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprGetI, description),
-	PYVEX_ACCESSOR_DEF(IRExprGetI, index),
-	PYVEX_ACCESSOR_DEF(IRExprGetI, bias),
+	PYMARE_ACCESSOR_DEF(IRExprGetI, description),
+	PYMARE_ACCESSOR_DEF(IRExprGetI, index),
+	PYMARE_ACCESSOR_DEF(IRExprGetI, bias),
 	{NULL}
 };
 
@@ -161,7 +161,7 @@ PYVEX_SUBTYPEOBJECT(GetI, IRExpr);
 static int
 pyIRExprGet_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 
 	Int offset;
 	IRType type;
@@ -169,19 +169,19 @@ pyIRExprGet_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	
 	static char *kwlist[] = {"offset", "type", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, &offset, &type_str)) return -1;
-	PYVEX_ENUM_FROMSTR(IRType, type, type_str, return -1);
+	PYMARE_ENUM_FROMSTR(IRType, type, type_str, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Get(offset, type));
 	return 0;
 }
 
-PYVEX_ACCESSOR_BUILDVAL(IRExprGet, IRExpr, self->wrapped->Iex.Get.offset, offset, "i")
-PYVEX_ACCESSOR_ENUM(IRExprGet, IRExpr, self->wrapped->Iex.Get.ty, type, IRType)
+PYMARE_ACCESSOR_BUILDVAL(IRExprGet, IRExpr, self->wrapped->Iex.Get.offset, offset, "i")
+PYMARE_ACCESSOR_ENUM(IRExprGet, IRExpr, self->wrapped->Iex.Get.ty, type, IRType)
 
 static PyGetSetDef pyIRExprGet_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprGet, offset),
-	PYVEX_ACCESSOR_DEF(IRExprGet, type),
+	PYMARE_ACCESSOR_DEF(IRExprGet, offset),
+	PYMARE_ACCESSOR_DEF(IRExprGet, type),
 	{NULL}
 };
 
@@ -195,7 +195,7 @@ PYVEX_SUBTYPEOBJECT(Get, IRExpr);
 static int
 pyIRExprRdTmp_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 
 	IRTemp tmp;
 	static char *kwlist[] = {"tmp", NULL};
@@ -205,11 +205,11 @@ pyIRExprRdTmp_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	return 0;
 }
 
-PYVEX_ACCESSOR_BUILDVAL(IRExprRdTmp, IRExpr, self->wrapped->Iex.RdTmp.tmp, tmp, "I")
+PYMARE_ACCESSOR_BUILDVAL(IRExprRdTmp, IRExpr, self->wrapped->Iex.RdTmp.tmp, tmp, "I")
 
 static PyGetSetDef pyIRExprRdTmp_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprRdTmp, tmp),
+	PYMARE_ACCESSOR_DEF(IRExprRdTmp, tmp),
 	{NULL}
 };
 
@@ -223,7 +223,7 @@ PYVEX_SUBTYPEOBJECT(RdTmp, IRExpr);
 static int
 pyIRExprQop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 
 	IROp op;
 	const char *op_str;
@@ -234,21 +234,21 @@ pyIRExprQop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"op", "arg1", "arg2", "arg3", "arg4", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOOOO|O", kwlist, &op_str, &arg1, &arg2, &arg3, &arg4)) return -1;
-	PYVEX_ENUM_FROMSTR(IROp, op, op_str, return -1);
-	PYVEX_CHECKTYPE(arg1, pyIRExprType, return -1);
-	PYVEX_CHECKTYPE(arg2, pyIRExprType, return -1);
-	PYVEX_CHECKTYPE(arg3, pyIRExprType, return -1);
-	PYVEX_CHECKTYPE(arg4, pyIRExprType, return -1);
+	PYMARE_ENUM_FROMSTR(IROp, op, op_str, return -1);
+	PYMARE_CHECKTYPE(arg1, pyIRExprType, return -1);
+	PYMARE_CHECKTYPE(arg2, pyIRExprType, return -1);
+	PYMARE_CHECKTYPE(arg3, pyIRExprType, return -1);
+	PYMARE_CHECKTYPE(arg4, pyIRExprType, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Qop(op, arg1->wrapped, arg2->wrapped, arg3->wrapped, arg4->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_ENUM(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->op, op, IROp)
-PYVEX_ACCESSOR_WRAPPED(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->arg1, arg1, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->arg2, arg2, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->arg3, arg3, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->arg4, arg4, IRExpr)
+PYMARE_ACCESSOR_ENUM(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->op, op, IROp)
+PYMARE_ACCESSOR_WRAPPED(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->arg1, arg1, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->arg2, arg2, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->arg3, arg3, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->arg4, arg4, IRExpr)
 
 PyObject *
 pyIRExprQop_args(pyIRExpr* self)
@@ -261,11 +261,11 @@ pyIRExprQop_args(pyIRExpr* self)
 
 static PyGetSetDef pyIRExprQop_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprQop, op),
-	PYVEX_ACCESSOR_DEF(IRExprQop, arg1),
-	PYVEX_ACCESSOR_DEF(IRExprQop, arg2),
-	PYVEX_ACCESSOR_DEF(IRExprQop, arg3),
-	PYVEX_ACCESSOR_DEF(IRExprQop, arg4),
+	PYMARE_ACCESSOR_DEF(IRExprQop, op),
+	PYMARE_ACCESSOR_DEF(IRExprQop, arg1),
+	PYMARE_ACCESSOR_DEF(IRExprQop, arg2),
+	PYMARE_ACCESSOR_DEF(IRExprQop, arg3),
+	PYMARE_ACCESSOR_DEF(IRExprQop, arg4),
 	{NULL}
 };
 
@@ -279,7 +279,7 @@ PYVEX_SUBTYPEOBJECT(Qop, IRExpr);
 static int
 pyIRExprTriop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 
 	IROp op;
 	const char *op_str;
@@ -289,19 +289,19 @@ pyIRExprTriop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"op", "arg1", "arg2", "arg3", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOOO", kwlist, &op_str, &arg1, &arg2, &arg3)) return -1;
-	PYVEX_ENUM_FROMSTR(IROp, op, op_str, return -1);
-	PYVEX_CHECKTYPE(arg1, pyIRExprType, return -1);
-	PYVEX_CHECKTYPE(arg2, pyIRExprType, return -1);
-	PYVEX_CHECKTYPE(arg3, pyIRExprType, return -1);
+	PYMARE_ENUM_FROMSTR(IROp, op, op_str, return -1);
+	PYMARE_CHECKTYPE(arg1, pyIRExprType, return -1);
+	PYMARE_CHECKTYPE(arg2, pyIRExprType, return -1);
+	PYMARE_CHECKTYPE(arg3, pyIRExprType, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Triop(op, arg1->wrapped, arg2->wrapped, arg3->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_ENUM(IRExprTriop, IRExpr, self->wrapped->Iex.Triop.details->op, op, IROp)
-PYVEX_ACCESSOR_WRAPPED(IRExprTriop, IRExpr, self->wrapped->Iex.Triop.details->arg1, arg1, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprTriop, IRExpr, self->wrapped->Iex.Triop.details->arg2, arg2, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprTriop, IRExpr, self->wrapped->Iex.Triop.details->arg3, arg3, IRExpr)
+PYMARE_ACCESSOR_ENUM(IRExprTriop, IRExpr, self->wrapped->Iex.Triop.details->op, op, IROp)
+PYMARE_ACCESSOR_WRAPPED(IRExprTriop, IRExpr, self->wrapped->Iex.Triop.details->arg1, arg1, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRExprTriop, IRExpr, self->wrapped->Iex.Triop.details->arg2, arg2, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRExprTriop, IRExpr, self->wrapped->Iex.Triop.details->arg3, arg3, IRExpr)
 
 PyObject *
 pyIRExprTriop_args(pyIRExpr* self)
@@ -313,10 +313,10 @@ pyIRExprTriop_args(pyIRExpr* self)
 
 static PyGetSetDef pyIRExprTriop_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprTriop, op),
-	PYVEX_ACCESSOR_DEF(IRExprTriop, arg1),
-	PYVEX_ACCESSOR_DEF(IRExprTriop, arg2),
-	PYVEX_ACCESSOR_DEF(IRExprTriop, arg3),
+	PYMARE_ACCESSOR_DEF(IRExprTriop, op),
+	PYMARE_ACCESSOR_DEF(IRExprTriop, arg1),
+	PYMARE_ACCESSOR_DEF(IRExprTriop, arg2),
+	PYMARE_ACCESSOR_DEF(IRExprTriop, arg3),
 	{NULL}
 };
 
@@ -330,7 +330,7 @@ PYVEX_SUBTYPEOBJECT(Triop, IRExpr);
 static int
 pyIRExprBinop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 
 	IROp op;
 	const char *op_str;
@@ -339,17 +339,17 @@ pyIRExprBinop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"op", "arg1", "arg2", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOO", kwlist, &op_str, &arg1, &arg2)) return -1;
-	PYVEX_ENUM_FROMSTR(IROp, op, op_str, return -1);
-	PYVEX_CHECKTYPE(arg1, pyIRExprType, return -1);
-	PYVEX_CHECKTYPE(arg2, pyIRExprType, return -1);
+	PYMARE_ENUM_FROMSTR(IROp, op, op_str, return -1);
+	PYMARE_CHECKTYPE(arg1, pyIRExprType, return -1);
+	PYMARE_CHECKTYPE(arg2, pyIRExprType, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Binop(op, arg1->wrapped, arg2->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_ENUM(IRExprBinop, IRExpr, self->wrapped->Iex.Binop.op, op, IROp)
-PYVEX_ACCESSOR_WRAPPED(IRExprBinop, IRExpr, self->wrapped->Iex.Binop.arg1, arg1, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprBinop, IRExpr, self->wrapped->Iex.Binop.arg2, arg2, IRExpr)
+PYMARE_ACCESSOR_ENUM(IRExprBinop, IRExpr, self->wrapped->Iex.Binop.op, op, IROp)
+PYMARE_ACCESSOR_WRAPPED(IRExprBinop, IRExpr, self->wrapped->Iex.Binop.arg1, arg1, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRExprBinop, IRExpr, self->wrapped->Iex.Binop.arg2, arg2, IRExpr)
 
 PyObject *
 pyIRExprBinop_args(pyIRExpr* self)
@@ -360,9 +360,9 @@ pyIRExprBinop_args(pyIRExpr* self)
 
 static PyGetSetDef pyIRExprBinop_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprBinop, op),
-	PYVEX_ACCESSOR_DEF(IRExprBinop, arg1),
-	PYVEX_ACCESSOR_DEF(IRExprBinop, arg2),
+	PYMARE_ACCESSOR_DEF(IRExprBinop, op),
+	PYMARE_ACCESSOR_DEF(IRExprBinop, arg1),
+	PYMARE_ACCESSOR_DEF(IRExprBinop, arg2),
 	{NULL}
 };
 
@@ -376,7 +376,7 @@ PYVEX_SUBTYPEOBJECT(Binop, IRExpr);
 static int
 pyIRExprUnop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 
 	IROp op;
 	const char *op_str;
@@ -384,16 +384,16 @@ pyIRExprUnop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"op", "arg1", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sO", kwlist, &op_str, &arg1)) return -1;
-	PYVEX_ENUM_FROMSTR(IROp, op, op_str, return -1);
-	PYVEX_CHECKTYPE(arg1, pyIRExprType, return -1);
+	PYMARE_ENUM_FROMSTR(IROp, op, op_str, return -1);
+	PYMARE_CHECKTYPE(arg1, pyIRExprType, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Unop(op, arg1->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_ENUM(IRExprUnop, IRExpr, self->wrapped->Iex.Unop.op, op, IROp)
-PYVEX_ACCESSOR_WRAPPED(IRExprUnop, IRExpr, self->wrapped->Iex.Unop.arg, arg, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprUnop, IRExpr, self->wrapped->Iex.Unop.arg, arg1, IRExpr)
+PYMARE_ACCESSOR_ENUM(IRExprUnop, IRExpr, self->wrapped->Iex.Unop.op, op, IROp)
+PYMARE_ACCESSOR_WRAPPED(IRExprUnop, IRExpr, self->wrapped->Iex.Unop.arg, arg, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRExprUnop, IRExpr, self->wrapped->Iex.Unop.arg, arg1, IRExpr)
 
 PyObject *
 pyIRExprUnop_args(pyIRExpr* self)
@@ -403,9 +403,9 @@ pyIRExprUnop_args(pyIRExpr* self)
 
 static PyGetSetDef pyIRExprUnop_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprUnop, op),
-	PYVEX_ACCESSOR_DEF(IRExprUnop, arg),
-	PYVEX_ACCESSOR_DEF(IRExprUnop, arg1),
+	PYMARE_ACCESSOR_DEF(IRExprUnop, op),
+	PYMARE_ACCESSOR_DEF(IRExprUnop, arg),
+	PYMARE_ACCESSOR_DEF(IRExprUnop, arg1),
 	{NULL}
 };
 
@@ -419,7 +419,7 @@ PYVEX_SUBTYPEOBJECT(Unop, IRExpr);
 static int
 pyIRExprLoad_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 
 	IREndness endness; const char *endness_str;
 	IRType type; const char *type_str;
@@ -427,27 +427,27 @@ pyIRExprLoad_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"endness", "type", "addr", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ssO", kwlist, &endness_str, &type_str, &addr)) return -1;
-	PYVEX_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
-	PYVEX_ENUM_FROMSTR(IRType, type, type_str, return -1);
-	PYVEX_CHECKTYPE(addr, pyIRExprType, return -1);
+	PYMARE_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
+	PYMARE_ENUM_FROMSTR(IRType, type, type_str, return -1);
+	PYMARE_CHECKTYPE(addr, pyIRExprType, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Load(endness, type, addr->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.end, endness, IREndness)
-PYVEX_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.end, end, IREndness)
-PYVEX_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.ty, type, IRType)
-PYVEX_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.ty, ty, IRType)
-PYVEX_ACCESSOR_WRAPPED(IRExprLoad, IRExpr, self->wrapped->Iex.Load.addr, addr, IRExpr)
+PYMARE_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.end, endness, IREndness)
+PYMARE_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.end, end, IREndness)
+PYMARE_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.ty, type, IRType)
+PYMARE_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.ty, ty, IRType)
+PYMARE_ACCESSOR_WRAPPED(IRExprLoad, IRExpr, self->wrapped->Iex.Load.addr, addr, IRExpr)
 
 static PyGetSetDef pyIRExprLoad_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprLoad, endness),
-	PYVEX_ACCESSOR_DEF(IRExprLoad, end),
-	PYVEX_ACCESSOR_DEF(IRExprLoad, type),
-	PYVEX_ACCESSOR_DEF(IRExprLoad, ty),
-	PYVEX_ACCESSOR_DEF(IRExprLoad, addr),
+	PYMARE_ACCESSOR_DEF(IRExprLoad, endness),
+	PYMARE_ACCESSOR_DEF(IRExprLoad, end),
+	PYMARE_ACCESSOR_DEF(IRExprLoad, type),
+	PYMARE_ACCESSOR_DEF(IRExprLoad, ty),
+	PYMARE_ACCESSOR_DEF(IRExprLoad, addr),
 	{NULL}
 };
 
@@ -461,23 +461,23 @@ PYVEX_SUBTYPEOBJECT(Load, IRExpr);
 static int
 pyIRExprConst_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 
 	pyIRConst *con;
 
 	static char *kwlist[] = {"con", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &con)) return -1;
-	PYVEX_CHECKTYPE(con, pyIRConstType, return -1);
+	PYMARE_CHECKTYPE(con, pyIRConstType, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Const(con->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_WRAPPED(IRExprConst, IRExpr, self->wrapped->Iex.Const.con, con, IRConst)
+PYMARE_ACCESSOR_WRAPPED(IRExprConst, IRExpr, self->wrapped->Iex.Const.con, con, IRConst)
 
 static PyGetSetDef pyIRExprConst_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprConst, con),
+	PYMARE_ACCESSOR_DEF(IRExprConst, con),
 	{NULL}
 };
 
@@ -491,7 +491,7 @@ PYVEX_SUBTYPEOBJECT(Const, IRExpr);
 static int
 pyIRExprITE_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 
 	pyIRExpr *cond;
 	pyIRExpr *expr0;
@@ -499,23 +499,23 @@ pyIRExprITE_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"cond", "iftrue", "iffalse", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO", kwlist, &cond, &exprX, &expr0)) return -1;
-	PYVEX_CHECKTYPE(cond, pyIRExprType, return -1);
-	PYVEX_CHECKTYPE(expr0, pyIRExprType, return -1);
-	PYVEX_CHECKTYPE(exprX, pyIRExprType, return -1);
+	PYMARE_CHECKTYPE(cond, pyIRExprType, return -1);
+	PYMARE_CHECKTYPE(expr0, pyIRExprType, return -1);
+	PYMARE_CHECKTYPE(exprX, pyIRExprType, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_ITE(cond->wrapped, exprX->wrapped, expr0->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.cond, cond, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.iffalse, iffalse, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.iftrue, iftrue, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.cond, cond, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.iffalse, iffalse, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.iftrue, iftrue, IRExpr)
 
 static PyGetSetDef pyIRExprITE_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprITE, cond),
-	PYVEX_ACCESSOR_DEF(IRExprITE, iffalse),
-	PYVEX_ACCESSOR_DEF(IRExprITE, iftrue),
+	PYMARE_ACCESSOR_DEF(IRExprITE, cond),
+	PYMARE_ACCESSOR_DEF(IRExprITE, iffalse),
+	PYMARE_ACCESSOR_DEF(IRExprITE, iftrue),
 	{NULL}
 };
 
@@ -529,7 +529,7 @@ PYVEX_SUBTYPEOBJECT(ITE, IRExpr);
 static int
 pyIRExprCCall_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRExpr);
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
 
 	pyIRCallee *callee;
 	IRType ret_type; const char *ret_type_str;
@@ -537,8 +537,8 @@ pyIRExprCCall_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"cond", "expr0", "exprX", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OsO", kwlist, &callee, &ret_type_str, &args_tuple)) return -1;
-	PYVEX_ENUM_FROMSTR(IRType, ret_type, ret_type_str, return -1);
-	PYVEX_CHECKTYPE(callee, pyIRCalleeType, return -1);
+	PYMARE_ENUM_FROMSTR(IRType, ret_type, ret_type_str, return -1);
+	PYMARE_CHECKTYPE(callee, pyIRCalleeType, return -1);
 	if (!PySequence_Check(args_tuple)) { PyErr_SetString(VexException, "need sequence of args for CCall"); return -1; }
 
 	int tuple_size = PySequence_Size(args_tuple);
@@ -547,7 +547,7 @@ pyIRExprCCall_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	for (i = 0; i < tuple_size; i++)
 	{
 		pyIRExpr *expr = (pyIRExpr *)PySequence_GetItem(args_tuple, i);
-		PYVEX_CHECKTYPE(expr, pyIRExprType, return -1);
+		PYMARE_CHECKTYPE(expr, pyIRExprType, return -1);
 		cargs[i] = expr->wrapped;
 	}
 	cargs[i] = NULL;
@@ -555,8 +555,8 @@ pyIRExprCCall_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_CCall(callee->wrapped, ret_type, cargs));
 	return 0;
 }
-PYVEX_ACCESSOR_WRAPPED(IRExprCCall, IRExpr, self->wrapped->Iex.CCall.cee, callee, IRCallee)
-PYVEX_ACCESSOR_ENUM(IRExprCCall, IRExpr, self->wrapped->Iex.CCall.retty, ret_type, IRType)
+PYMARE_ACCESSOR_WRAPPED(IRExprCCall, IRExpr, self->wrapped->Iex.CCall.cee, callee, IRCallee)
+PYMARE_ACCESSOR_ENUM(IRExprCCall, IRExpr, self->wrapped->Iex.CCall.retty, ret_type, IRType)
 
 PyObject *pyIRExprCCall_args(pyIRExpr* self)
 {
@@ -573,8 +573,8 @@ PyObject *pyIRExprCCall_args(pyIRExpr* self)
 
 static PyGetSetDef pyIRExprCCall_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRExprCCall, callee),
-	PYVEX_ACCESSOR_DEF(IRExprCCall, ret_type),
+	PYMARE_ACCESSOR_DEF(IRExprCCall, callee),
+	PYMARE_ACCESSOR_DEF(IRExprCCall, ret_type),
 	{NULL}
 };
 

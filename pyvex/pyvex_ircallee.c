@@ -13,15 +13,15 @@
 	#include "pyvex_deepcopy.h"
 #endif
 
-PYVEX_NEW(IRCallee)
-PYVEX_DEALLOC(IRCallee)
-PYVEX_WRAP(IRCallee)
+PYMARE_NEW(IRCallee)
+PYMARE_DEALLOC(IRCallee)
+PYMARE_WRAP(IRCallee)
 PYVEX_METH_STANDARD(IRCallee)
 
 static int
 pyIRCallee_init(pyIRCallee *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRCallee);
+	PYMARE_WRAP_CONSTRUCTOR(IRCallee);
 
 	Int regparms;
 	char *name;
@@ -39,19 +39,19 @@ pyIRCallee_init(pyIRCallee *self, PyObject *args, PyObject *kwargs)
 
 static PyMemberDef pyIRCallee_members[] = { {NULL} };
 
-PYVEX_ACCESSOR_WRAPPED(IRCallee, IRCallee, self->wrapped, wrapped, IRCallee)
-PYVEX_ACCESSOR_BUILDVAL(IRCallee, IRCallee, self->wrapped->regparms, regparms, "i")
-PYVEX_ACCESSOR_BUILDVAL(IRCallee, IRCallee, self->wrapped->name, name, "s")
-PYVEX_ACCESSOR_BUILDVAL(IRCallee, IRCallee, self->wrapped->mcx_mask, mcx_mask, "I")
-PYVEX_ACCESSOR_BUILDVAL(IRCallee, IRCallee, self->wrapped->addr, addr, "K")
+PYMARE_ACCESSOR_WRAPPED(IRCallee, IRCallee, self->wrapped, wrapped, IRCallee)
+PYMARE_ACCESSOR_BUILDVAL(IRCallee, IRCallee, self->wrapped->regparms, regparms, "i")
+PYMARE_ACCESSOR_BUILDVAL(IRCallee, IRCallee, self->wrapped->name, name, "s")
+PYMARE_ACCESSOR_BUILDVAL(IRCallee, IRCallee, self->wrapped->mcx_mask, mcx_mask, "I")
+PYMARE_ACCESSOR_BUILDVAL(IRCallee, IRCallee, self->wrapped->addr, addr, "K")
 
 static PyGetSetDef pyIRCallee_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRCallee, wrapped),
-	PYVEX_ACCESSOR_DEF(IRCallee, regparms),
-	PYVEX_ACCESSOR_DEF(IRCallee, name),
-	PYVEX_ACCESSOR_DEF(IRCallee, mcx_mask),
-	PYVEX_ACCESSOR_DEF(IRCallee, addr),
+	PYMARE_ACCESSOR_DEF(IRCallee, wrapped),
+	PYMARE_ACCESSOR_DEF(IRCallee, regparms),
+	PYMARE_ACCESSOR_DEF(IRCallee, name),
+	PYMARE_ACCESSOR_DEF(IRCallee, mcx_mask),
+	PYMARE_ACCESSOR_DEF(IRCallee, addr),
 	{NULL}
 };
 
@@ -61,4 +61,4 @@ static PyMethodDef pyIRCallee_methods[] =
 	{NULL}  /* Sentinel */
 };
 
-PYVEX_TYPEOBJECT(IRCallee);
+PYMARE_TYPEOBJECT("pyvex", IRCallee);

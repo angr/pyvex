@@ -18,25 +18,25 @@
 // IRConst base class //
 ////////////////////////
 
-PYVEX_NEW(IRConst)
-PYVEX_DEALLOC(IRConst)
+PYMARE_NEW(IRConst)
+PYMARE_DEALLOC(IRConst)
 PYVEX_METH_STANDARD(IRConst)
 
 static int
 pyIRConst_init(pyIRConst *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRConst);
+	PYMARE_WRAP_CONSTRUCTOR(IRConst);
 	PyErr_SetString(VexException, "Base IRConst creation not supported.");
 	return -1;
 }
 
-PYVEX_ACCESSOR_WRAPPED(IRConst, IRConst, self->wrapped, wrapped, IRConst)
-PYVEX_ACCESSOR_ENUM(IRConst, IRConst, self->wrapped->tag, tag, IRConstTag)
-PYVEX_GETTER_ENUM(IRConst, IRConst, typeOfIRConst(self->wrapped), type, IRType)
+PYMARE_ACCESSOR_WRAPPED(IRConst, IRConst, self->wrapped, wrapped, IRConst)
+PYMARE_ACCESSOR_ENUM(IRConst, IRConst, self->wrapped->tag, tag, IRConstTag)
+PYMARE_GETTER_ENUM(IRConst, IRConst, typeOfIRConst(self->wrapped), type, IRType)
 
 PyObject *pyIRConst_equals(pyIRConst *self, pyIRConst *other)
 {
-	PYVEX_CHECKTYPE(other, pyIRConstType, Py_RETURN_FALSE);
+	PYMARE_CHECKTYPE(other, pyIRConstType, Py_RETURN_FALSE);
 
 	if (!eqIRConst(self->wrapped, other->wrapped)) { Py_RETURN_FALSE; }
 	Py_RETURN_TRUE;
@@ -44,8 +44,8 @@ PyObject *pyIRConst_equals(pyIRConst *self, pyIRConst *other)
 
 static PyGetSetDef pyIRConst_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRConst, tag),
-	PYVEX_ACCESSOR_DEF(IRConst, wrapped),
+	PYMARE_ACCESSOR_DEF(IRConst, tag),
+	PYMARE_ACCESSOR_DEF(IRConst, wrapped),
 	{"type", (getter)pyIRConst_get_type, NULL, "IRType of the constant", NULL},
 	{NULL}
 };
@@ -58,7 +58,7 @@ static PyMethodDef pyIRConst_methods[] =
 };
 
 static PyMemberDef pyIRConst_members[] = { {NULL} };
-PYVEX_TYPEOBJECT(IRConst);
+PYMARE_TYPEOBJECT("pyvex", IRConst);
 
 //////////////////////
 // IRConst wrapping //
@@ -97,10 +97,10 @@ PyObject *wrap_IRConst(IRConst *i)
 // Constant types //
 ////////////////////
 
-#define PYVEX_IRCONST_SUBCLASS(tag, type, format) \
+#define PYMARE_IRCONST_SUBCLASS(tag, type, format) \
 	int pyIRConst##tag##_init(pyIRConst *self, PyObject *args, PyObject *kwargs) \
 	{ \
-		PYVEX_WRAP_CONSTRUCTOR(IRConst); \
+		PYMARE_WRAP_CONSTRUCTOR(IRConst); \
 	 \
 		type value; \
 		static char *kwlist[] = {"value", NULL}; \
@@ -109,25 +109,25 @@ PyObject *wrap_IRConst(IRConst *i)
 		return 0; \
 	} \
 	 \
-	PYVEX_ACCESSOR_BUILDVAL(IRConst##tag, IRConst, self->wrapped->Ico.tag, value, format) \
+	PYMARE_ACCESSOR_BUILDVAL(IRConst##tag, IRConst, self->wrapped->Ico.tag, value, format) \
 	 \
 	PyGetSetDef pyIRConst##tag##_getseters[] = \
 	{ \
-		PYVEX_ACCESSOR_DEF(IRConst##tag, value), \
+		PYMARE_ACCESSOR_DEF(IRConst##tag, value), \
 		{NULL} \
 	}; \
 	 \
 	PyMethodDef pyIRConst##tag##_methods[] = { {NULL} }; \
 	PYVEX_SUBTYPEOBJECT(tag, IRConst); \
 
-PYVEX_IRCONST_SUBCLASS(U1, unsigned char, "b");
-PYVEX_IRCONST_SUBCLASS(U8, unsigned char, "b");
-PYVEX_IRCONST_SUBCLASS(U16, unsigned short int, "H");
-PYVEX_IRCONST_SUBCLASS(U32, unsigned int, "I");
-PYVEX_IRCONST_SUBCLASS(U64, unsigned long long, "K");
-PYVEX_IRCONST_SUBCLASS(F32, float, "f");
-PYVEX_IRCONST_SUBCLASS(F32i, unsigned int, "I");
-PYVEX_IRCONST_SUBCLASS(F64, double, "d");
-PYVEX_IRCONST_SUBCLASS(F64i, unsigned long long, "K");
-PYVEX_IRCONST_SUBCLASS(V128, unsigned short int, "H");
-PYVEX_IRCONST_SUBCLASS(V256, unsigned int, "I");
+PYMARE_IRCONST_SUBCLASS(U1, unsigned char, "b");
+PYMARE_IRCONST_SUBCLASS(U8, unsigned char, "b");
+PYMARE_IRCONST_SUBCLASS(U16, unsigned short int, "H");
+PYMARE_IRCONST_SUBCLASS(U32, unsigned int, "I");
+PYMARE_IRCONST_SUBCLASS(U64, unsigned long long, "K");
+PYMARE_IRCONST_SUBCLASS(F32, float, "f");
+PYMARE_IRCONST_SUBCLASS(F32i, unsigned int, "I");
+PYMARE_IRCONST_SUBCLASS(F64, double, "d");
+PYMARE_IRCONST_SUBCLASS(F64i, unsigned long long, "K");
+PYMARE_IRCONST_SUBCLASS(V128, unsigned short int, "H");
+PYMARE_IRCONST_SUBCLASS(V256, unsigned int, "I");

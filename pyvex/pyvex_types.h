@@ -1,11 +1,12 @@
 // This code is GPLed by Yan Shoshitaishvili
 
-#ifndef __PYVEX_TYPES_H
-#define __PYVEX_TYPES_H
+#ifndef __PYMARE_TYPES_H
+#define __PYMARE_TYPES_H
 
 #include <libvex.h>
 #include <Python.h>
 #include "pyvex_macros.h"
+#include "pymare.h"
 
 // the module itself
 extern PyObject *module;
@@ -14,13 +15,13 @@ extern PyObject *module;
 extern PyObject *VexException;
 
 // blocks
-PYVEX_TYPEHEADER(IRSB);
+PYMARE_TYPEHEADER(IRSB);
 
 // type env
-PYVEX_TYPEHEADER(IRTypeEnv);
+PYMARE_TYPEHEADER(IRTypeEnv);
 
 // ir constants
-PYVEX_TYPEHEADER(IRConst);
+PYMARE_TYPEHEADER(IRConst);
 extern PyTypeObject pyIRConstU1Type;
 extern PyTypeObject pyIRConstU8Type;
 extern PyTypeObject pyIRConstU16Type;
@@ -34,7 +35,7 @@ extern PyTypeObject pyIRConstV128Type;
 extern PyTypeObject pyIRConstV256Type;
 
 // statements
-PYVEX_TYPEHEADER(IRStmt);
+PYMARE_TYPEHEADER(IRStmt);
 extern PyTypeObject pyIRStmtNoOpType;
 extern PyTypeObject pyIRStmtIMarkType;
 extern PyTypeObject pyIRStmtAbiHintType;
@@ -51,7 +52,7 @@ extern PyTypeObject pyIRStmtLoadGType;
 extern PyTypeObject pyIRStmtStoreGType;
 
 // expressions
-PYVEX_TYPEHEADER(IRExpr);
+PYMARE_TYPEHEADER(IRExpr);
 extern PyTypeObject pyIRExprBinderType;
 extern PyTypeObject pyIRExprGetIType;
 extern PyTypeObject pyIRExprRdTmpType;
@@ -66,9 +67,9 @@ extern PyTypeObject pyIRExprITEType;
 extern PyTypeObject pyIRExprCCallType;
 
 // IRCallee
-PYVEX_TYPEHEADER(IRCallee);
+PYMARE_TYPEHEADER(IRCallee);
 
 // IRRegArray
-PYVEX_TYPEHEADER(IRRegArray);
+PYMARE_TYPEHEADER(IRRegArray);
 
 #endif

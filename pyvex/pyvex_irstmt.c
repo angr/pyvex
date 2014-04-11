@@ -19,25 +19,25 @@
 // IRStmt base class //
 ///////////////////////
 
-PYVEX_NEW(IRStmt)
-PYVEX_DEALLOC(IRStmt)
+PYMARE_NEW(IRStmt)
+PYMARE_DEALLOC(IRStmt)
 PYVEX_METH_STANDARD(IRStmt)
 
 static int
 pyIRStmt_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 	PyErr_SetString(VexException, "Base IRStmt creation not supported.");
 	return -1;
 }
 
-PYVEX_ACCESSOR_WRAPPED(IRStmt, IRStmt, self->wrapped, wrapped, IRStmt)
-PYVEX_ACCESSOR_ENUM(IRStmt, IRStmt, self->wrapped->tag, tag, IRStmtTag)
+PYMARE_ACCESSOR_WRAPPED(IRStmt, IRStmt, self->wrapped, wrapped, IRStmt)
+PYMARE_ACCESSOR_ENUM(IRStmt, IRStmt, self->wrapped->tag, tag, IRStmtTag)
 
 static PyGetSetDef pyIRStmt_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmt, wrapped),
-	PYVEX_ACCESSOR_DEF(IRStmt, tag),
+	PYMARE_ACCESSOR_DEF(IRStmt, wrapped),
+	PYMARE_ACCESSOR_DEF(IRStmt, tag),
 	{NULL}
 };
 
@@ -55,7 +55,7 @@ static PyMethodDef pyIRStmt_methods[] =
 };
 
 static PyMemberDef pyIRStmt_members[] = { {NULL} };
-PYVEX_TYPEOBJECT(IRStmt);
+PYMARE_TYPEOBJECT("pyvex", IRStmt);
 
 // wrap functionality
 PyObject *wrap_IRStmt(IRStmt *i)
@@ -98,7 +98,7 @@ static int
 pyIRStmtNoOp_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
 	if (!kwargs) { self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_NoOp()); return 0; }
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	PyErr_SetString(VexException, "Unexpected arguments provided to constructor.");
 	return -1;
@@ -115,7 +115,7 @@ PYVEX_SUBTYPEOBJECT(NoOp, IRStmt);
 static int
 pyIRStmtIMark_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	Addr64 addr;
 	Int len;
@@ -128,15 +128,15 @@ pyIRStmtIMark_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	return 0;
 }
 
-PYVEX_ACCESSOR_BUILDVAL(IRStmtIMark, IRStmt, self->wrapped->Ist.IMark.addr, addr, "K")
-PYVEX_ACCESSOR_BUILDVAL(IRStmtIMark, IRStmt, self->wrapped->Ist.IMark.len, len, "i")
-PYVEX_ACCESSOR_BUILDVAL(IRStmtIMark, IRStmt, self->wrapped->Ist.IMark.delta, delta, "b")
+PYMARE_ACCESSOR_BUILDVAL(IRStmtIMark, IRStmt, self->wrapped->Ist.IMark.addr, addr, "K")
+PYMARE_ACCESSOR_BUILDVAL(IRStmtIMark, IRStmt, self->wrapped->Ist.IMark.len, len, "i")
+PYMARE_ACCESSOR_BUILDVAL(IRStmtIMark, IRStmt, self->wrapped->Ist.IMark.delta, delta, "b")
 
 static PyGetSetDef pyIRStmtIMark_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtIMark, addr),
-	PYVEX_ACCESSOR_DEF(IRStmtIMark, len),
-	PYVEX_ACCESSOR_DEF(IRStmtIMark, delta),
+	PYMARE_ACCESSOR_DEF(IRStmtIMark, addr),
+	PYMARE_ACCESSOR_DEF(IRStmtIMark, len),
+	PYMARE_ACCESSOR_DEF(IRStmtIMark, delta),
 	{NULL}
 };
 
@@ -150,7 +150,7 @@ PYVEX_SUBTYPEOBJECT(IMark, IRStmt);
 static int
 pyIRStmtAbiHint_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	pyIRExpr *base;
 	Int len;
@@ -158,22 +158,22 @@ pyIRStmtAbiHint_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"base", "len", "nia", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OiO", kwlist, &base, &len, &nia)) return -1;
-	PYVEX_CHECKTYPE(base, pyIRExprType, return -1)
-	PYVEX_CHECKTYPE(nia, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(base, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(nia, pyIRExprType, return -1)
 
 	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_AbiHint(base->wrapped, len, nia->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_WRAPPED(IRStmtAbiHint, IRStmt, self->wrapped->Ist.AbiHint.base, base, IRExpr)
-PYVEX_ACCESSOR_BUILDVAL(IRStmtAbiHint, IRStmt, self->wrapped->Ist.AbiHint.len, len, "i")
-PYVEX_ACCESSOR_WRAPPED(IRStmtAbiHint, IRStmt, self->wrapped->Ist.AbiHint.nia, nia, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtAbiHint, IRStmt, self->wrapped->Ist.AbiHint.base, base, IRExpr)
+PYMARE_ACCESSOR_BUILDVAL(IRStmtAbiHint, IRStmt, self->wrapped->Ist.AbiHint.len, len, "i")
+PYMARE_ACCESSOR_WRAPPED(IRStmtAbiHint, IRStmt, self->wrapped->Ist.AbiHint.nia, nia, IRExpr)
 
 static PyGetSetDef pyIRStmtAbiHint_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtAbiHint, base),
-	PYVEX_ACCESSOR_DEF(IRStmtAbiHint, len),
-	PYVEX_ACCESSOR_DEF(IRStmtAbiHint, nia),
+	PYMARE_ACCESSOR_DEF(IRStmtAbiHint, base),
+	PYMARE_ACCESSOR_DEF(IRStmtAbiHint, len),
+	PYMARE_ACCESSOR_DEF(IRStmtAbiHint, nia),
 	{NULL}
 };
 
@@ -187,26 +187,26 @@ PYVEX_SUBTYPEOBJECT(AbiHint, IRStmt);
 static int
 pyIRStmtPut_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	Int offset;
 	pyIRExpr *data;
 
 	static char *kwlist[] = {"offset", "data", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iO", kwlist, &offset, &data)) return -1;
-	PYVEX_CHECKTYPE(data, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(data, pyIRExprType, return -1)
 
 	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_Put(offset, data->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_BUILDVAL(IRStmtPut, IRStmt, self->wrapped->Ist.Put.offset, offset, "i")
-PYVEX_ACCESSOR_WRAPPED(IRStmtPut, IRStmt, self->wrapped->Ist.Put.data, data, IRExpr)
+PYMARE_ACCESSOR_BUILDVAL(IRStmtPut, IRStmt, self->wrapped->Ist.Put.offset, offset, "i")
+PYMARE_ACCESSOR_WRAPPED(IRStmtPut, IRStmt, self->wrapped->Ist.Put.data, data, IRExpr)
 
 static PyGetSetDef pyIRStmtPut_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtPut, offset),
-	PYVEX_ACCESSOR_DEF(IRStmtPut, data),
+	PYMARE_ACCESSOR_DEF(IRStmtPut, offset),
+	PYMARE_ACCESSOR_DEF(IRStmtPut, data),
 	{NULL}
 };
 
@@ -220,7 +220,7 @@ PYVEX_SUBTYPEOBJECT(Put, IRStmt);
 static int
 pyIRStmtPutI_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	pyIRRegArray *descr;
 	pyIRExpr *ix;
@@ -229,25 +229,25 @@ pyIRStmtPutI_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"description", "index", "bias", "data", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOiO", kwlist, &descr, &ix, &bias, &data)) return -1;
-	PYVEX_CHECKTYPE(descr, pyIRRegArrayType, return -1)
-	PYVEX_CHECKTYPE(ix, pyIRExprType, return -1)
-	PYVEX_CHECKTYPE(data, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(descr, pyIRRegArrayType, return -1)
+	PYMARE_CHECKTYPE(ix, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(data, pyIRExprType, return -1)
 
 	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_PutI(mkIRPutI(descr->wrapped, ix->wrapped, bias, data->wrapped)));
 	return 0;
 }
 
-PYVEX_ACCESSOR_WRAPPED(IRStmtPutI, IRStmt, self->wrapped->Ist.PutI.details->descr, description, IRRegArray)
-PYVEX_ACCESSOR_WRAPPED(IRStmtPutI, IRStmt, self->wrapped->Ist.PutI.details->ix, index, IRExpr)
-PYVEX_ACCESSOR_BUILDVAL(IRStmtPutI, IRStmt, self->wrapped->Ist.PutI.details->bias, bias, "i")
-PYVEX_ACCESSOR_WRAPPED(IRStmtPutI, IRStmt, self->wrapped->Ist.PutI.details->data, data, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtPutI, IRStmt, self->wrapped->Ist.PutI.details->descr, description, IRRegArray)
+PYMARE_ACCESSOR_WRAPPED(IRStmtPutI, IRStmt, self->wrapped->Ist.PutI.details->ix, index, IRExpr)
+PYMARE_ACCESSOR_BUILDVAL(IRStmtPutI, IRStmt, self->wrapped->Ist.PutI.details->bias, bias, "i")
+PYMARE_ACCESSOR_WRAPPED(IRStmtPutI, IRStmt, self->wrapped->Ist.PutI.details->data, data, IRExpr)
 
 static PyGetSetDef pyIRStmtPutI_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtPutI, description),
-	PYVEX_ACCESSOR_DEF(IRStmtPutI, index),
-	PYVEX_ACCESSOR_DEF(IRStmtPutI, bias),
-	PYVEX_ACCESSOR_DEF(IRStmtPutI, data),
+	PYMARE_ACCESSOR_DEF(IRStmtPutI, description),
+	PYMARE_ACCESSOR_DEF(IRStmtPutI, index),
+	PYMARE_ACCESSOR_DEF(IRStmtPutI, bias),
+	PYMARE_ACCESSOR_DEF(IRStmtPutI, data),
 	{NULL}
 };
 
@@ -261,26 +261,26 @@ PYVEX_SUBTYPEOBJECT(PutI, IRStmt);
 static int
 pyIRStmtWrTmp_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	IRTemp tmp;
 	pyIRExpr *data;
 
 	static char *kwlist[] = {"tmp", "data", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IO", kwlist, &tmp, &data)) return -1;
-	PYVEX_CHECKTYPE(data, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(data, pyIRExprType, return -1)
 
 	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_WrTmp(tmp, data->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_BUILDVAL(IRStmtWrTmp, IRStmt, self->wrapped->Ist.WrTmp.tmp, tmp, "i")
-PYVEX_ACCESSOR_WRAPPED(IRStmtWrTmp, IRStmt, self->wrapped->Ist.WrTmp.data, data, IRExpr)
+PYMARE_ACCESSOR_BUILDVAL(IRStmtWrTmp, IRStmt, self->wrapped->Ist.WrTmp.tmp, tmp, "i")
+PYMARE_ACCESSOR_WRAPPED(IRStmtWrTmp, IRStmt, self->wrapped->Ist.WrTmp.data, data, IRExpr)
 
 static PyGetSetDef pyIRStmtWrTmp_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtWrTmp, tmp),
-	PYVEX_ACCESSOR_DEF(IRStmtWrTmp, data),
+	PYMARE_ACCESSOR_DEF(IRStmtWrTmp, tmp),
+	PYMARE_ACCESSOR_DEF(IRStmtWrTmp, data),
 	{NULL}
 };
 
@@ -294,7 +294,7 @@ PYVEX_SUBTYPEOBJECT(WrTmp, IRStmt);
 static int
 pyIRStmtStore_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	IREndness endness;
 	char *endness_str;
@@ -303,23 +303,23 @@ pyIRStmtStore_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"endness", "addr", "data", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOO", kwlist, &endness_str, &addr, &data)) return -1;
-	PYVEX_CHECKTYPE(addr, pyIRExprType, return -1)
-	PYVEX_CHECKTYPE(data, pyIRExprType, return -1)
-	PYVEX_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
+	PYMARE_CHECKTYPE(addr, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(data, pyIRExprType, return -1)
+	PYMARE_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_Store(endness, addr->wrapped, data->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_ENUM(IRStmtStore, IRStmt, self->wrapped->Ist.Store.end, endness, IREndness)
-PYVEX_ACCESSOR_WRAPPED(IRStmtStore, IRStmt, self->wrapped->Ist.Store.addr, addr, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRStmtStore, IRStmt, self->wrapped->Ist.Store.data, data, IRExpr)
+PYMARE_ACCESSOR_ENUM(IRStmtStore, IRStmt, self->wrapped->Ist.Store.end, endness, IREndness)
+PYMARE_ACCESSOR_WRAPPED(IRStmtStore, IRStmt, self->wrapped->Ist.Store.addr, addr, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtStore, IRStmt, self->wrapped->Ist.Store.data, data, IRExpr)
 
 static PyGetSetDef pyIRStmtStore_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtStore, endness),
-	PYVEX_ACCESSOR_DEF(IRStmtStore, addr),
-	PYVEX_ACCESSOR_DEF(IRStmtStore, data),
+	PYMARE_ACCESSOR_DEF(IRStmtStore, endness),
+	PYMARE_ACCESSOR_DEF(IRStmtStore, addr),
+	PYMARE_ACCESSOR_DEF(IRStmtStore, data),
 	{NULL}
 };
 
@@ -333,7 +333,7 @@ PYVEX_SUBTYPEOBJECT(Store, IRStmt);
 static int
 pyIRStmtCAS_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	IRTemp oldHi;
 	IRTemp oldLo;
@@ -348,37 +348,37 @@ pyIRStmtCAS_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	static char *kwlist[] = {"oldHi", "oldLo", "endness", "addr", "expdHi", "expdLo", "dataHi", "dataLo", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "IIsOOOOO", kwlist, &oldHi, &oldLo, &endness_str, &addr, &expdHi, &expdLo,
 				&dataHi, &dataLo)) return -1;
-	PYVEX_CHECKTYPE(expdHi, pyIRExprType, return -1)
-	PYVEX_CHECKTYPE(expdLo, pyIRExprType, return -1)
-	PYVEX_CHECKTYPE(dataHi, pyIRExprType, return -1)
-	PYVEX_CHECKTYPE(dataLo, pyIRExprType, return -1)
-	PYVEX_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
+	PYMARE_CHECKTYPE(expdHi, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(expdLo, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(dataHi, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(dataLo, pyIRExprType, return -1)
+	PYMARE_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_CAS(mkIRCAS(oldHi, oldLo, endness, addr->wrapped, expdHi->wrapped, expdLo->wrapped, dataHi->wrapped, dataLo->wrapped)));
 	return 0;
 }
 
-PYVEX_ACCESSOR_BUILDVAL(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->oldHi, oldHi, "i")
-PYVEX_ACCESSOR_BUILDVAL(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->oldLo, oldLo, "i")
-PYVEX_ACCESSOR_ENUM(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->end, endness, IREndness)
-PYVEX_ACCESSOR_ENUM(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->end, end, IREndness)
-PYVEX_ACCESSOR_WRAPPED(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->addr, addr, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->expdHi, expdHi, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->expdLo, expdLo, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->dataHi, dataHi, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->dataLo, dataLo, IRExpr)
+PYMARE_ACCESSOR_BUILDVAL(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->oldHi, oldHi, "i")
+PYMARE_ACCESSOR_BUILDVAL(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->oldLo, oldLo, "i")
+PYMARE_ACCESSOR_ENUM(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->end, endness, IREndness)
+PYMARE_ACCESSOR_ENUM(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->end, end, IREndness)
+PYMARE_ACCESSOR_WRAPPED(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->addr, addr, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->expdHi, expdHi, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->expdLo, expdLo, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->dataHi, dataHi, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtCAS, IRStmt, self->wrapped->Ist.CAS.details->dataLo, dataLo, IRExpr)
 
 static PyGetSetDef pyIRStmtCAS_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtCAS, oldHi),
-	PYVEX_ACCESSOR_DEF(IRStmtCAS, oldLo),
-	PYVEX_ACCESSOR_DEF(IRStmtCAS, endness),
-	PYVEX_ACCESSOR_DEF(IRStmtCAS, end),
-	PYVEX_ACCESSOR_DEF(IRStmtCAS, addr),
-	PYVEX_ACCESSOR_DEF(IRStmtCAS, expdHi),
-	PYVEX_ACCESSOR_DEF(IRStmtCAS, expdLo),
-	PYVEX_ACCESSOR_DEF(IRStmtCAS, dataHi),
-	PYVEX_ACCESSOR_DEF(IRStmtCAS, dataLo),
+	PYMARE_ACCESSOR_DEF(IRStmtCAS, oldHi),
+	PYMARE_ACCESSOR_DEF(IRStmtCAS, oldLo),
+	PYMARE_ACCESSOR_DEF(IRStmtCAS, endness),
+	PYMARE_ACCESSOR_DEF(IRStmtCAS, end),
+	PYMARE_ACCESSOR_DEF(IRStmtCAS, addr),
+	PYMARE_ACCESSOR_DEF(IRStmtCAS, expdHi),
+	PYMARE_ACCESSOR_DEF(IRStmtCAS, expdLo),
+	PYMARE_ACCESSOR_DEF(IRStmtCAS, dataHi),
+	PYMARE_ACCESSOR_DEF(IRStmtCAS, dataLo),
 	{NULL}
 };
 
@@ -392,7 +392,7 @@ PYVEX_SUBTYPEOBJECT(CAS, IRStmt);
 static int
 pyIRStmtLLSC_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	IREndness endness;
 	char *endness_str;
@@ -402,25 +402,25 @@ pyIRStmtLLSC_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"endness", "result", "addr", "storedata", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sIOO", kwlist, &endness_str, &result, &addr, &storedata)) return -1;
-	PYVEX_CHECKTYPE(addr, pyIRExprType, return -1)
-	PYVEX_CHECKTYPE(storedata, pyIRExprType, return -1)
-	PYVEX_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
+	PYMARE_CHECKTYPE(addr, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(storedata, pyIRExprType, return -1)
+	PYMARE_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_LLSC(endness, result, addr->wrapped, storedata->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_BUILDVAL(IRStmtLLSC, IRStmt, self->wrapped->Ist.LLSC.result, result, "i")
-PYVEX_ACCESSOR_ENUM(IRStmtLLSC, IRStmt, self->wrapped->Ist.LLSC.end, endness, IREndness)
-PYVEX_ACCESSOR_WRAPPED(IRStmtLLSC, IRStmt, self->wrapped->Ist.LLSC.addr, addr, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRStmtLLSC, IRStmt, self->wrapped->Ist.LLSC.storedata, storedata, IRExpr)
+PYMARE_ACCESSOR_BUILDVAL(IRStmtLLSC, IRStmt, self->wrapped->Ist.LLSC.result, result, "i")
+PYMARE_ACCESSOR_ENUM(IRStmtLLSC, IRStmt, self->wrapped->Ist.LLSC.end, endness, IREndness)
+PYMARE_ACCESSOR_WRAPPED(IRStmtLLSC, IRStmt, self->wrapped->Ist.LLSC.addr, addr, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtLLSC, IRStmt, self->wrapped->Ist.LLSC.storedata, storedata, IRExpr)
 
 static PyGetSetDef pyIRStmtLLSC_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtLLSC, endness),
-	PYVEX_ACCESSOR_DEF(IRStmtLLSC, result),
-	PYVEX_ACCESSOR_DEF(IRStmtLLSC, addr),
-	PYVEX_ACCESSOR_DEF(IRStmtLLSC, storedata),
+	PYMARE_ACCESSOR_DEF(IRStmtLLSC, endness),
+	PYMARE_ACCESSOR_DEF(IRStmtLLSC, result),
+	PYMARE_ACCESSOR_DEF(IRStmtLLSC, addr),
+	PYMARE_ACCESSOR_DEF(IRStmtLLSC, storedata),
 	{NULL}
 };
 
@@ -434,23 +434,23 @@ PYVEX_SUBTYPEOBJECT(LLSC, IRStmt);
 static int
 pyIRStmtMBE_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	IRMBusEvent mb; char *mb_str;
 
 	static char *kwlist[] = {"jumpkind", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s", kwlist, &mb_str)) return -1;
-	PYVEX_ENUM_FROMSTR(IRMBusEvent, mb, mb_str, return -1);
+	PYMARE_ENUM_FROMSTR(IRMBusEvent, mb, mb_str, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_MBE(mb));
 	return 0;
 }
 
-PYVEX_ACCESSOR_ENUM(IRStmtMBE, IRStmt, self->wrapped->Ist.MBE.event, event, IRMBusEvent)
+PYMARE_ACCESSOR_ENUM(IRStmtMBE, IRStmt, self->wrapped->Ist.MBE.event, event, IRMBusEvent)
 
 static PyGetSetDef pyIRStmtMBE_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtMBE, event),
+	PYMARE_ACCESSOR_DEF(IRStmtMBE, event),
 	{NULL}
 };
 
@@ -464,7 +464,7 @@ PYVEX_SUBTYPEOBJECT(MBE, IRStmt);
 static int
 pyIRStmtExit_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	pyIRExpr *guard;
 	pyIRConst *dst;
@@ -473,25 +473,25 @@ pyIRStmtExit_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"guard", "jumpkind", "dst", "offsIP", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OsOi", kwlist, &guard, &jk_str, &dst, &offsIP)) return -1;
-	PYVEX_CHECKTYPE(guard, pyIRExprType, return -1)
-	PYVEX_CHECKTYPE(dst, pyIRConstType, return -1)
-	PYVEX_ENUM_FROMSTR(IRJumpKind, jk, jk_str, return -1);
+	PYMARE_CHECKTYPE(guard, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(dst, pyIRConstType, return -1)
+	PYMARE_ENUM_FROMSTR(IRJumpKind, jk, jk_str, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_Exit(guard->wrapped, jk, dst->wrapped, offsIP));
 	return 0;
 }
 
-PYVEX_ACCESSOR_WRAPPED(IRStmtExit, IRStmt, self->wrapped->Ist.Exit.guard, guard, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRStmtExit, IRStmt, self->wrapped->Ist.Exit.dst, dst, IRConst)
-PYVEX_ACCESSOR_ENUM(IRStmtExit, IRStmt, self->wrapped->Ist.Exit.jk, jumpkind, IRJumpKind)
-PYVEX_ACCESSOR_BUILDVAL(IRStmtExit, IRStmt, self->wrapped->Ist.Exit.offsIP, offsIP, "i")
+PYMARE_ACCESSOR_WRAPPED(IRStmtExit, IRStmt, self->wrapped->Ist.Exit.guard, guard, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtExit, IRStmt, self->wrapped->Ist.Exit.dst, dst, IRConst)
+PYMARE_ACCESSOR_ENUM(IRStmtExit, IRStmt, self->wrapped->Ist.Exit.jk, jumpkind, IRJumpKind)
+PYMARE_ACCESSOR_BUILDVAL(IRStmtExit, IRStmt, self->wrapped->Ist.Exit.offsIP, offsIP, "i")
 
 static PyGetSetDef pyIRStmtExit_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtExit, guard),
-	PYVEX_ACCESSOR_DEF(IRStmtExit, dst),
-	PYVEX_ACCESSOR_DEF(IRStmtExit, jumpkind),
-	PYVEX_ACCESSOR_DEF(IRStmtExit, offsIP),
+	PYMARE_ACCESSOR_DEF(IRStmtExit, guard),
+	PYMARE_ACCESSOR_DEF(IRStmtExit, dst),
+	PYMARE_ACCESSOR_DEF(IRStmtExit, jumpkind),
+	PYMARE_ACCESSOR_DEF(IRStmtExit, offsIP),
 	{NULL}
 };
 
@@ -505,7 +505,7 @@ PYVEX_SUBTYPEOBJECT(Exit, IRStmt);
 static int
 pyIRStmtDirty_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	IRTemp dest;
 	Int regparms;
@@ -523,7 +523,7 @@ pyIRStmtDirty_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	for (i = 0; i < seq_size; i++)
 	{
 		pyIRExpr *expr = (pyIRExpr *)PySequence_GetItem(args_seq, i);
-		PYVEX_CHECKTYPE(expr, pyIRExprType, return -1);
+		PYMARE_CHECKTYPE(expr, pyIRExprType, return -1);
 		cargs[i] = expr->wrapped;
 	}
         cargs[i] = NULL;
@@ -536,23 +536,23 @@ pyIRStmtDirty_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	return 0;
 }
 
-PYVEX_ACCESSOR_WRAPPED(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->cee, cee, IRCallee)
-PYVEX_ACCESSOR_WRAPPED(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->guard, guard, IRExpr)
-PYVEX_ACCESSOR_BUILDVAL(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->tmp, tmp, "I")
-PYVEX_ACCESSOR_ENUM(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->mFx, mFx, IREffect)
-PYVEX_ACCESSOR_WRAPPED(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->mAddr, mAddr, IRExpr)
-PYVEX_ACCESSOR_BUILDVAL(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->mSize, mSize, "I")
-PYVEX_ACCESSOR_BUILDVAL(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->nFxState, nFxState, "i")
+PYMARE_ACCESSOR_WRAPPED(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->cee, cee, IRCallee)
+PYMARE_ACCESSOR_WRAPPED(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->guard, guard, IRExpr)
+PYMARE_ACCESSOR_BUILDVAL(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->tmp, tmp, "I")
+PYMARE_ACCESSOR_ENUM(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->mFx, mFx, IREffect)
+PYMARE_ACCESSOR_WRAPPED(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->mAddr, mAddr, IRExpr)
+PYMARE_ACCESSOR_BUILDVAL(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->mSize, mSize, "I")
+PYMARE_ACCESSOR_BUILDVAL(IRStmtDirty, IRStmt, self->wrapped->Ist.Dirty.details->nFxState, nFxState, "i")
 
 static PyGetSetDef pyIRStmtDirty_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtDirty, cee),
-	PYVEX_ACCESSOR_DEF(IRStmtDirty, guard),
-	PYVEX_ACCESSOR_DEF(IRStmtDirty, tmp),
-	PYVEX_ACCESSOR_DEF(IRStmtDirty, mFx),
-	PYVEX_ACCESSOR_DEF(IRStmtDirty, mAddr),
-	PYVEX_ACCESSOR_DEF(IRStmtDirty, mSize),
-	PYVEX_ACCESSOR_DEF(IRStmtDirty, nFxState),
+	PYMARE_ACCESSOR_DEF(IRStmtDirty, cee),
+	PYMARE_ACCESSOR_DEF(IRStmtDirty, guard),
+	PYMARE_ACCESSOR_DEF(IRStmtDirty, tmp),
+	PYMARE_ACCESSOR_DEF(IRStmtDirty, mFx),
+	PYMARE_ACCESSOR_DEF(IRStmtDirty, mAddr),
+	PYMARE_ACCESSOR_DEF(IRStmtDirty, mSize),
+	PYMARE_ACCESSOR_DEF(IRStmtDirty, nFxState),
 	{NULL}
 };
 
@@ -577,7 +577,7 @@ PyObject *pyIRStmtDirty_fxState(pyIRStmt* self)
 	{
 		IREffect e = self->wrapped->Ist.Dirty.details->fxState[i].fx;
 		const char *e_str;
-		PYVEX_ENUM_TOSTR(IREffect, e, e_str, return NULL);
+		PYMARE_ENUM_TOSTR(IREffect, e, e_str, return NULL);
 
 		PyObject *dict = Py_BuildValue("{s:s,s:H,s:H,s:B,s:B}",
 					       "fx", e_str,
@@ -606,7 +606,7 @@ PYVEX_SUBTYPEOBJECT(Dirty, IRStmt);
 static int
 pyIRStmtLoadG_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	char *endness_str;
 	char *convert_str;
@@ -620,22 +620,22 @@ pyIRStmtLoadG_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"end", "cvt", "dst", "addr", "alt", "guard", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ssIOOO", kwlist, &endness_str, &convert_str, &dst, &addr, &alt, &guard)) return -1;
-	PYVEX_CHECKTYPE(addr, pyIRExprType, return -1)
-	PYVEX_CHECKTYPE(alt, pyIRExprType, return -1)
-	PYVEX_CHECKTYPE(guard, pyIRExprType, return -1)
-	PYVEX_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
-	PYVEX_ENUM_FROMSTR(IRLoadGOp, convert, convert_str, return -1);
+	PYMARE_CHECKTYPE(addr, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(alt, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(guard, pyIRExprType, return -1)
+	PYMARE_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
+	PYMARE_ENUM_FROMSTR(IRLoadGOp, convert, convert_str, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_LoadG(endness, convert, dst, addr->wrapped, alt->wrapped, guard->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_ENUM(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->end, end, IREndness)
-PYVEX_ACCESSOR_ENUM(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->cvt, cvt, IRLoadGOp)
-PYVEX_ACCESSOR_BUILDVAL(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->dst, dst, "i")
-PYVEX_ACCESSOR_WRAPPED(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->addr, addr, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->alt, alt, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->guard, guard, IRExpr)
+PYMARE_ACCESSOR_ENUM(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->end, end, IREndness)
+PYMARE_ACCESSOR_ENUM(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->cvt, cvt, IRLoadGOp)
+PYMARE_ACCESSOR_BUILDVAL(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->dst, dst, "i")
+PYMARE_ACCESSOR_WRAPPED(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->addr, addr, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->alt, alt, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtLoadG, IRStmt, self->wrapped->Ist.LoadG.details->guard, guard, IRExpr)
 
 PyObject *pyIRStmtLoadG_cvt_types(pyIRStmt* self)
 {
@@ -648,12 +648,12 @@ PyObject *pyIRStmtLoadG_cvt_types(pyIRStmt* self)
 
 static PyGetSetDef pyIRStmtLoadG_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtLoadG, end),
-	PYVEX_ACCESSOR_DEF(IRStmtLoadG, cvt),
-	PYVEX_ACCESSOR_DEF(IRStmtLoadG, dst),
-	PYVEX_ACCESSOR_DEF(IRStmtLoadG, addr),
-	PYVEX_ACCESSOR_DEF(IRStmtLoadG, alt),
-	PYVEX_ACCESSOR_DEF(IRStmtLoadG, guard),
+	PYMARE_ACCESSOR_DEF(IRStmtLoadG, end),
+	PYMARE_ACCESSOR_DEF(IRStmtLoadG, cvt),
+	PYMARE_ACCESSOR_DEF(IRStmtLoadG, dst),
+	PYMARE_ACCESSOR_DEF(IRStmtLoadG, addr),
+	PYMARE_ACCESSOR_DEF(IRStmtLoadG, alt),
+	PYMARE_ACCESSOR_DEF(IRStmtLoadG, guard),
 	{NULL}
 };
 
@@ -671,7 +671,7 @@ PYVEX_SUBTYPEOBJECT(LoadG, IRStmt);
 static int
 pyIRStmtStoreG_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	PYVEX_WRAP_CONSTRUCTOR(IRStmt);
+	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	char *endness_str;
 	pyIRExpr *addr;
@@ -682,26 +682,26 @@ pyIRStmtStoreG_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"end", "addr", "data", "guard", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOOO", kwlist, &endness_str, &addr, &data, &guard)) return -1;
-	PYVEX_CHECKTYPE(addr, pyIRExprType, return -1)
-	PYVEX_CHECKTYPE(data, pyIRExprType, return -1)
-	PYVEX_CHECKTYPE(guard, pyIRExprType, return -1)
-	PYVEX_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
+	PYMARE_CHECKTYPE(addr, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(data, pyIRExprType, return -1)
+	PYMARE_CHECKTYPE(guard, pyIRExprType, return -1)
+	PYMARE_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
 
 	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_StoreG(endness, addr->wrapped, data->wrapped, guard->wrapped));
 	return 0;
 }
 
-PYVEX_ACCESSOR_ENUM(IRStmtStoreG, IRStmt, self->wrapped->Ist.StoreG.details->end, end, IREndness)
-PYVEX_ACCESSOR_WRAPPED(IRStmtStoreG, IRStmt, self->wrapped->Ist.StoreG.details->addr, addr, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRStmtStoreG, IRStmt, self->wrapped->Ist.StoreG.details->data, data, IRExpr)
-PYVEX_ACCESSOR_WRAPPED(IRStmtStoreG, IRStmt, self->wrapped->Ist.StoreG.details->guard, guard, IRExpr)
+PYMARE_ACCESSOR_ENUM(IRStmtStoreG, IRStmt, self->wrapped->Ist.StoreG.details->end, end, IREndness)
+PYMARE_ACCESSOR_WRAPPED(IRStmtStoreG, IRStmt, self->wrapped->Ist.StoreG.details->addr, addr, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtStoreG, IRStmt, self->wrapped->Ist.StoreG.details->data, data, IRExpr)
+PYMARE_ACCESSOR_WRAPPED(IRStmtStoreG, IRStmt, self->wrapped->Ist.StoreG.details->guard, guard, IRExpr)
 
 static PyGetSetDef pyIRStmtStoreG_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRStmtStoreG, end),
-	PYVEX_ACCESSOR_DEF(IRStmtStoreG, addr),
-	PYVEX_ACCESSOR_DEF(IRStmtStoreG, data),
-	PYVEX_ACCESSOR_DEF(IRStmtStoreG, guard),
+	PYMARE_ACCESSOR_DEF(IRStmtStoreG, end),
+	PYMARE_ACCESSOR_DEF(IRStmtStoreG, addr),
+	PYMARE_ACCESSOR_DEF(IRStmtStoreG, data),
+	PYMARE_ACCESSOR_DEF(IRStmtStoreG, guard),
 	{NULL}
 };
 

@@ -15,16 +15,16 @@
 
 extern VexTranslateArgs vta;
 
-PYVEX_NEW(IRSB)
-PYVEX_DEALLOC(IRSB)
-PYVEX_WRAP(IRSB)
+PYMARE_NEW(IRSB)
+PYMARE_DEALLOC(IRSB)
+PYMARE_WRAP(IRSB)
 PYVEX_METH_STANDARD(IRSB)
 
 static int
 pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 {
 	if (!kwargs) { self->wrapped = PYVEX_COPYOUT(IRSB, emptyIRSB()); return 0; }
-	PYVEX_WRAP_CONSTRUCTOR(IRSB);
+	PYMARE_WRAP_CONSTRUCTOR(IRSB);
 
 #ifdef PYVEX_STATIC
 	unsigned char *bytes = NULL;
@@ -41,7 +41,7 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s#IIsIiI", kwlist, &bytes, &num_bytes, &mem_addr, &num_inst, &arch_str, &basic, &bytes_offset, &traceflags)) return -1;
 
 	if (!arch_str) arch_str = "VexArchAMD64";
-	PYVEX_ENUM_FROMSTR(VexArch, arch, arch_str, return -1);
+	PYMARE_ENUM_FROMSTR(VexArch, arch, arch_str, return -1);
 
 	if (num_bytes == 0)
 	{
@@ -73,19 +73,19 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 
 static PyMemberDef pyIRSB_members[] = { {NULL} };
 
-PYVEX_ACCESSOR_WRAPPED(IRSB, IRSB, self->wrapped, wrapped, IRSB)
-PYVEX_ACCESSOR_WRAPPED(IRSB, IRSB, self->wrapped->tyenv, tyenv, IRTypeEnv)
-PYVEX_ACCESSOR_WRAPPED(IRSB, IRSB, self->wrapped->next, next, IRExpr)
-PYVEX_ACCESSOR_ENUM(IRSB, IRSB, self->wrapped->jumpkind, jumpkind, IRJumpKind)
-PYVEX_ACCESSOR_BUILDVAL(IRSB, IRSB, self->wrapped->offsIP, offsIP, "i")
+PYMARE_ACCESSOR_WRAPPED(IRSB, IRSB, self->wrapped, wrapped, IRSB)
+PYMARE_ACCESSOR_WRAPPED(IRSB, IRSB, self->wrapped->tyenv, tyenv, IRTypeEnv)
+PYMARE_ACCESSOR_WRAPPED(IRSB, IRSB, self->wrapped->next, next, IRExpr)
+PYMARE_ACCESSOR_ENUM(IRSB, IRSB, self->wrapped->jumpkind, jumpkind, IRJumpKind)
+PYMARE_ACCESSOR_BUILDVAL(IRSB, IRSB, self->wrapped->offsIP, offsIP, "i")
 
 static PyGetSetDef pyIRSB_getseters[] =
 {
-	PYVEX_ACCESSOR_DEF(IRSB, wrapped),
-	PYVEX_ACCESSOR_DEF(IRSB, tyenv),
-	PYVEX_ACCESSOR_DEF(IRSB, next),
-	PYVEX_ACCESSOR_DEF(IRSB, jumpkind),
-	PYVEX_ACCESSOR_DEF(IRSB, offsIP),
+	PYMARE_ACCESSOR_DEF(IRSB, wrapped),
+	PYMARE_ACCESSOR_DEF(IRSB, tyenv),
+	PYMARE_ACCESSOR_DEF(IRSB, next),
+	PYMARE_ACCESSOR_DEF(IRSB, jumpkind),
+	PYMARE_ACCESSOR_DEF(IRSB, offsIP),
 	{NULL}  /* Sentinel */
 };
 
@@ -104,7 +104,7 @@ pyIRSB_statements(pyIRSB* self)
 static PyObject *pyIRSB_deepCopyExceptStmts(pyIRSB* self) { return (PyObject *)wrap_IRSB(deepCopyIRSBExceptStmts(self->wrapped)); }
 static PyObject *pyIRSB_addStatement(pyIRSB* self, PyObject *stmt)
 {
-	PYVEX_CHECKTYPE(stmt, pyIRStmtType, return NULL);
+	PYMARE_CHECKTYPE(stmt, pyIRStmtType, return NULL);
 	addStmtToIRSB(self->wrapped, ((pyIRStmt *)stmt)->wrapped);
 	Py_RETURN_NONE;
 }
@@ -141,4 +141,4 @@ static PyMethodDef pyIRSB_methods[] =
 	{NULL}  /* Sentinel */
 };
 
-PYVEX_TYPEOBJECT(IRSB);
+PYMARE_TYPEOBJECT("pyvex", IRSB);
