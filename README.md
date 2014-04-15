@@ -10,13 +10,13 @@ First, get the VEX code.
 
 	mkdir ~/valgrind
 	cd ~/valgrind
-	wget http://valgrind.org/downloads/valgrind-3.8.1.tar.bz2
-	tar xvfj valgrind-3.8.1.tar.bz2
-	cd valgrind-3.8.1
+	wget http://valgrind.org/downloads/valgrind-3.9.0.tar.bz2
+	tar xvfj valgrind-3.9.0.tar.bz2
+	cd valgrind-3.9.0
 
 If you want to be able to VEX stuff for different platforms than what you're running on, you need to disable VEX's native code generation, as that'll just make everything crash. You can apply a patch to disable this:
 
-	patch -p1 < /path/to/pyvex/valgrind_static_3.8.1.patch
+	patch -p1 < /path/to/pyvex/valgrind_static_3.9.0.patch
 
 For now, pyvex requires valgrind to be compiled with fPIC:
 
