@@ -227,8 +227,7 @@ extern PyObject *PyMareError;
 #define PYMARE_DIRECT_WRAP(type) \
 	PyObject *wrap_direct_##type(type *w) \
 	{ \
-  		py##type *self; \
-		self = (py##type *)type->tp_alloc(type, 0); \
+  		py##type *self = (py##type *)py##type##Type.tp_alloc(&py##type##Type, 0); \
 		if (self != NULL) self->wrapped = w; \
 		return (PyObject *)self; \
 	}
