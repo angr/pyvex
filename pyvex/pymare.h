@@ -149,6 +149,24 @@ extern PyObject *PyMareError;
 	}
 #define PYMARE_ACCESSOR_WRAPPED(a,b,c,d,e) PYMARE_SETTER_WRAPPED(a,b,c,d,e) PYMARE_GETTER_WRAPPED(a,b,c,d,e)
 
+// these getters and setters wrap members in the proper pymare-exposed classes
+#define PYMARE_GETTER_DIRECT_WRAPPED(type, attr, name, attrtype) \
+	static PyObject *py##type##_get_##name(py##type *self, void *closure) \
+	{ \
+		if (attr == NULL) { Py_RETURN_NONE; } \
+		PyObject *o = wrap_direct_##attrtype(attr); \
+		if (!o) { PyErr_SetString(PyMareError, "Error in py"#type"_get_"#name"\n"); return NULL; } \
+		return o; \
+	}
+#define PYMARE_SETTER_DIRECT_WRAPPED(type, attr, name, attrtype) \
+	static int py##type##_set_##name(py##type *self, PyObject *value, void *closure) \
+	{ \
+		PYMARE_CHECKTYPE(value, py##attrtype##Type, return -1); \
+		attr = ((py##attrtype *) value)->wrapped; \
+		return 0; \
+	}
+#define PYMARE_ACCESSOR_DIRECT_WRAPPED(a,b,c,d) PYMARE_SETTER_DIRECT_WRAPPED(a,b,c,d) PYMARE_GETTER_DIRECT_WRAPPED(a,b,c,d)
+
 // these getters and setters translate between a C enum and a Python string
 #define PYMARE_GETTER_ENUM(type, intype, attr, name, e) \
 	static PyObject *py##type##_get_##name(py##intype *self, void *closure) \
@@ -206,6 +224,15 @@ extern PyObject *PyMareError;
 		return (PyObject *)o; \
 	}
 
+#define PYMARE_DIRECT_WRAP(type) \
+	PyObject *wrap_direct_##type(type *w) \
+	{ \
+  		py##type *self; \
+		self = (py##type *)type->tp_alloc(type, 0); \
+		if (self != NULL) self->wrapped = w; \
+		return (PyObject *)self; \
+	}
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Now we get to handle enums. Oh yay.
@@ -249,15 +276,23 @@ extern PyObject *PyMareError;
 	extern PyObject *dict_##type##_fromstr; \
 	extern PyObject *dict_##type##_tostr; \
 
-// and put it all together with the dict (int the C file)
-#define PYMARE_ENUM_CONVERSION(type) \
+#define PYMARE_ENUM_OBJECTS(type) \
 	PyObject *dict_##type##_fromstr; \
 	PyObject *dict_##type##_tostr; \
+
+// and put it all together with the dict (int the C file)
+#define PYMARE_ENUM_CONVERSION(type) \
+	PYMARE_ENUM_OBJECTS(type) \
 	PYMARE_ENUM_FUNCS(type)
 
-#define PYMARE_ENUM_INIT(type) \
+#define PYMARE_ENUM_INIT(type, module) \
 	dict_##type##_fromstr = PyDict_New(); \
 	dict_##type##_tostr = PyDict_New(); \
+	if (module) \
+	{ \
+		PyModule_AddObject(module, "enum_"#type"_fromstr", dict_##type##_fromstr); \
+		PyModule_AddObject(module, "enum_"#type"_tostr", dict_##type##_tostr); \
+	}
 
 // and then use these to add the enums themselves
 #define PYMARE_ENUM_ADD(type, e) \

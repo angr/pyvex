@@ -3,6 +3,7 @@
 #pragma once
 
 #include <libvex_ir.h>
+#include <Python.h>
 #include "pymare.h"
 
 PYMARE_ENUM_HEADER(VexArch)
@@ -16,4 +17,4 @@ PYMARE_ENUM_HEADER(IRConstTag)
 PYMARE_ENUM_HEADER(IRType)
 PYMARE_ENUM_HEADER(IROp)
 PYMARE_ENUM_HEADER(IRLoadGOp)
-void pyvex_init_enums(void);
+void pyvex_init_enums(PyObject *module);

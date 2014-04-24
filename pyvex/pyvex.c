@@ -83,7 +83,7 @@ initpyvex(void)
 	PyModule_AddObject(module, "VexException", VexException);
 	//printf("VexException added...\n");
 
-	pyvex_init_enums();
+	pyvex_init_enums(module);
 
 	//debug_on = 1;
 #ifdef PYVEX_STATIC
