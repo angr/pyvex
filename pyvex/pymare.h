@@ -22,7 +22,7 @@ extern PyObject *PyMareError;
 
 // this defines the python struct itself. Basically, we just have a pointer to
 // the C object.
-#define PYMARE_STRUCT(type) typedef struct { PyObject_HEAD type *wrapped; } py##type;
+#define PYMARE_STRUCT(type) typedef struct { PyObject_HEAD type *wrapped; int weak; } py##type;
 
 // we have a default allocator that sets the wrapped struct to NULL
 #define PYMARE_NEW(type) \
@@ -31,7 +31,11 @@ extern PyObject *PyMareError;
   	{ \
   		py##type *self; \
 		self = (py##type *)type->tp_alloc(type, 0); \
-		if (self != NULL) self->wrapped = NULL; \
+		if (self != NULL) \
+		{ \
+			self->wrapped = NULL; \
+			self->weak = 0; \
+		} \
 		return (PyObject *)self; \
 	}
 
@@ -218,7 +222,8 @@ extern PyObject *PyMareError;
 	{ \
 		PyObject *args = Py_BuildValue(""); \
 		PyObject *kwargs = Py_BuildValue("{s:O}", "wrap", PyCapsule_New(i, #type, NULL)); \
-		PyObject *o = PyObject_Call((PyObject *)&py##type##Type, args, kwargs); \
+		py##type *o = (py##type *) PyObject_Call((PyObject *)&py##type##Type, args, kwargs); \
+		if (o) o->weak = 1; \
 		Py_DECREF(args); \
 		Py_DECREF(kwargs); \
 		return (PyObject *)o; \
@@ -228,7 +233,11 @@ extern PyObject *PyMareError;
 	PyObject *wrap_direct_##type(type *w) \
 	{ \
   		py##type *self = (py##type *)py##type##Type.tp_alloc(&py##type##Type, 0); \
-		if (self != NULL) self->wrapped = w; \
+		if (self != NULL) \
+		{ \
+			self->wrapped = w; \
+			self->weak = 1; \
+		} \
 		return (PyObject *)self; \
 	}
 
