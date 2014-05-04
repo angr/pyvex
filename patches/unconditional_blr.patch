@@ -1,0 +1,36 @@
+Index: priv/guest_ppc_toIR.c
+===================================================================
+--- priv/guest_ppc_toIR.c	(revision 2817)
++++ priv/guest_ppc_toIR.c	(working copy)
+@@ -5700,20 +5700,23 @@
+          }
+          
+          /* See comments above for 'bc' about this */
+-         assign( ctr_ok,  branch_ctr_ok( BO ) );
+-         assign( cond_ok, branch_cond_ok( BO, BI ) );
+-         assign( do_branch,
+-                 binop(Iop_And32, mkexpr(cond_ok), mkexpr(ctr_ok)) );
++         if (!vanilla_return) {
++                 assign( ctr_ok,  branch_ctr_ok( BO ) );
++                 assign( cond_ok, branch_cond_ok( BO, BI ) );
++                 assign( do_branch,
++                         binop(Iop_And32, mkexpr(cond_ok), mkexpr(ctr_ok)) );
++         }
+          
+          assign( lr_old, addr_align( getGST( PPC_GST_LR ), 4 ));
+ 
+          if (flag_LK)
+             putGST( PPC_GST_LR,  e_nia );
+ 
+-         stmt( IRStmt_Exit(
+-                  binop(Iop_CmpEQ32, mkexpr(do_branch), mkU32(0)),
+-                  Ijk_Boring,
+-                  c_nia, OFFB_CIA ));
++         if (!vanilla_return)
++                  stmt( IRStmt_Exit(
++                           binop(Iop_CmpEQ32, mkexpr(do_branch), mkU32(0)),
++                           Ijk_Boring,
++                           c_nia, OFFB_CIA ));
+ 
+          if (vanilla_return && vbi->guest_ppc_zap_RZ_at_blr) {
+             make_redzone_AbiHint( vbi, lr_old,
