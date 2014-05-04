@@ -16,7 +16,7 @@ First, get the VEX code.
 
 If you want to be able to VEX stuff for different platforms than what you're running on, you need to disable VEX's native code generation, as that'll just make everything crash. You can apply a patch to disable this:
 
-	patch -p1 < /path/to/pyvex/valgrind_static_3.9.0.patch
+	patch -p1 < /path/to/pyvex/patches/valgrind_static_3.9.0.patch
 
 For now, pyvex requires valgrind to be compiled with fPIC:
 
