@@ -24,6 +24,8 @@ For now, pyvex requires valgrind to be compiled with fPIC:
 	make
 	make install
 
+Now you need to update the symblinks to the VEX libraries and includes (vex\_include and vex\_lib), and fix VEX\_LIB\_NAME in the setup.py
+
 Great! Now you can build pyvex.
 
 	python setup.py build
