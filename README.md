@@ -18,6 +18,10 @@ If you want to be able to VEX stuff for different platforms than what you're run
 
 	patch -p1 < /path/to/pyvex/patches/valgrind_static_3.9.0.patch
 
+If your linux distribution ships with glibc 2.19, like Ubuntu 14.04, the release version of Valgrind 3.9.0 is unsupported. To build Valgrind with glibc 2.19, apply a patch to the configure file:
+
+	patch -p1 < /path/to/pyvex/patches/ubuntu_libc.patch
+
 For now, pyvex requires valgrind to be compiled with fPIC:
 
 	CFLAGS=-fPIC ./configure --prefix=$HOME/valgrind/inst
