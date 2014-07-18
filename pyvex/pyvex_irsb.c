@@ -28,7 +28,7 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 
 #ifdef PYVEX_STATIC
 	unsigned char *bytes = NULL;
-	unsigned int mem_addr = 0;
+	unsigned long long int mem_addr = 0;
 	int num_inst = -1;
 	int num_bytes = -1;
 	const char *arch_str = NULL;
@@ -38,7 +38,7 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 	int traceflags = 0;
 
 	static char *kwlist[] = {"bytes", "mem_addr", "num_inst", "arch", "basic", "bytes_offset", "traceflags", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s#IIsIiI", kwlist, &bytes, &num_bytes, &mem_addr, &num_inst, &arch_str, &basic, &bytes_offset, &traceflags)) return -1;
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s#KIsIiI", kwlist, &bytes, &num_bytes, &mem_addr, &num_inst, &arch_str, &basic, &bytes_offset, &traceflags)) return -1;
 
 	if (!arch_str) arch_str = "VexArchAMD64";
 	PYMARE_ENUM_FROMSTR(VexArch, arch, arch_str, return -1);
