@@ -211,7 +211,7 @@ void vex_prepare_vai(VexArch arch, VexArchInfo *vai)
 			break;
 		case VexArchARM:
 			vai->hwcaps = 7;
-			vai->endness = Iend_BE; // unsure if correct
+			vai->endness = Iend_LE; // unsure if correct
 			break;
 		case VexArchPPC32:
 			vai->hwcaps = 0;
