@@ -32,16 +32,23 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 	int num_inst = -1;
 	int num_bytes = -1;
 	const char *arch_str = NULL;
+        const char *endness_str = NULL;
 	VexArch arch = VexArch_INVALID;
+        VexEndness endness = VexEndness_INVALID;
 	int basic = 0;
 	int bytes_offset = 0;
 	int traceflags = 0;
 
-	static char *kwlist[] = {"bytes", "mem_addr", "num_inst", "arch", "basic", "bytes_offset", "traceflags", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s#IIsIiI", kwlist, &bytes, &num_bytes, &mem_addr, &num_inst, &arch_str, &basic, &bytes_offset, &traceflags)) return -1;
+	static char *kwlist[] = {"bytes", "mem_addr", "num_inst", "arch", "endness", "basic", "bytes_offset", "traceflags", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s#IIssIiI", kwlist, &bytes, &num_bytes, &mem_addr, &num_inst, &arch_str, &endness_str, &basic, &bytes_offset, &traceflags)) return -1;
 
 	if (!arch_str) arch_str = "VexArchAMD64";
 	PYMARE_ENUM_FROMSTR(VexArch, arch, arch_str, return -1);
+	if (!endness_str) {
+		PyErr_SetString(VexException, "Must provide an endness.");
+		return -1;
+	}
+        PYMARE_ENUM_FROMSTR(VexEndness, endness, endness_str, return -1);
 
 	if (num_bytes == 0)
 	{
@@ -54,8 +61,8 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 	if (num_bytes > 0)
 	{
 		vex_init();
-		if (num_inst > -1) self->wrapped = vex_block_inst(arch, bytes + bytes_offset, mem_addr, num_inst);
-		else self->wrapped = vex_block_bytes(arch, bytes + bytes_offset, mem_addr, num_bytes, basic);
+		if (num_inst > -1) self->wrapped = vex_block_inst(arch, endness, bytes + bytes_offset, mem_addr, num_inst);
+		else self->wrapped = vex_block_bytes(arch, endness, bytes + bytes_offset, mem_addr, num_bytes, basic);
 
 		self->wrapped = PYVEX_COPYOUT(IRSB, self->wrapped);
 
