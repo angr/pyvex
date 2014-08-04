@@ -125,6 +125,8 @@ void vex_init()
 	//
 	// Initialize VEX
 	//
+	LibVEX_default_VexControl(&vc);
+
 	vc.iropt_verbosity              = 0;
 	vc.iropt_level                  = 0;    // No optimization by default
 	//vc.iropt_level                  = 2;
@@ -144,6 +146,8 @@ void vex_init()
 	LibVEX_default_VexArchInfo(&vai_guest);
 	LibVEX_default_VexArchInfo(&vai_host);
 	LibVEX_default_VexAbiInfo(&vbi);
+
+	vai_host.endness = VexEndnessLE; // TODO: Don't assume this
 
 	// various settings to make stuff work
 	// ... forgot what the former one is for, but it avoids an assert somewhere
@@ -261,8 +265,19 @@ IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, uns
 	debug("Guest arch hwcaps: %08x\n", vai_guest.hwcaps);
 	//vta.traceflags = 0xffffffff;
 
-	vta.archinfo_host = vai_guest;
-	vta.arch_host = guest;
+	vta.archinfo_host = vai_host;
+#if __amd64__
+	vta.arch_host = VexArchAMD64;
+#elif __i386__
+	vta.arch_host = VexArchX86;
+#elif __arm__
+	vta.arch_host = VexArchARM;
+#elif __aarch64__
+	vta.arch_host = VexArchARM64;
+#else
+#error "Unsupported host arch"
+#endif
+
 	vta.archinfo_guest = vai_guest;
 	vta.arch_guest = guest;
 
