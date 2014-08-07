@@ -44,11 +44,8 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 
 	if (!arch_str) arch_str = "VexArchAMD64";
 	PYMARE_ENUM_FROMSTR(VexArch, arch, arch_str, return -1);
-	if (!endness_str) {
-		PyErr_SetString(VexException, "Must provide an endness.");
-		return -1;
-	}
-        PYMARE_ENUM_FROMSTR(VexEndness, endness, endness_str, return -1);
+	if (!endness_str) endness_str = "VexEndnessLE";
+    PYMARE_ENUM_FROMSTR(VexEndness, endness, endness_str, return -1);
 
 	if (num_bytes == 0)
 	{
