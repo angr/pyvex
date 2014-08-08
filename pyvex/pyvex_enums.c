@@ -7,6 +7,7 @@
 #include "pyvex_enums.h"
 
 PYMARE_ENUM_CONVERSION(VexArch)
+PYMARE_ENUM_CONVERSION(VexEndness)
 PYMARE_ENUM_CONVERSION(IRExprTag)
 PYMARE_ENUM_CONVERSION(IRStmtTag)
 PYMARE_ENUM_CONVERSION(IREndness)
@@ -21,6 +22,7 @@ PYMARE_ENUM_CONVERSION(IRLoadGOp)
 void pyvex_init_enums(PyObject *module)
 {
 	PYMARE_ENUM_INIT(VexArch, module)
+	PYMARE_ENUM_INIT(VexEndness, module)
 	PYMARE_ENUM_INIT(IRExprTag, module)
 	PYMARE_ENUM_INIT(IRStmtTag, module)
 	PYMARE_ENUM_INIT(IREndness, module)

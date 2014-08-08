@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 import re
+import sys
 
-valgrind_home = "/home/yans/valgrind/inst39"
+vex_home = sys.argv[1] if len(sys.argv) > 1 else "/home/yans/vex"
 
-input = open(valgrind_home + "/include/valgrind/libvex_ir.h").read()
-input += open(valgrind_home + "/include/valgrind/libvex.h").read()
+input = open(vex_home + "/pub/libvex_ir.h").read()
+input += open(vex_home + "/pub/libvex.h").read()
 
 out = """
 #include <libvex.h>
@@ -20,6 +21,7 @@ errors = ["VexArchInfo"]
 
 enums = [
 	("VexArch", r"VexArch\w+"),
+	("VexEndness", r"VexEndness\w+"),
 	("IRExprTag", r"Iex_\w+"),
 	("IRStmtTag", r"Ist_\w+"),
 	("IREndness", r"Iend_\w+"),
@@ -27,12 +29,12 @@ enums = [
 	("IREffect", r"Ifx_\w+"),
 	("IRJumpKind", r"Ijk_\w+"),
 	("IRConstTag", r"Ico_\w+"),
-	("IRType", r"Ity_\w+"),
+	("IRType", r"Ity_[\w\d]+"),
 	("IROp", r"Iop_\w+"),
 	("IRLoadGOp", r"ILGop_\w+"),
 ]
 
-ignore = { "Ity_Bit", "Iex_Tmp", "Iex_Store", "Ijk_Sys_", "Iop_PwFoo16x4", "Iop_PAddL16Ux4", "Iop_PAddL16Ux4" }
+ignore = { "Ity_I", "Ity_Bit", "Iex_Tmp", "Iex_Store", "Ijk_Sys_", "Iop_PwFoo16x4", "Iop_PAddL16Ux4", "Iop_PAddL16Ux4" }
 
 to_str = """
 const char *{0}_to_str({0} e)
