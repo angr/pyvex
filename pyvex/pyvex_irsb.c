@@ -61,9 +61,16 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 		if (num_inst > -1) self->wrapped = vex_block_inst(arch, endness, bytes + bytes_offset, mem_addr, num_inst);
 		else self->wrapped = vex_block_bytes(arch, endness, bytes + bytes_offset, mem_addr, num_bytes, basic);
 
-		self->wrapped = PYVEX_COPYOUT(IRSB, self->wrapped);
+		// presumably, the exception is already set above
+		if (self->wrapped == NULL) return -1;
 
-		if (self->wrapped == NULL) { PyErr_SetString(PyVEXError, "Error creating IR."); return -1; }
+		self->wrapped = PYVEX_COPYOUT(IRSB, self->wrapped);
+		if (self->wrapped == NULL)
+		{
+			PyErr_SetString(PyVEXError, "Error copying IRSB out of VEX.");
+			return -1;
+		}
+
 		return 0;
 	}
 

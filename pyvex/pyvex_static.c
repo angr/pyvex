@@ -297,6 +297,7 @@ IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, uns
 	catch (VEXError)
 	{
 		PyErr_SetString(PyVEXError, E4C_EXCEPTION.message);
+		return NULL;
 	}
 
 	debug("Translated!\n");
@@ -317,7 +318,7 @@ int vex_count_instructions(VexArch guest, VexEndness endness, unsigned char *ins
 		debug("Next byte: %02x\n", instructions[processed]);
 		IRSB *sb = vex_inst(guest, endness, instructions + processed, block_addr + processed, 1);
 
-		if (vge.len[0] == 0)
+		if (vge.len[0] == 0 || sb == NULL)
 		{
 			error("Something went wrong in IR translation at position %x of addr %x in vex_count_instructions.\n", processed,block_addr);
 			break;
@@ -365,7 +366,8 @@ IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructi
 	if (num_inst == 0)
 	{
 		error("vex_block_inst: asked to create IRSB with 0 instructions, at block_addr %x\n", block_addr);
-		return emptyIRSB();
+		PyErr_SetString(PyVEXError, "translation resulted in empty IRSB");
+		return NULL;
 	}
 	else if (num_inst > 99)
 	{
