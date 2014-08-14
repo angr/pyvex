@@ -49,7 +49,7 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 
 	if (num_bytes == 0)
 	{
-		PyErr_SetString(VexException, "No bytes provided");
+		PyErr_SetString(PyVEXError, "No bytes provided");
 		return -1;
 	}
 
@@ -63,14 +63,14 @@ pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 
 		self->wrapped = PYVEX_COPYOUT(IRSB, self->wrapped);
 
-		if (self->wrapped == NULL) { PyErr_SetString(VexException, "Error creating IR."); return -1; }
+		if (self->wrapped == NULL) { PyErr_SetString(PyVEXError, "Error creating IR."); return -1; }
 		return 0;
 	}
 
-	PyErr_SetString(VexException, "Not enough arguments provided.");
+	PyErr_SetString(PyVEXError, "Not enough arguments provided.");
 	return -1;
 #else
-	PyErr_SetString(VexException, "Statically creating IRSBs is disabled.");
+	PyErr_SetString(PyVEXError, "Statically creating IRSBs is disabled.");
 	return -1;
 #endif
 }

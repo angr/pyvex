@@ -97,7 +97,7 @@ class PyVEXTest(unittest.TestCase):
 	##################
 
 	def test_empty_irstmt_fail(self):
-		self.assertRaises(pyvex.VexException, pyvex.IRStmt, ())
+		self.assertRaises(pyvex.PyVEXError, pyvex.IRStmt, ())
 
 	def test_irstmt_pp(self):
 		irsb = pyvex.IRSB(bytes='\x5d\xc3')

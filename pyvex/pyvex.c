@@ -6,7 +6,7 @@
 #include "pyvex_types.h"
 #include "pyvex_enums.h"
 
-PyObject *VexException;
+PyObject *PyVEXError;
 PyObject *PyMareError;
 PyObject *module;
 
@@ -78,10 +78,10 @@ initpyvex(void)
 	PYMARE_INITSUBTYPE(IRExpr, ITE);
 	PYMARE_INITSUBTYPE(IRExpr, CCall);
 
-	VexException = PyErr_NewException("pyvex.VexException", NULL, NULL);
-	PyMareError = VexException;
-	PyModule_AddObject(module, "VexException", VexException);
-	//printf("VexException added...\n");
+	PyVEXError = PyErr_NewException("pyvex.PyVEXError", NULL, NULL);
+	PyMareError = PyVEXError;
+	PyModule_AddObject(module, "PyVEXError", PyVEXError);
+	//printf("PyVEXError added...\n");
 
 	pyvex_init_enums(module);
 

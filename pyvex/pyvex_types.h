@@ -12,7 +12,7 @@
 extern PyObject *module;
 
 // exceptions from pyvex
-extern PyObject *VexException;
+extern PyObject *PyVEXError;
 
 // blocks
 PYMARE_TYPEHEADER(IRSB);

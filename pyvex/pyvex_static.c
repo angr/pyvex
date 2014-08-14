@@ -23,6 +23,9 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <assert.h>
 #include <libvex.h>
 
+#include "e4c_lite.h"
+
+#include "pyvex_types.h"
 #include "pyvex_static.h"
 #include "pyvex_logging.h"
 
@@ -287,7 +290,14 @@ IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, uns
 	debug("... new: %d\n", vex_control.guest_max_insns);
 
 	// Do the actual translation
-	vtr = LibVEX_Translate(&vta);
+	try
+	{
+		vtr = LibVEX_Translate(&vta);
+	}
+	catch (VEXError)
+	{
+		PyErr_SetString(PyVEXError, E4C_EXCEPTION.message);
+	}
 
 	debug("Translated!\n");
 

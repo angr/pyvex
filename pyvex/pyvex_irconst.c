@@ -26,7 +26,7 @@ static int
 pyIRConst_init(pyIRConst *self, PyObject *args, PyObject *kwargs)
 {
 	PYMARE_WRAP_CONSTRUCTOR(IRConst);
-	PyErr_SetString(VexException, "Base IRConst creation not supported.");
+	PyErr_SetString(PyVEXError, "Base IRConst creation not supported.");
 	return -1;
 }
 

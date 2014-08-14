@@ -28,7 +28,7 @@ pyIRTypeEnv_init(pyIRTypeEnv *self, PyObject *args, PyObject *kwargs)
 	if (!kwargs) { self->wrapped = PYVEX_COPYOUT(IRTypeEnv, emptyIRTypeEnv()); return 0; }
 	PYMARE_WRAP_CONSTRUCTOR(IRTypeEnv);
 
-	PyErr_SetString(VexException, "Unexpected arguments provided.");
+	PyErr_SetString(PyVEXError, "Unexpected arguments provided.");
 	return -1;
 }
 
@@ -57,7 +57,7 @@ PyObject *pyIRTypeEnv_newTemp(pyIRTypeEnv *self, PyObject *type)
 {
 	IRType t;
 	const char *t_str = PyString_AsString(type);
-	if (!t_str) { PyErr_SetString(VexException, "Unrecognized type argument to IRTypeEnv.newTemp"); return NULL; }
+	if (!t_str) { PyErr_SetString(PyVEXError, "Unrecognized type argument to IRTypeEnv.newTemp"); return NULL; }
 	PYMARE_ENUM_FROMSTR(IRType, t, t_str, return NULL);
 
 	return PyInt_FromLong(newIRTemp(self->wrapped, t));
@@ -70,7 +70,7 @@ PyObject *pyIRTypeEnv_typeOf(pyIRTypeEnv *self, PyObject *o)
 		IRTemp t = PyInt_AsLong(o);
 		if (t > self->wrapped->types_used || t < 0)
 		{
-			PyErr_SetString(VexException, "IRTemp out of range.");
+			PyErr_SetString(PyVEXError, "IRTemp out of range.");
 			return NULL;
 		}
 
@@ -87,7 +87,7 @@ PyObject *pyIRTypeEnv_typeOf(pyIRTypeEnv *self, PyObject *o)
 		return PyString_FromString(typestr);
 	}
 
-	PyErr_SetString(VexException, "Unrecognized argument to IRTypeEnv.typeOf");
+	PyErr_SetString(PyVEXError, "Unrecognized argument to IRTypeEnv.typeOf");
 	return NULL;
 }
 
