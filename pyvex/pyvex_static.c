@@ -294,11 +294,7 @@ IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, uns
 	{
 		vtr = LibVEX_Translate(&vta);
 	}
-	catch (VEXError)
-	{
-		PyErr_SetString(PyVEXError, E4C_EXCEPTION.message);
-		return NULL;
-	}
+	PYVEX_CATCH_VEX_ERROR
 
 	debug("Translated!\n");
 

@@ -54,6 +54,8 @@ extern PyTypeObject pyIRStmtStoreGType;
 // expressions
 PYMARE_TYPEHEADER(IRExpr);
 extern PyTypeObject pyIRExprBinderType;
+extern PyTypeObject pyIRExprVECRETType;
+extern PyTypeObject pyIRExprBBPTRType;
 extern PyTypeObject pyIRExprGetIType;
 extern PyTypeObject pyIRExprRdTmpType;
 extern PyTypeObject pyIRExprGetType;

@@ -75,6 +75,8 @@ PyObject *wrap_IRExpr(IRExpr *i)
 		PYVEX_WRAPCASE(IRExpr, Iex_, Const)
 		PYVEX_WRAPCASE(IRExpr, Iex_, ITE)
 		PYVEX_WRAPCASE(IRExpr, Iex_, CCall)
+		PYVEX_WRAPCASE(IRExpr, Iex_, BBPTR)
+		PYVEX_WRAPCASE(IRExpr, Iex_, VECRET)
 		default:
 			error("PyVEX: Unknown/unsupported IRExprTag %s\n", IRExprTag_to_str(i->tag));
 			t = &pyIRExprType;
@@ -116,6 +118,44 @@ PyObject *pyIRExprBinder_deepCopy(PyObject *self) { PyErr_SetString(PyVEXError, 
 
 static PyMethodDef pyIRExprBinder_methods[] = { {"deepCopy", (PyCFunction)pyIRExprBinder_deepCopy, METH_NOARGS, "not supported by binder"}, {NULL} };
 PYVEX_SUBTYPEOBJECT(Binder, IRExpr);
+
+///////////////////
+// VECRET IRExpr //
+///////////////////
+
+static int
+pyIRExprVECRET_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
+{
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_VECRET());
+	return 0;
+}
+
+static PyGetSetDef pyIRExprVECRET_getseters[] = { {NULL} };
+
+PyObject *pyIRExprVECRET_deepCopy(PyObject *self) { PyErr_SetString(PyVEXError, "vecret does not support deepCopy()"); return NULL; }
+
+static PyMethodDef pyIRExprVECRET_methods[] = { {"deepCopy", (PyCFunction)pyIRExprVECRET_deepCopy, METH_NOARGS, "not supported by binder"}, {NULL} };
+PYVEX_SUBTYPEOBJECT(VECRET, IRExpr);
+
+///////////////////
+// BBPTR IRExpr //
+///////////////////
+
+static int
+pyIRExprBBPTR_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
+{
+	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
+	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_BBPTR());
+	return 0;
+}
+
+static PyGetSetDef pyIRExprBBPTR_getseters[] = { {NULL} };
+
+PyObject *pyIRExprBBPTR_deepCopy(PyObject *self) { PyErr_SetString(PyVEXError, "vecret does not support deepCopy()"); return NULL; }
+
+static PyMethodDef pyIRExprBBPTR_methods[] = { {"deepCopy", (PyCFunction)pyIRExprBBPTR_deepCopy, METH_NOARGS, "not supported by binder"}, {NULL} };
+PYVEX_SUBTYPEOBJECT(BBPTR, IRExpr);
 
 //////////////////
 // GetI IRExpr //

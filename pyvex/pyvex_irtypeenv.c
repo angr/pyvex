@@ -75,7 +75,9 @@ PyObject *pyIRTypeEnv_typeOf(pyIRTypeEnv *self, PyObject *o)
 		}
 
 		const char *typestr;
-		PYMARE_ENUM_TOSTR(IRType, typeOfIRTemp(self->wrapped, t), typestr, return NULL);
+		try {
+			PYMARE_ENUM_TOSTR(IRType, typeOfIRTemp(self->wrapped, t), typestr, return NULL);
+		} PYVEX_CATCH_VEX_ERROR;
 		return PyString_FromString(typestr);
 	}
 	else if (PyObject_TypeCheck(o, &pyIRExprType))
@@ -83,7 +85,9 @@ PyObject *pyIRTypeEnv_typeOf(pyIRTypeEnv *self, PyObject *o)
 		pyIRExpr *e = (pyIRExpr *)o;
 
 		const char *typestr;
-		PYMARE_ENUM_TOSTR(IRType, typeOfIRExpr(self->wrapped, e->wrapped), typestr, return NULL);
+		try {
+			PYMARE_ENUM_TOSTR(IRType, typeOfIRExpr(self->wrapped, e->wrapped), typestr, return NULL);
+		} PYVEX_CATCH_VEX_ERROR;
 		return PyString_FromString(typestr);
 	}
 
