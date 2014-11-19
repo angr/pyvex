@@ -18,7 +18,7 @@ extern VexTranslateArgs vta;
 PYMARE_NEW(IRSB)
 PYMARE_DEALLOC(IRSB)
 PYMARE_WRAP(IRSB)
-PYVEX_METH_STANDARD(IRSB)
+PYVEX_METH_DEEPCOPY(IRSB)
 
 static int
 pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
@@ -141,9 +141,67 @@ static PyObject *pyIRSB_size(pyIRSB *self)
 	return PyInt_FromLong(size);
 }
 
+/*
+ * Stole this from VEX, modded to return the number of chars written
+ */
+
+int pyppIRType ( IRType ty )
+{
+    switch (ty) {
+        case Ity_INVALID: return printf("Ity_INVALID");
+        case Ity_I1:      return printf( "I1");
+        case Ity_I8:      return printf( "I8");
+        case Ity_I16:     return printf( "I16");
+        case Ity_I32:     return printf( "I32");
+        case Ity_I64:     return printf( "I64");
+        case Ity_I128:    return printf( "I128");
+        case Ity_F32:     return printf( "F32");
+        case Ity_F64:     return printf( "F64");
+        case Ity_F128:    return printf( "F128");
+        case Ity_D32:     return printf( "D32");
+        case Ity_D64:     return printf( "D64");
+        case Ity_D128:    return printf( "D128");
+        case Ity_V128:    return printf( "V128");
+        case Ity_V256:    return printf( "V256");
+        default: printf("ty = 0x%x\n", (Int)ty);
+                 vpanic("ppIRType");
+                 return 0;
+    }
+}
+
+
+static PyObject *pyIRSB_pp(pyIRSB *self)
+{
+    char tmp_buf[8];
+    printf("IRSB {");
+    for (int i = 0; i < self->wrapped->tyenv->types_used; i++) {
+        if (i % 8 == 0) {
+            printf("\n");
+        }
+        int num_bytes = snprintf(tmp_buf, 8, "t%d", i);
+        for (int width = num_bytes; width < 6; width++) {
+            putchar(' ');
+        }
+        printf("%s:", tmp_buf);
+        num_bytes = pyppIRType(self->wrapped->tyenv->types[i]);
+        for (int width = num_bytes; width < 4; width++) {
+            putchar(' ');
+        }
+    }
+    putchar('\n');
+    for (int i = 0; i < self->wrapped->stmts_used; i++)
+    {
+        printf("\n  [%3d]    ", i);
+        ppIRStmt(self->wrapped->stmts[i]);
+    }
+    printf("\n}\n");
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef pyIRSB_methods[] =
 {
-	PYVEX_METHDEF_STANDARD(IRSB),
+	PYVEX_METHDEF_DEEPCOPY(IRSB),
+    {"pp", (PyCFunction)pyIRSB_pp, METH_NOARGS, "Prints the IRSB"},
 	{"addStatement", (PyCFunction)pyIRSB_addStatement, METH_O, "Adds a statement to the basic block."},
 	{"deepCopyExceptStmts", (PyCFunction)pyIRSB_deepCopyExceptStmts, METH_NOARGS, "Copies the IRSB, without any statements."},
 	{"statements", (PyCFunction)pyIRSB_statements, METH_NOARGS, "Returns a tuple of the IRStmts in the IRSB"},
