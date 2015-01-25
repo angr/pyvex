@@ -257,7 +257,7 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 //----------------------------------------------------------------------
 // Translate 1 instruction to VEX IR.
 //----------------------------------------------------------------------
-IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, unsigned int insn_addr, int max_insns)
+IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, unsigned long long insn_addr, int max_insns)
 {
 	vex_prepare_vai(guest, endness,  &vai_guest);
 
