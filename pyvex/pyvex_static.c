@@ -290,7 +290,7 @@ IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, uns
 	debug("... new: %d\n", vex_control.guest_max_insns);
 
 	// Do the actual translation
-	try
+    PYVEX_TRY
 	{
 		vtr = LibVEX_Translate(&vta);
 	}

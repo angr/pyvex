@@ -89,9 +89,14 @@
 
 #define PYVEX_WRAPCASE(vtype, tagtype, tag) case tagtype##tag: t = &py##vtype##tag##Type; break;
 
+#define PYVEX_TRY { \
+    int errored = 0; \
+    try
 #define PYVEX_CATCH_VEX_ERROR catch (VEXError) { \
-		PyErr_SetString(PyVEXError, E4C_EXCEPTION.message); \
-		return NULL; \
-	}
+            errored = 1; \
+            PyErr_SetString(PyVEXError, E4C_EXCEPTION.message); \
+        } \
+        if (errored) return NULL; \
+    }
 
 #endif
