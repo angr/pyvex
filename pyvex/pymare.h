@@ -208,6 +208,7 @@ extern PyObject *PyMareError;
 			if (wrap_object) \
 			{ \
 				self->wrapped = PyCapsule_GetPointer(wrap_object, #type); \
+				Py_DECREF(wrap_object); \
 				if (!self->wrapped) return -1; \
 				return 0; \
 			} \
