@@ -60,7 +60,7 @@ PYMARE_TYPEOBJECT("pyvex", IRExpr);
 PyObject *wrap_IRExpr(IRExpr *i)
 {
 	PyTypeObject *t = NULL;
-  if (i == NULL) { Py_RETURN_NONE; }
+	if (i == NULL) { Py_RETURN_NONE; }
 	switch (i->tag)
 	{
 		PYVEX_WRAPCASE(IRExpr, Iex_, Binder)
