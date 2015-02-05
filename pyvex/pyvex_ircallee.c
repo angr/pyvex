@@ -32,7 +32,8 @@ pyIRCallee_init(pyIRCallee *self, PyObject *args, PyObject *kwargs)
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "isK|I", kwlist, &regparms, &name, &addr, &mcx_mask)) return -1;
 	if (regparms < 0 || regparms > 3) { PYMARE_SETSTRING(PyVEXError, "regparms out of range"); return -1; }
 
-	self->wrapped = PYVEX_COPYOUT(IRCallee, mkIRCallee(regparms, name, (void *)addr));
+	// TODO: free this string
+	self->wrapped = PYVEX_COPYOUT(IRCallee, mkIRCallee(regparms, strdup(name), (void *)addr));
 	if (mcx_mask != 123456789) self->wrapped->mcx_mask = mcx_mask;
 	return 0;
 }
