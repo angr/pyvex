@@ -30,12 +30,12 @@ def test_irsb_popret():
 	stmts = irsb.statements()
 	irsb.pp()
 
-	nose.tools.assertGreater(len(stmts), 0)
+	nose.tools.assert_greater(len(stmts), 0)
 	nose.tools.assert_equal(irsb.jumpkind, "Ijk_Ret")
 	nose.tools.assert_equal(irsb.offsIP, 184)
 
 	cursize = len(irsb.tyenv.types())
-	nose.tools.assertGreater(cursize, 0)
+	nose.tools.assert_greater(cursize, 0)
 	new_tmp = irsb.tyenv.newTemp("Ity_I32")
 	nose.tools.assert_equal(cursize + 1, len(irsb.tyenv.types()))
 	nose.tools.assert_equal(irsb.tyenv.typeOf(new_tmp), "Ity_I32")
