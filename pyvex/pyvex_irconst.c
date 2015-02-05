@@ -36,7 +36,7 @@ PYMARE_GETTER_ENUM(IRConst, IRConst, typeOfIRConst(self->wrapped), type, IRType)
 
 PyObject *pyIRConst_equals(pyIRConst *self, pyIRConst *other)
 {
-	PYMARE_CHECKTYPE(other, pyIRConstType, Py_RETURN_FALSE);
+	PYMARE_CHECKTYPE_NOTHROW(other, pyIRConstType, Py_RETURN_FALSE);
 
 	if (!eqIRConst(self->wrapped, other->wrapped)) { Py_RETURN_FALSE; }
 	Py_RETURN_TRUE;

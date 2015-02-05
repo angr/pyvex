@@ -46,7 +46,7 @@ PYMARE_ACCESSOR_BUILDVAL(IRRegArray, IRRegArray, self->wrapped->nElems, num_elem
 
 PyObject *pyIRRegArray_equals(pyIRRegArray *self, pyIRRegArray *other)
 {
-	PYMARE_CHECKTYPE(other, pyIRRegArrayType, Py_RETURN_FALSE);
+	PYMARE_CHECKTYPE_NOTHROW(other, pyIRRegArrayType, Py_RETURN_FALSE);
 
 	if (!eqIRRegArray(self->wrapped, other->wrapped)) { Py_RETURN_FALSE; }
 	Py_RETURN_TRUE;

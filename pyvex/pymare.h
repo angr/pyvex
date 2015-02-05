@@ -195,6 +195,7 @@ extern PyObject *PyMareError;
 
 // type-checking is important in some cases
 #define PYMARE_CHECKTYPE(object, type, fail) if (!PyObject_TypeCheck((PyObject *)object, &type)) { PyErr_SetString(PyMareError, "Incorrect type passed in. Needs "#type); fail; }
+#define PYMARE_CHECKTYPE_NOTHROW(object, type, fail) if (!PyObject_TypeCheck((PyObject *)object, &type)) { fail; }
 
 // this can be put in a constructor to check for the presense of a "wrap"
 // keyword argument containing a PyCapsule object, and use that for the
