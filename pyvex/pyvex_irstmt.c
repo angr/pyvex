@@ -83,7 +83,7 @@ PyObject *wrap_IRStmt(IRStmt *i)
 			t = &pyIRStmtType;
 	}
 
-	PyObject *args = Py_BuildValue("");
+	PyObject *args = Py_BuildValue("()");
 	PyObject *kwargs = Py_BuildValue("{s:O}", "wrap", PyCapsule_New(i, "IRStmt", NULL));
 	PyObject *o = PyObject_Call((PyObject *)t, args, kwargs);
 	Py_DECREF(args); Py_DECREF(kwargs);

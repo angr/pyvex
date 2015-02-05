@@ -226,7 +226,7 @@ extern PyObject *PyMareError;
 #define PYMARE_WRAP(type) \
 	PyObject *wrap_##type(type *i) \
 	{ \
-		PyObject *args = Py_BuildValue(""); \
+		PyObject *args = Py_BuildValue("()"); \
 		PyObject *kwargs = Py_BuildValue("{s:O}", "wrap", PyCapsule_New(i, #type, NULL)); \
 		py##type *o = (py##type *) PyObject_Call((PyObject *)&py##type##Type, args, kwargs); \
 		if (o) o->weak = 1; \
