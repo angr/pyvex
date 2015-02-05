@@ -529,8 +529,10 @@ pyIRStmtDirty_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
         cargs[i] = NULL;
 
         IRDirty *dirty;
-        if (PyDict_GetItemString(kwargs, "tmp")) dirty = PYVEX_COPYOUT(IRDirty, unsafeIRDirty_1_N(dest, regparms, (char*) name, (void *)addr, cargs));
-        else dirty = unsafeIRDirty_0_N(regparms, (char*)name, (void *)addr, cargs);
+
+        // TODO: free these strings
+        if (PyDict_GetItemString(kwargs, "tmp")) dirty = PYVEX_COPYOUT(IRDirty, unsafeIRDirty_1_N(dest, regparms, strdup((char*) name), (void *)addr, cargs));
+        else dirty = unsafeIRDirty_0_N(regparms, strdup((char*)name), (void *)addr, cargs);
 
 	self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_Dirty(dirty));
 	return 0;
