@@ -79,7 +79,7 @@ PyObject *wrap_IRStmt(IRStmt *i)
 		PYVEX_WRAPCASE(IRStmt, Ist_, LoadG)
 		PYVEX_WRAPCASE(IRStmt, Ist_, StoreG)
 		default:
-			error("PyVEX: Unknown/unsupported IRStmtTag %s\n", IRStmtTag_to_str(i->tag));
+			pyvex_error("PyVEX: Unknown/unsupported IRStmtTag %s\n", IRStmtTag_to_str(i->tag));
 			t = &pyIRStmtType;
 	}
 

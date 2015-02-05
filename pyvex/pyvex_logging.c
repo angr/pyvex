@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-int debug_on = 0;
+int debug_on = 1;
 int info_on = 1;
 int error_on = 1;
 
@@ -34,7 +34,7 @@ void info(char *fmt, ...)
 	fflush(stdout);
 }
 
-void error(char *fmt, ...)
+void pyvex_error(char *fmt, ...)
 {
 	if (!error_on) return;
 

@@ -82,7 +82,7 @@ PyObject *wrap_IRConst(IRConst *i)
 		PYVEX_WRAPCASE(IRConst, Ico_, V128)
 		PYVEX_WRAPCASE(IRConst, Ico_, V256)
 		default:
-			error("PyVEX: Unknown/unsupported IRConstTag %s\n", IRConstTag_to_str(i->tag));
+			pyvex_error("PyVEX: Unknown/unsupported IRConstTag %s\n", IRConstTag_to_str(i->tag));
 			t = &pyIRStmtType;
 	}
 

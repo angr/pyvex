@@ -78,7 +78,7 @@ PyObject *wrap_IRExpr(IRExpr *i)
 		PYVEX_WRAPCASE(IRExpr, Iex_, BBPTR)
 		PYVEX_WRAPCASE(IRExpr, Iex_, VECRET)
 		default:
-			error("PyVEX: Unknown/unsupported IRExprTag %s\n", IRExprTag_to_str(i->tag));
+			pyvex_error("PyVEX: Unknown/unsupported IRExprTag %s\n", IRExprTag_to_str(i->tag));
 			t = &pyIRExprType;
 	}
 

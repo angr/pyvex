@@ -9,6 +9,6 @@ extern int error_on;
 
 void debug(char *, ...);
 void info(char *, ...);
-void error(char *, ...);
+void pyvex_error(char *, ...);
 
 #endif

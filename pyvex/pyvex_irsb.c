@@ -23,7 +23,12 @@ PYVEX_METH_DEEPCOPY(IRSB)
 static int
 pyIRSB_init(pyIRSB *self, PyObject *args, PyObject *kwargs)
 {
-	if (!kwargs) { self->wrapped = PYVEX_COPYOUT(IRSB, emptyIRSB()); return 0; }
+	if (!kwargs || PyDict_Size(kwargs) == 0)
+	{
+		self->wrapped = PYVEX_COPYOUT(IRSB, emptyIRSB());
+		return 0;
+	}
+
 	PYMARE_WRAP_CONSTRUCTOR(IRSB);
 
 #ifdef PYVEX_STATIC

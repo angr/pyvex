@@ -6,7 +6,7 @@
 #include "pyvex_logging.h"
 #include "pyvex_deepcopy.h"
 
-#define vpanic(x) { error(x "\n"); assert(0); }
+#define vpanic(x) { pyvex_error(x "\n"); assert(0); }
 
 #define PYMARE_SHALLOW_FUNC(type) type *pyvex_shallowCopy_##type(type *x) { type *o = malloc(sizeof(type)); memcpy(o, x, sizeof(type)); return o; }
 

@@ -249,7 +249,7 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 			vai->endness = endness;
 			break;
 		default:
-			error("Invalid arch in vex_prepare_vai.\n");
+			pyvex_error("Invalid arch in vex_prepare_vai.\n");
 			break;
 	}
 }
@@ -290,7 +290,7 @@ IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, uns
 	debug("... new: %d\n", vex_control.guest_max_insns);
 
 	// Do the actual translation
-    PYVEX_TRY
+	PYVEX_TRY
 	{
 		vtr = LibVEX_Translate(&vta);
 	}
@@ -316,7 +316,7 @@ int vex_count_instructions(VexArch guest, VexEndness endness, unsigned char *ins
 
 		if (vge.len[0] == 0 || sb == NULL)
 		{
-			error("Something went wrong in IR translation at position %x of addr %x in vex_count_instructions.\n", processed,block_addr);
+			pyvex_error("Something went wrong in IR translation at position %x of addr %x in vex_count_instructions.\n", processed,block_addr);
 			break;
 		}
 
@@ -361,13 +361,13 @@ IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructi
 
 	if (num_inst == 0)
 	{
-		error("vex_block_inst: asked to create IRSB with 0 instructions, at block_addr %x\n", block_addr);
+		pyvex_error("vex_block_inst: asked to create IRSB with 0 instructions, at block_addr %x\n", block_addr);
 		PyErr_SetString(PyVEXError, "translation resulted in empty IRSB");
 		return NULL;
 	}
 	else if (num_inst > 99)
 	{
-		error("vex_block_inst: maximum instruction count is 99.\n");
+		pyvex_error("vex_block_inst: maximum instruction count is 99.\n");
 		num_inst = 99;
 	}
 
