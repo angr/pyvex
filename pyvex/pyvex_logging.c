@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-int debug_on = 1;
+int debug_on = 0;
 int info_on = 1;
 int error_on = 1;
 
