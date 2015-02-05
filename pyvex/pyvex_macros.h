@@ -94,7 +94,7 @@
     try
 #define PYVEX_CATCH_VEX_ERROR catch (VEXError) { \
             errored = 1; \
-            PyErr_SetString(PyVEXError, E4C_EXCEPTION.message); \
+            PYMARE_SETSTRING(PyVEXError, E4C_EXCEPTION.message); \
         } \
         if (errored) return NULL; \
     }

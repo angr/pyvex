@@ -12,6 +12,10 @@
 
 extern PyObject *PyMareError;
 
+// Fuck.
+
+#define PYMARE_SETSTRING(x,y) { puts("SETTING ERROR: " #y); PyErr_SetString(x, y); }
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // First, we're going to make some macros to make creating classes as hard as
@@ -108,7 +112,7 @@ extern PyObject *PyMareError;
 	static PyObject *py##type##_get_##name(py##intype *self, void *closure) \
 	{ \
 		PyObject *o = Py_BuildValue(format, attr); \
-		if (!o) { PyErr_SetString(PyMareError, "Error in py"#type"_get_"#name"\n"); return NULL; } \
+		if (!o) { PYMARE_SETSTRING(PyMareError, "Error in py"#type"_get_"#name"\n"); return NULL; } \
 		return o; \
 	}
 #define PYMARE_SETTER_BUILDVAL(type, intype, attr, name, format) \
@@ -141,7 +145,7 @@ extern PyObject *PyMareError;
 	{ \
 		if (attr == NULL) { Py_RETURN_NONE; } \
 		PyObject *o = wrap_##attrtype(attr); \
-		if (!o) { PyErr_SetString(PyMareError, "Error in py"#type"_get_"#name"\n"); return NULL; } \
+		if (!o) { PYMARE_SETSTRING(PyMareError, "Error in py"#type"_get_"#name"\n"); return NULL; } \
 		return o; \
 	}
 #define PYMARE_SETTER_WRAPPED(type, intype, attr, name, attrtype) \
@@ -159,7 +163,7 @@ extern PyObject *PyMareError;
 	{ \
 		if (attr == NULL) { Py_RETURN_NONE; } \
 		PyObject *o = wrap_direct_##attrtype(attr); \
-		if (!o) { PyErr_SetString(PyMareError, "Error in py"#type"_get_"#name"\n"); return NULL; } \
+		if (!o) { PYMARE_SETSTRING(PyMareError, "Error in py"#type"_get_"#name"\n"); return NULL; } \
 		return o; \
 	}
 #define PYMARE_SETTER_DIRECT_WRAPPED(type, attr, name, attrtype) \
@@ -177,7 +181,7 @@ extern PyObject *PyMareError;
 	{ \
 		PyObject *tstr = e##_to_pystr(attr); \
 		if (tstr) return tstr; \
-		PyErr_SetString(PyMareError, "Unrecognized "#e); \
+		PYMARE_SETSTRING(PyMareError, "Unrecognized "#e); \
 		return NULL; \
 	}
 #define PYMARE_SETTER_ENUM(type, intype, attr, name, e) \
@@ -185,7 +189,7 @@ extern PyObject *PyMareError;
 	{ \
 		e t = pystr_to_##e(value); \
 		if (t != -1) { attr = t; return 0; } \
-		else { PyErr_SetString(PyMareError, "Unrecognized "#e); return -1; } \
+		else { PYMARE_SETSTRING(PyMareError, "Unrecognized "#e); return -1; } \
 	}
 #define PYMARE_ACCESSOR_ENUM(a,b,c,d,e) PYMARE_SETTER_ENUM(a,b,c,d,e) PYMARE_GETTER_ENUM(a,b,c,d,e)
 
@@ -194,7 +198,7 @@ extern PyObject *PyMareError;
 // Now we move on to wrapping pointers to structs in the PyMare types above
 
 // type-checking is important in some cases
-#define PYMARE_CHECKTYPE(object, type, fail) if (!PyObject_TypeCheck((PyObject *)object, &type)) { PyErr_SetString(PyMareError, "Incorrect type passed in. Needs "#type); fail; }
+#define PYMARE_CHECKTYPE(object, type, fail) if (!PyObject_TypeCheck((PyObject *)object, &type)) { PYMARE_SETSTRING(PyMareError, "Incorrect type passed in. Needs "#type); fail; }
 #define PYMARE_CHECKTYPE_NOTHROW(object, type, fail) if (!PyObject_TypeCheck((PyObject *)object, &type)) { fail; }
 
 // this can be put in a constructor to check for the presense of a "wrap"
@@ -312,10 +316,10 @@ extern PyObject *PyMareError;
 // compatibility
 #define PYMARE_ENUM_FROMSTR(type, v, v_str, fail) \
 	{ v = str_to_##type(v_str); \
-	if (v == -1) { PyErr_SetString(PyMareError, "Unrecognized "#type); fail; } }
+	if (v == -1) { PYMARE_SETSTRING(PyMareError, "Unrecognized "#type); fail; } }
 #define PYMARE_ENUM_TOSTR(type, v, v_str, fail) \
 	{ v_str = type##_to_str(v); \
-	if (v_str == NULL) { PyErr_SetString(PyMareError, "Unrecognized "#type); fail; } }
+	if (v_str == NULL) { PYMARE_SETSTRING(PyMareError, "Unrecognized "#type); fail; } }
 
 ///////////////////////////////////////////////////////////////////////////////
 //

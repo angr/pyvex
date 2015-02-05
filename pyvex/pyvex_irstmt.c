@@ -27,7 +27,7 @@ static int
 pyIRStmt_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
 	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
-	PyErr_SetString(PyVEXError, "Base IRStmt creation not supported.");
+	PYMARE_SETSTRING(PyVEXError, "Base IRStmt creation not supported.");
 	return -1;
 }
 
@@ -100,7 +100,7 @@ pyIRStmtNoOp_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 	if (!kwargs) { self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_NoOp()); return 0; }
 	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
-	PyErr_SetString(PyVEXError, "Unexpected arguments provided to constructor.");
+	PYMARE_SETSTRING(PyVEXError, "Unexpected arguments provided to constructor.");
 	return -1;
 }
 
@@ -515,7 +515,7 @@ pyIRStmtDirty_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"regparms", "name", "addr", "args", "tmp", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "isKO|I", kwlist, &regparms, &name, &addr, &args_seq, &dest)) return -1;
-	if (!PySequence_Check(args_seq)) { PyErr_SetString(PyVEXError, "need sequence of args for Dirty"); return -1; }
+	if (!PySequence_Check(args_seq)) { PYMARE_SETSTRING(PyVEXError, "need sequence of args for Dirty"); return -1; }
 
 	int seq_size = PySequence_Size(args_seq);
 	IRExpr **cargs = (IRExpr **) malloc((seq_size + 1) * sizeof(IRExpr *));

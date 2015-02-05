@@ -362,7 +362,7 @@ IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructi
 	if (num_inst == 0)
 	{
 		pyvex_error("vex_block_inst: asked to create IRSB with 0 instructions, at block_addr %x\n", block_addr);
-		PyErr_SetString(PyVEXError, "translation resulted in empty IRSB");
+		PYMARE_SETSTRING(PyVEXError, "translation resulted in empty IRSB");
 		return NULL;
 	}
 	else if (num_inst > 99)

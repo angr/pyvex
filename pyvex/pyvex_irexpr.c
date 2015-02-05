@@ -26,7 +26,7 @@ static int
 pyIRExpr_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 {
 	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-	PyErr_SetString(PyVEXError, "Base IRExpr creation not supported..");
+	PYMARE_SETSTRING(PyVEXError, "Base IRExpr creation not supported..");
 	return -1;
 }
 
@@ -114,7 +114,7 @@ static PyGetSetDef pyIRExprBinder_getseters[] =
 	{NULL}
 };
 
-PyObject *pyIRExprBinder_deepCopy(PyObject *self) { PyErr_SetString(PyVEXError, "binder does not support deepCopy()"); return NULL; }
+PyObject *pyIRExprBinder_deepCopy(PyObject *self) { PYMARE_SETSTRING(PyVEXError, "binder does not support deepCopy()"); return NULL; }
 
 static PyMethodDef pyIRExprBinder_methods[] = { {"deepCopy", (PyCFunction)pyIRExprBinder_deepCopy, METH_NOARGS, "not supported by binder"}, {NULL} };
 PYVEX_SUBTYPEOBJECT(Binder, IRExpr);
@@ -133,7 +133,7 @@ pyIRExprVECRET_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 
 static PyGetSetDef pyIRExprVECRET_getseters[] = { {NULL} };
 
-PyObject *pyIRExprVECRET_deepCopy(PyObject *self) { PyErr_SetString(PyVEXError, "vecret does not support deepCopy()"); return NULL; }
+PyObject *pyIRExprVECRET_deepCopy(PyObject *self) { PYMARE_SETSTRING(PyVEXError, "vecret does not support deepCopy()"); return NULL; }
 
 static PyMethodDef pyIRExprVECRET_methods[] = { {"deepCopy", (PyCFunction)pyIRExprVECRET_deepCopy, METH_NOARGS, "not supported by binder"}, {NULL} };
 PYVEX_SUBTYPEOBJECT(VECRET, IRExpr);
@@ -152,7 +152,7 @@ pyIRExprBBPTR_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 
 static PyGetSetDef pyIRExprBBPTR_getseters[] = { {NULL} };
 
-PyObject *pyIRExprBBPTR_deepCopy(PyObject *self) { PyErr_SetString(PyVEXError, "vecret does not support deepCopy()"); return NULL; }
+PyObject *pyIRExprBBPTR_deepCopy(PyObject *self) { PYMARE_SETSTRING(PyVEXError, "vecret does not support deepCopy()"); return NULL; }
 
 static PyMethodDef pyIRExprBBPTR_methods[] = { {"deepCopy", (PyCFunction)pyIRExprBBPTR_deepCopy, METH_NOARGS, "not supported by binder"}, {NULL} };
 PYVEX_SUBTYPEOBJECT(BBPTR, IRExpr);
@@ -579,7 +579,7 @@ pyIRExprCCall_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OsO", kwlist, &callee, &ret_type_str, &args_tuple)) return -1;
 	PYMARE_ENUM_FROMSTR(IRType, ret_type, ret_type_str, return -1);
 	PYMARE_CHECKTYPE(callee, pyIRCalleeType, return -1);
-	if (!PySequence_Check(args_tuple)) { PyErr_SetString(PyVEXError, "need sequence of args for CCall"); return -1; }
+	if (!PySequence_Check(args_tuple)) { PYMARE_SETSTRING(PyVEXError, "need sequence of args for CCall"); return -1; }
 
 	int tuple_size = PySequence_Size(args_tuple);
 	IRExpr **cargs = (IRExpr **) malloc((tuple_size + 1) * sizeof(IRExpr *));
