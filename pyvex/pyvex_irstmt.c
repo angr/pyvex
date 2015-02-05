@@ -97,7 +97,7 @@ PyObject *wrap_IRStmt(IRStmt *i)
 static int
 pyIRStmtNoOp_init(pyIRStmt *self, PyObject *args, PyObject *kwargs)
 {
-	if (!kwargs) { self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_NoOp()); return 0; }
+	if (!kwargs || PyDict_Size(kwargs) == 0) { self->wrapped = PYVEX_COPYOUT(IRStmt, IRStmt_NoOp()); return 0; }
 	PYMARE_WRAP_CONSTRUCTOR(IRStmt);
 
 	PYMARE_SETSTRING(PyVEXError, "Unexpected arguments provided to constructor.");
