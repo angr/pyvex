@@ -2,9 +2,9 @@
 #include <libvex.h>
 #include <stdio.h>
 #include <string.h>
-#include "pymare.h"
 #include "pyvex_logging.h"
 #include "pyvex_enums.h"
+#include "enum_macros.h"
 
 PYMARE_ENUM_CONVERSION(VexArch)
 PYMARE_ENUM_CONVERSION(VexEndness)

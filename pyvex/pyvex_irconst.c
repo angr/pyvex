@@ -1,133 +1,58 @@
 // This code is GPLed by Yan Shoshitaishvili
 
 #include <Python.h>
-#include <structmember.h>
 #include <libvex.h>
 
 #include "pyvex_enums.h"
 #include "pyvex_types.h"
-#include "pyvex_macros.h"
+#include "pyvex_export.h"
 #include "pyvex_logging.h"
 
-#ifdef PYVEX_STATIC
-	#include "pyvex_static.h"
-	#include "pyvex_deepcopy.h"
-#endif
 
-////////////////////////
-// IRConst base class //
-////////////////////////
-
-PYMARE_NEW(IRConst)
-PYMARE_DEALLOC(IRConst)
-PYVEX_METH_STANDARD(IRConst)
-
-static int
-pyIRConst_init(pyIRConst *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRConst);
-	PYMARE_SETSTRING(PyVEXError, "Base IRConst creation not supported.");
-	return -1;
+#define PYVEX_EXPORT_CONST(name, type, format) \
+PyObject *export_IRConst##name(IRConst *c) \
+{ \
+	PyObject *r = PyObject_CallObject(pyvexIRConst##name, NULL); \
+	PYVEX_SETATTRSTRING(r, "value", Py_BuildValue(format, c->Ico.name)); \
+	return r; \
 }
 
-PYMARE_ACCESSOR_WRAPPED(IRConst, IRConst, self->wrapped, wrapped, IRConst)
-PYMARE_ACCESSOR_ENUM(IRConst, IRConst, self->wrapped->tag, tag, IRConstTag)
-PYMARE_GETTER_ENUM(IRConst, IRConst, typeOfIRConst(self->wrapped), type, IRType)
+PYVEX_EXPORT_CONST(U1, unsigned char, "b");
+PYVEX_EXPORT_CONST(U8, unsigned char, "b");
+PYVEX_EXPORT_CONST(U16, unsigned short int, "H");
+PYVEX_EXPORT_CONST(U32, unsigned int, "I");
+PYVEX_EXPORT_CONST(U64, unsigned long long, "K");
+PYVEX_EXPORT_CONST(F32, float, "f");
+PYVEX_EXPORT_CONST(F32i, unsigned int, "I");
+PYVEX_EXPORT_CONST(F64, double, "d");
+PYVEX_EXPORT_CONST(F64i, unsigned long long, "K");
+PYVEX_EXPORT_CONST(V128, unsigned short int, "H");
+PYVEX_EXPORT_CONST(V256, unsigned int, "I");
 
-PyObject *pyIRConst_equals(pyIRConst *self, pyIRConst *other)
+PyObject *export_IRConst(IRConst *c)
 {
-	PYMARE_CHECKTYPE_NOTHROW(other, pyIRConstType, Py_RETURN_FALSE);
+	PyObject *r;
 
-	if (!eqIRConst(self->wrapped, other->wrapped)) { Py_RETURN_FALSE; }
-	Py_RETURN_TRUE;
-}
-
-static PyGetSetDef pyIRConst_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRConst, tag),
-	PYMARE_ACCESSOR_DEF(IRConst, wrapped),
-	{"type", (getter)pyIRConst_get_type, NULL, "IRType of the constant", NULL},
-	{NULL}
-};
-
-static PyMethodDef pyIRConst_methods[] =
-{
-	PYVEX_METHDEF_STANDARD(IRConst),
-	{"equals", (PyCFunction)pyIRConst_equals, METH_O, "Checks equality with another const."},
-	{NULL}
-};
-
-static PyMemberDef pyIRConst_members[] = { {NULL} };
-PYMARE_TYPEOBJECT("pyvex", IRConst);
-
-//////////////////////
-// IRConst wrapping //
-//////////////////////
-
-PyObject *wrap_IRConst(IRConst *i)
-{
-	PyTypeObject *t = NULL;
-
-	switch (i->tag)
+	switch (c->tag)
 	{
-		PYVEX_WRAPCASE(IRConst, Ico_, U1)
-		PYVEX_WRAPCASE(IRConst, Ico_, U8)
-		PYVEX_WRAPCASE(IRConst, Ico_, U16)
-		PYVEX_WRAPCASE(IRConst, Ico_, U32)
-		PYVEX_WRAPCASE(IRConst, Ico_, U64)
-		PYVEX_WRAPCASE(IRConst, Ico_, F32)
-		PYVEX_WRAPCASE(IRConst, Ico_, F32i)
-		PYVEX_WRAPCASE(IRConst, Ico_, F64)
-		PYVEX_WRAPCASE(IRConst, Ico_, F64i)
-		PYVEX_WRAPCASE(IRConst, Ico_, V128)
-		PYVEX_WRAPCASE(IRConst, Ico_, V256)
+		case Ico_U1: r = export_IRConstU1(c); break;
+		case Ico_U8: r = export_IRConstU8(c); break;
+		case Ico_U16: r = export_IRConstU16(c); break;
+		case Ico_U32: r = export_IRConstU32(c); break;
+		case Ico_U64: r = export_IRConstU64(c); break;
+		case Ico_F32: r = export_IRConstF32(c); break;
+		case Ico_F32i: r = export_IRConstF32i(c); break;
+		case Ico_F64: r = export_IRConstF64(c); break;
+		case Ico_F64i: r = export_IRConstF64i(c); break;
+		case Ico_V128: r = export_IRConstV128(c); break;
+		case Ico_V256: r = export_IRConstV256(c); break;
 		default:
-			pyvex_error("PyVEX: Unknown/unsupported IRConstTag %s\n", IRConstTag_to_str(i->tag));
-			t = &pyIRStmtType;
+			pyvex_error("PyVEX: Unknown/unsupported IRConstTag %s\n", IRConstTag_to_str(c->tag));
+			Py_RETURN_NONE;
 	}
 
-	PyObject *args = Py_BuildValue("()");
-	PyObject *kwargs = Py_BuildValue("{s:O}", "wrap", PyCapsule_New(i, "IRConst", NULL));
-	PyObject *o = PyObject_Call((PyObject *)t, args, kwargs);
-	Py_DECREF(args); Py_DECREF(kwargs);
-	return (PyObject *)o;
+	PYVEX_SETATTRSTRING(r, "tag", export_IRConstTag(c->tag));
+	PYVEX_SETATTRSTRING(r, "type", export_IRType(typeOfIRConst(c)));
+
+	return r;
 }
-
-////////////////////
-// Constant types //
-////////////////////
-
-#define PYMARE_IRCONST_SUBCLASS(tag, type, format) \
-	int pyIRConst##tag##_init(pyIRConst *self, PyObject *args, PyObject *kwargs) \
-	{ \
-		PYMARE_WRAP_CONSTRUCTOR(IRConst); \
-	 \
-		type value; \
-		static char *kwlist[] = {"value", NULL}; \
-		if (!PyArg_ParseTupleAndKeywords(args, kwargs, format, kwlist, &value)) return -1; \
-		self->wrapped = PYVEX_COPYOUT(IRConst, IRConst_##tag(value)); \
-		return 0; \
-	} \
-	 \
-	PYMARE_ACCESSOR_BUILDVAL(IRConst##tag, IRConst, self->wrapped->Ico.tag, value, format) \
-	 \
-	PyGetSetDef pyIRConst##tag##_getseters[] = \
-	{ \
-		PYMARE_ACCESSOR_DEF(IRConst##tag, value), \
-		{NULL} \
-	}; \
-	 \
-	PyMethodDef pyIRConst##tag##_methods[] = { {NULL} }; \
-	PYVEX_SUBTYPEOBJECT(tag, IRConst); \
-
-PYMARE_IRCONST_SUBCLASS(U1, unsigned char, "b");
-PYMARE_IRCONST_SUBCLASS(U8, unsigned char, "b");
-PYMARE_IRCONST_SUBCLASS(U16, unsigned short int, "H");
-PYMARE_IRCONST_SUBCLASS(U32, unsigned int, "I");
-PYMARE_IRCONST_SUBCLASS(U64, unsigned long long, "K");
-PYMARE_IRCONST_SUBCLASS(F32, float, "f");
-PYMARE_IRCONST_SUBCLASS(F32i, unsigned int, "I");
-PYMARE_IRCONST_SUBCLASS(F64, double, "d");
-PYMARE_IRCONST_SUBCLASS(F64i, unsigned long long, "K");
-PYMARE_IRCONST_SUBCLASS(V128, unsigned short int, "H");
-PYMARE_IRCONST_SUBCLASS(V256, unsigned int, "I");

@@ -23,8 +23,6 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <assert.h>
 #include <libvex.h>
 
-#include "e4c_lite.h"
-
 #include "pyvex_types.h"
 #include "pyvex_static.h"
 #include "pyvex_logging.h"
@@ -290,12 +288,7 @@ IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, uns
 	debug("... new: %d\n", vex_control.guest_max_insns);
 
 	// Do the actual translation
-	PYVEX_TRY
-	{
-		vtr = LibVEX_Translate(&vta);
-	}
-	PYVEX_CATCH_VEX_ERROR
-
+	vtr = LibVEX_Translate(&vta);
 	debug("Translated!\n");
 
 	assert(irbb_current);
@@ -362,7 +355,6 @@ IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructi
 	if (num_inst == 0)
 	{
 		pyvex_error("vex_block_inst: asked to create IRSB with 0 instructions, at block_addr %x\n", block_addr);
-		PYMARE_SETSTRING(PyVEXError, "translation resulted in empty IRSB");
 		return NULL;
 	}
 	else if (num_inst > 99)

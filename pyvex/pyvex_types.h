@@ -5,8 +5,6 @@
 
 #include <libvex.h>
 #include <Python.h>
-#include "pyvex_macros.h"
-#include "pymare.h"
 
 // the module itself
 extern PyObject *module;
@@ -15,63 +13,64 @@ extern PyObject *module;
 extern PyObject *PyVEXError;
 
 // blocks
-PYMARE_TYPEHEADER(IRSB);
+PyObject *init_IRSB(PyObject *, PyObject *, PyObject *);
+extern PyObject *pyvexIRSB;
 
 // type env
-PYMARE_TYPEHEADER(IRTypeEnv);
+extern PyObject *pyvexIRTypeEnv;
 
 // ir constants
-PYMARE_TYPEHEADER(IRConst);
-extern PyTypeObject pyIRConstU1Type;
-extern PyTypeObject pyIRConstU8Type;
-extern PyTypeObject pyIRConstU16Type;
-extern PyTypeObject pyIRConstU32Type;
-extern PyTypeObject pyIRConstU64Type;
-extern PyTypeObject pyIRConstF32Type;
-extern PyTypeObject pyIRConstF32iType;
-extern PyTypeObject pyIRConstF64Type;
-extern PyTypeObject pyIRConstF64iType;
-extern PyTypeObject pyIRConstV128Type;
-extern PyTypeObject pyIRConstV256Type;
+extern PyObject *pyvexIRConst;
+extern PyObject *pyvexIRConstU1;
+extern PyObject *pyvexIRConstU8;
+extern PyObject *pyvexIRConstU16;
+extern PyObject *pyvexIRConstU32;
+extern PyObject *pyvexIRConstU64;
+extern PyObject *pyvexIRConstF32;
+extern PyObject *pyvexIRConstF32i;
+extern PyObject *pyvexIRConstF64;
+extern PyObject *pyvexIRConstF64i;
+extern PyObject *pyvexIRConstV128;
+extern PyObject *pyvexIRConstV256;
 
 // statements
-PYMARE_TYPEHEADER(IRStmt);
-extern PyTypeObject pyIRStmtNoOpType;
-extern PyTypeObject pyIRStmtIMarkType;
-extern PyTypeObject pyIRStmtAbiHintType;
-extern PyTypeObject pyIRStmtPutType;
-extern PyTypeObject pyIRStmtPutIType;
-extern PyTypeObject pyIRStmtWrTmpType;
-extern PyTypeObject pyIRStmtStoreType;
-extern PyTypeObject pyIRStmtCASType;
-extern PyTypeObject pyIRStmtLLSCType;
-extern PyTypeObject pyIRStmtMBEType;
-extern PyTypeObject pyIRStmtDirtyType;
-extern PyTypeObject pyIRStmtExitType;
-extern PyTypeObject pyIRStmtLoadGType;
-extern PyTypeObject pyIRStmtStoreGType;
+extern PyObject *pyvexIRStmt;
+extern PyObject *pyvexIRStmtNoOp;
+extern PyObject *pyvexIRStmtIMark;
+extern PyObject *pyvexIRStmtAbiHint;
+extern PyObject *pyvexIRStmtPut;
+extern PyObject *pyvexIRStmtPutI;
+extern PyObject *pyvexIRStmtWrTmp;
+extern PyObject *pyvexIRStmtStore;
+extern PyObject *pyvexIRStmtCAS;
+extern PyObject *pyvexIRStmtLLSC;
+extern PyObject *pyvexIRStmtMBE;
+extern PyObject *pyvexIRStmtDirty;
+extern PyObject *pyvexIRStmtExit;
+extern PyObject *pyvexIRStmtLoadG;
+extern PyObject *pyvexIRStmtStoreG;
 
 // expressions
-PYMARE_TYPEHEADER(IRExpr);
-extern PyTypeObject pyIRExprBinderType;
-extern PyTypeObject pyIRExprVECRETType;
-extern PyTypeObject pyIRExprBBPTRType;
-extern PyTypeObject pyIRExprGetIType;
-extern PyTypeObject pyIRExprRdTmpType;
-extern PyTypeObject pyIRExprGetType;
-extern PyTypeObject pyIRExprQopType;
-extern PyTypeObject pyIRExprTriopType;
-extern PyTypeObject pyIRExprBinopType;
-extern PyTypeObject pyIRExprUnopType;
-extern PyTypeObject pyIRExprLoadType;
-extern PyTypeObject pyIRExprConstType;
-extern PyTypeObject pyIRExprITEType;
-extern PyTypeObject pyIRExprCCallType;
+extern PyObject *pyvexIRExpr;
+extern PyObject *pyvexIRExprBinder;
+extern PyObject *pyvexIRExprVECRET;
+extern PyObject *pyvexIRExprBBPTR;
+extern PyObject *pyvexIRExprGetI;
+extern PyObject *pyvexIRExprRdTmp;
+extern PyObject *pyvexIRExprGet;
+extern PyObject *pyvexIRExprQop;
+extern PyObject *pyvexIRExprTriop;
+extern PyObject *pyvexIRExprBinop;
+extern PyObject *pyvexIRExprUnop;
+extern PyObject *pyvexIRExprLoad;
+extern PyObject *pyvexIRExprConst;
+extern PyObject *pyvexIRExprITE;
+extern PyObject *pyvexIRExprCCall;
 
 // IRCallee
-PYMARE_TYPEHEADER(IRCallee);
+extern PyObject *pyvexIRCallee;
 
 // IRRegArray
-PYMARE_TYPEHEADER(IRRegArray);
+extern PyObject *pyvexIRRegArray;
 
 #endif

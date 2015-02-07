@@ -1,626 +1,235 @@
 // This code is GPLed by Yan Shoshitaishvili
 
 #include <Python.h>
-#include <structmember.h>
 #include <libvex.h>
 
 #include "pyvex_enums.h"
 #include "pyvex_types.h"
-#include "pyvex_macros.h"
+#include "pyvex_export.h"
 #include "pyvex_logging.h"
 
-#ifdef PYVEX_STATIC
-	#include "pyvex_static.h"
-	#include "pyvex_deepcopy.h"
-#endif
-
-///////////////////////
-// IRExpr base class //
-///////////////////////
-
-PYMARE_NEW(IRExpr)
-PYMARE_DEALLOC(IRExpr)
-PYVEX_METH_STANDARD(IRExpr)
-
-static int
-pyIRExpr_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
+PyObject *export_IRExprBinder(IRExpr *expr)
 {
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-	PYMARE_SETSTRING(PyVEXError, "Base IRExpr creation not supported..");
-	return -1;
+	PyObject *r = PyObject_CallObject(pyvexIRExprBinder, NULL);
+
+	PYVEX_SETATTRSTRING(r, "binder", PyInt_FromLong(expr->Iex.Binder.binder));
+
+	return r;
 }
 
-PYMARE_ACCESSOR_WRAPPED(IRExpr, IRExpr, self->wrapped, wrapped, IRExpr)
-PYMARE_ACCESSOR_ENUM(IRExpr, IRExpr, self->wrapped->tag, tag, IRExprTag)
-
-static PyGetSetDef pyIRExpr_getseters[] =
+PyObject *export_IRExprVECRET(IRExpr *expr)
 {
-	PYMARE_ACCESSOR_DEF(IRExpr, wrapped),
-	PYMARE_ACCESSOR_DEF(IRExpr, tag),
-	{NULL}
-};
-
-static PyObject *pyIRExpr_atomic(pyIRExpr* self)
-{
-	if (isIRAtom(self->wrapped)) { Py_RETURN_TRUE; }
-	Py_RETURN_FALSE;
+	PyObject *r = PyObject_CallObject(pyvexIRExprVECRET, NULL);
+	return r;
 }
 
-static PyMethodDef pyIRExpr_methods[] =
+PyObject *export_IRExprBBPTR(IRExpr *expr)
 {
-	PYVEX_METHDEF_STANDARD(IRExpr),
-	{"atomic", (PyCFunction)pyIRExpr_atomic, METH_NOARGS, "Returns true if IRExpr is atomic (RdTmp or Const), false otherwise."},
-	{NULL}
-};
+	PyObject *r = PyObject_CallObject(pyvexIRExprBBPTR, NULL);
+	return r;
+}
 
-static PyMemberDef pyIRExpr_members[] = { {NULL} };
-PYMARE_TYPEOBJECT("pyvex", IRExpr);
-
-// wrap functionality
-PyObject *wrap_IRExpr(IRExpr *i)
+PyObject *export_IRExprGetI(IRExpr *expr)
 {
-	PyTypeObject *t = NULL;
-	if (i == NULL) { Py_RETURN_NONE; }
-	switch (i->tag)
+	PyObject *r = PyObject_CallObject(pyvexIRExprGetI, NULL);
+
+	PYVEX_SETATTRSTRING(r, "description", export_IRRegArray(expr->Iex.GetI.descr));
+	PYVEX_SETATTRSTRING(r, "descr", export_IRRegArray(expr->Iex.GetI.descr));
+
+	PYVEX_SETATTRSTRING(r, "index", export_IRExpr(expr->Iex.GetI.ix));
+	PYVEX_SETATTRSTRING(r, "ix", export_IRExpr(expr->Iex.GetI.ix));
+
+	PYVEX_SETATTRSTRING(r, "bias", PyInt_FromLong(expr->Iex.GetI.bias));
+	return r;
+}
+
+PyObject *export_IRExprGet(IRExpr *expr)
+{
+	PyObject *r = PyObject_CallObject(pyvexIRExprGet, NULL);
+
+	PYVEX_SETATTRSTRING(r, "offset", PyInt_FromLong(expr->Iex.Get.offset));
+	PYVEX_SETATTRSTRING(r, "type", export_IRType(expr->Iex.Get.ty));
+	PYVEX_SETATTRSTRING(r, "ty", export_IRType(expr->Iex.Get.ty));
+
+	return r;
+}
+
+PyObject *export_IRExprRdTmp(IRExpr *expr)
+{
+	PyObject *r = PyObject_CallObject(pyvexIRExprRdTmp, NULL);
+
+	PYVEX_SETATTRSTRING(r, "tmp", PyInt_FromLong(expr->Iex.RdTmp.tmp));
+
+	return r;
+}
+
+PyObject *export_IRExprQop(IRExpr *expr)
+{
+	PyObject *r = PyObject_CallObject(pyvexIRExprQop, NULL);
+
+	PYVEX_SETATTRSTRING(r, "op", export_IROp(expr->Iex.Qop.details->op));
+
+	PyObject *a1 = export_IRExpr(expr->Iex.Qop.details->arg1);
+	PyObject *a2 = export_IRExpr(expr->Iex.Qop.details->arg2);
+	PyObject *a3 = export_IRExpr(expr->Iex.Qop.details->arg3);
+	PyObject *a4 = export_IRExpr(expr->Iex.Qop.details->arg4);
+
+	PYVEX_SETATTRSTRING(r, "arg1", a1);
+	PYVEX_SETATTRSTRING(r, "arg2", a2);
+	PYVEX_SETATTRSTRING(r, "arg3", a3);
+	PYVEX_SETATTRSTRING(r, "arg4", a4);
+
+	PYVEX_SETATTRSTRING(r, "args", Py_BuildValue("(OOOO)", a1, a2, a3, a4));
+
+	return r;
+}
+
+PyObject *export_IRExprTriop(IRExpr *expr)
+{
+	PyObject *r = PyObject_CallObject(pyvexIRExprTriop, NULL);
+
+	PYVEX_SETATTRSTRING(r, "op", export_IROp(expr->Iex.Triop.details->op));
+
+	PyObject *a1 = export_IRExpr(expr->Iex.Triop.details->arg1);
+	PyObject *a2 = export_IRExpr(expr->Iex.Triop.details->arg2);
+	PyObject *a3 = export_IRExpr(expr->Iex.Triop.details->arg3);
+
+	PYVEX_SETATTRSTRING(r, "arg1", a1);
+	PYVEX_SETATTRSTRING(r, "arg2", a2);
+	PYVEX_SETATTRSTRING(r, "arg3", a3);
+
+	PYVEX_SETATTRSTRING(r, "args", Py_BuildValue("(OOO)", a1, a2, a3));
+
+	return r;
+}
+
+PyObject *export_IRExprBinop(IRExpr *expr)
+{
+	PyObject *r = PyObject_CallObject(pyvexIRExprBinop, NULL);
+
+	PYVEX_SETATTRSTRING(r, "op", export_IROp(expr->Iex.Binop.op));
+
+	PyObject *a1 = export_IRExpr(expr->Iex.Binop.arg1);
+	PyObject *a2 = export_IRExpr(expr->Iex.Binop.arg2);
+
+	PYVEX_SETATTRSTRING(r, "arg1", a1);
+	PYVEX_SETATTRSTRING(r, "arg2", a2);
+
+	PYVEX_SETATTRSTRING(r, "args", Py_BuildValue("(OO)", a1, a2));
+
+	return r;
+}
+
+PyObject *export_IRExprUnop(IRExpr *expr)
+{
+	PyObject *r = PyObject_CallObject(pyvexIRExprRdTmp, NULL);
+
+	PYVEX_SETATTRSTRING(r, "op", export_IROp(expr->Iex.Unop.op));
+
+	PyObject *a1 = export_IRExpr(expr->Iex.Unop.arg);
+
+	PYVEX_SETATTRSTRING(r, "arg1", a1);
+	PYVEX_SETATTRSTRING(r, "arg", a1);
+	PYVEX_SETATTRSTRING(r, "args", Py_BuildValue("(O)", a1));
+
+	return r;
+}
+
+PyObject *export_IRExprLoad(IRExpr *expr)
+{
+	PyObject *r = PyObject_CallObject(pyvexIRExprLoad, NULL);
+
+	PYVEX_SETATTRSTRING(r, "end", export_IREndness(expr->Iex.Load.end));
+	PYVEX_SETATTRSTRING(r, "endness", export_IREndness(expr->Iex.Load.end));
+
+	PYVEX_SETATTRSTRING(r, "type", export_IRType(expr->Iex.Load.ty));
+	PYVEX_SETATTRSTRING(r, "ty", export_IRType(expr->Iex.Load.ty));
+
+	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(expr->Iex.Load.addr));
+
+	return r;
+}
+
+PyObject *export_IRExprConst(IRExpr *expr)
+{
+	PyObject *r = PyObject_CallObject(pyvexIRExprConst, NULL);
+
+	PYVEX_SETATTRSTRING(r, "con", export_IRConst(expr->Iex.Const.con));
+
+	return r;
+}
+
+PyObject *export_IRExprITE(IRExpr *expr)
+{
+	PyObject *r = PyObject_CallObject(pyvexIRExprITE, NULL);
+
+	PYVEX_SETATTRSTRING(r, "cond", export_IRExpr(expr->Iex.ITE.cond));
+	PYVEX_SETATTRSTRING(r, "iffalse", export_IRExpr(expr->Iex.ITE.iffalse));
+	PYVEX_SETATTRSTRING(r, "iftrue", export_IRExpr(expr->Iex.ITE.iftrue));
+
+	return r;
+}
+
+PyObject *export_IRExprCCall(IRExpr *expr)
+{
+	PyObject *r = PyObject_CallObject(pyvexIRExprCCall, NULL);
+
+	PYVEX_SETATTRSTRING(r, "retty", export_IRType(expr->Iex.CCall.retty));
+	PYVEX_SETATTRSTRING(r, "ret_type", export_IRType(expr->Iex.CCall.retty));
+
+	PYVEX_SETATTRSTRING(r, "callee", export_IRCallee(expr->Iex.CCall.cee));
+	PYVEX_SETATTRSTRING(r, "cee", export_IRCallee(expr->Iex.CCall.cee));
+
+	// args
+	int num_args; for (num_args = 0; expr->Iex.CCall.args[num_args] != NULL; num_args++);
+
+	PyObject *args = PyTuple_New(num_args);
+	for (int i = 0; i < num_args; i++)
 	{
-		PYVEX_WRAPCASE(IRExpr, Iex_, Binder)
-		PYVEX_WRAPCASE(IRExpr, Iex_, Get)
-		PYVEX_WRAPCASE(IRExpr, Iex_, GetI)
-		PYVEX_WRAPCASE(IRExpr, Iex_, RdTmp)
-		PYVEX_WRAPCASE(IRExpr, Iex_, Qop)
-		PYVEX_WRAPCASE(IRExpr, Iex_, Triop)
-		PYVEX_WRAPCASE(IRExpr, Iex_, Binop)
-		PYVEX_WRAPCASE(IRExpr, Iex_, Unop)
-		PYVEX_WRAPCASE(IRExpr, Iex_, Load)
-		PYVEX_WRAPCASE(IRExpr, Iex_, Const)
-		PYVEX_WRAPCASE(IRExpr, Iex_, ITE)
-		PYVEX_WRAPCASE(IRExpr, Iex_, CCall)
-		PYVEX_WRAPCASE(IRExpr, Iex_, BBPTR)
-		PYVEX_WRAPCASE(IRExpr, Iex_, VECRET)
+		PyTuple_SetItem(args, i, export_IRExpr(expr->Iex.CCall.args[i]));
+	}
+	PYVEX_SETATTRSTRING(r, "args", args);
+
+	return r;
+}
+
+PyObject *export_IRExpr(IRExpr *expr)
+{
+	PyObject *r;
+	switch (expr->tag)
+	{
+		case Iex_Binder: r = export_IRExprBinder(expr); break;
+		case Iex_Get: r = export_IRExprGet(expr); break;
+		case Iex_GetI: r = export_IRExprGetI(expr); break;
+		case Iex_RdTmp: r = export_IRExprRdTmp(expr); break;
+		case Iex_Qop: r = export_IRExprQop(expr); break;
+		case Iex_Triop: r = export_IRExprTriop(expr); break;
+		case Iex_Binop: r = export_IRExprBinop(expr); break;
+		case Iex_Unop: r = export_IRExprUnop(expr); break;
+		case Iex_Load: r = export_IRExprLoad(expr); break;
+		case Iex_Const: r = export_IRExprConst(expr); break;
+		case Iex_ITE: r = export_IRExprITE(expr); break;
+		case Iex_CCall: r = export_IRExprCCall(expr); break;
+		case Iex_BBPTR: r = export_IRExprBBPTR(expr); break;
+		case Iex_VECRET: r = export_IRExprVECRET(expr); break;
+
 		default:
-			pyvex_error("PyVEX: Unknown/unsupported IRExprTag %s\n", IRExprTag_to_str(i->tag));
-			t = &pyIRExprType;
+			pyvex_error("PyVEX: Unknown/unsupported IRExprTag %s\n", IRExprTag_to_str(expr->tag));
+			Py_RETURN_NONE;
 	}
 
-	PyObject *args = Py_BuildValue("()");
-	PyObject *kwargs = Py_BuildValue("{s:O}", "wrap", PyCapsule_New(i, "IRExpr", NULL));
-	PyObject *o = PyObject_Call((PyObject *)t, args, kwargs);
-	Py_DECREF(args); Py_DECREF(kwargs);
-	return (PyObject *)o;
-}
-
-///////////////////
-// Binder IRExpr //
-///////////////////
-
-static int
-pyIRExprBinder_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-
-	Int binder;
-	static char *kwlist[] = {"binder", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &binder)) return -1;
-
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Binder(binder));
-	return 0;
-}
-
-PYMARE_ACCESSOR_BUILDVAL(IRExprBinder, IRExpr, self->wrapped->Iex.Binder.binder, binder, "i")
-
-static PyGetSetDef pyIRExprBinder_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRExprBinder, binder),
-	{NULL}
-};
-
-PyObject *pyIRExprBinder_deepCopy(PyObject *self) { PYMARE_SETSTRING(PyVEXError, "binder does not support deepCopy()"); return NULL; }
-
-static PyMethodDef pyIRExprBinder_methods[] = { {"deepCopy", (PyCFunction)pyIRExprBinder_deepCopy, METH_NOARGS, "not supported by binder"}, {NULL} };
-PYVEX_SUBTYPEOBJECT(Binder, IRExpr);
-
-///////////////////
-// VECRET IRExpr //
-///////////////////
-
-static int
-pyIRExprVECRET_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_VECRET());
-	return 0;
-}
-
-static PyGetSetDef pyIRExprVECRET_getseters[] = { {NULL} };
-
-PyObject *pyIRExprVECRET_deepCopy(PyObject *self) { PYMARE_SETSTRING(PyVEXError, "vecret does not support deepCopy()"); return NULL; }
-
-static PyMethodDef pyIRExprVECRET_methods[] = { {"deepCopy", (PyCFunction)pyIRExprVECRET_deepCopy, METH_NOARGS, "not supported by binder"}, {NULL} };
-PYVEX_SUBTYPEOBJECT(VECRET, IRExpr);
-
-///////////////////
-// BBPTR IRExpr //
-///////////////////
-
-static int
-pyIRExprBBPTR_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_BBPTR());
-	return 0;
-}
-
-static PyGetSetDef pyIRExprBBPTR_getseters[] = { {NULL} };
-
-PyObject *pyIRExprBBPTR_deepCopy(PyObject *self) { PYMARE_SETSTRING(PyVEXError, "vecret does not support deepCopy()"); return NULL; }
-
-static PyMethodDef pyIRExprBBPTR_methods[] = { {"deepCopy", (PyCFunction)pyIRExprBBPTR_deepCopy, METH_NOARGS, "not supported by binder"}, {NULL} };
-PYVEX_SUBTYPEOBJECT(BBPTR, IRExpr);
-
-//////////////////
-// GetI IRExpr //
-//////////////////
-
-static int
-pyIRExprGetI_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-
-	pyIRRegArray *descr;
-	pyIRExpr *ix;
-	Int bias;
-
-	static char *kwlist[] = {"description", "index", "bias", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOi", kwlist, &descr, &ix, &bias)) return -1;
-	PYMARE_CHECKTYPE(descr, pyIRRegArrayType, return -1);
-	PYMARE_CHECKTYPE(ix, pyIRExprType, return -1);
-
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_GetI(descr->wrapped, ix->wrapped, bias));
-	return 0;
-}
-
-PYMARE_ACCESSOR_WRAPPED(IRExprGetI, IRExpr, self->wrapped->Iex.GetI.descr, description, IRRegArray)
-PYMARE_ACCESSOR_WRAPPED(IRExprGetI, IRExpr, self->wrapped->Iex.GetI.ix, index, IRExpr)
-PYMARE_ACCESSOR_BUILDVAL(IRExprGetI, IRExpr, self->wrapped->Iex.GetI.bias, bias, "i")
-
-static PyGetSetDef pyIRExprGetI_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRExprGetI, description),
-	PYMARE_ACCESSOR_DEF(IRExprGetI, index),
-	PYMARE_ACCESSOR_DEF(IRExprGetI, bias),
-	{NULL}
-};
-
-static PyMethodDef pyIRExprGetI_methods[] = { {NULL} };
-PYVEX_SUBTYPEOBJECT(GetI, IRExpr);
-
-////////////////
-// Get IRExpr //
-////////////////
-
-static int
-pyIRExprGet_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-
-	Int offset;
-	IRType type;
-	char *type_str;
-	
-	static char *kwlist[] = {"offset", "type", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, &offset, &type_str)) return -1;
-	PYMARE_ENUM_FROMSTR(IRType, type, type_str, return -1);
-
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Get(offset, type));
-	return 0;
-}
-
-PYMARE_ACCESSOR_BUILDVAL(IRExprGet, IRExpr, self->wrapped->Iex.Get.offset, offset, "i")
-PYMARE_ACCESSOR_ENUM(IRExprGet, IRExpr, self->wrapped->Iex.Get.ty, type, IRType)
-
-static PyGetSetDef pyIRExprGet_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRExprGet, offset),
-	PYMARE_ACCESSOR_DEF(IRExprGet, type),
-	{NULL}
-};
-
-static PyMethodDef pyIRExprGet_methods[] = { {NULL} };
-PYVEX_SUBTYPEOBJECT(Get, IRExpr);
-
-//////////////////
-// RdTmp IRExpr //
-//////////////////
-
-static int
-pyIRExprRdTmp_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-
-	IRTemp tmp;
-	static char *kwlist[] = {"tmp", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "I", kwlist, &tmp)) return -1;
-
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_RdTmp(tmp));
-	return 0;
-}
-
-PYMARE_ACCESSOR_BUILDVAL(IRExprRdTmp, IRExpr, self->wrapped->Iex.RdTmp.tmp, tmp, "I")
-
-static PyGetSetDef pyIRExprRdTmp_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRExprRdTmp, tmp),
-	{NULL}
-};
-
-static PyMethodDef pyIRExprRdTmp_methods[] = { {NULL} };
-PYVEX_SUBTYPEOBJECT(RdTmp, IRExpr);
-
-//////////////////
-// Qop IRExpr //
-//////////////////
-
-static int
-pyIRExprQop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-
-	IROp op;
-	const char *op_str;
-	pyIRExpr *arg1;
-	pyIRExpr *arg2;
-	pyIRExpr *arg3;
-	pyIRExpr *arg4;
-
-	static char *kwlist[] = {"op", "arg1", "arg2", "arg3", "arg4", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOOOO|O", kwlist, &op_str, &arg1, &arg2, &arg3, &arg4)) return -1;
-	PYMARE_ENUM_FROMSTR(IROp, op, op_str, return -1);
-	PYMARE_CHECKTYPE(arg1, pyIRExprType, return -1);
-	PYMARE_CHECKTYPE(arg2, pyIRExprType, return -1);
-	PYMARE_CHECKTYPE(arg3, pyIRExprType, return -1);
-	PYMARE_CHECKTYPE(arg4, pyIRExprType, return -1);
-
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Qop(op, arg1->wrapped, arg2->wrapped, arg3->wrapped, arg4->wrapped));
-	return 0;
-}
-
-PYMARE_ACCESSOR_ENUM(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->op, op, IROp)
-PYMARE_ACCESSOR_WRAPPED(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->arg1, arg1, IRExpr)
-PYMARE_ACCESSOR_WRAPPED(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->arg2, arg2, IRExpr)
-PYMARE_ACCESSOR_WRAPPED(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->arg3, arg3, IRExpr)
-PYMARE_ACCESSOR_WRAPPED(IRExprQop, IRExpr, self->wrapped->Iex.Qop.details->arg4, arg4, IRExpr)
-
-PyObject *
-pyIRExprQop_args(pyIRExpr* self)
-{
-	return Py_BuildValue("(OOOO)", wrap_IRExpr(self->wrapped->Iex.Qop.details->arg1),
-				       wrap_IRExpr(self->wrapped->Iex.Qop.details->arg2),
-				       wrap_IRExpr(self->wrapped->Iex.Qop.details->arg3),
-				       wrap_IRExpr(self->wrapped->Iex.Qop.details->arg4));
-}
-
-static PyGetSetDef pyIRExprQop_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRExprQop, op),
-	PYMARE_ACCESSOR_DEF(IRExprQop, arg1),
-	PYMARE_ACCESSOR_DEF(IRExprQop, arg2),
-	PYMARE_ACCESSOR_DEF(IRExprQop, arg3),
-	PYMARE_ACCESSOR_DEF(IRExprQop, arg4),
-	{NULL}
-};
-
-static PyMethodDef pyIRExprQop_methods[] = { {"args", (PyCFunction)pyIRExprQop_args, METH_NOARGS, "Returns the arguments of the Qop"}, {NULL} };
-PYVEX_SUBTYPEOBJECT(Qop, IRExpr);
-
-//////////////////
-// Triop IRExpr //
-//////////////////
-
-static int
-pyIRExprTriop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-
-	IROp op;
-	const char *op_str;
-	pyIRExpr *arg1;
-	pyIRExpr *arg2;
-	pyIRExpr *arg3;
-
-	static char *kwlist[] = {"op", "arg1", "arg2", "arg3", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOOO", kwlist, &op_str, &arg1, &arg2, &arg3)) return -1;
-	PYMARE_ENUM_FROMSTR(IROp, op, op_str, return -1);
-	PYMARE_CHECKTYPE(arg1, pyIRExprType, return -1);
-	PYMARE_CHECKTYPE(arg2, pyIRExprType, return -1);
-	PYMARE_CHECKTYPE(arg3, pyIRExprType, return -1);
-
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Triop(op, arg1->wrapped, arg2->wrapped, arg3->wrapped));
-	return 0;
-}
-
-PYMARE_ACCESSOR_ENUM(IRExprTriop, IRExpr, self->wrapped->Iex.Triop.details->op, op, IROp)
-PYMARE_ACCESSOR_WRAPPED(IRExprTriop, IRExpr, self->wrapped->Iex.Triop.details->arg1, arg1, IRExpr)
-PYMARE_ACCESSOR_WRAPPED(IRExprTriop, IRExpr, self->wrapped->Iex.Triop.details->arg2, arg2, IRExpr)
-PYMARE_ACCESSOR_WRAPPED(IRExprTriop, IRExpr, self->wrapped->Iex.Triop.details->arg3, arg3, IRExpr)
-
-PyObject *
-pyIRExprTriop_args(pyIRExpr* self)
-{
-	return Py_BuildValue("(OOO)", wrap_IRExpr(self->wrapped->Iex.Triop.details->arg1),
-				       wrap_IRExpr(self->wrapped->Iex.Triop.details->arg2),
-				       wrap_IRExpr(self->wrapped->Iex.Triop.details->arg3));
-}
-
-static PyGetSetDef pyIRExprTriop_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRExprTriop, op),
-	PYMARE_ACCESSOR_DEF(IRExprTriop, arg1),
-	PYMARE_ACCESSOR_DEF(IRExprTriop, arg2),
-	PYMARE_ACCESSOR_DEF(IRExprTriop, arg3),
-	{NULL}
-};
-
-static PyMethodDef pyIRExprTriop_methods[] = { {"args", (PyCFunction)pyIRExprTriop_args, METH_NOARGS, "Returns the arguments of the Triop"}, {NULL} };
-PYVEX_SUBTYPEOBJECT(Triop, IRExpr);
-
-//////////////////
-// Binop IRExpr //
-//////////////////
-
-static int
-pyIRExprBinop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-
-	IROp op;
-	const char *op_str;
-	pyIRExpr *arg1;
-	pyIRExpr *arg2;
-
-	static char *kwlist[] = {"op", "arg1", "arg2", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOO", kwlist, &op_str, &arg1, &arg2)) return -1;
-	PYMARE_ENUM_FROMSTR(IROp, op, op_str, return -1);
-	PYMARE_CHECKTYPE(arg1, pyIRExprType, return -1);
-	PYMARE_CHECKTYPE(arg2, pyIRExprType, return -1);
-
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Binop(op, arg1->wrapped, arg2->wrapped));
-	return 0;
-}
-
-PYMARE_ACCESSOR_ENUM(IRExprBinop, IRExpr, self->wrapped->Iex.Binop.op, op, IROp)
-PYMARE_ACCESSOR_WRAPPED(IRExprBinop, IRExpr, self->wrapped->Iex.Binop.arg1, arg1, IRExpr)
-PYMARE_ACCESSOR_WRAPPED(IRExprBinop, IRExpr, self->wrapped->Iex.Binop.arg2, arg2, IRExpr)
-
-PyObject *
-pyIRExprBinop_args(pyIRExpr* self)
-{
-	return Py_BuildValue("(OO)", wrap_IRExpr(self->wrapped->Iex.Binop.arg1),
-				       wrap_IRExpr(self->wrapped->Iex.Binop.arg2));
-}
-
-static PyGetSetDef pyIRExprBinop_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRExprBinop, op),
-	PYMARE_ACCESSOR_DEF(IRExprBinop, arg1),
-	PYMARE_ACCESSOR_DEF(IRExprBinop, arg2),
-	{NULL}
-};
-
-static PyMethodDef pyIRExprBinop_methods[] = { {"args", (PyCFunction)pyIRExprBinop_args, METH_NOARGS, "Returns the arguments of the Binop"}, {NULL} };
-PYVEX_SUBTYPEOBJECT(Binop, IRExpr);
-
-//////////////////
-// Unop IRExpr //
-//////////////////
-
-static int
-pyIRExprUnop_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-
-	IROp op;
-	const char *op_str;
-	pyIRExpr *arg1;
-
-	static char *kwlist[] = {"op", "arg1", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sO", kwlist, &op_str, &arg1)) return -1;
-	PYMARE_ENUM_FROMSTR(IROp, op, op_str, return -1);
-	PYMARE_CHECKTYPE(arg1, pyIRExprType, return -1);
-
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Unop(op, arg1->wrapped));
-	return 0;
-}
-
-PYMARE_ACCESSOR_ENUM(IRExprUnop, IRExpr, self->wrapped->Iex.Unop.op, op, IROp)
-PYMARE_ACCESSOR_WRAPPED(IRExprUnop, IRExpr, self->wrapped->Iex.Unop.arg, arg, IRExpr)
-PYMARE_ACCESSOR_WRAPPED(IRExprUnop, IRExpr, self->wrapped->Iex.Unop.arg, arg1, IRExpr)
-
-PyObject *
-pyIRExprUnop_args(pyIRExpr* self)
-{
-	return Py_BuildValue("(O)", wrap_IRExpr(self->wrapped->Iex.Unop.arg));
-}
-
-static PyGetSetDef pyIRExprUnop_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRExprUnop, op),
-	PYMARE_ACCESSOR_DEF(IRExprUnop, arg),
-	PYMARE_ACCESSOR_DEF(IRExprUnop, arg1),
-	{NULL}
-};
-
-static PyMethodDef pyIRExprUnop_methods[] = { {"args", (PyCFunction)pyIRExprUnop_args, METH_NOARGS, "Returns the arguments of the Unop"}, {NULL} };
-PYVEX_SUBTYPEOBJECT(Unop, IRExpr);
-
-//////////////////
-// Load IRExpr //
-//////////////////
-
-static int
-pyIRExprLoad_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-
-	IREndness endness; const char *endness_str;
-	IRType type; const char *type_str;
-	pyIRExpr *addr;
-
-	static char *kwlist[] = {"endness", "type", "addr", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ssO", kwlist, &endness_str, &type_str, &addr)) return -1;
-	PYMARE_ENUM_FROMSTR(IREndness, endness, endness_str, return -1);
-	PYMARE_ENUM_FROMSTR(IRType, type, type_str, return -1);
-	PYMARE_CHECKTYPE(addr, pyIRExprType, return -1);
-
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Load(endness, type, addr->wrapped));
-	return 0;
-}
-
-PYMARE_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.end, endness, IREndness)
-PYMARE_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.end, end, IREndness)
-PYMARE_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.ty, type, IRType)
-PYMARE_ACCESSOR_ENUM(IRExprLoad, IRExpr, self->wrapped->Iex.Load.ty, ty, IRType)
-PYMARE_ACCESSOR_WRAPPED(IRExprLoad, IRExpr, self->wrapped->Iex.Load.addr, addr, IRExpr)
-
-static PyGetSetDef pyIRExprLoad_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRExprLoad, endness),
-	PYMARE_ACCESSOR_DEF(IRExprLoad, end),
-	PYMARE_ACCESSOR_DEF(IRExprLoad, type),
-	PYMARE_ACCESSOR_DEF(IRExprLoad, ty),
-	PYMARE_ACCESSOR_DEF(IRExprLoad, addr),
-	{NULL}
-};
-
-static PyMethodDef pyIRExprLoad_methods[] = { {NULL} };
-PYVEX_SUBTYPEOBJECT(Load, IRExpr);
-
-//////////////////
-// Const IRExpr //
-//////////////////
-
-static int
-pyIRExprConst_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-
-	pyIRConst *con;
-
-	static char *kwlist[] = {"con", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &con)) return -1;
-	PYMARE_CHECKTYPE(con, pyIRConstType, return -1);
-
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_Const(con->wrapped));
-	return 0;
-}
-
-PYMARE_ACCESSOR_WRAPPED(IRExprConst, IRExpr, self->wrapped->Iex.Const.con, con, IRConst)
-
-static PyGetSetDef pyIRExprConst_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRExprConst, con),
-	{NULL}
-};
-
-static PyMethodDef pyIRExprConst_methods[] = { {NULL} };
-PYVEX_SUBTYPEOBJECT(Const, IRExpr);
-
-////////////////
-// ITE IRExpr //
-////////////////
-
-static int
-pyIRExprITE_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-
-	pyIRExpr *cond;
-	pyIRExpr *expr0;
-	pyIRExpr *exprX;
-
-	static char *kwlist[] = {"cond", "iftrue", "iffalse", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO", kwlist, &cond, &exprX, &expr0)) return -1;
-	PYMARE_CHECKTYPE(cond, pyIRExprType, return -1);
-	PYMARE_CHECKTYPE(expr0, pyIRExprType, return -1);
-	PYMARE_CHECKTYPE(exprX, pyIRExprType, return -1);
-
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_ITE(cond->wrapped, exprX->wrapped, expr0->wrapped));
-	return 0;
-}
-
-PYMARE_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.cond, cond, IRExpr)
-PYMARE_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.iffalse, iffalse, IRExpr)
-PYMARE_ACCESSOR_WRAPPED(IRExprITE, IRExpr, self->wrapped->Iex.ITE.iftrue, iftrue, IRExpr)
-
-static PyGetSetDef pyIRExprITE_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRExprITE, cond),
-	PYMARE_ACCESSOR_DEF(IRExprITE, iffalse),
-	PYMARE_ACCESSOR_DEF(IRExprITE, iftrue),
-	{NULL}
-};
-
-static PyMethodDef pyIRExprITE_methods[] = { {NULL} };
-PYVEX_SUBTYPEOBJECT(ITE, IRExpr);
-
-//////////////////
-// CCall IRExpr //
-//////////////////
-
-static int
-pyIRExprCCall_init(pyIRExpr *self, PyObject *args, PyObject *kwargs)
-{
-	PYMARE_WRAP_CONSTRUCTOR(IRExpr);
-
-	pyIRCallee *callee;
-	IRType ret_type; const char *ret_type_str;
-	PyObject *args_tuple;
-
-	static char *kwlist[] = {"cond", "expr0", "exprX", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OsO", kwlist, &callee, &ret_type_str, &args_tuple)) return -1;
-	PYMARE_ENUM_FROMSTR(IRType, ret_type, ret_type_str, return -1);
-	PYMARE_CHECKTYPE(callee, pyIRCalleeType, return -1);
-	if (!PySequence_Check(args_tuple)) { PYMARE_SETSTRING(PyVEXError, "need sequence of args for CCall"); return -1; }
-
-	int tuple_size = PySequence_Size(args_tuple);
-	IRExpr **cargs = (IRExpr **) malloc((tuple_size + 1) * sizeof(IRExpr *));
-	int i;
-	for (i = 0; i < tuple_size; i++)
+	// the stmt tag
+	PYVEX_SETATTRSTRING(r, "tag", export_IRExprTag(expr->tag));
+	if (isIRAtom(expr))
 	{
-		pyIRExpr *expr = (pyIRExpr *)PySequence_GetItem(args_tuple, i);
-		PYMARE_CHECKTYPE(expr, pyIRExprType, return -1);
-		cargs[i] = expr->wrapped;
+		Py_INCREF(Py_True);
+		PYVEX_SETATTRSTRING(r, "is_atomic", Py_True);
 	}
-	cargs[i] = NULL;
-
-	self->wrapped = PYVEX_COPYOUT(IRExpr, IRExpr_CCall(callee->wrapped, ret_type, cargs));
-	return 0;
-}
-PYMARE_ACCESSOR_WRAPPED(IRExprCCall, IRExpr, self->wrapped->Iex.CCall.cee, callee, IRCallee)
-PYMARE_ACCESSOR_ENUM(IRExprCCall, IRExpr, self->wrapped->Iex.CCall.retty, ret_type, IRType)
-
-PyObject *pyIRExprCCall_args(pyIRExpr* self)
-{
-	int size; for (size = 0; self->wrapped->Iex.CCall.args[size] != NULL; size++);
-
-	PyObject *result = PyTuple_New(size);
-	for (int i = 0; i < size; i++)
+	else
 	{
-		PyObject *wrapped = wrap_IRExpr(self->wrapped->Iex.CCall.args[i]);
-		PyTuple_SetItem(result, i, wrapped);
+		Py_INCREF(Py_False);
+		PYVEX_SETATTRSTRING(r, "is_atomic", Py_False);
 	}
-	return result;
+
+	return r;
 }
-
-static PyGetSetDef pyIRExprCCall_getseters[] =
-{
-	PYMARE_ACCESSOR_DEF(IRExprCCall, callee),
-	PYMARE_ACCESSOR_DEF(IRExprCCall, ret_type),
-	{NULL}
-};
-
-static PyMethodDef pyIRExprCCall_methods[] =
-{
-	{"args", (PyCFunction)pyIRExprCCall_args, METH_NOARGS, "Returns a tuple of the IRExpr arguments to the callee"},
-	{NULL}
-};
-PYVEX_SUBTYPEOBJECT(CCall, IRExpr);
