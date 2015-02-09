@@ -68,7 +68,12 @@ PyObject *init_IRSB(PyObject *self, PyObject *args, PyObject *kwargs)
 			irsb = NULL;
 			PyErr_SetString(PyVEXError, E4C_EXCEPTION.message);
 		}
-		if (irsb == NULL) return NULL;
+
+		if (irsb == NULL)
+		{
+			if (!PyErr_Occurred()) PyErr_SetString(PyVEXError, "unspecified VEX error");
+			return NULL;
+		}
 
 		//ppIRSB(irsb);
 		export_IRSB(py_irsb, irsb);
