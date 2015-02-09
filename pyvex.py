@@ -1,5 +1,7 @@
 import pyvex_c
 
+typeOfIROp = pyvex_c.typeOfIROp
+
 #import collections
 #_counts = collections.Counter()
 

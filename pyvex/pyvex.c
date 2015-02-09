@@ -120,9 +120,18 @@ PyObject *actual_init(PyObject *self, PyObject *pyvex_module)
 	Py_RETURN_NONE;
 }
 
+PyObject *typeOfIROp(PyObject *self, PyObject *op)
+{
+	IRSB *irsb = emptyIRSB();
+	IRTemp t = newIRTemp(irsb->tyenv, Ity_I8);
+	IRExpr *e = IRExpr_Unop(pystr_to_IROp(op), IRExpr_RdTmp(t));
+	return IRType_to_pystr(typeOfIRExpr(irsb->tyenv, e));
+}
+
 static PyMethodDef module_methods[] = {
 	{"init", actual_init, METH_O},
 	{"init_IRSB", init_IRSB, METH_VARARGS | METH_KEYWORDS},
+	{"typeOfIROp", typeOfIROp, METH_O},
 	{NULL}  /* Sentinel */
 };
 
