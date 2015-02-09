@@ -5,8 +5,8 @@
 	{ PyObject *o = attr; PyObject_SetAttrString(obj, name, o); Py_DECREF(o); }
 
 PyObject *export_IRSB(PyObject *, IRSB*);
-PyObject *export_IRStmt(IRStmt*);
-PyObject *export_IRExpr(IRExpr*);
+PyObject *export_IRStmt(IRStmt*, IRTypeEnv *);
+PyObject *export_IRExpr(IRExpr*, IRTypeEnv *);
 PyObject *export_IRRegArray(IRRegArray*);
 PyObject *export_IRCallee(IRCallee*);
 PyObject *export_IRConst(IRConst*);

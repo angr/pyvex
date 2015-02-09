@@ -84,13 +84,13 @@ PyObject *export_IRSB(PyObject *r, IRSB *irsb)
 	PYVEX_SETATTRSTRING(r, "stmts_used", PyInt_FromLong(irsb->stmts_used));
 	PYVEX_SETATTRSTRING(r, "jumpkind", export_IRJumpKind(irsb->jumpkind));
 	PYVEX_SETATTRSTRING(r, "tyenv", export_IRTypeEnv(irsb->tyenv));
-	PYVEX_SETATTRSTRING(r, "next", export_IRExpr(irsb->next));
+	PYVEX_SETATTRSTRING(r, "next", export_IRExpr(irsb->next, irsb->tyenv));
 
 	// statements
 	PyObject *statements = PyTuple_New(irsb->stmts_used);
 	for (int i = 0; i < irsb->stmts_used; i++)
 	{
-		PyTuple_SetItem(statements, i, export_IRStmt(irsb->stmts[i]));
+		PyTuple_SetItem(statements, i, export_IRStmt(irsb->stmts[i], irsb->tyenv));
 	}
 	PYVEX_SETATTRSTRING(r, "statements", statements);
 

@@ -8,7 +8,7 @@
 #include "pyvex_export.h"
 #include "pyvex_logging.h"
 
-PyObject *export_IRExprBinder(IRExpr *expr)
+PyObject *export_IRExprBinder(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprBinder, NULL);
 
@@ -17,33 +17,33 @@ PyObject *export_IRExprBinder(IRExpr *expr)
 	return r;
 }
 
-PyObject *export_IRExprVECRET(IRExpr *expr)
+PyObject *export_IRExprVECRET(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprVECRET, NULL);
 	return r;
 }
 
-PyObject *export_IRExprBBPTR(IRExpr *expr)
+PyObject *export_IRExprBBPTR(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprBBPTR, NULL);
 	return r;
 }
 
-PyObject *export_IRExprGetI(IRExpr *expr)
+PyObject *export_IRExprGetI(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprGetI, NULL);
 
 	PYVEX_SETATTRSTRING(r, "description", export_IRRegArray(expr->Iex.GetI.descr));
 	PYVEX_SETATTRSTRING(r, "descr", export_IRRegArray(expr->Iex.GetI.descr));
 
-	PYVEX_SETATTRSTRING(r, "index", export_IRExpr(expr->Iex.GetI.ix));
-	PYVEX_SETATTRSTRING(r, "ix", export_IRExpr(expr->Iex.GetI.ix));
+	PYVEX_SETATTRSTRING(r, "index", export_IRExpr(expr->Iex.GetI.ix, tyenv));
+	PYVEX_SETATTRSTRING(r, "ix", export_IRExpr(expr->Iex.GetI.ix, tyenv));
 
 	PYVEX_SETATTRSTRING(r, "bias", PyInt_FromLong(expr->Iex.GetI.bias));
 	return r;
 }
 
-PyObject *export_IRExprGet(IRExpr *expr)
+PyObject *export_IRExprGet(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprGet, NULL);
 
@@ -54,7 +54,7 @@ PyObject *export_IRExprGet(IRExpr *expr)
 	return r;
 }
 
-PyObject *export_IRExprRdTmp(IRExpr *expr)
+PyObject *export_IRExprRdTmp(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprRdTmp, NULL);
 
@@ -63,16 +63,16 @@ PyObject *export_IRExprRdTmp(IRExpr *expr)
 	return r;
 }
 
-PyObject *export_IRExprQop(IRExpr *expr)
+PyObject *export_IRExprQop(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprQop, NULL);
 
 	PYVEX_SETATTRSTRING(r, "op", export_IROp(expr->Iex.Qop.details->op));
 
-	PyObject *a1 = export_IRExpr(expr->Iex.Qop.details->arg1);
-	PyObject *a2 = export_IRExpr(expr->Iex.Qop.details->arg2);
-	PyObject *a3 = export_IRExpr(expr->Iex.Qop.details->arg3);
-	PyObject *a4 = export_IRExpr(expr->Iex.Qop.details->arg4);
+	PyObject *a1 = export_IRExpr(expr->Iex.Qop.details->arg1, tyenv);
+	PyObject *a2 = export_IRExpr(expr->Iex.Qop.details->arg2, tyenv);
+	PyObject *a3 = export_IRExpr(expr->Iex.Qop.details->arg3, tyenv);
+	PyObject *a4 = export_IRExpr(expr->Iex.Qop.details->arg4, tyenv);
 
 	PYVEX_SETATTRSTRING(r, "arg1", a1);
 	PYVEX_SETATTRSTRING(r, "arg2", a2);
@@ -84,15 +84,15 @@ PyObject *export_IRExprQop(IRExpr *expr)
 	return r;
 }
 
-PyObject *export_IRExprTriop(IRExpr *expr)
+PyObject *export_IRExprTriop(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprTriop, NULL);
 
 	PYVEX_SETATTRSTRING(r, "op", export_IROp(expr->Iex.Triop.details->op));
 
-	PyObject *a1 = export_IRExpr(expr->Iex.Triop.details->arg1);
-	PyObject *a2 = export_IRExpr(expr->Iex.Triop.details->arg2);
-	PyObject *a3 = export_IRExpr(expr->Iex.Triop.details->arg3);
+	PyObject *a1 = export_IRExpr(expr->Iex.Triop.details->arg1, tyenv);
+	PyObject *a2 = export_IRExpr(expr->Iex.Triop.details->arg2, tyenv);
+	PyObject *a3 = export_IRExpr(expr->Iex.Triop.details->arg3, tyenv);
 
 	PYVEX_SETATTRSTRING(r, "arg1", a1);
 	PYVEX_SETATTRSTRING(r, "arg2", a2);
@@ -103,14 +103,14 @@ PyObject *export_IRExprTriop(IRExpr *expr)
 	return r;
 }
 
-PyObject *export_IRExprBinop(IRExpr *expr)
+PyObject *export_IRExprBinop(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprBinop, NULL);
 
 	PYVEX_SETATTRSTRING(r, "op", export_IROp(expr->Iex.Binop.op));
 
-	PyObject *a1 = export_IRExpr(expr->Iex.Binop.arg1);
-	PyObject *a2 = export_IRExpr(expr->Iex.Binop.arg2);
+	PyObject *a1 = export_IRExpr(expr->Iex.Binop.arg1, tyenv);
+	PyObject *a2 = export_IRExpr(expr->Iex.Binop.arg2, tyenv);
 
 	PYVEX_SETATTRSTRING(r, "arg1", a1);
 	PYVEX_SETATTRSTRING(r, "arg2", a2);
@@ -120,13 +120,13 @@ PyObject *export_IRExprBinop(IRExpr *expr)
 	return r;
 }
 
-PyObject *export_IRExprUnop(IRExpr *expr)
+PyObject *export_IRExprUnop(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprRdTmp, NULL);
 
 	PYVEX_SETATTRSTRING(r, "op", export_IROp(expr->Iex.Unop.op));
 
-	PyObject *a1 = export_IRExpr(expr->Iex.Unop.arg);
+	PyObject *a1 = export_IRExpr(expr->Iex.Unop.arg, tyenv);
 
 	PYVEX_SETATTRSTRING(r, "arg1", a1);
 	PYVEX_SETATTRSTRING(r, "arg", a1);
@@ -135,7 +135,7 @@ PyObject *export_IRExprUnop(IRExpr *expr)
 	return r;
 }
 
-PyObject *export_IRExprLoad(IRExpr *expr)
+PyObject *export_IRExprLoad(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprLoad, NULL);
 
@@ -145,12 +145,12 @@ PyObject *export_IRExprLoad(IRExpr *expr)
 	PYVEX_SETATTRSTRING(r, "type", export_IRType(expr->Iex.Load.ty));
 	PYVEX_SETATTRSTRING(r, "ty", export_IRType(expr->Iex.Load.ty));
 
-	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(expr->Iex.Load.addr));
+	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(expr->Iex.Load.addr, tyenv));
 
 	return r;
 }
 
-PyObject *export_IRExprConst(IRExpr *expr)
+PyObject *export_IRExprConst(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprConst, NULL);
 
@@ -159,18 +159,18 @@ PyObject *export_IRExprConst(IRExpr *expr)
 	return r;
 }
 
-PyObject *export_IRExprITE(IRExpr *expr)
+PyObject *export_IRExprITE(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprITE, NULL);
 
-	PYVEX_SETATTRSTRING(r, "cond", export_IRExpr(expr->Iex.ITE.cond));
-	PYVEX_SETATTRSTRING(r, "iffalse", export_IRExpr(expr->Iex.ITE.iffalse));
-	PYVEX_SETATTRSTRING(r, "iftrue", export_IRExpr(expr->Iex.ITE.iftrue));
+	PYVEX_SETATTRSTRING(r, "cond", export_IRExpr(expr->Iex.ITE.cond, tyenv));
+	PYVEX_SETATTRSTRING(r, "iffalse", export_IRExpr(expr->Iex.ITE.iffalse, tyenv));
+	PYVEX_SETATTRSTRING(r, "iftrue", export_IRExpr(expr->Iex.ITE.iftrue, tyenv));
 
 	return r;
 }
 
-PyObject *export_IRExprCCall(IRExpr *expr)
+PyObject *export_IRExprCCall(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRExprCCall, NULL);
 
@@ -186,37 +186,39 @@ PyObject *export_IRExprCCall(IRExpr *expr)
 	PyObject *args = PyTuple_New(num_args);
 	for (int i = 0; i < num_args; i++)
 	{
-		PyTuple_SetItem(args, i, export_IRExpr(expr->Iex.CCall.args[i]));
+		PyTuple_SetItem(args, i, export_IRExpr(expr->Iex.CCall.args[i], tyenv));
 	}
 	PYVEX_SETATTRSTRING(r, "args", args);
 
 	return r;
 }
 
-PyObject *export_IRExpr(IRExpr *expr)
+PyObject *export_IRExpr(IRExpr *expr, IRTypeEnv *tyenv)
 {
 	PyObject *r;
 	switch (expr->tag)
 	{
-		case Iex_Binder: r = export_IRExprBinder(expr); break;
-		case Iex_Get: r = export_IRExprGet(expr); break;
-		case Iex_GetI: r = export_IRExprGetI(expr); break;
-		case Iex_RdTmp: r = export_IRExprRdTmp(expr); break;
-		case Iex_Qop: r = export_IRExprQop(expr); break;
-		case Iex_Triop: r = export_IRExprTriop(expr); break;
-		case Iex_Binop: r = export_IRExprBinop(expr); break;
-		case Iex_Unop: r = export_IRExprUnop(expr); break;
-		case Iex_Load: r = export_IRExprLoad(expr); break;
-		case Iex_Const: r = export_IRExprConst(expr); break;
-		case Iex_ITE: r = export_IRExprITE(expr); break;
-		case Iex_CCall: r = export_IRExprCCall(expr); break;
-		case Iex_BBPTR: r = export_IRExprBBPTR(expr); break;
-		case Iex_VECRET: r = export_IRExprVECRET(expr); break;
+		case Iex_Binder: r = export_IRExprBinder(expr, tyenv); break;
+		case Iex_Get: r = export_IRExprGet(expr, tyenv); break;
+		case Iex_GetI: r = export_IRExprGetI(expr, tyenv); break;
+		case Iex_RdTmp: r = export_IRExprRdTmp(expr, tyenv); break;
+		case Iex_Qop: r = export_IRExprQop(expr, tyenv); break;
+		case Iex_Triop: r = export_IRExprTriop(expr, tyenv); break;
+		case Iex_Binop: r = export_IRExprBinop(expr, tyenv); break;
+		case Iex_Unop: r = export_IRExprUnop(expr, tyenv); break;
+		case Iex_Load: r = export_IRExprLoad(expr, tyenv); break;
+		case Iex_Const: r = export_IRExprConst(expr, tyenv); break;
+		case Iex_ITE: r = export_IRExprITE(expr, tyenv); break;
+		case Iex_CCall: r = export_IRExprCCall(expr, tyenv); break;
+		case Iex_BBPTR: r = export_IRExprBBPTR(expr, tyenv); break;
+		case Iex_VECRET: r = export_IRExprVECRET(expr, tyenv); break;
 
 		default:
 			pyvex_error("PyVEX: Unknown/unsupported IRExprTag %s\n", IRExprTag_to_str(expr->tag));
 			Py_RETURN_NONE;
 	}
+
+	PYVEX_SETATTRSTRING(r, "result_type", export_IRType(typeOfIRExpr(tyenv, expr)));
 
 	// the stmt tag
 	PYVEX_SETATTRSTRING(r, "tag", export_IRExprTag(expr->tag));

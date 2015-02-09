@@ -10,12 +10,12 @@
 
 
 
-PyObject *export_IRStmtNoOp(IRStmt *stmt)
+PyObject *export_IRStmtNoOp(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	return PyObject_CallObject(pyvexIRStmtNoOp, NULL);
 }
 
-PyObject *export_IRStmtIMark(IRStmt *stmt)
+PyObject *export_IRStmtIMark(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtIMark, NULL);
 
@@ -26,58 +26,58 @@ PyObject *export_IRStmtIMark(IRStmt *stmt)
 	return r;
 }
 
-PyObject *export_IRStmtAbiHint(IRStmt *stmt)
+PyObject *export_IRStmtAbiHint(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtAbiHint, NULL);
 
-	PYVEX_SETATTRSTRING(r, "base", export_IRExpr(stmt->Ist.AbiHint.base));
+	PYVEX_SETATTRSTRING(r, "base", export_IRExpr(stmt->Ist.AbiHint.base, tyenv));
 	PYVEX_SETATTRSTRING(r, "len", PyInt_FromLong(stmt->Ist.AbiHint.len));
-	PYVEX_SETATTRSTRING(r, "nia", export_IRExpr(stmt->Ist.AbiHint.nia));
+	PYVEX_SETATTRSTRING(r, "nia", export_IRExpr(stmt->Ist.AbiHint.nia, tyenv));
 
 	return r;
 }
 
-PyObject *export_IRStmtPut(IRStmt *stmt)
+PyObject *export_IRStmtPut(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtPut, NULL);
 
-	PYVEX_SETATTRSTRING(r, "data", export_IRExpr(stmt->Ist.Put.data));
+	PYVEX_SETATTRSTRING(r, "data", export_IRExpr(stmt->Ist.Put.data, tyenv));
 	PYVEX_SETATTRSTRING(r, "offset", PyInt_FromLong(stmt->Ist.Put.offset));
 
 	return r;
 }
 
-PyObject *export_IRStmtPutI(IRStmt *stmt)
+PyObject *export_IRStmtPutI(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtPutI, NULL);
 
 	PYVEX_SETATTRSTRING(r, "descr", export_IRRegArray(stmt->Ist.PutI.details->descr));
 	PYVEX_SETATTRSTRING(r, "description", export_IRRegArray(stmt->Ist.PutI.details->descr));
 
-	PYVEX_SETATTRSTRING(r, "ix", export_IRExpr(stmt->Ist.PutI.details->ix));
-	PYVEX_SETATTRSTRING(r, "index", export_IRExpr(stmt->Ist.PutI.details->ix));
-	PYVEX_SETATTRSTRING(r, "data", export_IRExpr(stmt->Ist.PutI.details->data));
+	PYVEX_SETATTRSTRING(r, "ix", export_IRExpr(stmt->Ist.PutI.details->ix, tyenv));
+	PYVEX_SETATTRSTRING(r, "index", export_IRExpr(stmt->Ist.PutI.details->ix, tyenv));
+	PYVEX_SETATTRSTRING(r, "data", export_IRExpr(stmt->Ist.PutI.details->data, tyenv));
 	PYVEX_SETATTRSTRING(r, "bias", PyInt_FromLong(stmt->Ist.PutI.details->bias));
 
 	return r;
 }
 
-PyObject *export_IRStmtWrTmp(IRStmt *stmt)
+PyObject *export_IRStmtWrTmp(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtWrTmp, NULL);
 
-	PYVEX_SETATTRSTRING(r, "data", export_IRExpr(stmt->Ist.WrTmp.data));
+	PYVEX_SETATTRSTRING(r, "data", export_IRExpr(stmt->Ist.WrTmp.data, tyenv));
 	PYVEX_SETATTRSTRING(r, "tmp", PyInt_FromLong(stmt->Ist.WrTmp.tmp));
 
 	return r;
 }
 
-PyObject *export_IRStmtStore(IRStmt *stmt)
+PyObject *export_IRStmtStore(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtStore, NULL);
 
-	PYVEX_SETATTRSTRING(r, "data", export_IRExpr(stmt->Ist.Store.data));
-	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(stmt->Ist.Store.addr));
+	PYVEX_SETATTRSTRING(r, "data", export_IRExpr(stmt->Ist.Store.data, tyenv));
+	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(stmt->Ist.Store.addr, tyenv));
 
 	PYVEX_SETATTRSTRING(r, "end", export_IREndness(stmt->Ist.Store.end));
 	PYVEX_SETATTRSTRING(r, "endness", export_IREndness(stmt->Ist.Store.end));
@@ -85,17 +85,17 @@ PyObject *export_IRStmtStore(IRStmt *stmt)
 	return r;
 }
 
-PyObject *export_IRStmtCAS(IRStmt *stmt)
+PyObject *export_IRStmtCAS(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtCAS, NULL);
 
-	PYVEX_SETATTRSTRING(r, "dataLo", export_IRExpr(stmt->Ist.CAS.details->dataLo));
-	PYVEX_SETATTRSTRING(r, "dataHi", export_IRExpr(stmt->Ist.CAS.details->dataHi));
-	PYVEX_SETATTRSTRING(r, "expdLo", export_IRExpr(stmt->Ist.CAS.details->expdLo));
-	PYVEX_SETATTRSTRING(r, "expdHi", export_IRExpr(stmt->Ist.CAS.details->expdHi));
+	PYVEX_SETATTRSTRING(r, "dataLo", export_IRExpr(stmt->Ist.CAS.details->dataLo, tyenv));
+	PYVEX_SETATTRSTRING(r, "dataHi", export_IRExpr(stmt->Ist.CAS.details->dataHi, tyenv));
+	PYVEX_SETATTRSTRING(r, "expdLo", export_IRExpr(stmt->Ist.CAS.details->expdLo, tyenv));
+	PYVEX_SETATTRSTRING(r, "expdHi", export_IRExpr(stmt->Ist.CAS.details->expdHi, tyenv));
 	PYVEX_SETATTRSTRING(r, "oldLo", PyInt_FromLong(stmt->Ist.CAS.details->oldLo));
 	PYVEX_SETATTRSTRING(r, "oldHi", PyInt_FromLong(stmt->Ist.CAS.details->oldHi));
-	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(stmt->Ist.CAS.details->addr));
+	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(stmt->Ist.CAS.details->addr, tyenv));
 
 	PYVEX_SETATTRSTRING(r, "end", export_IREndness(stmt->Ist.CAS.details->end));
 	PYVEX_SETATTRSTRING(r, "endness", export_IREndness(stmt->Ist.CAS.details->end));
@@ -103,12 +103,12 @@ PyObject *export_IRStmtCAS(IRStmt *stmt)
 	return r;
 }
 
-PyObject *export_IRStmtLLSC(IRStmt *stmt)
+PyObject *export_IRStmtLLSC(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtLLSC, NULL);
 
-	PYVEX_SETATTRSTRING(r, "storedata", export_IRExpr(stmt->Ist.LLSC.storedata));
-	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(stmt->Ist.LLSC.addr));
+	PYVEX_SETATTRSTRING(r, "storedata", export_IRExpr(stmt->Ist.LLSC.storedata, tyenv));
+	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(stmt->Ist.LLSC.addr, tyenv));
 	PYVEX_SETATTRSTRING(r, "result", PyInt_FromLong(stmt->Ist.LLSC.result));
 
 	PYVEX_SETATTRSTRING(r, "end", export_IREndness(stmt->Ist.LLSC.end));
@@ -117,7 +117,7 @@ PyObject *export_IRStmtLLSC(IRStmt *stmt)
 	return r;
 }
 
-PyObject *export_IRStmtMBE(IRStmt *stmt)
+PyObject *export_IRStmtMBE(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtMBE, NULL);
 
@@ -126,11 +126,11 @@ PyObject *export_IRStmtMBE(IRStmt *stmt)
 	return r;
 }
 
-PyObject *export_IRStmtExit(IRStmt *stmt)
+PyObject *export_IRStmtExit(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtExit, NULL);
 
-	PYVEX_SETATTRSTRING(r, "guard", export_IRExpr(stmt->Ist.Exit.guard));
+	PYVEX_SETATTRSTRING(r, "guard", export_IRExpr(stmt->Ist.Exit.guard, tyenv));
 	PYVEX_SETATTRSTRING(r, "dst", export_IRConst(stmt->Ist.Exit.dst));
 	PYVEX_SETATTRSTRING(r, "offsIP", PyInt_FromLong(stmt->Ist.Exit.offsIP));
 
@@ -140,15 +140,15 @@ PyObject *export_IRStmtExit(IRStmt *stmt)
 	return r;
 }
 
-PyObject *export_IRStmtDirty(IRStmt *stmt)
+PyObject *export_IRStmtDirty(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtDirty, NULL);
 
 	PYVEX_SETATTRSTRING(r, "cee", export_IRCallee(stmt->Ist.Dirty.details->cee));
-	PYVEX_SETATTRSTRING(r, "guard", export_IRExpr(stmt->Ist.Dirty.details->guard));
+	PYVEX_SETATTRSTRING(r, "guard", export_IRExpr(stmt->Ist.Dirty.details->guard, tyenv));
 	PYVEX_SETATTRSTRING(r, "tmp", PyInt_FromLong(stmt->Ist.Dirty.details->tmp));
 	PYVEX_SETATTRSTRING(r, "mFx", export_IREffect(stmt->Ist.Dirty.details->mFx));
-	PYVEX_SETATTRSTRING(r, "mAddr", export_IRExpr(stmt->Ist.Dirty.details->mAddr));
+	PYVEX_SETATTRSTRING(r, "mAddr", export_IRExpr(stmt->Ist.Dirty.details->mAddr, tyenv));
 	PYVEX_SETATTRSTRING(r, "mSize", PyInt_FromLong(stmt->Ist.Dirty.details->mSize));
 	PYVEX_SETATTRSTRING(r, "nFxState", PyInt_FromLong(stmt->Ist.Dirty.details->nFxState));
 
@@ -157,7 +157,7 @@ PyObject *export_IRStmtDirty(IRStmt *stmt)
 	PyObject *args = PyTuple_New(num_args);
 	for (int i = 0; i < num_args; i++)
 	{
-		PyTuple_SetItem(args, i, export_IRExpr(stmt->Ist.Dirty.details->args[i]));
+		PyTuple_SetItem(args, i, export_IRExpr(stmt->Ist.Dirty.details->args[i], tyenv));
 	}
 	PYVEX_SETATTRSTRING(r, "args", args);
 
@@ -179,14 +179,14 @@ PyObject *export_IRStmtDirty(IRStmt *stmt)
 	return r;
 }
 
-PyObject *export_IRStmtLoadG(IRStmt *stmt)
+PyObject *export_IRStmtLoadG(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtLoadG, NULL);
 
 	PYVEX_SETATTRSTRING(r, "dst", PyInt_FromLong(stmt->Ist.LoadG.details->dst));
-	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(stmt->Ist.LoadG.details->addr));
-	PYVEX_SETATTRSTRING(r, "alt", export_IRExpr(stmt->Ist.LoadG.details->alt));
-	PYVEX_SETATTRSTRING(r, "guard", export_IRExpr(stmt->Ist.LoadG.details->guard));
+	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(stmt->Ist.LoadG.details->addr, tyenv));
+	PYVEX_SETATTRSTRING(r, "alt", export_IRExpr(stmt->Ist.LoadG.details->alt, tyenv));
+	PYVEX_SETATTRSTRING(r, "guard", export_IRExpr(stmt->Ist.LoadG.details->guard, tyenv));
 	PYVEX_SETATTRSTRING(r, "cvt", export_IRLoadGOp(stmt->Ist.LoadG.details->cvt));
 
 	PYVEX_SETATTRSTRING(r, "end", export_IREndness(stmt->Ist.LoadG.details->end));
@@ -200,13 +200,13 @@ PyObject *export_IRStmtLoadG(IRStmt *stmt)
 	return r;
 }
 
-PyObject *export_IRStmtStoreG(IRStmt *stmt)
+PyObject *export_IRStmtStoreG(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r = PyObject_CallObject(pyvexIRStmtStoreG, NULL);
 
-	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(stmt->Ist.StoreG.details->addr));
-	PYVEX_SETATTRSTRING(r, "data", export_IRExpr(stmt->Ist.StoreG.details->data));
-	PYVEX_SETATTRSTRING(r, "guard", export_IRExpr(stmt->Ist.StoreG.details->guard));
+	PYVEX_SETATTRSTRING(r, "addr", export_IRExpr(stmt->Ist.StoreG.details->addr, tyenv));
+	PYVEX_SETATTRSTRING(r, "data", export_IRExpr(stmt->Ist.StoreG.details->data, tyenv));
+	PYVEX_SETATTRSTRING(r, "guard", export_IRExpr(stmt->Ist.StoreG.details->guard, tyenv));
 
 	PYVEX_SETATTRSTRING(r, "end", export_IREndness(stmt->Ist.StoreG.details->end));
 	PYVEX_SETATTRSTRING(r, "endness", export_IREndness(stmt->Ist.StoreG.details->end));
@@ -215,25 +215,25 @@ PyObject *export_IRStmtStoreG(IRStmt *stmt)
 }
 
 
-PyObject *export_IRStmt(IRStmt *stmt)
+PyObject *export_IRStmt(IRStmt *stmt, IRTypeEnv *tyenv)
 {
 	PyObject *r;
 	switch (stmt->tag)
 	{
-		case Ist_NoOp: r = export_IRStmtNoOp(stmt); break;
-		case Ist_IMark: r = export_IRStmtIMark(stmt); break;
-		case Ist_AbiHint: r = export_IRStmtAbiHint(stmt); break;
-		case Ist_Put: r = export_IRStmtPut(stmt); break;
-		case Ist_PutI: r = export_IRStmtPutI(stmt); break;
-		case Ist_WrTmp: r = export_IRStmtWrTmp(stmt); break;
-		case Ist_Store: r = export_IRStmtStore(stmt); break;
-		case Ist_CAS: r = export_IRStmtCAS(stmt); break;
-		case Ist_LLSC: r = export_IRStmtLLSC(stmt); break;
-		case Ist_Dirty: r = export_IRStmtDirty(stmt); break;
-		case Ist_MBE: r = export_IRStmtMBE(stmt); break;
-		case Ist_Exit: r = export_IRStmtExit(stmt); break;
-		case Ist_LoadG: r = export_IRStmtLoadG(stmt); break;
-		case Ist_StoreG: r = export_IRStmtStoreG(stmt); break;
+		case Ist_NoOp: r = export_IRStmtNoOp(stmt, tyenv); break;
+		case Ist_IMark: r = export_IRStmtIMark(stmt, tyenv); break;
+		case Ist_AbiHint: r = export_IRStmtAbiHint(stmt, tyenv); break;
+		case Ist_Put: r = export_IRStmtPut(stmt, tyenv); break;
+		case Ist_PutI: r = export_IRStmtPutI(stmt, tyenv); break;
+		case Ist_WrTmp: r = export_IRStmtWrTmp(stmt, tyenv); break;
+		case Ist_Store: r = export_IRStmtStore(stmt, tyenv); break;
+		case Ist_CAS: r = export_IRStmtCAS(stmt, tyenv); break;
+		case Ist_LLSC: r = export_IRStmtLLSC(stmt, tyenv); break;
+		case Ist_Dirty: r = export_IRStmtDirty(stmt, tyenv); break;
+		case Ist_MBE: r = export_IRStmtMBE(stmt, tyenv); break;
+		case Ist_Exit: r = export_IRStmtExit(stmt, tyenv); break;
+		case Ist_LoadG: r = export_IRStmtLoadG(stmt, tyenv); break;
+		case Ist_StoreG: r = export_IRStmtStoreG(stmt, tyenv); break;
 		default:
 			pyvex_error("PyVEX: Unknown/unsupported IRStmtTag %s\n", IRStmtTag_to_str(stmt->tag));
 			Py_RETURN_NONE;
