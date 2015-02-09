@@ -9,6 +9,8 @@
 
 PyObject *export_IRTypeEnv(IRTypeEnv *t)
 {
+	if (!t) Py_RETURN_NONE;
+
 	PyObject *r = PyObject_CallObject(pyvexIRTypeEnv, NULL);
 
 	PYVEX_SETATTRSTRING(r, "types_used", PyInt_FromLong(t->types_used));

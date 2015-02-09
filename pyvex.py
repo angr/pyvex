@@ -1,6 +1,5 @@
 import pyvex_c
-
-typeOfIROp = pyvex_c.typeOfIROp
+import sys
 
 #import collections
 #_counts = collections.Counter()
@@ -120,5 +119,9 @@ IRExpr.CCall = IRExprCCall
 
 
 # and initialize!
-import sys
 pyvex_c.init(sys.modules[__name__])
+for i in dir(pyvex_c):
+    if not i.startswith('enum'):
+        continue
+    setattr(sys.modules[__name__], i, getattr(pyvex_c, i))
+typeOfIROp = pyvex_c.typeOfIROp

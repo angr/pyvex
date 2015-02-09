@@ -11,6 +11,8 @@
 
 PyObject *export_IRRegArray(IRRegArray *arr)
 {
+	if (!arr) Py_RETURN_NONE;
+
 	PyObject *r = PyObject_CallObject(pyvexIRRegArray, NULL);
 
 	PYVEX_SETATTRSTRING(r, "base", PyInt_FromLong(arr->base));

@@ -74,10 +74,10 @@ PyObject *export_IRExprQop(IRExpr *expr, IRTypeEnv *tyenv)
 	PyObject *a3 = export_IRExpr(expr->Iex.Qop.details->arg3, tyenv);
 	PyObject *a4 = export_IRExpr(expr->Iex.Qop.details->arg4, tyenv);
 
-	PYVEX_SETATTRSTRING(r, "arg1", a1);
-	PYVEX_SETATTRSTRING(r, "arg2", a2);
-	PYVEX_SETATTRSTRING(r, "arg3", a3);
-	PYVEX_SETATTRSTRING(r, "arg4", a4);
+	//PYVEX_SETATTRSTRING(r, "arg1", a1);
+	//PYVEX_SETATTRSTRING(r, "arg2", a2);
+	//PYVEX_SETATTRSTRING(r, "arg3", a3);
+	//PYVEX_SETATTRSTRING(r, "arg4", a4);
 
 	PYVEX_SETATTRSTRING(r, "args", Py_BuildValue("(OOOO)", a1, a2, a3, a4));
 
@@ -94,9 +94,9 @@ PyObject *export_IRExprTriop(IRExpr *expr, IRTypeEnv *tyenv)
 	PyObject *a2 = export_IRExpr(expr->Iex.Triop.details->arg2, tyenv);
 	PyObject *a3 = export_IRExpr(expr->Iex.Triop.details->arg3, tyenv);
 
-	PYVEX_SETATTRSTRING(r, "arg1", a1);
-	PYVEX_SETATTRSTRING(r, "arg2", a2);
-	PYVEX_SETATTRSTRING(r, "arg3", a3);
+	//PYVEX_SETATTRSTRING(r, "arg1", a1);
+	//PYVEX_SETATTRSTRING(r, "arg2", a2);
+	//PYVEX_SETATTRSTRING(r, "arg3", a3);
 
 	PYVEX_SETATTRSTRING(r, "args", Py_BuildValue("(OOO)", a1, a2, a3));
 
@@ -112,8 +112,8 @@ PyObject *export_IRExprBinop(IRExpr *expr, IRTypeEnv *tyenv)
 	PyObject *a1 = export_IRExpr(expr->Iex.Binop.arg1, tyenv);
 	PyObject *a2 = export_IRExpr(expr->Iex.Binop.arg2, tyenv);
 
-	PYVEX_SETATTRSTRING(r, "arg1", a1);
-	PYVEX_SETATTRSTRING(r, "arg2", a2);
+	//PYVEX_SETATTRSTRING(r, "arg1", a1);
+	//PYVEX_SETATTRSTRING(r, "arg2", a2);
 
 	PYVEX_SETATTRSTRING(r, "args", Py_BuildValue("(OO)", a1, a2));
 
@@ -122,14 +122,14 @@ PyObject *export_IRExprBinop(IRExpr *expr, IRTypeEnv *tyenv)
 
 PyObject *export_IRExprUnop(IRExpr *expr, IRTypeEnv *tyenv)
 {
-	PyObject *r = PyObject_CallObject(pyvexIRExprRdTmp, NULL);
+	PyObject *r = PyObject_CallObject(pyvexIRExprUnop, NULL);
 
 	PYVEX_SETATTRSTRING(r, "op", export_IROp(expr->Iex.Unop.op));
 
 	PyObject *a1 = export_IRExpr(expr->Iex.Unop.arg, tyenv);
 
-	PYVEX_SETATTRSTRING(r, "arg1", a1);
-	PYVEX_SETATTRSTRING(r, "arg", a1);
+	//PYVEX_SETATTRSTRING(r, "arg1", a1);
+	//PYVEX_SETATTRSTRING(r, "arg", a1);
 	PYVEX_SETATTRSTRING(r, "args", Py_BuildValue("(O)", a1));
 
 	return r;
@@ -195,6 +195,8 @@ PyObject *export_IRExprCCall(IRExpr *expr, IRTypeEnv *tyenv)
 
 PyObject *export_IRExpr(IRExpr *expr, IRTypeEnv *tyenv)
 {
+	if (!expr) Py_RETURN_NONE;
+
 	PyObject *r;
 	switch (expr->tag)
 	{
@@ -220,8 +222,9 @@ PyObject *export_IRExpr(IRExpr *expr, IRTypeEnv *tyenv)
 
 	PYVEX_SETATTRSTRING(r, "result_type", export_IRType(typeOfIRExpr(tyenv, expr)));
 
-	// the stmt tag
+	// the expr tag
 	PYVEX_SETATTRSTRING(r, "tag", export_IRExprTag(expr->tag));
+
 	if (isIRAtom(expr))
 	{
 		Py_INCREF(Py_True);

@@ -31,6 +31,8 @@ PYVEX_EXPORT_CONST(V256, unsigned int, "I");
 
 PyObject *export_IRConst(IRConst *c)
 {
+	if (!c) Py_RETURN_NONE;
+
 	PyObject *r;
 
 	switch (c->tag)

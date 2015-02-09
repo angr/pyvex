@@ -134,8 +134,8 @@ PyObject *export_IRStmtExit(IRStmt *stmt, IRTypeEnv *tyenv)
 	PYVEX_SETATTRSTRING(r, "dst", export_IRConst(stmt->Ist.Exit.dst));
 	PYVEX_SETATTRSTRING(r, "offsIP", PyInt_FromLong(stmt->Ist.Exit.offsIP));
 
-	PYVEX_SETATTRSTRING(r, "jk", export_IREndness(stmt->Ist.Exit.jk));
-	PYVEX_SETATTRSTRING(r, "jumpkind", export_IREndness(stmt->Ist.Exit.jk));
+	PYVEX_SETATTRSTRING(r, "jk", export_IRJumpKind(stmt->Ist.Exit.jk));
+	PYVEX_SETATTRSTRING(r, "jumpkind", export_IRJumpKind(stmt->Ist.Exit.jk));
 
 	return r;
 }
@@ -195,7 +195,7 @@ PyObject *export_IRStmtLoadG(IRStmt *stmt, IRTypeEnv *tyenv)
 	IRType out;
 	IRType in;
 	typeOfIRLoadGOp(stmt->Ist.LoadG.details->cvt, &out, &in);
-	PYVEX_SETATTRSTRING(r, "cvt_types", Py_BuildValue("(ss)", export_IRType(in), export_IRType(out)));
+	PYVEX_SETATTRSTRING(r, "cvt_types", Py_BuildValue("(OO)", export_IRType(in), export_IRType(out)));
 
 	return r;
 }
@@ -217,6 +217,8 @@ PyObject *export_IRStmtStoreG(IRStmt *stmt, IRTypeEnv *tyenv)
 
 PyObject *export_IRStmt(IRStmt *stmt, IRTypeEnv *tyenv)
 {
+	if (!stmt) Py_RETURN_NONE;
+
 	PyObject *r;
 	switch (stmt->tag)
 	{

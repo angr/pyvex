@@ -10,6 +10,8 @@
 
 PyObject *export_IRCallee(IRCallee *c)
 {
+	if (!c) Py_RETURN_NONE;
+
 	PyObject *r = PyObject_CallObject(pyvexIRCallee, NULL);
 
 	PYVEX_SETATTRSTRING(r, "regparms", PyInt_FromLong(c->regparms));

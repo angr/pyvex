@@ -23,7 +23,7 @@ extern PyObject *PyMareError;
 		PyObject *pe = PyInt_FromLong(e); \
 		PyObject *s = PyDict_GetItem(dict_##type##_tostr, pe); \
 		Py_DECREF(pe); \
-		if (s) Py_INCREF(s); \
+		if (s) Py_INCREF(s); /*else __asm__("int3");*/ \
 		return s; \
 	} \
 	PyObject *export_##type(type e) { return type##_to_pystr(e); } \
