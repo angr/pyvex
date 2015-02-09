@@ -9,10 +9,10 @@ VEX_INCLUDE = "./vex_include"
 VEX_LIB = "./vex_lib"
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
 
-c_files = [ "pyvex/pyvex.c", "pyvex/pyvex_irsb.c", "pyvex/pyvex_irstmt.c", "pyvex/pyvex_irtypeenv.c", "pyvex/pyvex_irexpr.c", "pyvex/pyvex_enums.c", "pyvex/pyvex_irconst.c", "pyvex/pyvex_ircallee.c", "pyvex/pyvex_irregarray.c", "pyvex/pyvex_logging.c", "pyvex/pyvex_static.c"]
+c_files = [ "pyvex_c/pyvex.c", "pyvex_c/pyvex_irsb.c", "pyvex_c/pyvex_irstmt.c", "pyvex_c/pyvex_irtypeenv.c", "pyvex_c/pyvex_irexpr.c", "pyvex_c/pyvex_enums.c", "pyvex_c/pyvex_irconst.c", "pyvex_c/pyvex_ircallee.c", "pyvex_c/pyvex_irregarray.c", "pyvex_c/pyvex_logging.c", "pyvex_c/pyvex_static.c"]
 
 setup(name="pyvex", version="1.0",
-	 py_modules=['pyvex'],
+	 packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
       ext_modules=[Extension(
 		"pyvex_c",
 		c_files,
