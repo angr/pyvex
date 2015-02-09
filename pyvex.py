@@ -23,23 +23,61 @@ class IRSB(vex):
         vex.__init__(self)
         pyvex_c.init_IRSB(self, *args, **kwargs)
 
-class IRTypeEnv(vex): pass
-class IRCallee(vex): pass
-class IRRegArray(vex): pass
+    def pp(self):
+        print "IRSB {"
+        print "   %s" % self.tyenv
+        print ""
+        for i,s in enumerate(self.statements):
+            print "   %02d | %s" % (i,s)
+        print "   NEXT: PUT(%s) = %s; %s" % (self.offsIP, self.next, self.jumpkind)
+        print "}"
+
+class IRTypeEnv(vex):
+    def __str__(self):
+        return ' '.join(("t%d:%s" % (i,t)) for i,t in enumerate(self.types))
+
+class IRCallee(vex):
+    def __str__(self):
+        return self.name
+class IRRegArray(vex):
+    def __str__(self):
+        return "%s:%sx%d" % (self.base, self.elemTy[4:], self.nElems)
 
 # IRConst heirarchy
 class IRConst(vex): pass
-class IRConstU1(IRConst): pass
-class IRConstU8(IRConst): pass
-class IRConstU16(IRConst): pass
-class IRConstU32(IRConst): pass
-class IRConstU64(IRConst): pass
-class IRConstF32(IRConst): pass
-class IRConstF32i(IRConst): pass
-class IRConstF64(IRConst): pass
-class IRConstF64i(IRConst): pass
-class IRConstV128(IRConst): pass
-class IRConstV256(IRConst): pass
+class IRConstU1(IRConst):
+    def __str__(self):
+        return "%d" % self.value
+class IRConstU8(IRConst):
+    def __str__(self):
+        return "0x%02x" % self.value
+class IRConstU16(IRConst):
+    def __str__(self):
+        return "0x%04x" % self.value
+class IRConstU32(IRConst):
+    def __str__(self):
+        return "0x%08x" % self.value
+class IRConstU64(IRConst):
+    def __str__(self):
+        return "0x%016x" % self.value
+class IRConstF32(IRConst):
+    def __str__(self):
+        return "%f" % self.value
+class IRConstF32i(IRConst):
+    def __str__(self):
+        return "%f" % self.value
+class IRConstF64(IRConst):
+    def __str__(self):
+        return "%f" % self.value
+class IRConstF64i(IRConst):
+    def __str__(self):
+        return "%f" % self.value
+class IRConstV128(IRConst):
+    def __str__(self):
+        return "%x" % self.value
+class IRConstV256(IRConst):
+    def __str__(self):
+        return "%x" % self.value
 
 IRConst.U1 = IRConstU1
 IRConst.U8 = IRConstU8
@@ -55,20 +93,51 @@ IRConst.V256 = IRConstV256
 
 # IRStmt heirarchy
 class IRStmt(vex): pass
-class IRStmtNoOp(IRStmt): pass
-class IRStmtIMark(IRStmt): pass
-class IRStmtAbiHint(IRStmt): pass
-class IRStmtPut(IRStmt): pass
-class IRStmtPutI(IRStmt): pass
-class IRStmtWrTmp(IRStmt): pass
-class IRStmtStore(IRStmt): pass
-class IRStmtCAS(IRStmt): pass
-class IRStmtLLSC(IRStmt): pass
-class IRStmtMBE(IRStmt): pass
-class IRStmtDirty(IRStmt): pass
-class IRStmtExit(IRStmt): pass
-class IRStmtLoadG(IRStmt): pass
-class IRStmtStoreG(IRStmt): pass
+class IRStmtNoOp(IRStmt):
+    def __str__(self):
+        return "IR-NoOp"
+class IRStmtIMark(IRStmt):
+    def __str__(self):
+        return "------ IMark(0x%x, %d, %d) ------" % (self.addr, self.len, self.delta)
+class IRStmtAbiHint(IRStmt):
+    def __str__(self):
+        return "====== AbiHint(0x%s, %d, %s) ======" % (self.base, self.len, self.nia)
+class IRStmtPut(IRStmt):
+    def __str__(self):
+        return "PUT(%d) = %s" % (self.offset, self.data)
+class IRStmtPutI(IRStmt):
+    def __str__(self):
+        return "PUTI(%s)[%s,%d] = %s" % (descr, ix, bias)
+class IRStmtWrTmp(IRStmt):
+    def __str__(self):
+        return "t%d = %s" % (self.tmp, self.data)
+class IRStmtStore(IRStmt):
+    def __str__(self):
+        return "ST%s(%s) = %s" % (self.endness[-2:].lower(), self.addr, self.data)
+class IRStmtCAS(IRStmt):
+    def __str__(self):
+        return "t(%s,%s) = CAS%s(%s :: (%s,%s)->(%s,%s))" % (self.oldLo, self.oldHi, self.end[-2:].lower(), self.addr, self.expdLo, self.expdHi, self.dataLo, self.dataHi)
+class IRStmtLLSC(IRStmt):
+    def __str__(self):
+        if self.storedata is None:
+            return "result = LD%s-Linked(%s)" % (self.end[-2:].lower(), self.addr)
+        else:
+            return "result = ( ST%s-Cond(%s) = %s )" % (self.end[-2:].lower(), self.addr, self.storedata)
+class IRStmtMBE(IRStmt):
+    def __str__(self):
+        return "MBusEvent-" + self.event
+class IRStmtDirty(IRStmt):
+    def __str__(self):
+        return "t%s = DIRTY %s %s ::: %s(%s)" % (self.tmp, self.guard, "TODO(effects)", self.cee, ','.join(str(a) for a in self.args))
+class IRStmtExit(IRStmt):
+    def __str__(self):
+        return "if (%s) goto {%s} %s" % (self.guard, self.jumpkind, hex(self.dst.value))
+class IRStmtLoadG(IRStmt):
+    def __str__(self):
+        return "t%d = if (%s) %s(LD%s(%s)) else %s" % (self.tmp, self.guard, self.cvt, self.end[-2:].lower(), self.addr, self.alt)
+class IRStmtStoreG(IRStmt):
+    def __str__(self):
+        return "if (%s) ST%s(%s) = %s" % (self.guard, self.end[-2:].lower(), self.addr, self.data)
 
 IRStmt.NoOp = IRStmtNoOp
 IRStmt.IMark = IRStmtIMark
@@ -87,20 +156,48 @@ IRStmt.StoreG = IRStmtStoreG
 
 # IRExpr heirarchy
 class IRExpr(vex): pass
-class IRExprBinder(IRExpr): pass
-class IRExprVECRET(IRExpr): pass
-class IRExprBBPTR(IRExpr): pass
-class IRExprGetI(IRExpr): pass
-class IRExprRdTmp(IRExpr): pass
-class IRExprGet(IRExpr): pass
-class IRExprQop(IRExpr): pass
-class IRExprTriop(IRExpr): pass
-class IRExprBinop(IRExpr): pass
-class IRExprUnop(IRExpr): pass
-class IRExprLoad(IRExpr): pass
-class IRExprConst(IRExpr): pass
-class IRExprITE(IRExpr): pass
-class IRExprCCall(IRExpr): pass
+class IRExprBinder(IRExpr):
+    def __str__(self):
+        return "Binder"
+class IRExprVECRET(IRExpr):
+    def __str__(self):
+        return "VECRET"
+class IRExprBBPTR(IRExpr):
+    def __str__(self):
+        return "BBPTR"
+class IRExprGetI(IRExpr):
+    def __str__(self):
+        return "GETI(%s)[%s,%s]" % (self.descr, self.ix, self.bias)
+class IRExprRdTmp(IRExpr):
+    def __str__(self):
+        return "t%d" % self.tmp
+class IRExprGet(IRExpr):
+    def __str__(self):
+        return "GET:%s(%d)" % (self.ty[4:], self.offset)
+class IRExprQop(IRExpr):
+    def __str__(self):
+        return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
+class IRExprTriop(IRExpr):
+    def __str__(self):
+        return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
+class IRExprBinop(IRExpr):
+    def __str__(self):
+        return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
+class IRExprUnop(IRExpr):
+    def __str__(self):
+        return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
+class IRExprLoad(IRExpr):
+    def __str__(self):
+        return "LD%s:%s(%s)" % (self.end[-2:].lower(), self.ty[4:], self.addr)
+class IRExprConst(IRExpr):
+    def __str__(self):
+        return str(self.con)
+class IRExprITE(IRExpr):
+    def __str__(self):
+        return "ITE(%s,%s,%s)" % (self.cond, self.iftrue, self.iffalse)
+class IRExprCCall(IRExpr):
+    def __str__(self):
+        return "%s(%s):%s" % (self.cee, ','.join(str(a) for a in self.args), self.retty)
 
 IRExpr.Binder = IRExprBinder
 IRExpr.VECRET = IRExprVECRET
