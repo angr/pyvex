@@ -195,7 +195,11 @@ PyObject *export_IRStmtLoadG(IRStmt *stmt, IRTypeEnv *tyenv)
 	IRType out;
 	IRType in;
 	typeOfIRLoadGOp(stmt->Ist.LoadG.details->cvt, &out, &in);
-	PYVEX_SETATTRSTRING(r, "cvt_types", Py_BuildValue("(OO)", export_IRType(in), export_IRType(out)));
+	PyObject *in_obj = export_IRType(in);
+	PyObject *out_obj = export_IRType(out);
+	PYVEX_SETATTRSTRING(r, "cvt_types", Py_BuildValue("(OO)", in_obj, out_obj));
+	Py_DECREF(in_obj);
+	Py_DECREF(out_obj);
 
 	return r;
 }

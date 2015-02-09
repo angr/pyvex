@@ -81,6 +81,11 @@ PyObject *export_IRExprQop(IRExpr *expr, IRTypeEnv *tyenv)
 
 	PYVEX_SETATTRSTRING(r, "args", Py_BuildValue("(OOOO)", a1, a2, a3, a4));
 
+	Py_DECREF(a1);
+	Py_DECREF(a2);
+	Py_DECREF(a3);
+	Py_DECREF(a4);
+
 	return r;
 }
 
@@ -100,6 +105,10 @@ PyObject *export_IRExprTriop(IRExpr *expr, IRTypeEnv *tyenv)
 
 	PYVEX_SETATTRSTRING(r, "args", Py_BuildValue("(OOO)", a1, a2, a3));
 
+	Py_DECREF(a1);
+	Py_DECREF(a2);
+	Py_DECREF(a3);
+
 	return r;
 }
 
@@ -117,6 +126,9 @@ PyObject *export_IRExprBinop(IRExpr *expr, IRTypeEnv *tyenv)
 
 	PYVEX_SETATTRSTRING(r, "args", Py_BuildValue("(OO)", a1, a2));
 
+	Py_DECREF(a1);
+	Py_DECREF(a2);
+
 	return r;
 }
 
@@ -131,6 +143,8 @@ PyObject *export_IRExprUnop(IRExpr *expr, IRTypeEnv *tyenv)
 	//PYVEX_SETATTRSTRING(r, "arg1", a1);
 	//PYVEX_SETATTRSTRING(r, "arg", a1);
 	PYVEX_SETATTRSTRING(r, "args", Py_BuildValue("(O)", a1));
+
+	Py_DECREF(a1);
 
 	return r;
 }

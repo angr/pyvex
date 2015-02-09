@@ -70,6 +70,7 @@ PyObject *init_IRSB(PyObject *self, PyObject *args, PyObject *kwargs)
 		}
 		if (irsb == NULL) return NULL;
 
+		//ppIRSB(irsb);
 		export_IRSB(py_irsb, irsb);
 		Py_RETURN_NONE;
 	}
