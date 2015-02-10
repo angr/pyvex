@@ -34,6 +34,9 @@ class IRSB(vex):
 
     @property
     def expressions(self):
+        '''
+        All expressions contained in the IRSB.
+        '''
         expressions = [ ]
         for s in self.statements:
             expressions.extend(s.expressions)
@@ -42,11 +45,28 @@ class IRSB(vex):
 
     @property
     def operations(self):
+        '''
+        All operations done by the IRSB.
+        '''
         ops = [ ]
         for e in self.expressions:
             if hasattr(e, 'op'):
                 ops.append(e.op)
         return ops
+
+    @property
+    def all_constants(self):
+        '''
+        Returns all constants (including incrementing of the program counter).
+        '''
+        return sum((e.constants for e in self.expressions), [ ])
+
+    @property
+    def constants(self):
+        '''
+        The constants (excluding updates of the program counter) in the IRSB.
+        '''
+        return sum((s.constants for s in self.statements if not (isinstance(s, IRStmt.Put) and s.offset == self.offsIP)), [ ])
 
 class IRTypeEnv(vex):
     def __str__(self):

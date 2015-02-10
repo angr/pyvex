@@ -11,6 +11,10 @@ class IRStmt(vex):
                 expressions.extend(v.child_expressions)
         return expressions
 
+    @property
+    def constants(self):
+        return sum((e.constants for e in self.expressions), [ ])
+
 class NoOp(IRStmt):
     def __str__(self):
         return "IR-NoOp"
@@ -57,6 +61,14 @@ class MBE(IRStmt):
 class Dirty(IRStmt):
     def __str__(self):
         return "t%s = DIRTY %s %s ::: %s(%s)" % (self.tmp, self.guard, "TODO(effects)", self.cee, ','.join(str(a) for a in self.args))
+
+    @property
+    def child_expressions(self):
+        expressions = sum((a.child_expressions for a in self.args), [ ])
+        expressions.extend(self.args)
+        expressions.append(self.guard)
+        expressions.extend(self.guard.child_expressions)
+        return expressions
 
 class Exit(IRStmt):
     def __str__(self):
