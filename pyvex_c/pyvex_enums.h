@@ -4,7 +4,7 @@
 
 #include <libvex_ir.h>
 #include <Python.h>
-#include "pymare.h"
+#include "enum_macros.h"
 
 PYMARE_ENUM_HEADER(VexArch)
 PYMARE_ENUM_HEADER(VexEndness)
