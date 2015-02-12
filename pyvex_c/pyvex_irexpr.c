@@ -234,7 +234,14 @@ PyObject *export_IRExpr(IRExpr *expr, IRTypeEnv *tyenv)
 			Py_RETURN_NONE;
 	}
 
-	PYVEX_SETATTRSTRING(r, "result_type", export_IRType(typeOfIRExpr(tyenv, expr)));
+	if (expr->tag == Iex_BBPTR)
+	{
+		PYVEX_SETATTRSTRING(r, "result_type", export_IRType(Ity_INVALID));
+	}
+	else
+	{
+		PYVEX_SETATTRSTRING(r, "result_type", export_IRType(typeOfIRExpr(tyenv, expr)));
+	}
 
 	// the expr tag
 	PYVEX_SETATTRSTRING(r, "tag", export_IRExprTag(expr->tag));
