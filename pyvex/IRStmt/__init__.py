@@ -72,7 +72,7 @@ class Dirty(IRStmt):
 
 class Exit(IRStmt):
     def __str__(self):
-        return "if (%s) goto {%s} %s" % (self.guard, self.jumpkind, hex(self.dst.value))
+        return "if (%s) { PUT(%d) = %s; %s }" % (self.guard, self.offsIP, hex(self.dst.value), self.jumpkind)
 
 class LoadG(IRStmt):
     def __str__(self):
