@@ -115,7 +115,7 @@ PyObject *actual_init(PyObject *self, PyObject *pyvex_module)
 	pyvexIRExprCCall = PyObject_GetAttrString(pyvexIRExpr, "CCall");
 
 	PyVEXError = PyObject_GetAttrString(pyvex_module, "PyVEXError");
-	pyvex_init_enums(module);
+	pyvex_init_enums(pyvex_module);
 
 	Py_RETURN_NONE;
 }
