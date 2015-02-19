@@ -54,7 +54,18 @@ PyObject *export_IRConst(IRConst *c)
 	}
 
 	PYVEX_SETATTRSTRING(r, "tag", export_IRConstTag(c->tag));
-	PYVEX_SETATTRSTRING(r, "type", export_IRType(typeOfIRConst(c)));
+
+	IRType expr_type = typeOfIRConst(c);
+	PYVEX_SETATTRSTRING(r, "type", export_IRType(expr_type));
+
+	if (expr_type == Ity_I1)
+	{
+		PYVEX_SETATTRSTRING(r, "size", PyInt_FromLong(1));
+	}
+	else
+	{
+		PYVEX_SETATTRSTRING(r, "size", PyInt_FromLong(8*sizeofIRType(expr_type)));
+	}
 
 	return r;
 }
