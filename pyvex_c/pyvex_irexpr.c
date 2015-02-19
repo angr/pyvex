@@ -237,10 +237,21 @@ PyObject *export_IRExpr(IRExpr *expr, IRTypeEnv *tyenv)
 	if (expr->tag == Iex_BBPTR)
 	{
 		PYVEX_SETATTRSTRING(r, "result_type", export_IRType(Ity_INVALID));
+		PYVEX_SETATTRSTRING(r, "result_size", PyInt_FromLong(0));
 	}
 	else
 	{
-		PYVEX_SETATTRSTRING(r, "result_type", export_IRType(typeOfIRExpr(tyenv, expr)));
+		IRType expr_type = typeOfIRExpr(tyenv, expr);
+		PYVEX_SETATTRSTRING(r, "result_type", export_IRType(expr_type));
+
+		if (expr_type == Ity_I1)
+		{
+			PYVEX_SETATTRSTRING(r, "result_size", PyInt_FromLong(1));
+		}
+		else
+		{
+			PYVEX_SETATTRSTRING(r, "result_size", PyInt_FromLong(8*sizeofIRType(expr_type)));
+		}
 	}
 
 	// the expr tag
