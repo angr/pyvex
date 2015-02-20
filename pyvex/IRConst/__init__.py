@@ -1,7 +1,12 @@
 from .. import vex
 
 # IRConst heirarchy
-class IRConst(vex): pass
+class IRConst(vex):
+    def __init__(self, value=None):
+        if value is None:
+            super(vex, self).__init__()
+        else:
+            self.value = value
 
 class U1(IRConst):
     def __str__(self):

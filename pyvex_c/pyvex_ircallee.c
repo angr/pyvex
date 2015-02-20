@@ -12,12 +12,11 @@ PyObject *export_IRCallee(IRCallee *c)
 {
 	if (!c) Py_RETURN_NONE;
 
-	PyObject *r = PyObject_CallObject(pyvexIRCallee, NULL);
-
-	PYVEX_SETATTRSTRING(r, "regparms", PyInt_FromLong(c->regparms));
-	PYVEX_SETATTRSTRING(r, "name", PyString_FromString(c->name));
-	PYVEX_SETATTRSTRING(r, "mcx_mask", PyInt_FromLong(c->mcx_mask));
-	PYVEX_SETATTRSTRING(r, "addr", PyInt_FromLong((unsigned long long)c->addr));
+	PyObject *r = PyObject_CallObject(pyvexIRCallee, PyTuple_Pack(4,
+        PyInt_FromLong(c->regparms),
+        PyString_FromString(c->name),
+        PyInt_FromLong((unsigned long long)c->addr),
+        PyInt_FromLong(c->mcx_mask)));
 
 	return r;
 }

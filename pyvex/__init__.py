@@ -69,12 +69,23 @@ class IRSB(vex):
         return sum((s.constants for s in self.statements if not (isinstance(s, IRStmt.Put) and s.offset == self.offsIP)), [ ])
 
 class IRTypeEnv(vex):
+    def __init__(self, types):
+        self.types = types
+        self.types_used = len(types)
+
     def __str__(self):
         return ' '.join(("t%d:%s" % (i,t)) for i,t in enumerate(self.types))
 
 class IRCallee(vex):
+    def __init__(self, regparms, name, addr, mcx_mask):
+        self.regparms = regparms
+        self.name = name
+        self.mcx_mask = mcx_mask
+        self.addr = addr
+        
     def __str__(self):
         return self.name
+
 class IRRegArray(vex):
     def __str__(self):
         return "%s:%sx%d" % (self.base, self.elemTy[4:], self.nElems)

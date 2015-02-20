@@ -17,57 +17,55 @@ def test_ircallee():
 ############
 
 def test_irsb_empty():
-    irsb = pyvex.IRSB()
-    stmts = irsb.statements()
-    nose.tools.assert_equal(len(stmts), 0)
+    nose.tools.assert_raises(pyvex.PyVEXError, pyvex.IRSB)
+    nose.tools.assert_raises(pyvex.PyVEXError, pyvex.IRSB, bytes='')
 
 def test_irsb_arm():
     irsb = pyvex.IRSB(bytes='\x33\xff\x2f\xe1', arch="VexArchARM")
-    nose.tools.assert_equal(sum([ 1 for i in irsb.statements() if type(i) == pyvex.IRStmt.IMark ]), 1)
+    nose.tools.assert_equal(sum([ 1 for i in irsb.statements if type(i) == pyvex.IRStmt.IMark ]), 1)
 
 def test_irsb_popret():
     irsb = pyvex.IRSB(bytes='\x5d\xc3')
-    stmts = irsb.statements()
+    stmts = irsb.statements
     irsb.pp()
 
     nose.tools.assert_greater(len(stmts), 0)
     nose.tools.assert_equal(irsb.jumpkind, "Ijk_Ret")
     nose.tools.assert_equal(irsb.offsIP, 184)
 
-    cursize = len(irsb.tyenv.types())
+    cursize = len(irsb.tyenv.types)
     nose.tools.assert_greater(cursize, 0)
-    new_tmp = irsb.tyenv.newTemp("Ity_I32")
-    nose.tools.assert_equal(cursize + 1, len(irsb.tyenv.types()))
-    nose.tools.assert_equal(irsb.tyenv.typeOf(new_tmp), "Ity_I32")
-
-    nose.tools.assert_equal(irsb.tyenv.typeOf(irsb.statements()[16].data), 'Ity_I64')
+    print irsb.statements[16].data
+    print irsb.statements[16].data.tmp
+    print irsb.tyenv.types[irsb.statements[16].data]
+    nose.tools.assert_equal(irsb.tyenv.typeOf(irsb.statements[16].data), 'Ity_I64')
 
 def test_two_irsb():
     irsb1 = pyvex.IRSB(bytes='\x5d\xc3')
     irsb2 = pyvex.IRSB(bytes='\x5d\x5d\x5d\x5d')
 
-    stmts1 = irsb1.statements()
-    stmts2 = irsb2.statements()
+    stmts1 = irsb1.statements
+    stmts2 = irsb2.statements
 
     nose.tools.assert_not_equal(len(stmts1), len(stmts2))
 
 def test_irsb_deepCopy():
     irsb = pyvex.IRSB(bytes='\x5d\xc3')
-    stmts = irsb.statements()
+    stmts = irsb.statements
 
     irsb2 = irsb.deepCopy()
-    stmts2 = irsb2.statements()
+    stmts2 = irsb2.statements
     nose.tools.assert_equal(len(stmts), len(stmts2))
 
 def test_irsb_addStmt():
     irsb = pyvex.IRSB(bytes='\x5d\xc3')
-    stmts = irsb.statements()
+    stmts = irsb.statements
 
     irsb2 = irsb.deepCopyExceptStmts()
-    nose.tools.assert_equal(len(irsb2.statements()), 0)
+    nose.tools.assert_equal(len(irsb2.statements), 0)
 
     for n, i in enumerate(stmts):
-        nose.tools.assert_equal(len(irsb2.statements()), n)
+        nose.tools.assert_equal(len(irsb2.statements), n)
         irsb2.addStatement(i.deepCopy())
 
     irsb2.pp()
@@ -76,17 +74,17 @@ def test_irsb_tyenv():
     irsb = pyvex.IRSB(bytes='\x5d\xc3')
     print irsb.tyenv
     print "Orig"
-    irsb.tyenv.pp()
+    print irsb.tyenv
     print "Copy"
-    irsb.tyenv.deepCopy().pp()
+    print irsb.tyenv.deepCopy()
 
     print "Empty"
     irsb2 = pyvex.IRSB()
-    irsb2.tyenv.pp()
+    print irsb2.tyenv
 
     print "Unwrapped"
     irsb2.tyenv = irsb.tyenv.deepCopy()
-    irsb2.tyenv.pp()
+    print irsb2.tyenv
 
 ##################
 ### Statements ###
@@ -97,18 +95,17 @@ def test_empty_irstmt_fail():
 
 def test_irstmt_pp():
     irsb = pyvex.IRSB(bytes='\x5d\xc3')
-    stmts = irsb.statements()
+    stmts = irsb.statements
     for i in stmts:
         print "STMT: ",
-        i.pp()
-        print
+        print i
 
 def test_irstmt_flat():
     print "TODO"
 
 def test_irstmt_noop():
     irsb = pyvex.IRSB(bytes='\x90\x5d\xc3')
-    irnop = irsb.statements()[0]
+    irnop = irsb.statements[0]
     irnop2 = pyvex.IRStmt.NoOp()
     irnop3 = irnop2.deepCopy()
 
@@ -151,7 +148,7 @@ def test_irstmt_put():
     a = pyvex.IRExpr.RdTmp(123)
     m = pyvex.IRStmt.Put(10, a)
     print "Put stmt:",
-    m.pp()
+    print m
     print ""
     nose.tools.assert_equal(m.data.tmp, 123)
     nose.tools.assert_equal(m.offset, 10)

@@ -11,16 +11,12 @@ PyObject *export_IRTypeEnv(IRTypeEnv *t)
 {
 	if (!t) Py_RETURN_NONE;
 
-	PyObject *r = PyObject_CallObject(pyvexIRTypeEnv, NULL);
-
-	PYVEX_SETATTRSTRING(r, "types_used", PyInt_FromLong(t->types_used));
-
 	PyObject *types = PyTuple_New(t->types_used);
 	for (int i = 0; i < t->types_used; i++)
 	{
 		PyTuple_SetItem(types, i, export_IRType(t->types[i]));
 	}
-	PYVEX_SETATTRSTRING(r, "types", types);
 
+	PyObject *r = PyObject_CallObject(pyvexIRTypeEnv, PyTuple_Pack(1, types));
 	return r;
 }

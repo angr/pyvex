@@ -33,7 +33,7 @@ class Put(IRStmt):
 
 class PutI(IRStmt):
     def __str__(self):
-        return "PUTI(%s)[%s,%d] = %s" % (descr, ix, bias)
+        return "PUTI(%s)[%s,%d] = %s" % (self.descr, self.ix, self.bias, self.data)
 
 class WrTmp(IRStmt):
     def __str__(self):
