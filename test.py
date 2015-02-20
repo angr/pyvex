@@ -2,10 +2,19 @@ import pyvex
 import nose
 import random
 import resource
+import gc
 
 def test_memory():
     arches = [ 'VexArchX86', 'VexArchPPC32', 'VexArchAMD64', 'VexArchARM' ]
     # we're not including VexArchMIPS32 cause it segfaults sometimes
+
+    for i in xrange(10000):
+        try:
+            s = hex(random.randint(2**100,2**100*16))[2:]
+            a = random.choice(arches)
+            p = pyvex.IRSB(bytes=s, arch=a)
+        except pyvex.PyVEXError:
+            pass
 
     kb_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
@@ -17,6 +26,7 @@ def test_memory():
         except pyvex.PyVEXError:
             pass
     del p
+    gc.collect()
 
     kb_end = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
