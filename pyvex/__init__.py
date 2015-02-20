@@ -5,14 +5,14 @@ import collections
 _counts = collections.Counter()
 
 class vex(object):
-    #pass
-    def __init__(self):
-        #print "CREATING:",type(self)
-        _counts[type(self)] += 1
+    pass
+    #def __init__(self):
+    #   #print "CREATING:",type(self)
+    #   _counts[type(self)] += 1
 
-    def __del__(self):
-        #print "DELETING:",type(self)
-        _counts[type(self)] -= 1
+    #def __del__(self):
+    #   #print "DELETING:",type(self)
+    #   _counts[type(self)] -= 1
 
 class PyVEXError(Exception): pass
 
