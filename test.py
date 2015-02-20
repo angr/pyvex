@@ -1,5 +1,27 @@
 import pyvex
 import nose
+import random
+import resource
+
+def test_memory():
+    arches = [ 'VexArchX86', 'VexArchPPC32', 'VexArchAMD64', 'VexArchARM' ]
+    # we're not including VexArchMIPS32 cause it segfaults sometimes
+
+    kb_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+
+    for i in xrange(20000):
+        try:
+            s = hex(random.randint(2**100,2**100*16))[2:]
+            a = random.choice(arches)
+            p = pyvex.IRSB(bytes=s, arch=a)
+        except pyvex.PyVEXError:
+            pass
+    del p
+
+    kb_end = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+
+    # allow a 2mb leeway
+    nose.tools.assert_less(kb_end - kb_start, 2000)
 
 ################
 ### IRCallee ###
@@ -531,4 +553,4 @@ def test_irexpr_ccall():
     nose.tools.assert_equals(len(m.args()), 0)
 
 if __name__ == '__main__':
-    test_ircallee()
+    test_memory()
