@@ -56,9 +56,13 @@ PyObject *export_IRExprGet(IRExpr *expr, IRTypeEnv *tyenv)
 
 PyObject *export_IRExprRdTmp(IRExpr *expr, IRTypeEnv *tyenv)
 {
-	PyObject *r = PyObject_CallObject(pyvexIRExprRdTmp, NULL);
+	PyObject *tmp = PyInt_FromLong(expr->Iex.RdTmp.tmp);
+	PyObject *args = PyTuple_Pack(1, tmp);
 
-	PYVEX_SETATTRSTRING(r, "tmp", PyInt_FromLong(expr->Iex.RdTmp.tmp));
+	PyObject *r = PyObject_CallObject(pyvexIRExprRdTmp, args);
+
+	Py_DECREF(tmp);
+	Py_DECREF(args);
 
 	return r;
 }

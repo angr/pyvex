@@ -1,19 +1,18 @@
 import pyvex_c
 import sys
 
-#import collections
-#_counts = collections.Counter()
+import collections
+_counts = collections.Counter()
 
 class vex(object):
-    pass
-    #def __init__(self):
-    #   print "CREATING:",type(self)
-    #   _counts[type(self)] += 1
+    #pass
+    def __init__(self):
+        #print "CREATING:",type(self)
+        _counts[type(self)] += 1
 
-    #def __del__(self):
-    #   global n
-    #   print "DELETING:",type(self)
-    #   _counts[type(self)] -= 1
+    def __del__(self):
+        #print "DELETING:",type(self)
+        _counts[type(self)] -= 1
 
 class PyVEXError(Exception): pass
 
@@ -70,6 +69,7 @@ class IRSB(vex):
 
 class IRTypeEnv(vex):
     def __init__(self, types):
+        vex.__init__(self)
         self.types = types
         self.types_used = len(types)
 
@@ -78,6 +78,7 @@ class IRTypeEnv(vex):
 
 class IRCallee(vex):
     def __init__(self, regparms, name, addr, mcx_mask):
+        vex.__init__(self)
         self.regparms = regparms
         self.name = name
         self.mcx_mask = mcx_mask

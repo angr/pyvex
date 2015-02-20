@@ -44,11 +44,10 @@ class GetI(IRExpr):
         return "GETI(%s)[%s,%s]" % (self.descr, self.ix, self.bias)
 
 class RdTmp(IRExpr):
-    def __init__(self, tmp=None):
-        if tmp is None:
-            super(vex, self).__init__()
-        else:
-            self.tmp = tmp
+    def __init__(self, tmp):
+        vex.__init__(self)
+        self.tmp = tmp
+
     def __str__(self):
         return "t%d" % self.tmp
 

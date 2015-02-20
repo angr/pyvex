@@ -17,6 +17,11 @@ PyObject *export_IRTypeEnv(IRTypeEnv *t)
 		PyTuple_SetItem(types, i, export_IRType(t->types[i]));
 	}
 
-	PyObject *r = PyObject_CallObject(pyvexIRTypeEnv, PyTuple_Pack(1, types));
+	PyObject *args = PyTuple_Pack(1, types);
+
+	PyObject *r = PyObject_CallObject(pyvexIRTypeEnv, args);
+
+	Py_DECREF(args);
+	Py_DECREF(types);
 	return r;
 }

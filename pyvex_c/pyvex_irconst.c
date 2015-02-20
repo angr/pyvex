@@ -12,8 +12,11 @@
 #define PYVEX_EXPORT_CONST(name, type, format) \
 PyObject *export_IRConst##name(IRConst *c) \
 { \
-	PyObject *r = PyObject_CallObject(pyvexIRConst##name, NULL); \
-	PYVEX_SETATTRSTRING(r, "value", Py_BuildValue(format, c->Ico.name)); \
+	PyObject *v = Py_BuildValue(format, c->Ico.name); \
+	PyObject *args = PyTuple_Pack(1, v); \
+	PyObject *r = PyObject_CallObject(pyvexIRConst##name, args); \
+	Py_DECREF(args); \
+	Py_DECREF(v); \
 	return r; \
 }
 
