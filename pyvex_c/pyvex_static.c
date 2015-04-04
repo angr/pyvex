@@ -140,7 +140,6 @@ void vex_init()
 	LibVEX_Init(&failure_exit,
 	            &log_bytes,
 	            0,              // Debug level
-	            False,          // Valgrind support
 	            &vc );
 	debug("LibVEX_Init() done....\n");
 
@@ -154,8 +153,8 @@ void vex_init()
 	// ... forgot what the former one is for, but it avoids an assert somewhere
 	// ... the latter two are for dealing with gs and fs in VEX
 	vbi.guest_stack_redzone_size = 128;
-	vbi.guest_amd64_assume_fs_is_zero = True;
-	vbi.guest_amd64_assume_gs_is_0x60 = True;
+	vbi.guest_amd64_assume_fs_is_const = True;
+	vbi.guest_amd64_assume_gs_is_const = True;
 
 	//------------------------------------
 	// options for instruction translation
