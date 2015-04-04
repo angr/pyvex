@@ -3,7 +3,7 @@
 #ifndef __PYMARE_TYPES_H
 #define __PYMARE_TYPES_H
 
-#include <libvex.h>
+#include "libvex.h"
 #include <Python.h>
 
 // the module itself

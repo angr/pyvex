@@ -21,7 +21,7 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <libvex.h>
+#include "libvex.h"
 
 #include "pyvex_types.h"
 #include "pyvex_static.h"
@@ -62,7 +62,7 @@ __attribute((noreturn)) void failure_exit( void )
 	exit(1);
 }
 
-void log_bytes( HChar* bytes, Int nbytes )
+void log_bytes( const HChar* bytes, SizeT nbytes )
 {
 	Int i;
 	for (i = 0; i < nbytes - 3; i += 4)
@@ -71,13 +71,13 @@ void log_bytes( HChar* bytes, Int nbytes )
 		printf("%c", bytes[i]);
 }
 
-Bool chase_into_ok( void *closureV, Addr64 addr64 )
+Bool chase_into_ok( void *closureV, Addr addr64 )
 {
 	return False;
 }
 
 // TODO: figure out what this is for
-UInt needs_self_check(void *callback_opaque, VexGuestExtents *guest_extents)
+UInt needs_self_check(void *callback_opaque, VexRegisterUpdates* pxControl, const VexGuestExtents *guest_extents)
 {
 	return 0;
 }
@@ -92,8 +92,9 @@ void *dispatch(void)
 //----------------------------------------------------------------------
 IRSB *instrument1(  void *callback_opaque,
                     IRSB *irbb,
-                    VexGuestLayout *vgl,
-                    VexGuestExtents *vge,
+                    const VexGuestLayout *vgl,
+                    const VexGuestExtents *vge,
+                    const VexArchInfo *vae,
                     IRType gWordTy,
                     IRType hWordTy )
 {
@@ -180,7 +181,7 @@ void vex_init()
 	vta.preamble_function   = NULL;
 	vta.instrument1         = instrument1;      // Callback we defined to help us save the IR
 	vta.instrument2         = NULL;
-	vta.finaltidy		= NULL;
+	vta.finaltidy	    	= NULL;
 	vta.needs_self_check	= needs_self_check;	
 
 	#if 0

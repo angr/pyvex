@@ -1,7 +1,7 @@
 // This code is GPLed by Yan Shoshitaishvili
 
 #include <Python.h>
-#include <libvex.h>
+#include "libvex.h"
 
 #include "pyvex_types.h"
 #include "pyvex_enums.h"

@@ -2,7 +2,7 @@
 
 #include <Python.h>
 #include <structmember.h>
-#include <libvex.h>
+#include "libvex.h"
 
 #include "pyvex_enums.h"
 #include "pyvex_types.h"
