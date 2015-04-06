@@ -1,5 +1,5 @@
 #include <Python.h>
-#include "libvex.h"
+#include <libvex.h>
 
 #define PYVEX_SETATTRSTRING(obj, name, attr) \
 	{ PyObject *o = attr; PyObject_SetAttrString(obj, name, o); Py_DECREF(o); }

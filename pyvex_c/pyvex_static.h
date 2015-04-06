@@ -3,7 +3,7 @@
 #ifndef __VEXIR_H
 #define __VEXIR_H
 
-#include "libvex.h"
+#include <libvex.h>
 
 // Some info required for translation
 extern VexArchInfo         vai;

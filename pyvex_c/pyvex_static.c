@@ -21,7 +21,7 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "libvex.h"
+#include <libvex.h>
 
 #include "pyvex_types.h"
 #include "pyvex_static.h"
