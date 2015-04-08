@@ -229,12 +229,23 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 			vai->arm64_iMinLine_lg2_szB = 6;
 			break;
 		case VexArchPPC32:
-			vai->hwcaps = 0;
+			vai->hwcaps =   VEX_HWCAPS_PPC32_F |
+                            VEX_HWCAPS_PPC32_V |
+                            VEX_HWCAPS_PPC32_FX |
+                            VEX_HWCAPS_PPC32_GX |
+                            VEX_HWCAPS_PPC32_VX |
+                            VEX_HWCAPS_PPC32_DFP |
+                            VEX_HWCAPS_PPC32_ISA2_07;
 			vai->ppc_icache_line_szB = 32; // unsure if correct
             		vai->endness = endness;
 			break;
 		case VexArchPPC64:
-			vai->hwcaps = 0;
+			vai->hwcaps =   VEX_HWCAPS_PPC64_V |
+                            VEX_HWCAPS_PPC64_FX |
+                            VEX_HWCAPS_PPC64_GX |
+                            VEX_HWCAPS_PPC64_VX |
+                            VEX_HWCAPS_PPC64_DFP |
+                            VEX_HWCAPS_PPC64_ISA2_07;
 			vai->ppc_icache_line_szB = 64; // unsure if correct
 			vai->endness = endness;
 			break;
