@@ -379,3 +379,7 @@ IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructi
 
 	return fullblock;
 }
+
+void set_iropt_level(int level) {
+    vex_update_iropt_level(level);
+}
