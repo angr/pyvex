@@ -102,3 +102,4 @@ for i in dir(pyvex_c):
         continue
     setattr(sys.modules[__name__], i, getattr(pyvex_c, i))
 typeOfIROp = pyvex_c.typeOfIROp
+set_iropt_level = pyvex_c.set_iropt_level

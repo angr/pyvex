@@ -25,5 +25,6 @@ IRSB *vex_instruction(VexArch guest, VexEndness endness, unsigned char *insn_sta
 IRSB *vex_block_bytes(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only);
 IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_inst);
 int vex_count_instructions(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only);
+void set_iropt_level(int level);
 
 #endif

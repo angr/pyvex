@@ -62,7 +62,7 @@ __attribute((noreturn)) void failure_exit( void )
 	exit(1);
 }
 
-void log_bytes( HChar* bytes, Int nbytes )
+void log_bytes( const HChar* bytes, SizeT nbytes )
 {
 	Int i;
 	for (i = 0; i < nbytes - 3; i += 4)
@@ -71,13 +71,13 @@ void log_bytes( HChar* bytes, Int nbytes )
 		printf("%c", bytes[i]);
 }
 
-Bool chase_into_ok( void *closureV, Addr64 addr64 )
+Bool chase_into_ok( void *closureV, Addr addr64 )
 {
 	return False;
 }
 
 // TODO: figure out what this is for
-UInt needs_self_check(void *callback_opaque, VexGuestExtents *guest_extents)
+UInt needs_self_check(void *callback_opaque, VexRegisterUpdates* pxControl, const VexGuestExtents *guest_extents)
 {
 	return 0;
 }
@@ -92,8 +92,9 @@ void *dispatch(void)
 //----------------------------------------------------------------------
 IRSB *instrument1(  void *callback_opaque,
                     IRSB *irbb,
-                    VexGuestLayout *vgl,
-                    VexGuestExtents *vge,
+                    const VexGuestLayout *vgl,
+                    const VexGuestExtents *vge,
+                    const VexArchInfo *vae,
                     IRType gWordTy,
                     IRType hWordTy )
 {
@@ -129,7 +130,7 @@ void vex_init()
 	LibVEX_default_VexControl(&vc);
 
 	vc.iropt_verbosity              = 0;
-	vc.iropt_level                  = 0;    // No optimization by default
+	vc.iropt_level                  = 1;    // No optimization by default
 	//vc.iropt_level                  = 2;
 	//vc.iropt_precise_memory_exns    = False;
 	vc.iropt_unroll_thresh          = 0;
@@ -140,7 +141,6 @@ void vex_init()
 	LibVEX_Init(&failure_exit,
 	            &log_bytes,
 	            0,              // Debug level
-	            False,          // Valgrind support
 	            &vc );
 	debug("LibVEX_Init() done....\n");
 
@@ -154,8 +154,8 @@ void vex_init()
 	// ... forgot what the former one is for, but it avoids an assert somewhere
 	// ... the latter two are for dealing with gs and fs in VEX
 	vbi.guest_stack_redzone_size = 128;
-	vbi.guest_amd64_assume_fs_is_zero = True;
-	vbi.guest_amd64_assume_gs_is_0x60 = True;
+	vbi.guest_amd64_assume_fs_is_const = True;
+	vbi.guest_amd64_assume_gs_is_const = True;
 
 	//------------------------------------
 	// options for instruction translation
@@ -181,7 +181,7 @@ void vex_init()
 	vta.preamble_function   = NULL;
 	vta.instrument1         = instrument1;      // Callback we defined to help us save the IR
 	vta.instrument2         = NULL;
-	vta.finaltidy		= NULL;
+	vta.finaltidy	    	= NULL;
 	vta.needs_self_check	= needs_self_check;	
 
 	#if 0
@@ -229,12 +229,23 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 			vai->arm64_iMinLine_lg2_szB = 6;
 			break;
 		case VexArchPPC32:
-			vai->hwcaps = 0;
+			vai->hwcaps =   VEX_HWCAPS_PPC32_F |
+                            VEX_HWCAPS_PPC32_V |
+                            VEX_HWCAPS_PPC32_FX |
+                            VEX_HWCAPS_PPC32_GX |
+                            VEX_HWCAPS_PPC32_VX |
+                            VEX_HWCAPS_PPC32_DFP |
+                            VEX_HWCAPS_PPC32_ISA2_07;
 			vai->ppc_icache_line_szB = 32; // unsure if correct
             		vai->endness = endness;
 			break;
 		case VexArchPPC64:
-			vai->hwcaps = 0;
+			vai->hwcaps =   VEX_HWCAPS_PPC64_V |
+                            VEX_HWCAPS_PPC64_FX |
+                            VEX_HWCAPS_PPC64_GX |
+                            VEX_HWCAPS_PPC64_VX |
+                            VEX_HWCAPS_PPC64_DFP |
+                            VEX_HWCAPS_PPC64_ISA2_07;
 			vai->ppc_icache_line_szB = 64; // unsure if correct
 			vai->endness = endness;
 			break;
@@ -367,4 +378,8 @@ IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructi
 	assert(vge.n_used == 1);
 
 	return fullblock;
+}
+
+void set_iropt_level(int level) {
+    vex_update_iropt_level(level);
 }

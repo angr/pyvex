@@ -128,10 +128,19 @@ PyObject *typeOfIROp(PyObject *self, PyObject *op)
 	return IRType_to_pystr(typeOfIRExpr(irsb->tyenv, e));
 }
 
+PyObject *pySetIROptLevel(PyObject *self, PyObject *op) {
+	long level = PyInt_AsLong(op);
+	if (level >= 0) {
+		set_iropt_level((int) level);
+	}
+	Py_RETURN_NONE;
+}
+
 static PyMethodDef module_methods[] = {
 	{"init", actual_init, METH_O},
 	{"init_IRSB", init_IRSB, METH_VARARGS | METH_KEYWORDS},
 	{"typeOfIROp", typeOfIROp, METH_O},
+	{"set_iropt_level", pySetIROptLevel, METH_O},
 	{NULL}  /* Sentinel */
 };
 
