@@ -209,7 +209,11 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 	switch (arch)
 	{
 		case VexArchX86:
-			vai->hwcaps = 0;
+			vai->hwcaps =   VEX_HWCAPS_X86_MMXEXT |
+                            VEX_HWCAPS_X86_SSE1 |
+                            VEX_HWCAPS_X86_SSE2 |
+                            VEX_HWCAPS_X86_SSE3 |
+                            VEX_HWCAPS_X86_LZCNT;
 			assert(endness == VexEndnessLE);
                         vai->endness = VexEndnessLE;
 			break;
