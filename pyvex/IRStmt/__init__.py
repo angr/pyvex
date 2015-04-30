@@ -29,7 +29,7 @@ class AbiHint(IRStmt):
 
 class Put(IRStmt):
     def __str__(self):
-        return "PUT(%d) = %s" % (self.arch.translate_register_name(self.offset), self.data)
+        return "PUT(%s) = %s" % (self.arch.translate_register_name(self.offset), self.data)
 
 class PutI(IRStmt):
     def __str__(self):

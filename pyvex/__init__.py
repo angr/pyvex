@@ -45,7 +45,7 @@ class IRSB(vex):
         print ""
         for i,s in enumerate(self.statements):
             print "   %02d | %s" % (i,s)
-        print "   NEXT: PUT(%s) = %s; %s" % (self.offsIP, self.next, self.jumpkind)
+        print "   NEXT: PUT(%s) = %s; %s" % (self.arch.translate_register_name(self.offsIP), self.next, self.jumpkind)
         print "}"
 
     @property
