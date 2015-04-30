@@ -20,6 +20,12 @@ class PyVEXError(Exception): pass
 class IRSB(vex):
     def __init__(self, *args, **kwargs):
         vex.__init__(self)
+        arch = kwargs.pop('arch')
+        if isinstance(arch, str):
+            kwargs['arch'] = arch
+        else:
+            kwargs['arch'] = arch.vex_arch
+            kwargs['endness'] = arch.vex_endness
         pyvex_c.init_IRSB(self, *args, **kwargs)
 
     def pp(self):
