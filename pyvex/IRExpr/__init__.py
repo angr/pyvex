@@ -53,7 +53,7 @@ class RdTmp(IRExpr):
 
 class Get(IRExpr):
     def __str__(self):
-        return "GET:%s(%d)" % (self.ty[4:], self.offset)
+        return "GET:%s(%s)" % (self.ty[4:], self.arch.translate_register_name(self.offset))
 
 class Qop(IRExpr):
     def __str__(self):

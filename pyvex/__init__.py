@@ -20,7 +20,24 @@ class PyVEXError(Exception): pass
 class IRSB(vex):
     def __init__(self, *args, **kwargs):
         vex.__init__(self)
+
+        self.statements = ()
+        self.tyenv = None
+        self.offsIP = None
+        self.next = None
+        self.jumpkind = None
+
+        arch = kwargs.pop('arch')
+        self.arch = arch
+        kwargs['arch'] = arch.vex_arch
+        kwargs['endness'] = arch.vex_endness
+
         pyvex_c.init_IRSB(self, *args, **kwargs)
+
+        for stmt in self.statements:
+            stmt.arch = self.arch
+        for expr in self.expressions:
+            expr.arch = self.arch
 
     def pp(self):
         print "IRSB {"
@@ -28,7 +45,7 @@ class IRSB(vex):
         print ""
         for i,s in enumerate(self.statements):
             print "   %02d | %s" % (i,s)
-        print "   NEXT: PUT(%s) = %s; %s" % (self.offsIP, self.next, self.jumpkind)
+        print "   NEXT: PUT(%s) = %s; %s" % (self.arch.translate_register_name(self.offsIP), self.next, self.jumpkind)
         print "}"
 
     @property
@@ -83,7 +100,7 @@ class IRCallee(vex):
         self.name = name
         self.mcx_mask = mcx_mask
         self.addr = addr
-        
+
     def __str__(self):
         return self.name
 
@@ -97,9 +114,9 @@ from . import IRStmt
 
 # and initialize!
 pyvex_c.init(sys.modules[__name__])
-for i in dir(pyvex_c):
-    if not i.startswith('enum'):
+for objname in dir(pyvex_c):
+    if not objname.startswith('enum'):
         continue
-    setattr(sys.modules[__name__], i, getattr(pyvex_c, i))
+    setattr(sys.modules[__name__], objname, getattr(pyvex_c, objname))
 typeOfIROp = pyvex_c.typeOfIROp
 set_iropt_level = pyvex_c.set_iropt_level
