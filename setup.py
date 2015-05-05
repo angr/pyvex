@@ -3,8 +3,7 @@ import urllib2
 import subprocess
 from distutils.errors import LibError
 from distutils.core import setup, Extension
-from distutils.command.build import build as _build
-
+from distutils.command.build_ext import build_ext as _build_ext
 
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
 VEX_PATH = "./vex"
@@ -18,7 +17,7 @@ if not os.path.exists(VEX_PATH):
 
 c_files = [ "pyvex_c/pyvex.c", "pyvex_c/pyvex_irsb.c", "pyvex_c/pyvex_irstmt.c", "pyvex_c/pyvex_irtypeenv.c", "pyvex_c/pyvex_irexpr.c", "pyvex_c/pyvex_enums.c", "pyvex_c/pyvex_irconst.c", "pyvex_c/pyvex_ircallee.c", "pyvex_c/pyvex_irregarray.c", "pyvex_c/pyvex_logging.c", "pyvex_c/pyvex_static.c"]
 
-class build(_build):
+class build_ext(_build_ext):
     @staticmethod
     def _build_vex():
         if subprocess.call(['make'], cwd=VEX_PATH) != 0:
@@ -26,7 +25,7 @@ class build(_build):
 
     def run(self):
         self.execute(self._build_vex, (), msg="Building libVEX")
-        _build.run(self)
+        _build_ext.run(self)
 
 setup(
     name="pyvex", version="1.0",
@@ -39,5 +38,5 @@ setup(
             extra_compile_args=["--std=c99"]
         )
     ],
-    cmdclass={'build': build},
+    cmdclass={'build_ext': build_ext},
 )
