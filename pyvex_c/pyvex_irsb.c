@@ -84,6 +84,54 @@ PyObject *init_IRSB(PyObject *self, PyObject *args, PyObject *kwargs)
 	return NULL;
 }
 
+int is_defaultexit_direct_jump(IRSB *irsb)
+{
+	// Make sure the jumpkind makes sense
+	if (!(irsb->jumpkind == Ijk_Boring || irsb->jumpkind == Ijk_Call))
+	{
+		return 0;
+	}
+
+	// Take the default exit
+	IRExpr *next = irsb->next;
+	if (next->tag == Iex_Const)
+	{
+		return 1;
+	}
+	IRTemp tmp_next = next->Iex.RdTmp.tmp;
+
+	// Enumerate the statements
+	for (int i = irsb->stmts_used - 1; i >= 0; --i)
+	{
+		IRStmt *stmt = irsb->stmts[i];
+
+		if (stmt->tag == Ist_WrTmp && stmt->Ist.WrTmp.tmp == tmp_next)
+		{
+			IRExpr *data = stmt->Ist.WrTmp.data;
+
+			if (data->tag == Iex_Const)
+			{
+				// The tmp comes from a Const!
+				return 1;
+			}
+			else if (data->tag == Iex_RdTmp)
+			{
+				// Copies another temporary variables
+				tmp_next = data->Iex.RdTmp.tmp;
+			}
+			else
+			{
+				// It's an indirect jump
+				return 0;
+			}
+		}
+	}
+
+	// Oops, the tmp is never assigned a value before?
+	PyErr_SetString(PyVEXError, "Failed to determine if the default exit of this IRSB is a direct jump or not");
+	return 0;
+}
+
 PyObject *export_IRSB(PyObject *r, IRSB *irsb)
 {
 	PYVEX_SETATTRSTRING(r, "offsIP", PyInt_FromLong(irsb->offsIP));
@@ -112,6 +160,10 @@ PyObject *export_IRSB(PyObject *r, IRSB *irsb)
 		if (irsb->stmts[i]->tag == Ist_IMark) size += irsb->stmts[i]->Ist.IMark.len;
 	}
 	PYVEX_SETATTRSTRING(r, "size", PyInt_FromLong(size));
+
+    // is default exit an indirect jump?
+	int direct_next = is_defaultexit_direct_jump(irsb);
+	PYVEX_SETATTRSTRING(r, "direct_next", PyBool_FromLong(direct_next));
 
 	return r;
 }
