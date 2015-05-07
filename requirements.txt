@@ -1,1 +1,1 @@
-git+ssh://git@git.seclab.cs.ucsb.edu/angr/arch.git
+git+ssh://git@git.seclab.cs.ucsb.edu/angr/archinfo.git
