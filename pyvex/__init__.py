@@ -73,9 +73,9 @@ class IRSB(VEXObject):
             del expr.c_expr
 
         self.tyenv = IRTypeEnv(c_irsb.tyenv)
-        self.offsIP = c_irsb.ofssIP
+        self.offsIP = c_irsb.offsIP
         self.stmts_used = c_irsb.stmts_used
-        self.jumpkind = None
+        self.jumpkind = ints_to_enums[c_irsb.jumpkind]
 
 
     def pp(self):

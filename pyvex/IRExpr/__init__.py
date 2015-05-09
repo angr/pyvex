@@ -5,6 +5,7 @@ class IRExpr(VEXObject):
     def __init__(self, c_expr):
         VEXObject.__init__(self)
         self.c_expr = c_expr
+        self.arch = None
 
     @property
     def child_expressions(self):
@@ -12,7 +13,7 @@ class IRExpr(VEXObject):
         A list of all of the expressions that this expression ends up evaluating.
         '''
         expressions = [ ]
-        for k,v in self.__dict__.iteritems():
+        for _,v in self.__dict__.iteritems():
             if isinstance(v, IRExpr):
                 expressions.append(v)
                 expressions.extend(v.child_expressions)
@@ -24,7 +25,7 @@ class IRExpr(VEXObject):
         A list of all of the constants that this expression ends up using.
         '''
         constants = [ ]
-        for k,v in self.__dict__.iteritems():
+        for _,v in self.__dict__.iteritems():
             if isinstance(v, IRExpr):
                 constants.extend(v.constants)
             elif isinstance(v, IRConst):
@@ -112,7 +113,7 @@ class Get(IRExpr):
     def __init__(self, c_expr):
         IRExpr.__init__(self, c_expr)
         self.offset = c_expr.Iex.Get.offset
-        self.ty = c_expr.Iex.Get.ty
+        self.ty = ints_to_enums[c_expr.Iex.Get.ty]
 
     @property
     def type(self):
