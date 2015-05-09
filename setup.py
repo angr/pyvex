@@ -15,8 +15,6 @@ if not os.path.exists(VEX_PATH):
         raise LibError("Unable to retrieve libVEX.")
     VEX_PATH='./vex.git'
 
-c_files = [ "pyvex_c/pyvex.c", "pyvex_c/pyvex_irsb.c", "pyvex_c/pyvex_irstmt.c", "pyvex_c/pyvex_irtypeenv.c", "pyvex_c/pyvex_irexpr.c", "pyvex_c/pyvex_enums.c", "pyvex_c/pyvex_irconst.c", "pyvex_c/pyvex_ircallee.c", "pyvex_c/pyvex_irregarray.c", "pyvex_c/pyvex_logging.c", "pyvex_c/pyvex_static.c"]
-
 class build_ext(_build_ext):
     @staticmethod
     def _build_vex():
@@ -32,11 +30,14 @@ setup(
     packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
     ext_modules=[
         Extension(
-            "pyvex_c", c_files, include_dirs=[os.path.join(VEX_PATH, 'pub')],
+            "pyvex_c", ['pyvex_c/pyvex_static.c'], include_dirs=[os.path.join(VEX_PATH, 'pub')],
             library_dirs=[VEX_PATH], libraries=[VEX_LIB_NAME],
             extra_objects=[], define_macros=[('PYVEX_STATIC', '1')],
             extra_compile_args=["--std=c99"]
         )
+    ],
+    data_files=[
+        ('lib', (os.path.join(VEX_PATH, 'libvex.so'),)),
     ],
     cmdclass={'build_ext': build_ext},
 )

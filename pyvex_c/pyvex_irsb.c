@@ -47,13 +47,16 @@ PyObject *init_IRSB(PyObject *self, PyObject *args, PyObject *kwargs)
 		return NULL;
 	}
 
-	vta.traceflags = traceflags;
+	if (traceflags != vta.traceflags)
+	{
+		vta.traceflags = traceflags;
+		vex_init();
+	}
 
 	if (num_bytes > 0)
 	{
 		try
 		{
-			vex_init();
 			if (num_inst > -1)
 			{
 				irsb = vex_block_inst(arch, endness, bytes + bytes_offset, mem_addr, num_inst);
@@ -161,9 +164,9 @@ PyObject *export_IRSB(PyObject *r, IRSB *irsb)
 	}
 	PYVEX_SETATTRSTRING(r, "size", PyInt_FromLong(size));
 
-    // is default exit an indirect jump?
-	int direct_next = is_defaultexit_direct_jump(irsb);
-	PYVEX_SETATTRSTRING(r, "direct_next", PyBool_FromLong(direct_next));
+	// is default exit an indirect jump?
+	//int direct_next = is_defaultexit_direct_jump(irsb);
+	//PYVEX_SETATTRSTRING(r, "direct_next", PyBool_FromLong(direct_next));
 
 	return r;
 }

@@ -6,7 +6,8 @@
 #include <libvex.h>
 
 // Some info required for translation
-extern VexArchInfo         vai;
+extern VexArchInfo         vai_host;
+extern VexArchInfo         vai_guest;
 extern VexGuestExtents     vge;
 extern VexTranslateArgs    vta;
 extern VexTranslateResult  vtr;
