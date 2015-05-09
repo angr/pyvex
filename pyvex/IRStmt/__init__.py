@@ -157,6 +157,7 @@ class Dirty(IRStmt):
                 break
 
             self.args.append(IRExpr._translate(a))
+        self.args = tuple(self.args)
 
     def __str__(self):
         return "t%s = DIRTY %s %s ::: %s(%s)" % (self.tmp, self.guard, "TODO(effects)", self.cee, ','.join(str(a) for a in self.args))

@@ -237,7 +237,15 @@ class CCall(IRExpr):
         IRExpr.__init__(self, c_expr)
         self.retty = ints_to_enums[c_expr.Iex.CCall.retty]
         self.cee = IRCallee(c_expr.Iex.CCall.cee)
-        self.args = tuple([ IRExpr._translate(ex) for ex in c_expr.Iex.CCall.args ])
+
+        self.args = [ ]
+        for i in range(20):
+            a = c_expr.Iex.CCall.args[i]
+            if a == ffi.NULL:
+                continue
+
+            self.args.append(IRExpr._translate(a))
+        self.args = tuple(self.args)
 
     @property
     def ret_type(self):
@@ -257,4 +265,4 @@ class CCall(IRExpr):
         return expressions
 
 from ..IRConst import IRConst
-from .. import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, PyVEXError
+from .. import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, PyVEXError, ffi
