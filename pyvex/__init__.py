@@ -61,7 +61,7 @@ class IRSB(VEXObject):
             c_irsb = pvc.vex_block_bytes(vex_arch, vex_end, bytes, mem_addr, len(bytes), 0)
 
         if c_irsb == ffi.NULL:
-            raise PyVEXError(ffi.string(pvc.last_error))
+            raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
 
         self.arch = arch
         self.statements = [ getattr(IRStmt, ints_to_enums[c_irsb.stmts[i].tag][4:])(c_irsb.stmts[i]) for i in range(c_irsb.stmts_used) ]
