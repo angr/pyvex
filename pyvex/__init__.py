@@ -58,11 +58,11 @@ class IRSB(VEXObject):
         if num_inst is not None:
             c_irsb = pvc.vex_block_inst(vex_arch, vex_end, bytes, mem_addr, num_inst)
         else:
-            c_irsb = pvc.vex_block_inst(vex_arch, vex_end, bytes, mem_addr, len(bytes), 0)
+            c_irsb = pvc.vex_block_bytes(vex_arch, vex_end, bytes, mem_addr, len(bytes), 0)
 
         self.arch = arch
-        self.statements = [ getattr(IRStmt, ints_to_enums(c_irsb.stmts[i].tag)[4:])(c_irsb.stmts[i]) for i in range(c_irsb.stmts_used) ]
-        self.next = getattr(IRExpr, ints_to_enums(c_irsb.next)[4:])(c_irsb.next)
+        self.statements = [ getattr(IRStmt, ints_to_enums[c_irsb.stmts[i].tag][4:])(c_irsb.stmts[i]) for i in range(c_irsb.stmts_used) ]
+        self.next = IRExpr.IRExpr._translate(c_irsb.next)
 
         for stmt in self.statements:
             stmt.arch = self.arch

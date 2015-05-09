@@ -2,8 +2,9 @@ from .. import VEXObject
 
 # IRStmt heirarchy
 class IRStmt(VEXObject):
-    def __init__(self):
+    def __init__(self, c_stmt):
         self.arch = None
+        self.c_stmt = c_stmt
 
     @property
     def expressions(self):
@@ -20,14 +21,14 @@ class IRStmt(VEXObject):
 
 class NoOp(IRStmt):
     def __init__(self, c_stmt): #pylint:disable=unused-argument
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
 
     def __str__(self):
         return "IR-NoOp"
 
 class IMark(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
         self.addr = c_stmt.Ist.IMark.addr
         self.len = c_stmt.Ist.IMark.len
         self.delta = c_stmt.Ist.IMark.delta
@@ -37,7 +38,7 @@ class IMark(IRStmt):
 
 class AbiHint(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
         self.base = IRExpr._translate(c_stmt.Ist.AbiHint.base)
         self.len = c_stmt.Ist.AbiHint.len
         self.nia = IRExpr._translate(c_stmt.Ist.AbiHint.nia)
@@ -47,7 +48,7 @@ class AbiHint(IRStmt):
 
 class Put(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
         self.data = IRExpr._translate(c_stmt.Ist.Put.data)
         self.offset = c_stmt.Ist.Put.offset
 
@@ -56,7 +57,7 @@ class Put(IRStmt):
 
 class PutI(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
         self.descr = IRRegArray(c_stmt.Ist.PutI.details.descr)
 
         self.ix = IRExpr._translate(c_stmt.Ist.PutI.details.ix)
@@ -68,7 +69,7 @@ class PutI(IRStmt):
 
 class WrTmp(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
 
         self.data = IRExpr._translate(c_stmt.Ist.WrTmp.data)
         self.tmp = c_stmt.Ist.WrTmp.tmp
@@ -78,7 +79,7 @@ class WrTmp(IRStmt):
 
 class Store(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
 
         self.addr = IRExpr._translate(c_stmt.Ist.Store.addr)
         self.data = IRExpr._translate(c_stmt.Ist.Store.data)
@@ -93,7 +94,7 @@ class Store(IRStmt):
 
 class CAS(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
 
         self.addr = IRExpr._translate(c_stmt.Ist.CAS.details.addr)
         self.dataLo = IRExpr._translate(c_stmt.Ist.CAS.details.dataLo)
@@ -113,7 +114,7 @@ class CAS(IRStmt):
 
 class LLSC(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
 
         self.addr = IRExpr._translate(c_stmt.Ist.LLSC.addr)
         self.storedata = IRExpr._translate(c_stmt.Ist.LLSC.storedata)
@@ -132,7 +133,7 @@ class LLSC(IRStmt):
 
 class MBE(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
         self.event = ints_to_enums[c_stmt.Ist.MBE.event]
 
     def __str__(self):
@@ -140,7 +141,7 @@ class MBE(IRStmt):
 
 class Dirty(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
         self.cee = IRCallee(c_stmt.Ist.Dirty.details.cee)
         self.guard = IRExpr._translate(c_stmt.Dirty.details.guard)
         self.tmp = c_stmt.Ist.Dirty.details.tmp
@@ -170,7 +171,7 @@ class Dirty(IRStmt):
 
 class Exit(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
         self.guard = IRExpr._translate(c_stmt.Ist.Exit.guard)
         self.dst = IRConst._translate(c_stmt.Ist.Exit.dst)
         self.offsIP = c_stmt.Ist.Exit.offsIP
@@ -185,7 +186,7 @@ class Exit(IRStmt):
 
 class LoadG(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
 
         self.addr = IRExpr._translate(c_stmt.Ist.LoadG.details.addr)
         self.alt = IRExpr._translate(c_stmt.Ist.LoadG.details.alt)
@@ -209,7 +210,7 @@ class LoadG(IRStmt):
 
 class StoreG(IRStmt):
     def __init__(self, c_stmt):
-        IRStmt.__init__(self)
+        IRStmt.__init__(self, c_stmt)
 
         self.addr = IRExpr._translate(c_stmt.Ist.StoreG.details.addr)
         self.data = IRExpr._translate(c_stmt.Ist.StoreG.details.data)
