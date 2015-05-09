@@ -225,4 +225,5 @@ class StoreG(IRStmt):
         return "if (%s) ST%s(%s) = %s" % (self.guard, self.end[-2:].lower(), self.addr, self.data)
 
 from ..IRExpr import IRExpr
-from .. import IRRegArray, ints_to_enums, IRCallee, ffi, IRConst, pvc
+from ..IRConst import IRConst
+from .. import IRRegArray, ints_to_enums, IRCallee, ffi, pvc
