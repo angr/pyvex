@@ -18,7 +18,7 @@ ints_to_enums = { getattr(pvc,_):_ for _ in dir(pvc) if isinstance(getattr(pvc,_
 enum_IROp_fromstr = { _:enums_to_ints[_] for _ in enums_to_ints if _.startswith('Iop_') }
 
 def set_iropt_level(level):
-    pvc.vta.iropt_level = level
+    pvc.vex_control.iropt_level = level
 
 def _get_op_type(op):
     irsb = pvc.emptyIRSB()
