@@ -2,6 +2,10 @@ from .. import VEXObject
 
 # IRExpr heirarchy
 class IRExpr(VEXObject):
+    def __init__(self, c_expr):
+        VEXObject.__init__(self)
+        self.c_expr = c_expr
+
     @property
     def child_expressions(self):
         '''
@@ -56,7 +60,7 @@ class IRExpr(VEXObject):
 
 class Binder(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.binder = c_expr.iex.Binder.binder
 
     def __str__(self):
@@ -64,14 +68,14 @@ class Binder(IRExpr):
 
 class VECRET(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
 
     def __str__(self):
         return "VECRET"
 
 class BBPTR(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.result_type = 'Ity_INVALID'
         self.result_size = 0
 
@@ -80,7 +84,7 @@ class BBPTR(IRExpr):
 
 class GetI(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.descr = IRRegArray(c_expr.Iex.GetI.descr)
         self.ix = IRExpr._translate(c_expr.Iex.GetI.ix)
         self.bias = c_expr.Iex.GetI.bias
@@ -98,7 +102,7 @@ class GetI(IRExpr):
 
 class RdTmp(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.tmp = c_expr.Iex.RdTmp.tmp
 
     def __str__(self):
@@ -106,7 +110,7 @@ class RdTmp(IRExpr):
 
 class Get(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.offset = c_expr.Iex.Get.offset
         self.ty = c_expr.Iex.Get.ty
 
@@ -119,7 +123,7 @@ class Get(IRExpr):
 
 class Qop(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.op = ints_to_enums[c_expr.Iex.Qop.details.op]
         self.args = (
             IRExpr._translate(c_expr.Iex.Qop.details.arg1),
@@ -139,7 +143,7 @@ class Qop(IRExpr):
 
 class Triop(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.op = ints_to_enums[c_expr.Iex.Qop.details.op]
         self.args = (
             IRExpr._translate(c_expr.Iex.Qop.details.arg1),
@@ -158,7 +162,7 @@ class Triop(IRExpr):
 
 class Binop(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.op = ints_to_enums[c_expr.Iex.Qop.details.op]
         self.args = (
             IRExpr._translate(c_expr.Iex.Qop.details.arg1),
@@ -176,7 +180,7 @@ class Binop(IRExpr):
 
 class Unop(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.op = ints_to_enums[c_expr.Iex.Qop.details.op]
         self.args = (
             IRExpr._translate(c_expr.Iex.Qop.details.arg1),
@@ -193,7 +197,7 @@ class Unop(IRExpr):
 
 class Load(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.end = ints_to_enums[c_expr.Iex.Load.end]
         self.ty = ints_to_enums[c_expr.Iex.Load.ty]
         self.addr = IRExpr._translate(c_expr.Iex.Load.addr)
@@ -211,7 +215,7 @@ class Load(IRExpr):
 
 class Const(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.con = IRConst._translate(c_expr.Iex.Const.con)
 
     def __str__(self):
@@ -219,7 +223,7 @@ class Const(IRExpr):
 
 class ITE(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.cond = IRExpr._translate(c_expr.Iex.ITE.cond)
         self.iffalse = IRExpr._translate(c_expr.Iex.ITE.iffalse)
         self.iftrue = IRExpr._translate(c_expr.Iex.ITE.iftrue)
@@ -229,7 +233,7 @@ class ITE(IRExpr):
 
 class CCall(IRExpr):
     def __init__(self, c_expr):
-        IRExpr.__init__(self)
+        IRExpr.__init__(self, c_expr)
         self.retty = ints_to_enums[c_expr.Iex.CCall.retty]
         self.cee = IRCallee(c_expr.Iex.CCall.cee)
         self.args = tuple([ IRExpr._translate(ex) for ex in c_expr.Iex.CCall.args ])
