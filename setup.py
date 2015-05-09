@@ -2,42 +2,42 @@ import os
 import urllib2
 import subprocess
 from distutils.errors import LibError
-from distutils.core import setup, Extension
-from distutils.command.build_ext import build_ext as _build_ext
+from distutils.core import setup
+from distutils.command.build import build as _build
 
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
 VEX_PATH = "./vex"
 if not os.path.exists(VEX_PATH):
-    VEX_URL = 'https://git.seclab.cs.ucsb.edu/gitlab/angr/vex/repository/archive.tar.gz?ref=dev'
-    with open('vex.tar.gz', 'w') as v:
-        v.write(urllib2.urlopen(VEX_URL).read())
-    if subprocess.call(['tar', 'xzf', 'vex.tar.gz']) != 0:
-        raise LibError("Unable to retrieve libVEX.")
-    VEX_PATH='./vex.git'
+	VEX_URL = 'https://git.seclab.cs.ucsb.edu/gitlab/angr/vex/repository/archive.tar.gz?ref=dev'
+	with open('vex.tar.gz', 'w') as v:
+		v.write(urllib2.urlopen(VEX_URL).read())
+	if subprocess.call(['tar', 'xzf', 'vex.tar.gz']) != 0:
+		raise LibError("Unable to retrieve libVEX.")
+	VEX_PATH='./vex.git'
 
-class build_ext(_build_ext):
-    @staticmethod
-    def _build_vex():
-        if subprocess.call(['make'], cwd=VEX_PATH) != 0:
-            raise LibError("Unable to build libVEX.")
+class build(_build):
+	@staticmethod
+	def _build_vex():
+		if subprocess.call(['make'], cwd=VEX_PATH) != 0:
+			raise LibError("Unable to build libVEX.")
 
-    def run(self):
-        self.execute(self._build_vex, (), msg="Building libVEX")
-        _build_ext.run(self)
+	@staticmethod
+	def _build_pyvex():
+		e = os.environ.copy()
+		e['VEX_PATH'] = os.path.join('..', VEX_PATH)
+		if subprocess.call(['make'], cwd='pyvex_c', env=e) != 0:
+			raise LibError("Unable to build pyvex-static.")
+
+	def run(self):
+		self.execute(self._build_vex, (), msg="Building libVEX")
+		self.execute(self._build_pyvex, (), msg="Building pyvex-static")
+		_build.run(self)
 
 setup(
-    name="pyvex", version="1.0",
-    packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
-    ext_modules=[
-        Extension(
-            "pyvex_c", ['pyvex_c/pyvex_static.c'], include_dirs=[os.path.join(VEX_PATH, 'pub')],
-            library_dirs=[VEX_PATH], libraries=[VEX_LIB_NAME],
-            extra_objects=[], define_macros=[('PYVEX_STATIC', '1')],
-            extra_compile_args=["--std=c99"]
-        )
-    ],
-    data_files=[
-        ('lib', (os.path.join(VEX_PATH, 'libvex.so'),)),
-    ],
-    cmdclass={'build_ext': build_ext},
+	name="pyvex", version="1.0",
+	packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
+	data_files=[
+		('lib', (os.path.join(VEX_PATH, 'libvex.so'),)),
+	],
+	cmdclass={'build': build},
 )
