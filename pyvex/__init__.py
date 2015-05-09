@@ -8,7 +8,8 @@ _counts = collections.Counter()
 #
 import cffi
 ffi = cffi.FFI()
-ffi.cdef(open('vex.cffi').read())
+from . import vex_ffi
+ffi.cdef(vex_ffi.ffi_str)
 pvc = ffi.dlopen('pyvex_c/pyvex_static.so')
 pvc.vex_init()
 dir(pvc) # lookup all the definitions (wtf)
