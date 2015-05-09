@@ -11,9 +11,21 @@ ffi = cffi.FFI()
 ffi.cdef(open('vex.cffi').read())
 pvc = ffi.dlopen('pyvex_c/pyvex_static.so')
 pvc.vex_init()
+dir(pvc) # lookup all the definitions (wtf)
 enums_to_ints = { _:getattr(pvc,_) for _ in dir(pvc) if isinstance(getattr(pvc,_), int) }
 ints_to_enums = { getattr(pvc,_):_ for _ in dir(pvc) if isinstance(getattr(pvc,_), int) }
 enum_IROp_fromstr = { _:enums_to_ints[_] for _ in enums_to_ints if _.startswith('Iop_') }
+
+def set_iropt_level(level):
+    pvc.vta.irop_level = level
+
+def _get_op_type(op):
+    irsb = pvc.emptyIRSB()
+    t = pvc.newIRTemp(irsb.tyenv, pvc.Ity_I8)
+    e = pvc.IRExpr_Unop(enums_to_ints[op], pvc.IRExpr_RdTmp(t))
+    return ints_to_enums[pvc.typeOfIRExpr(irsb.tyenv, e)]
+_op_types = { _:_get_op_type(_) for _ in enums_to_ints if _.startswith('Iop_') and _ != 'Iop_INVALID' and _ != 'Iop_LAST' }
+def typeOfIROp(op): return _op_types[op]
 
 class VEXObject(object):
     pass
@@ -150,12 +162,3 @@ class IRRegArray(VEXObject):
 from . import IRConst
 from . import IRExpr
 from . import IRStmt
-
-# and initialize!
-pyvex_c.init(sys.modules[__name__])
-for objname in dir(pyvex_c):
-    if not objname.startswith('enum'):
-        continue
-    setattr(sys.modules[__name__], objname, getattr(pyvex_c, objname))
-typeOfIROp = pyvex_c.typeOfIROp
-set_iropt_level = pyvex_c.set_iropt_level
