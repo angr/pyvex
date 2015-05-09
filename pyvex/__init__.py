@@ -31,11 +31,11 @@ def typeOfIROp(op): return _op_types[op]
 class VEXObject(object):
     pass
     #def __init__(self):
-    #   #print "CREATING:",type(self)
+    #   print "CREATING:",type(self)
     #   _counts[type(self)] += 1
 
     #def __del__(self):
-    #   #print "DELETING:",type(self)
+    #   print "DELETING:",type(self)
     #   _counts[type(self)] -= 1
 
 class PyVEXError(Exception): pass
@@ -59,6 +59,9 @@ class IRSB(VEXObject):
             c_irsb = pvc.vex_block_inst(vex_arch, vex_end, bytes, mem_addr, num_inst)
         else:
             c_irsb = pvc.vex_block_bytes(vex_arch, vex_end, bytes, mem_addr, len(bytes), 0)
+
+        if c_irsb == ffi.NULL:
+            raise PyVEXError(ffi.string(pvc.last_error))
 
         self.arch = arch
         self.statements = [ getattr(IRStmt, ints_to_enums[c_irsb.stmts[i].tag][4:])(c_irsb.stmts[i]) for i in range(c_irsb.stmts_used) ]
@@ -153,6 +156,7 @@ class IRCallee(VEXObject):
 
 class IRRegArray(VEXObject):
     def __init__(self, arr):
+        VEXObject.__init__(self)
         self.base = arr.base
         self.elemTy = arr.elemTy
         self.nElems = arr.nElems

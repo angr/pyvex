@@ -7,21 +7,10 @@ class IRConst(VEXObject):
 
     @staticmethod
     def _translate(c_expr):
-        tag = c_expr.tag
+        if c_expr[0] == ffi.NULL:
+            return None
 
-        tag_to_class = {
-            enums_to_ints['Ico_U1']: U1,
-            enums_to_ints['Ico_U8']: U8,
-            enums_to_ints['Ico_U16']: U16,
-            enums_to_ints['Ico_U32']: U32,
-            enums_to_ints['Ico_U64']: U64,
-            enums_to_ints['Ico_F32']: F32,
-            enums_to_ints['Ico_F32i']: F32i,
-            enums_to_ints['Ico_F64']: F64,
-            enums_to_ints['Ico_F64i']: F64i,
-            enums_to_ints['Ico_V128']: V128,
-            enums_to_ints['Ico_V256']: V256,
-        }
+        tag = c_expr.tag
 
         if tag in tag_to_class:
             return tag_to_class[tag](c_expr)
@@ -117,4 +106,18 @@ class V256(IRConst):
     def __str__(self):
         return "%x" % self.value
 
-from .. import enums_to_ints, PyVEXError
+from .. import enums_to_ints, PyVEXError, ffi
+
+tag_to_class = {
+    enums_to_ints['Ico_U1']: U1,
+    enums_to_ints['Ico_U8']: U8,
+    enums_to_ints['Ico_U16']: U16,
+    enums_to_ints['Ico_U32']: U32,
+    enums_to_ints['Ico_U64']: U64,
+    enums_to_ints['Ico_F32']: F32,
+    enums_to_ints['Ico_F32i']: F32i,
+    enums_to_ints['Ico_F64']: F64,
+    enums_to_ints['Ico_F64i']: F64i,
+    enums_to_ints['Ico_V128']: V128,
+    enums_to_ints['Ico_V256']: V256,
+}

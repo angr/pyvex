@@ -14,6 +14,8 @@ extern VexTranslateResult  vtr;
 extern VexAbiInfo	   vbi;
 extern VexControl	   vc;
 
+extern char *last_error;
+
 //
 // Initializes VEX. This function must be called before vex_insn
 // can be used. 

@@ -2594,6 +2594,8 @@ IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructi
 int vex_count_instructions(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only);
 void set_iropt_level(int level);
 
+extern char *last_error;
+
 extern VexArchInfo         vai_host;
 extern VexArchInfo         vai_guest;
 extern VexGuestExtents     vge;

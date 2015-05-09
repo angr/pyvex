@@ -4,6 +4,7 @@ from .. import VEXObject
 class IRExpr(VEXObject):
     def __init__(self, c_expr):
         VEXObject.__init__(self)
+        self.tag = ints_to_enums[c_expr.tag]
         self.c_expr = c_expr
         self.arch = None
 
@@ -34,24 +35,10 @@ class IRExpr(VEXObject):
 
     @staticmethod
     def _translate(c_expr):
-        tag = c_expr.tag
+        if c_expr[0] == ffi.NULL:
+            return None
 
-        tag_to_class = {
-            enums_to_ints['Iex_Binder']: Binder,
-            enums_to_ints['Iex_Get']: Get,
-            enums_to_ints['Iex_GetI']: GetI,
-            enums_to_ints['Iex_RdTmp']: RdTmp,
-            enums_to_ints['Iex_Qop']: Qop,
-            enums_to_ints['Iex_Triop']: Triop,
-            enums_to_ints['Iex_Binop']: Binop,
-            enums_to_ints['Iex_Unop']: Unop,
-            enums_to_ints['Iex_Load']: Load,
-            enums_to_ints['Iex_Const']: Const,
-            enums_to_ints['Iex_ITE']: ITE,
-            enums_to_ints['Iex_CCall']: CCall,
-            enums_to_ints['Iex_BBPTR']: BBPTR,
-            enums_to_ints['Iex_VECRET']: VECRET,
-        }
+        tag = c_expr.tag
 
         if tag in tag_to_class:
             return tag_to_class[tag](c_expr)
@@ -145,11 +132,11 @@ class Qop(IRExpr):
 class Triop(IRExpr):
     def __init__(self, c_expr):
         IRExpr.__init__(self, c_expr)
-        self.op = ints_to_enums[c_expr.Iex.Qop.details.op]
+        self.op = ints_to_enums[c_expr.Iex.Triop.details.op]
         self.args = (
-            IRExpr._translate(c_expr.Iex.Qop.details.arg1),
-            IRExpr._translate(c_expr.Iex.Qop.details.arg2),
-            IRExpr._translate(c_expr.Iex.Qop.details.arg3),
+            IRExpr._translate(c_expr.Iex.Triop.details.arg1),
+            IRExpr._translate(c_expr.Iex.Triop.details.arg2),
+            IRExpr._translate(c_expr.Iex.Triop.details.arg3),
         )
 
     def __str__(self):
@@ -164,10 +151,10 @@ class Triop(IRExpr):
 class Binop(IRExpr):
     def __init__(self, c_expr):
         IRExpr.__init__(self, c_expr)
-        self.op = ints_to_enums[c_expr.Iex.Qop.details.op]
+        self.op = ints_to_enums[c_expr.Iex.Binop.op]
         self.args = (
-            IRExpr._translate(c_expr.Iex.Qop.details.arg1),
-            IRExpr._translate(c_expr.Iex.Qop.details.arg2),
+            IRExpr._translate(c_expr.Iex.Binop.arg1),
+            IRExpr._translate(c_expr.Iex.Binop.arg2),
         )
 
     def __str__(self):
@@ -182,9 +169,9 @@ class Binop(IRExpr):
 class Unop(IRExpr):
     def __init__(self, c_expr):
         IRExpr.__init__(self, c_expr)
-        self.op = ints_to_enums[c_expr.Iex.Qop.details.op]
+        self.op = ints_to_enums[c_expr.Iex.Unop.op]
         self.args = (
-            IRExpr._translate(c_expr.Iex.Qop.details.arg1),
+            IRExpr._translate(c_expr.Iex.Unop.arg),
         )
 
     def __str__(self):
@@ -242,7 +229,7 @@ class CCall(IRExpr):
         for i in range(20):
             a = c_expr.Iex.CCall.args[i]
             if a == ffi.NULL:
-                continue
+                break
 
             self.args.append(IRExpr._translate(a))
         self.args = tuple(self.args)
@@ -266,3 +253,20 @@ class CCall(IRExpr):
 
 from ..IRConst import IRConst
 from .. import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, PyVEXError, ffi
+
+tag_to_class = {
+    enums_to_ints['Iex_Binder']: Binder,
+    enums_to_ints['Iex_Get']: Get,
+    enums_to_ints['Iex_GetI']: GetI,
+    enums_to_ints['Iex_RdTmp']: RdTmp,
+    enums_to_ints['Iex_Qop']: Qop,
+    enums_to_ints['Iex_Triop']: Triop,
+    enums_to_ints['Iex_Binop']: Binop,
+    enums_to_ints['Iex_Unop']: Unop,
+    enums_to_ints['Iex_Load']: Load,
+    enums_to_ints['Iex_Const']: Const,
+    enums_to_ints['Iex_ITE']: ITE,
+    enums_to_ints['Iex_CCall']: CCall,
+    enums_to_ints['Iex_BBPTR']: BBPTR,
+    enums_to_ints['Iex_VECRET']: VECRET,
+}
