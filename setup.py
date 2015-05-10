@@ -15,29 +15,39 @@ if not os.path.exists(VEX_PATH):
 		raise LibError("Unable to retrieve libVEX.")
 	VEX_PATH='./vex.git'
 
+def _build_vex():
+	if subprocess.call(['make'], cwd=VEX_PATH) != 0:
+		raise LibError("Unable to build libVEX.")
+
+def _build_pyvex():
+	e = os.environ.copy()
+	e['VEX_PATH'] = os.path.join('..', VEX_PATH)
+	if subprocess.call(['make'], cwd='pyvex_c', env=e) != 0:
+		raise LibError("Unable to build pyvex-static.")
+
 class build(_build):
-	@staticmethod
-	def _build_vex():
-		if subprocess.call(['make'], cwd=VEX_PATH) != 0:
-			raise LibError("Unable to build libVEX.")
-
-	@staticmethod
-	def _build_pyvex():
-		e = os.environ.copy()
-		e['VEX_PATH'] = os.path.join('..', VEX_PATH)
-		if subprocess.call(['make'], cwd='pyvex_c', env=e) != 0:
-			raise LibError("Unable to build pyvex-static.")
-
 	def run(self):
-		self.execute(self._build_vex, (), msg="Building libVEX")
-		self.execute(self._build_pyvex, (), msg="Building pyvex-static")
+		self.execute(_build_vex, (), msg="Building libVEX")
+		self.execute(_build_pyvex, (), msg="Building pyvex-static")
 		_build.run(self)
+cmdclass = { 'build': build }
+
+try:
+	from setuptools.command.develop import develop as _develop
+	class develop(_develop):
+		def run(self):
+			self.execute(_build_vex, (), msg="Building libVEX")
+			self.execute(_build_pyvex, (), msg="Building pyvex-static")
+			_develop.run(self)
+	cmdclass['develop'] = develop
+except ImportError:
+	print "Proper 'develop' support unavailable."
 
 setup(
 	name="pyvex", version="1.0",
 	packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
 	data_files=[
-		('lib', (os.path.join(VEX_PATH, 'libvex.so'),)),
+		('lib', ('pyvex_c/pyvex_static.so',),),
 	],
-	cmdclass={'build': build},
+	cmdclass=cmdclass,
 )

@@ -3,6 +3,14 @@ import sys
 import collections
 _counts = collections.Counter()
 
+import os
+pyvex_path = os.path.join(os.path.dirname(__file__), '..', 'pyvex_c', 'pyvex_static.so')
+if not os.path.exists(pyvex_path) and "VIRTUAL_ENV" in os.environ:
+    virtual_env = os.environ["VIRTUAL_ENV"]
+    pyvex_path = os.path.join(virtual_env, 'lib', 'pyvex_static.so')
+if not os.path.exists(pyvex_path):
+    raise ImportError("unable to find pyvex_static.so")
+
 #
 # Heeeere's pyvex!
 #
@@ -10,7 +18,7 @@ import cffi
 ffi = cffi.FFI()
 from . import vex_ffi
 ffi.cdef(vex_ffi.ffi_str)
-pvc = ffi.dlopen('pyvex_c/pyvex_static.so')
+pvc = ffi.dlopen(pyvex_path)
 pvc.vex_init()
 dir(pvc) # lookup all the definitions (wtf)
 enums_to_ints = { _:getattr(pvc,_) for _ in dir(pvc) if isinstance(getattr(pvc,_), int) }
