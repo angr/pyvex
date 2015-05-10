@@ -53,8 +53,11 @@ class IRSB(VEXObject):
     def __init__(self, bytes, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=None, traceflags=0): #pylint:disable=redefined-builtin
         VEXObject.__init__(self)
 
-        if bytes_offset is not None:
-            bytes = bytes[bytes_offset:]
+        if bytes_offset is not None and bytes_offset > 0:
+            if num_bytes:
+                bytes = bytes[bytes_offset:num_bytes-bytes_offset]
+            else:
+                bytes = bytes[bytes_offset:]
         pvc.vta.traceflags = traceflags
 
         num_bytes = len(bytes) if num_bytes is None else num_bytes
