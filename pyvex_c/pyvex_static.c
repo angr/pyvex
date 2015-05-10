@@ -132,7 +132,7 @@ void vex_init()
 	LibVEX_default_VexControl(&vc);
 
 	vc.iropt_verbosity              = 0;
-	vc.iropt_level                  = 1;    // No optimization by default
+	vc.iropt_level                  = 0;    // No optimization by default
 	//vc.iropt_level                  = 2;
 	//vc.iropt_precise_memory_exns    = False;
 	vc.iropt_unroll_thresh          = 0;
