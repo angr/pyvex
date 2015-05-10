@@ -1,52 +1,124 @@
-import pyvex_c
 import sys
 
 import collections
 _counts = collections.Counter()
 
-class vex(object):
+import os
+pyvex_path = os.path.join(os.path.dirname(__file__), '..', 'pyvex_c', 'pyvex_static.so')
+if not os.path.exists(pyvex_path) and "VIRTUAL_ENV" in os.environ:
+    virtual_env = os.environ["VIRTUAL_ENV"]
+    pyvex_path = os.path.join(virtual_env, 'lib', 'pyvex_static.so')
+if not os.path.exists(pyvex_path):
+    raise ImportError("unable to find pyvex_static.so")
+
+#
+# Heeeere's pyvex!
+#
+import cffi
+ffi = cffi.FFI()
+from . import vex_ffi
+ffi.cdef(vex_ffi.ffi_str)
+pvc = ffi.dlopen(pyvex_path)
+pvc.vex_init()
+dir(pvc) # lookup all the definitions (wtf)
+enums_to_ints = { _:getattr(pvc,_) for _ in dir(pvc) if isinstance(getattr(pvc,_), int) }
+ints_to_enums = { getattr(pvc,_):_ for _ in dir(pvc) if isinstance(getattr(pvc,_), int) }
+enum_IROp_fromstr = { _:enums_to_ints[_] for _ in enums_to_ints if _.startswith('Iop_') }
+type_sizes = {
+    'Ity_INVALID': None,
+    'Ity_I1': 1,
+    'Ity_I8': 8,
+    'Ity_I16': 16,
+    'Ity_I32': 32,
+    'Ity_I64': 64,
+    'Ity_I128': 128,
+    'Ity_F16':  16,
+    'Ity_F32':  32,
+    'Ity_F64':  64,
+    'Ity_F128': 128,
+    'Ity_D32':  32,
+    'Ity_D64':  64,
+    'Ity_D128': 128,
+    'Ity_V128': 128,
+    'Ity_V256': 256
+}
+
+def set_iropt_level(lvl):
+    pvc.vex_control.iropt_level = lvl
+
+def _get_op_type(op):
+    irsb = pvc.emptyIRSB()
+    t = pvc.newIRTemp(irsb.tyenv, pvc.Ity_I8)
+    e = pvc.IRExpr_Unop(enums_to_ints[op], pvc.IRExpr_RdTmp(t))
+    return ints_to_enums[pvc.typeOfIRExpr(irsb.tyenv, e)]
+_op_types = { _:_get_op_type(_) for _ in enums_to_ints if _.startswith('Iop_') and _ != 'Iop_INVALID' and _ != 'Iop_LAST' }
+def typeOfIROp(op): return _op_types[op]
+
+class VEXObject(object):
     pass
     #def __init__(self):
-    #   #print "CREATING:",type(self)
+    #   print "CREATING:",type(self)
     #   _counts[type(self)] += 1
 
     #def __del__(self):
-    #   #print "DELETING:",type(self)
+    #   print "DELETING:",type(self)
     #   _counts[type(self)] -= 1
 
 class PyVEXError(Exception): pass
 
 # various objects
-class IRSB(vex):
-    def __init__(self, *args, **kwargs):
-        vex.__init__(self)
+_bytes = bytes
+class IRSB(VEXObject):
+    def __init__(self, bytes, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=0, traceflags=0): #pylint:disable=redefined-builtin
+        VEXObject.__init__(self)
 
-        self.statements = ()
-        self.tyenv = None
-        self.offsIP = None
-        self.next = None
-        self.jumpkind = None
+        if isinstance(bytes, (str, _bytes)):
+            num_bytes = len(bytes) if num_bytes is None else num_bytes
+            c_bytes = ffi.new('char [%d]' % num_bytes, bytes)
+        else:
+            if not num_bytes:
+                raise PyVEXError("C-backed bytes must have the length specified by num_bytes")
+            c_bytes = bytes
 
-        arch = kwargs.pop('arch')
+        if num_bytes == 0:
+            raise PyVEXError("No bytes provided")
+        pvc.vta.traceflags = traceflags
+
+        vex_arch = getattr(pvc, arch.vex_arch)
+        vex_end = getattr(pvc, arch.vex_endness)
+
+        if num_inst is not None:
+            c_irsb = pvc.vex_block_inst(vex_arch, vex_end, c_bytes + bytes_offset, mem_addr, num_inst)
+        else:
+            c_irsb = pvc.vex_block_bytes(vex_arch, vex_end, c_bytes + bytes_offset, mem_addr, num_bytes, 0)
+
+        if c_irsb == ffi.NULL:
+            raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
+
+        self.c_irsb = c_irsb
         self.arch = arch
-        kwargs['arch'] = arch.vex_arch
-        kwargs['endness'] = arch.vex_endness
+        self.statements = [ IRStmt.IRStmt._translate(c_irsb.stmts[i], self) for i in range(c_irsb.stmts_used) ]
+        self.next = IRExpr.IRExpr._translate(c_irsb.next, self)
+        self.tyenv = IRTypeEnv(c_irsb.tyenv)
+        self.offsIP = c_irsb.offsIP
+        self.stmts_used = c_irsb.stmts_used
+        self.jumpkind = ints_to_enums[c_irsb.jumpkind]
 
-        pyvex_c.init_IRSB(self, *args, **kwargs)
-
-        for stmt in self.statements:
-            stmt.arch = self.arch
-        for expr in self.expressions:
-            expr.arch = self.arch
+        del self.c_irsb
 
     def pp(self):
-        print "IRSB {"
-        print "   %s" % self.tyenv
-        print ""
+        print self._pp_str()
+
+    def _pp_str(self):
+        sa = [ ]
+        sa.append("IRSB {")
+        sa.append("   %s" % self.tyenv)
+        sa.append("")
         for i,s in enumerate(self.statements):
-            print "   %02d | %s" % (i,s)
-        print "   NEXT: PUT(%s) = %s; %s" % (self.arch.translate_register_name(self.offsIP), self.next, self.jumpkind)
-        print "}"
+            sa.append("   %02d | %s" % (i,s))
+        sa.append("   NEXT: PUT(%s) = %s; %s" % (self.arch.translate_register_name(self.offsIP), self.next, self.jumpkind))
+        sa.append("}")
+        return '\n'.join(sa)
 
     @property
     def expressions(self):
@@ -58,6 +130,14 @@ class IRSB(vex):
             expressions.extend(s.expressions)
         expressions.append(self.next)
         return expressions
+
+    @property
+    def instructions(self):
+        return len([ s.addr for s in self.statements if isinstance(s, IRStmt.IMark) ])
+
+    @property
+    def size(self):
+        return sum([ s.len for s in self.statements if isinstance(s, IRStmt.IMark) ])
 
     @property
     def operations(self):
@@ -84,39 +164,36 @@ class IRSB(vex):
         '''
         return sum((s.constants for s in self.statements if not (isinstance(s, IRStmt.Put) and s.offset == self.offsIP)), [ ])
 
-class IRTypeEnv(vex):
-    def __init__(self, types):
-        vex.__init__(self)
-        self.types = types
-        self.types_used = len(types)
+class IRTypeEnv(VEXObject):
+    def __init__(self, tyenv):
+        VEXObject.__init__(self)
+        self.types = [ ints_to_enums[tyenv.types[t]] for t in xrange(tyenv.types_used) ]
+        self.types_used = tyenv.types_used
 
     def __str__(self):
         return ' '.join(("t%d:%s" % (i,t)) for i,t in enumerate(self.types))
 
-class IRCallee(vex):
-    def __init__(self, regparms, name, addr, mcx_mask):
-        vex.__init__(self)
-        self.regparms = regparms
-        self.name = name
-        self.mcx_mask = mcx_mask
-        self.addr = addr
+class IRCallee(VEXObject):
+    def __init__(self, callee):
+        VEXObject.__init__(self)
+        self.regparms = callee.regparms
+        self.name = ffi.string(callee.name)
+        self.mcx_mask = callee.mcx_mask
+        self.addr = int(ffi.cast("unsigned long long", callee.mcx_mask))
 
     def __str__(self):
         return self.name
 
-class IRRegArray(vex):
+class IRRegArray(VEXObject):
+    def __init__(self, arr):
+        VEXObject.__init__(self)
+        self.base = arr.base
+        self.elemTy = arr.elemTy
+        self.nElems = arr.nElems
+
     def __str__(self):
         return "%s:%sx%d" % (self.base, self.elemTy[4:], self.nElems)
 
 from . import IRConst
 from . import IRExpr
 from . import IRStmt
-
-# and initialize!
-pyvex_c.init(sys.modules[__name__])
-for objname in dir(pyvex_c):
-    if not objname.startswith('enum'):
-        continue
-    setattr(sys.modules[__name__], objname, getattr(pyvex_c, objname))
-typeOfIROp = pyvex_c.typeOfIROp
-set_iropt_level = pyvex_c.set_iropt_level

@@ -6,12 +6,15 @@
 #include <libvex.h>
 
 // Some info required for translation
-extern VexArchInfo         vai;
+extern VexArchInfo         vai_host;
+extern VexArchInfo         vai_guest;
 extern VexGuestExtents     vge;
 extern VexTranslateArgs    vta;
 extern VexTranslateResult  vtr;
 extern VexAbiInfo	   vbi;
 extern VexControl	   vc;
+
+extern char *last_error;
 
 //
 // Initializes VEX. This function must be called before vex_insn

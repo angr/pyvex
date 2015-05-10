@@ -23,13 +23,15 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <assert.h>
 #include <libvex.h>
 
-#include "pyvex_types.h"
 #include "pyvex_static.h"
 #include "pyvex_logging.h"
 
 // these are problematic because we need to link with vex statically to use them, I think
 extern VexControl vex_control;
 extern Bool vex_initdone;
+
+// the last thrown error
+char *last_error;
 
 //======================================================================
 //
@@ -130,7 +132,7 @@ void vex_init()
 	LibVEX_default_VexControl(&vc);
 
 	vc.iropt_verbosity              = 0;
-	vc.iropt_level                  = 1;    // No optimization by default
+	vc.iropt_level                  = 0;    // No optimization by default
 	//vc.iropt_level                  = 2;
 	//vc.iropt_precise_memory_exns    = False;
 	vc.iropt_unroll_thresh          = 0;
@@ -349,16 +351,25 @@ int vex_count_instructions(VexArch guest, VexEndness endness, unsigned char *ins
 
 IRSB *vex_block_bytes(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
 {
-	unsigned int count = vex_count_instructions(guest, endness, instructions, block_addr, num_bytes, basic_only);
-	IRSB *sb = vex_block_inst(guest, endness, instructions, block_addr, count);
-	// this is a workaround. Basically, on MIPS, leaving this (the second translation of the same crap)
-	// out leads to exits being dropped in some IRSBs
-	sb = vex_block_inst(guest, endness, instructions, block_addr, count);
-	if (vge.len[0] != num_bytes)
+	IRSB *sb = NULL;
+
+	try
 	{
-		info("vex_block_bytes: only translated %d bytes out of %d in block_addr %x\n", vge.len[0], num_bytes, block_addr);
+		unsigned int count = vex_count_instructions(guest, endness, instructions, block_addr, num_bytes, basic_only);
+		sb = vex_block_inst(guest, endness, instructions, block_addr, count);
+		// this is a workaround. Basically, on MIPS, leaving this (the second translation of the same crap)
+		// out leads to exits being dropped in some IRSBs
+		sb = vex_block_inst(guest, endness, instructions, block_addr, count);
+		if (vge.len[0] != num_bytes)
+		{
+			info("vex_block_bytes: only translated %d bytes out of %d in block_addr %x\n", vge.len[0], num_bytes, block_addr);
+		}
+		//assert(vge.len[0] == num_bytes);
 	}
-	//assert(vge.len[0] == num_bytes);
+	catch (VEXError)
+	{
+		last_error = E4C_EXCEPTION.message;
+	}
 
 	return sb;
 }
@@ -378,8 +389,17 @@ IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructi
 		num_inst = 99;
 	}
 
-	IRSB *fullblock = vex_inst(guest, endness, instructions, block_addr, num_inst);
-	assert(vge.n_used == 1);
+	IRSB *fullblock = NULL;
+
+	try
+	{
+		fullblock = vex_inst(guest, endness, instructions, block_addr, num_inst);
+		assert(vge.n_used == 1);
+	}
+	catch (VEXError)
+	{
+		last_error = E4C_EXCEPTION.message;
+	}
 
 	return fullblock;
 }

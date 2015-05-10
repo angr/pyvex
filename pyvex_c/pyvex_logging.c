@@ -5,8 +5,8 @@
 #include <stdarg.h>
 
 int debug_on = 0;
-int info_on = 1;
-int error_on = 1;
+int info_on = 0;
+int error_on = 0;
 
 void debug(char *fmt, ...)
 {
