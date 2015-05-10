@@ -67,28 +67,30 @@ class VEXObject(object):
 class PyVEXError(Exception): pass
 
 # various objects
+_bytes = bytes
 class IRSB(VEXObject):
-    def __init__(self, bytes, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=None, traceflags=0): #pylint:disable=redefined-builtin
+    def __init__(self, bytes, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=0, traceflags=0): #pylint:disable=redefined-builtin
         VEXObject.__init__(self)
 
-        if bytes_offset is not None and bytes_offset > 0:
-            if num_bytes:
-                bytes = bytes[bytes_offset:num_bytes-bytes_offset]
-            else:
-                bytes = bytes[bytes_offset:]
-        pvc.vta.traceflags = traceflags
+        if isinstance(bytes, (str, _bytes)):
+            num_bytes = len(bytes) if num_bytes is None else num_bytes
+            c_bytes = ffi.new('char [%d]' % num_bytes, bytes)
+        else:
+            if not num_bytes:
+                raise PyVEXError("C-backed bytes must have the length specified by num_bytes")
+            c_bytes = bytes
 
-        num_bytes = len(bytes) if num_bytes is None else num_bytes
         if num_bytes == 0:
             raise PyVEXError("No bytes provided")
+        pvc.vta.traceflags = traceflags
 
         vex_arch = getattr(pvc, arch.vex_arch)
         vex_end = getattr(pvc, arch.vex_endness)
 
         if num_inst is not None:
-            c_irsb = pvc.vex_block_inst(vex_arch, vex_end, bytes, mem_addr, num_inst)
+            c_irsb = pvc.vex_block_inst(vex_arch, vex_end, c_bytes + bytes_offset, mem_addr, num_inst)
         else:
-            c_irsb = pvc.vex_block_bytes(vex_arch, vex_end, bytes, mem_addr, num_bytes, 0)
+            c_irsb = pvc.vex_block_bytes(vex_arch, vex_end, c_bytes + bytes_offset, mem_addr, num_bytes, 0)
 
         if c_irsb == ffi.NULL:
             raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
