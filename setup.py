@@ -46,6 +46,7 @@ except ImportError:
 setup(
 	name="pyvex", version="1.0",
 	packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
+	install_requires=[i.strip() for i in open('requirements.txt').readlines() if 'git' not in i],
 	data_files=[
 		('lib', ('pyvex_c/pyvex_static.so',),),
 	],

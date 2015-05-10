@@ -1,1 +1,2 @@
+cffi
 git+ssh://git@git.seclab.cs.ucsb.edu/angr/archinfo.git
