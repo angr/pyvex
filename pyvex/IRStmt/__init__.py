@@ -28,9 +28,10 @@ class IRStmt(VEXObject):
 
 		tag = c_stmt.tag
 		try:
-			return _tag_to_class[tag](c_stmt, irsb)
+			stmt_class = _tag_to_class[tag]
 		except KeyError:
 			raise PyVEXError('Unknown/unsupported IRStmtTag %s\n' % ints_to_enums[tag])
+		return stmt_class(c_stmt, irsb)
 
 class NoOp(IRStmt):
 	def __init__(self, c_stmt, irsb): #pylint:disable=unused-argument
@@ -210,9 +211,11 @@ class LoadG(IRStmt):
 
 		self.end = ints_to_enums[c_stmt.Ist.LoadG.details.end]
 
-		type_in = ffi.new('int *')
-		type_out = ffi.new('int *')
+		type_in = ffi.new('IRType *')
+		type_out = ffi.new('IRType *')
 		pvc.typeOfIRLoadGOp(c_stmt.Ist.LoadG.details.cvt, type_in, type_out)
+		type_in = ffi.cast('int *', type_in)[0]
+		type_out = ffi.cast('int *', type_out)[0]
 		self.cvt_types = (ints_to_enums[type_in], ints_to_enums[type_out])
 
 	@property

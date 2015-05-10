@@ -9,9 +9,10 @@ class IRExpr(VEXObject):
         self.arch = irsb.arch
 
         if isinstance(self, (VECRET, Binder, BBPTR)):
-            self.result_type = 'Ity_Invalid'
+            self.result_type = 'Ity_INVALID'
         else:
             self.result_type = ints_to_enums[pvc.typeOfIRExpr(irsb.c_irsb.tyenv, c_expr)]
+        self.result_size = type_sizes[self.result_type]
 
     @property
     def child_expressions(self):
@@ -46,9 +47,10 @@ class IRExpr(VEXObject):
         tag = c_expr.tag
 
         try:
-            return tag_to_class[tag](c_expr, irsb)
+            expr_class = tag_to_class[tag]
         except KeyError:
             raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % ints_to_enums[tag])
+        return expr_class(c_expr, irsb)
 
 class Binder(IRExpr):
     def __init__(self, c_expr, irsb):
@@ -256,7 +258,7 @@ class CCall(IRExpr):
         return expressions
 
 from ..IRConst import IRConst
-from .. import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, PyVEXError, ffi, pvc
+from .. import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, PyVEXError, ffi, pvc, type_sizes
 
 tag_to_class = {
     enums_to_ints['Iex_Binder']: Binder,
