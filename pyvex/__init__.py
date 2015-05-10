@@ -24,9 +24,27 @@ dir(pvc) # lookup all the definitions (wtf)
 enums_to_ints = { _:getattr(pvc,_) for _ in dir(pvc) if isinstance(getattr(pvc,_), int) }
 ints_to_enums = { getattr(pvc,_):_ for _ in dir(pvc) if isinstance(getattr(pvc,_), int) }
 enum_IROp_fromstr = { _:enums_to_ints[_] for _ in enums_to_ints if _.startswith('Iop_') }
+type_sizes = {
+    'Ity_INVALID': None,
+    'Ity_I1': 1,
+    'Ity_I8': 8,
+    'Ity_I16': 16,
+    'Ity_I32': 32,
+    'Ity_I64': 64,
+    'Ity_I128': 128,
+    'Ity_F16':  16,
+    'Ity_F32':  32,
+    'Ity_F64':  64,
+    'Ity_F128': 128,
+    'Ity_D32':  32,
+    'Ity_D64':  64,
+    'Ity_D128': 128,
+    'Ity_V128': 128,
+    'Ity_V256': 256
+}
 
-def set_iropt_level(level):
-    pvc.vex_control.iropt_level = level
+def set_iropt_level(lvl):
+    pvc.vex_control.iropt_level = lvl
 
 def _get_op_type(op):
     irsb = pvc.emptyIRSB()

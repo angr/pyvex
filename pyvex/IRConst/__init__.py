@@ -2,8 +2,14 @@ from .. import VEXObject
 
 # IRConst heirarchy
 class IRConst(VEXObject):
+    type = None
+
     def __init__(self):
         VEXObject.__init__(self)
+
+    @property
+    def size(self):
+        return type_sizes[self.type]
 
     @staticmethod
     def _translate(c_expr):
@@ -18,6 +24,8 @@ class IRConst(VEXObject):
             raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % ints_to_enums[tag])
 
 class U1(IRConst):
+    type = 'Ity_I1'
+
     def __init__(self, c_expr):
         IRConst.__init__(self)
         self.value = c_expr.Ico.U1
@@ -26,6 +34,8 @@ class U1(IRConst):
         return "%d" % self.value
 
 class U8(IRConst):
+    type = 'Ity_I8'
+
     def __init__(self, c_expr):
         IRConst.__init__(self)
         self.value = c_expr.Ico.U8
@@ -34,6 +44,8 @@ class U8(IRConst):
         return "0x%02x" % self.value
 
 class U16(IRConst):
+    type = 'Ity_I16'
+
     def __init__(self, c_expr):
         IRConst.__init__(self)
         self.value = c_expr.Ico.U16
@@ -42,6 +54,8 @@ class U16(IRConst):
         return "0x%04x" % self.value
 
 class U32(IRConst):
+    type = 'Ity_I32'
+
     def __init__(self, c_expr):
         IRConst.__init__(self)
         self.value = c_expr.Ico.U32
@@ -50,6 +64,8 @@ class U32(IRConst):
         return "0x%08x" % self.value
 
 class U64(IRConst):
+    type = 'Ity_I64'
+
     def __init__(self, c_expr):
         IRConst.__init__(self)
         self.value = c_expr.Ico.U64
@@ -58,6 +74,8 @@ class U64(IRConst):
         return "0x%016x" % self.value
 
 class F32(IRConst):
+    type = 'Ity_F32'
+
     def __init__(self, c_expr):
         IRConst.__init__(self)
         self.value = c_expr.Ico.F32
@@ -66,6 +84,8 @@ class F32(IRConst):
         return "%f" % self.value
 
 class F32i(IRConst):
+    type = 'Ity_F32'
+
     def __init__(self, c_expr):
         IRConst.__init__(self)
         self.value = c_expr.Ico.F32i
@@ -74,6 +94,8 @@ class F32i(IRConst):
         return "%f" % self.value
 
 class F64(IRConst):
+    type = 'Ity_F64'
+
     def __init__(self, c_expr):
         IRConst.__init__(self)
         self.value = c_expr.Ico.F64
@@ -82,6 +104,8 @@ class F64(IRConst):
         return "%f" % self.value
 
 class F64i(IRConst):
+    type = 'Ity_F64'
+
     def __init__(self, c_expr):
         IRConst.__init__(self)
         self.value = c_expr.Ico.F64i
@@ -90,6 +114,8 @@ class F64i(IRConst):
         return "%f" % self.value
 
 class V128(IRConst):
+    type = 'Ity_V128'
+
     def __init__(self, c_expr):
         IRConst.__init__(self)
         self.value = c_expr.Ico.V128
@@ -98,6 +124,8 @@ class V128(IRConst):
         return "%x" % self.value
 
 class V256(IRConst):
+    type = 'Ity_V256'
+
     def __init__(self, c_expr):
         IRConst.__init__(self)
         self.value = c_expr.Ico.V256
@@ -105,7 +133,7 @@ class V256(IRConst):
     def __str__(self):
         return "%x" % self.value
 
-from .. import ints_to_enums, enums_to_ints, PyVEXError, ffi
+from .. import ints_to_enums, enums_to_ints, PyVEXError, ffi, type_sizes
 
 tag_to_class = {
     enums_to_ints['Ico_U1']: U1,
