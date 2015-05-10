@@ -12,11 +12,10 @@ class IRConst(VEXObject):
 
         tag = c_expr.tag
 
-        if tag in tag_to_class:
+        try:
             return tag_to_class[tag](c_expr)
-
-        else:
-            raise PyVEXError('Unknown/unsupported IRExprTag %d\n', tag)
+        except KeyError:
+            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % ints_to_enums[tag])
 
 class U1(IRConst):
     def __init__(self, c_expr):
@@ -106,7 +105,7 @@ class V256(IRConst):
     def __str__(self):
         return "%x" % self.value
 
-from .. import enums_to_ints, PyVEXError, ffi
+from .. import ints_to_enums, enums_to_ints, PyVEXError, ffi
 
 tag_to_class = {
     enums_to_ints['Ico_U1']: U1,

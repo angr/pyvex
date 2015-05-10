@@ -42,14 +42,15 @@ class PyVEXError(Exception): pass
 
 # various objects
 class IRSB(VEXObject):
-    def __init__(self, bytes, mem_addr, arch, num_inst=None, bytes_offset=None, traceflags=0): #pylint:disable=redefined-builtin
+    def __init__(self, bytes, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=None, traceflags=0): #pylint:disable=redefined-builtin
         VEXObject.__init__(self)
 
         if bytes_offset is not None:
             bytes = bytes[bytes_offset:]
         pvc.vta.traceflags = traceflags
 
-        if len(bytes) == 0:
+        num_bytes = len(bytes) if num_bytes is None else num_bytes
+        if num_bytes == 0:
             raise PyVEXError("No bytes provided")
 
         vex_arch = getattr(pvc, arch.vex_arch)
@@ -58,28 +59,21 @@ class IRSB(VEXObject):
         if num_inst is not None:
             c_irsb = pvc.vex_block_inst(vex_arch, vex_end, bytes, mem_addr, num_inst)
         else:
-            c_irsb = pvc.vex_block_bytes(vex_arch, vex_end, bytes, mem_addr, len(bytes), 0)
+            c_irsb = pvc.vex_block_bytes(vex_arch, vex_end, bytes, mem_addr, num_bytes, 0)
 
         if c_irsb == ffi.NULL:
             raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
 
+        self.c_irsb = c_irsb
         self.arch = arch
-        self.statements = [ getattr(IRStmt, ints_to_enums[c_irsb.stmts[i].tag][4:])(c_irsb.stmts[i]) for i in range(c_irsb.stmts_used) ]
-        self.next = IRExpr.IRExpr._translate(c_irsb.next)
-
-        for stmt in self.statements:
-            stmt.arch = self.arch
-            del stmt.c_stmt
-        for expr in self.expressions:
-            expr.arch = self.arch
-            expr.result_type = pvc.typeOfIRExpr(c_irsb.tyenv, expr.c_expr)
-            del expr.c_expr
-
+        self.statements = [ IRStmt.IRStmt._translate(c_irsb.stmts[i], self) for i in range(c_irsb.stmts_used) ]
+        self.next = IRExpr.IRExpr._translate(c_irsb.next, self)
         self.tyenv = IRTypeEnv(c_irsb.tyenv)
         self.offsIP = c_irsb.offsIP
         self.stmts_used = c_irsb.stmts_used
         self.jumpkind = ints_to_enums[c_irsb.jumpkind]
 
+        del self.c_irsb
 
     def pp(self):
         print "IRSB {"

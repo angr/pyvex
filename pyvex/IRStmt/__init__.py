@@ -2,10 +2,10 @@ from .. import VEXObject
 
 # IRStmt heirarchy
 class IRStmt(VEXObject):
-	def __init__(self, c_stmt):
+	def __init__(self, c_stmt, irsb):
 		VEXObject.__init__(self)
-		self.arch = None
-		self.c_stmt = c_stmt
+		self.arch = irsb.arch
+		#self.c_stmt = c_stmt
 		self.tag = ints_to_enums[c_stmt.tag]
 
 	@property
@@ -22,27 +22,26 @@ class IRStmt(VEXObject):
 		return sum((e.constants for e in self.expressions), [ ])
 
 	@staticmethod
-	def _translate(c_stmt):
+	def _translate(c_stmt, irsb):
 		if c_stmt[0] == ffi.NULL:
 			return None
 
 		tag = c_stmt.tag
-		if tag in _tag_to_class:
-			return _tag_to_class[tag](c_stmt)
-
-		else:
-			raise PyVEXError('Unknown/unsupported IRStmtTag %d\n', ints_to_enums[tag])
+		try:
+			return _tag_to_class[tag](c_stmt, irsb)
+		except KeyError:
+			raise PyVEXError('Unknown/unsupported IRStmtTag %s\n' % ints_to_enums[tag])
 
 class NoOp(IRStmt):
-	def __init__(self, c_stmt): #pylint:disable=unused-argument
-		IRStmt.__init__(self, c_stmt)
+	def __init__(self, c_stmt, irsb): #pylint:disable=unused-argument
+		IRStmt.__init__(self, c_stmt, irsb)
 
 	def __str__(self):
 		return "IR-NoOp"
 
 class IMark(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
 		self.addr = c_stmt.Ist.IMark.addr
 		self.len = c_stmt.Ist.IMark.len
 		self.delta = c_stmt.Ist.IMark.delta
@@ -51,52 +50,52 @@ class IMark(IRStmt):
 		return "------ IMark(0x%x, %d, %d) ------" % (self.addr, self.len, self.delta)
 
 class AbiHint(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
-		self.base = IRExpr._translate(c_stmt.Ist.AbiHint.base)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
+		self.base = IRExpr._translate(c_stmt.Ist.AbiHint.base, irsb)
 		self.len = c_stmt.Ist.AbiHint.len
-		self.nia = IRExpr._translate(c_stmt.Ist.AbiHint.nia)
+		self.nia = IRExpr._translate(c_stmt.Ist.AbiHint.nia, irsb)
 
 	def __str__(self):
 		return "====== AbiHint(0x%s, %d, %s) ======" % (self.base, self.len, self.nia)
 
 class Put(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
-		self.data = IRExpr._translate(c_stmt.Ist.Put.data)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
+		self.data = IRExpr._translate(c_stmt.Ist.Put.data, irsb)
 		self.offset = c_stmt.Ist.Put.offset
 
 	def __str__(self):
 		return "PUT(%s) = %s" % (self.arch.translate_register_name(self.offset), self.data)
 
 class PutI(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
 		self.descr = IRRegArray(c_stmt.Ist.PutI.details.descr)
 
-		self.ix = IRExpr._translate(c_stmt.Ist.PutI.details.ix)
-		self.data = IRExpr._translate(c_stmt.Ist.PutI.details.data)
+		self.ix = IRExpr._translate(c_stmt.Ist.PutI.details.ix, irsb)
+		self.data = IRExpr._translate(c_stmt.Ist.PutI.details.data, irsb)
 		self.bias = c_stmt.Ist.PutI.details.bias
 
 	def __str__(self):
 		return "PUTI(%s)[%s,%d] = %s" % (self.descr, self.ix, self.bias, self.data)
 
 class WrTmp(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
 
-		self.data = IRExpr._translate(c_stmt.Ist.WrTmp.data)
+		self.data = IRExpr._translate(c_stmt.Ist.WrTmp.data, irsb)
 		self.tmp = c_stmt.Ist.WrTmp.tmp
 
 	def __str__(self):
 		return "t%d = %s" % (self.tmp, self.data)
 
 class Store(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
 
-		self.addr = IRExpr._translate(c_stmt.Ist.Store.addr)
-		self.data = IRExpr._translate(c_stmt.Ist.Store.data)
+		self.addr = IRExpr._translate(c_stmt.Ist.Store.addr, irsb)
+		self.data = IRExpr._translate(c_stmt.Ist.Store.data, irsb)
 		self.end = ints_to_enums[c_stmt.Ist.Store.end]
 
 	@property
@@ -107,14 +106,14 @@ class Store(IRStmt):
 		return "ST%s(%s) = %s" % (self.endness[-2:].lower(), self.addr, self.data)
 
 class CAS(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
 
-		self.addr = IRExpr._translate(c_stmt.Ist.CAS.details.addr)
-		self.dataLo = IRExpr._translate(c_stmt.Ist.CAS.details.dataLo)
-		self.dataHi = IRExpr._translate(c_stmt.Ist.CAS.details.dataHi)
-		self.expdLo = IRExpr._translate(c_stmt.Ist.CAS.details.expdLo)
-		self.expdHi = IRExpr._translate(c_stmt.Ist.CAS.details.expdHi)
+		self.addr = IRExpr._translate(c_stmt.Ist.CAS.details.addr, irsb)
+		self.dataLo = IRExpr._translate(c_stmt.Ist.CAS.details.dataLo, irsb)
+		self.dataHi = IRExpr._translate(c_stmt.Ist.CAS.details.dataHi, irsb)
+		self.expdLo = IRExpr._translate(c_stmt.Ist.CAS.details.expdLo, irsb)
+		self.expdHi = IRExpr._translate(c_stmt.Ist.CAS.details.expdHi, irsb)
 		self.oldLo = c_stmt.Ist.CAS.details.oldLo
 		self.oldHi = c_stmt.Ist.CAS.details.oldHi
 		self.end = ints_to_enums[c_stmt.Ist.CAS.details.end]
@@ -127,11 +126,11 @@ class CAS(IRStmt):
 		return "t(%s,%s) = CAS%s(%s :: (%s,%s)->(%s,%s))" % (self.oldLo, self.oldHi, self.end[-2:].lower(), self.addr, self.expdLo, self.expdHi, self.dataLo, self.dataHi)
 
 class LLSC(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
 
-		self.addr = IRExpr._translate(c_stmt.Ist.LLSC.addr)
-		self.storedata = IRExpr._translate(c_stmt.Ist.LLSC.storedata)
+		self.addr = IRExpr._translate(c_stmt.Ist.LLSC.addr, irsb)
+		self.storedata = IRExpr._translate(c_stmt.Ist.LLSC.storedata, irsb)
 		self.result = c_stmt.Ist.LLSC.result
 		self.end = ints_to_enums[c_stmt.Ist.LLSC.end]
 
@@ -146,21 +145,21 @@ class LLSC(IRStmt):
 			return "result = ( ST%s-Cond(%s) = %s )" % (self.end[-2:].lower(), self.addr, self.storedata)
 
 class MBE(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
 		self.event = ints_to_enums[c_stmt.Ist.MBE.event]
 
 	def __str__(self):
 		return "MBusEvent-" + self.event
 
 class Dirty(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
 		self.cee = IRCallee(c_stmt.Ist.Dirty.details.cee)
-		self.guard = IRExpr._translate(c_stmt.Ist.Dirty.details.guard)
+		self.guard = IRExpr._translate(c_stmt.Ist.Dirty.details.guard, irsb)
 		self.tmp = c_stmt.Ist.Dirty.details.tmp
 		self.mFx = ints_to_enums[c_stmt.Ist.Dirty.details.mFx]
-		self.mAddr = IRExpr._translate(c_stmt.Ist.Dirty.details.mAddr)
+		self.mAddr = IRExpr._translate(c_stmt.Ist.Dirty.details.mAddr, irsb)
 		self.mSize = c_stmt.Ist.Dirty.details.mSize
 		self.nFxState = c_stmt.Ist.Dirty.details.nFxState
 
@@ -170,7 +169,7 @@ class Dirty(IRStmt):
 			if a == ffi.NULL:
 				break
 
-			self.args.append(IRExpr._translate(a))
+			self.args.append(IRExpr._translate(a, irsb))
 		self.args = tuple(self.args)
 
 	def __str__(self):
@@ -185,9 +184,9 @@ class Dirty(IRStmt):
 		return expressions
 
 class Exit(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
-		self.guard = IRExpr._translate(c_stmt.Ist.Exit.guard)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
+		self.guard = IRExpr._translate(c_stmt.Ist.Exit.guard, irsb)
 		self.dst = IRConst._translate(c_stmt.Ist.Exit.dst)
 		self.offsIP = c_stmt.Ist.Exit.offsIP
 		self.jk = ints_to_enums[c_stmt.Ist.Exit.jk]
@@ -200,12 +199,12 @@ class Exit(IRStmt):
 		return "if (%s) { PUT(%d) = %s; %s }" % (self.guard, self.offsIP, hex(self.dst.value), self.jumpkind)
 
 class LoadG(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
 
-		self.addr = IRExpr._translate(c_stmt.Ist.LoadG.details.addr)
-		self.alt = IRExpr._translate(c_stmt.Ist.LoadG.details.alt)
-		self.guard = IRExpr._translate(c_stmt.Ist.LoadG.details.guard)
+		self.addr = IRExpr._translate(c_stmt.Ist.LoadG.details.addr, irsb)
+		self.alt = IRExpr._translate(c_stmt.Ist.LoadG.details.alt, irsb)
+		self.guard = IRExpr._translate(c_stmt.Ist.LoadG.details.guard, irsb)
 		self.dst = c_stmt.Ist.LoadG.details.dst
 		self.cvt = ints_to_enums[c_stmt.Ist.LoadG.details.cvt]
 
@@ -224,12 +223,12 @@ class LoadG(IRStmt):
 		return "t%d = if (%s) %s(LD%s(%s)) else %s" % (self.dst, self.guard, self.cvt, self.end[-2:].lower(), self.addr, self.alt)
 
 class StoreG(IRStmt):
-	def __init__(self, c_stmt):
-		IRStmt.__init__(self, c_stmt)
+	def __init__(self, c_stmt, irsb):
+		IRStmt.__init__(self, c_stmt, irsb)
 
-		self.addr = IRExpr._translate(c_stmt.Ist.StoreG.details.addr)
-		self.data = IRExpr._translate(c_stmt.Ist.StoreG.details.data)
-		self.guard = IRExpr._translate(c_stmt.Ist.StoreG.details.guard)
+		self.addr = IRExpr._translate(c_stmt.Ist.StoreG.details.addr, irsb)
+		self.data = IRExpr._translate(c_stmt.Ist.StoreG.details.data, irsb)
+		self.guard = IRExpr._translate(c_stmt.Ist.StoreG.details.guard, irsb)
 		self.end = ints_to_enums[c_stmt.Ist.StoreG.details.end]
 
 	@property
