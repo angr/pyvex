@@ -242,7 +242,7 @@ class CCall(IRExpr):
 
     @property
     def ret_type(self):
-        return self.ret_type
+        return self.retty
 
     @property
     def callee(self):
