@@ -25,10 +25,15 @@ def _build_pyvex():
 	if subprocess.call(['make'], cwd='pyvex_c', env=e) != 0:
 		raise LibError("Unable to build pyvex-static.")
 
+def _build_ffi():
+	if subprocess.call(['python', 'make_ffi.py', os.path.join(VEX_PATH,'pub')]) != 0:
+		raise LibError("Unable to generate cffi file.")
+
 class build(_build):
 	def run(self):
 		self.execute(_build_vex, (), msg="Building libVEX")
 		self.execute(_build_pyvex, (), msg="Building pyvex-static")
+		self.execute(_build_ffi, (), msg="Creating CFFI defs file")
 		_build.run(self)
 cmdclass = { 'build': build }
 
@@ -38,6 +43,7 @@ try:
 		def run(self):
 			self.execute(_build_vex, (), msg="Building libVEX")
 			self.execute(_build_pyvex, (), msg="Building pyvex-static")
+			self.execute(_build_ffi, (), msg="Creating CFFI defs file")
 			_develop.run(self)
 	cmdclass['develop'] = develop
 except ImportError:
