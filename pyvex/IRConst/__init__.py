@@ -4,8 +4,9 @@ from .. import VEXObject
 class IRConst(VEXObject):
     type = None
 
-    def __init__(self):
+    def __init__(self, c_expr):
         VEXObject.__init__(self)
+        self.tag = ints_to_enums[c_expr.tag]
 
     @property
     def size(self):
@@ -27,7 +28,7 @@ class U1(IRConst):
     type = 'Ity_I1'
 
     def __init__(self, c_expr):
-        IRConst.__init__(self)
+        IRConst.__init__(self, c_expr)
         self.value = c_expr.Ico.U1
 
     def __str__(self):
@@ -37,7 +38,7 @@ class U8(IRConst):
     type = 'Ity_I8'
 
     def __init__(self, c_expr):
-        IRConst.__init__(self)
+        IRConst.__init__(self, c_expr)
         self.value = c_expr.Ico.U8
 
     def __str__(self):
@@ -47,7 +48,7 @@ class U16(IRConst):
     type = 'Ity_I16'
 
     def __init__(self, c_expr):
-        IRConst.__init__(self)
+        IRConst.__init__(self, c_expr)
         self.value = c_expr.Ico.U16
 
     def __str__(self):
@@ -57,7 +58,7 @@ class U32(IRConst):
     type = 'Ity_I32'
 
     def __init__(self, c_expr):
-        IRConst.__init__(self)
+        IRConst.__init__(self, c_expr)
         self.value = c_expr.Ico.U32
 
     def __str__(self):
@@ -67,7 +68,7 @@ class U64(IRConst):
     type = 'Ity_I64'
 
     def __init__(self, c_expr):
-        IRConst.__init__(self)
+        IRConst.__init__(self, c_expr)
         self.value = c_expr.Ico.U64
 
     def __str__(self):
@@ -77,7 +78,7 @@ class F32(IRConst):
     type = 'Ity_F32'
 
     def __init__(self, c_expr):
-        IRConst.__init__(self)
+        IRConst.__init__(self, c_expr)
         self.value = c_expr.Ico.F32
 
     def __str__(self):
@@ -87,7 +88,7 @@ class F32i(IRConst):
     type = 'Ity_F32'
 
     def __init__(self, c_expr):
-        IRConst.__init__(self)
+        IRConst.__init__(self, c_expr)
         self.value = c_expr.Ico.F32i
 
     def __str__(self):
@@ -97,7 +98,7 @@ class F64(IRConst):
     type = 'Ity_F64'
 
     def __init__(self, c_expr):
-        IRConst.__init__(self)
+        IRConst.__init__(self, c_expr)
         self.value = c_expr.Ico.F64
 
     def __str__(self):
@@ -107,7 +108,7 @@ class F64i(IRConst):
     type = 'Ity_F64'
 
     def __init__(self, c_expr):
-        IRConst.__init__(self)
+        IRConst.__init__(self, c_expr)
         self.value = c_expr.Ico.F64i
 
     def __str__(self):
@@ -117,7 +118,7 @@ class V128(IRConst):
     type = 'Ity_V128'
 
     def __init__(self, c_expr):
-        IRConst.__init__(self)
+        IRConst.__init__(self, c_expr)
         self.value = c_expr.Ico.V128
 
     def __str__(self):
@@ -127,7 +128,7 @@ class V256(IRConst):
     type = 'Ity_V256'
 
     def __init__(self, c_expr):
-        IRConst.__init__(self)
+        IRConst.__init__(self, c_expr)
         self.value = c_expr.Ico.V256
 
     def __str__(self):
