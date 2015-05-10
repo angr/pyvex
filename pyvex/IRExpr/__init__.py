@@ -9,7 +9,7 @@ class IRExpr(VEXObject):
         self.arch = irsb.arch
 
         if isinstance(self, (VECRET, Binder, BBPTR)):
-            self.result_type = 'Ity_Invalid'
+            self.result_type = 'Ity_INVALID'
         else:
             self.result_type = ints_to_enums[pvc.typeOfIRExpr(irsb.c_irsb.tyenv, c_expr)]
         self.result_size = type_sizes[self.result_type]
