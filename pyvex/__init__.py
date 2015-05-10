@@ -105,13 +105,18 @@ class IRSB(VEXObject):
         del self.c_irsb
 
     def pp(self):
-        print "IRSB {"
-        print "   %s" % self.tyenv
-        print ""
+        print self._pp_str()
+
+    def _pp_str(self):
+        sa = [ ]
+        sa.append("IRSB {")
+        sa.append("   %s" % self.tyenv)
+        sa.append("")
         for i,s in enumerate(self.statements):
-            print "   %02d | %s" % (i,s)
-        print "   NEXT: PUT(%s) = %s; %s" % (self.arch.translate_register_name(self.offsIP), self.next, self.jumpkind)
-        print "}"
+            sa.append("   %02d | %s" % (i,s))
+        sa.append("   NEXT: PUT(%s) = %s; %s" % (self.arch.translate_register_name(self.offsIP), self.next, self.jumpkind))
+        sa.append("}")
+        return '\n'.join(sa)
 
     @property
     def expressions(self):
