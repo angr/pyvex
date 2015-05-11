@@ -220,7 +220,13 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
                         vai->endness = VexEndnessLE;
 			break;
 		case VexArchAMD64:
-			vai->hwcaps = 0;
+			vai->hwcaps =   VEX_HWCAPS_AMD64_SSE3 |
+			                VEX_HWCAPS_AMD64_CX16 |
+			                VEX_HWCAPS_AMD64_LZCNT |
+			                VEX_HWCAPS_AMD64_AVX |
+			                VEX_HWCAPS_AMD64_RDTSCP |
+			                VEX_HWCAPS_AMD64_BMI |
+			                VEX_HWCAPS_AMD64_AVX2;
 			assert(endness == VexEndnessLE);
                         vai->endness = VexEndnessLE;
 			break;
