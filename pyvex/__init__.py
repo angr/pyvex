@@ -104,6 +104,8 @@ class IRSB(VEXObject):
         self.stmts_used = c_irsb.stmts_used
         self.jumpkind = ints_to_enums[c_irsb.jumpkind]
 
+        self.direct_next = self._is_defaultexit_direct_jump(mem_addr)
+
         del self.c_irsb
 
     def pp(self):
@@ -163,6 +165,33 @@ class IRSB(VEXObject):
         The constants (excluding updates of the program counter) in the IRSB.
         '''
         return sum((s.constants for s in self.statements if not (isinstance(s, IRStmt.Put) and s.offset == self.offsIP)), [ ])
+
+    def _is_defaultexit_direct_jump(self, mem_addr):
+        """
+        Checks if the default of this IRSB a direct jump or not.
+        """
+        if not (self.jumpkind == 'Ijk_Boring' or self.jumpkind == 'Ijk_Call'):
+            return False
+
+        next = self.next
+        if isinstance(next, IRExpr.Const):
+            return True
+
+        tmp_next = next.tmp
+
+        for stmt in reversed(self.statements):
+            if type(stmt) is IRStmt.WrTmp and stmt.tmp == tmp_next:
+                data = stmt.data
+
+                if isinstance(data, IRExpr.Const):
+                    return True
+                elif isinstance(data, IRExpr.RdTmp):
+                    tmp_next = data.tmp
+                else:
+                    return False
+
+        raise PyVEXError('Malformed IRSB at address 0x%x. Please report to Fish.' % mem_addr)
+
 
 class IRTypeEnv(VEXObject):
     def __init__(self, tyenv):
