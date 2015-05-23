@@ -73,13 +73,12 @@ class PutI(IRStmt):
 	def __init__(self, c_stmt, irsb):
 		IRStmt.__init__(self, c_stmt, irsb)
 		self.descr = IRRegArray(c_stmt.Ist.PutI.details.descr)
-
 		self.ix = IRExpr._translate(c_stmt.Ist.PutI.details.ix, irsb)
 		self.data = IRExpr._translate(c_stmt.Ist.PutI.details.data, irsb)
 		self.bias = c_stmt.Ist.PutI.details.bias
 
 	def __str__(self):
-		return "PUTI(%s)[%s,%d] = %s" % (self.descr, self.ix, self.bias, self.data)
+		return "PutI(%s)[%s,%d] = %s" % (self.descr, self.ix, self.bias, self.data)
 
 class WrTmp(IRStmt):
 	def __init__(self, c_stmt, irsb):

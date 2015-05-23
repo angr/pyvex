@@ -217,7 +217,7 @@ class IRRegArray(VEXObject):
     def __init__(self, arr):
         VEXObject.__init__(self)
         self.base = arr.base
-        self.elemTy = arr.elemTy
+        self.elemTy = ints_to_enums[arr.elemTy]
         self.nElems = arr.nElems
 
     def __str__(self):

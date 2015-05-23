@@ -92,7 +92,7 @@ class GetI(IRExpr):
         return self.ix
 
     def __str__(self):
-        return "GETI(%s)[%s,%s]" % (self.descr, self.ix, self.bias)
+        return "GetI(%s)[%s,%s]" % (self.descr, self.ix, self.bias)
 
 class RdTmp(IRExpr):
     def __init__(self, c_expr, irsb):
