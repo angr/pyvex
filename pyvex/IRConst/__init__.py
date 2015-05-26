@@ -8,6 +8,9 @@ class IRConst(VEXObject):
         VEXObject.__init__(self)
         self.tag = ints_to_enums[c_expr.tag]
 
+    def pp(self):
+        print self.__str__()
+
     @property
     def size(self):
         return type_sizes[self.type]
