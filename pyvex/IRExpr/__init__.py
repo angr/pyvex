@@ -14,6 +14,9 @@ class IRExpr(VEXObject):
             self.result_type = ints_to_enums[pvc.typeOfIRExpr(irsb.c_irsb.tyenv, c_expr)]
         self.result_size = type_sizes[self.result_type]
 
+    def pp(self):
+        print self.__str__()
+
     @property
     def child_expressions(self):
         '''

@@ -8,6 +8,9 @@ class IRStmt(VEXObject):
 		#self.c_stmt = c_stmt
 		self.tag = ints_to_enums[c_stmt.tag]
 
+	def pp(self):
+		print self.__str__()
+
 	@property
 	def expressions(self):
 		expressions = [ ]
