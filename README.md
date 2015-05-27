@@ -1,78 +1,130 @@
-# pyvex
+# PyVEX
 
-A python interface into Valgrind's VEX IR! This was created mainly to utilize VEX for static analysis, but it would be cool to integrate this with Valgrind as well. To that end, I've started writing pygrind to pass instrumentation over to Python, but this doesn't work yet.
+# Installing PyVEX
 
-## Build
+PyVEX can be pip installed:
 
-### Compiling VEX
+```bash
+git clone https://github.com/angr/pyvex
+pip install pyvex/
+```
 
-First, get the VEX code.
+You must also install archinfo (https://github.com/angr/archinfo).
 
-	mkdir ~/valgrind
-	cd ~/valgrind
-	wget http://valgrind.org/downloads/valgrind-3.9.0.tar.bz2
-	tar xvfj valgrind-3.9.0.tar.bz2
-	cd valgrind-3.9.0
+# Using PyVEX
 
-If you want to be able to VEX stuff for different platforms than what you're running on, you need to disable VEX's native code generation, as that'll just make everything crash. You can apply a patch to disable this:
+PyVEX exposes VEX into Python. To understand VEX, read the "VEX Intermediate Representation" section below.
 
-	patch -p1 < /path/to/pyvex/patches/valgrind_static_3.9.0.patch
+```python
+import pyvex
+import archinfo
 
-If your linux distribution ships with glibc 2.19, like Ubuntu 14.04, the release version of Valgrind 3.9.0 is unsupported. To build Valgrind with glibc 2.19, apply a patch to the configure file:
+# translate an AMD64 basic block (of nops) at 0x400400 into VEX
+irsb = pyvex.IRSB("\x90\x90\x90\x90\x90", 0x400400, archinfo.ArchAMD64())
 
-	patch -p1 < /path/to/pyvex/patches/ubuntu_libc.patch
+# pretty-print the basic block
+irsb.pp()
 
-For now, pyvex requires valgrind to be compiled with fPIC:
+# this is the IR Expression of the jump target of the unconditional exit at the end of the basic block
+print irsb.next
 
-	CFLAGS=-fPIC ./configure --prefix=$HOME/valgrind/inst
-	make
-	make install
+# this is the type of the unconditional exit (i.e., a call, ret, syscall, etc)
+print irsb.jumpkind
 
-Now you need to update the symblinks to the VEX libraries and includes (vex\_include and vex\_lib), and fix VEX\_LIB\_NAME in the setup.py
+# you can also pretty-print it
+irsb.next.pp()
 
-Great! Now you can build pyvex.
+# iterate through each statement and print all the statements
+for stmt in irsb.statements:
+	stmt.pp()
 
-	python setup.py build
+# pretty-print the IR expression representing the data, and the *type* of that IR expression written by every store statement
+import pyvex
+for stmt in irsb.statements:
+  if isinstance(stmt, pyvex.IRStmt.Store):
+    print "Data:",
+    stmt.data.pp()
+    print ""
 
-Sweet! Now you'll notice that two libraries are built. pyvex.so is pyvex with all the functionality, and pyvex\_dynamic is pyvex without the ability to statically create IRSBs from provided bytes. With the latter, the only pre-made IRSBs would presumably come from Valgrind at runtime, but since that doesn't work yet, the latter one is rather useless.
+    print "Type:",
+    print stmt.data.result_type
+    print ""
 
-## Use
+# pretty-print the condition and jump target of every conditional exit from the basic block
+for stmt in irsb.statements:
+	if isinstance(stmt, pyvex.IRStmt.Exit):
+		print "Condition:",
+		stmt.guard.pp()
+		print ""
 
-You can use pyvex pretty easily. For now, it only supports translation and pretty printing:
+		print "Target:",
+		stmt.dst.pp()
+		print ""
 
-	import pyvex
-	irsb = pyvex.IRSB(bytes="\x55\xc3") # translates "push ebp; ret" to VEX IR
-	irsb.pp() # prints the VEX IR
+# these are the types of every temp in the IRSB
+print irsb.tyenv.types
 
-Awesome stuff!
+# here is one way to get the type of temp 0
+print irsb.tyenv.types[0]
+```
 
-## Static gotchas
+Keep in mind that this is a *syntactic* respresentation of a basic block. That is, it'll tell you what the block means, but you don't have any context to say, for example, what *actual* data is written by a store instruction. We'll get to that next.
 
-To use PyVEX statically, VEX's memory management needs to be worked around. The issue is that all of the nice, helpful, constructor functions (ie, emptyIRSB(), mkIRCallee(), etc) allocate memory managed by VEX, and VEX is liable to free it or reuse it at any time. Thus, everything needs to be deepCopied out of VEX.
+# VEX Intermediate Representation
 
-There are a few approaches to solving this. To work around the issue, we could simply pull all of these functions out of VEX and use our local copies, using reasonable memory management. However, that's a lot of functions to pull out and keep synced. We took the (possibly worse) approach of deepCopying everything away from VEX. The file generate\_deepcopy.sh copies out the deepCopy operations out of VEX, does some sedding to rename the functions, and we call those to pull everything out from VEX.
+To deal with widely diverse architectures, it is useful to carry out analyses on an intermediate representation.
+An IR abstracts away several architecture differences when dealing with different architectures, allowing a single analysis to be run on all of them:
 
-One issue with that the fact that we need to explicitly replace functions, hence the giant list of defines in that shell script. Whenever Valgrind adds more of these, pyvex might silently segfault until they're added to the replacement list.
+- **Register names.** The quantity and names of registers differ between architectures, but modern CPU designs hold to a common theme: each CPU contains several general purpose registers, a register to hold the stack pointer, a set of registers to store condition flags, and so forth. The IR provides a consistent, abstracted interface to registers on different platforms. Specifically, VEX models the registers as a separate memory space, with integer offsets (i.e., AMD64's `rax` is stored starting at address 16 in this memory space).
+- **Memory access.** Different architectures access memory in different ways. For example, ARM can access memory in both little-endian and big-endian modes. The IR must abstracts away these differences.
+- **Memory segmentation.** Some architectures, such as x86, support memory segmentation through the use of special segment registers. The IR understands such memory access mechanisms.
+- **Instruction side-effects.** Most instructions have side-effects. For example, most operations in Thumb mode on ARM update the condition flags, and stack push/pop instructions update the stack pointer. Tracking these side-effects in an *ad hoc* manner in the analysis would be crazy, so the IR makes these effects explicit.
 
-## Next steps
+There are lots of choices for an IR. We use VEX, since the uplifting of binary code into VEX is quite well supported.
+VEX is an architecture-agnostic, side-effects-free representation of a number of target machine languages.
+It abstracts machine code into a representation designed to make program analysis easier.
+This representation has four main classes of objects:
 
-- Get pyvex working in Valgrind, dynamically.
- - this requires getting the python interpreter to play nice with Valgrind. It's unclear if this is possible.
-- Debug this stuff.
+- **Expressions.** IR Expressions represent a calculated or constant value. This includes memory loads, register reads, and results of arithmetic operations.
+- **Operations.** IR Operations describe a *modification* of IR Expressions. This includes integer arithmetic, floating-point arithmetic, bit operations, and so forth. An IR Operation applied to IR Expressions yields an IR Expression as a result.
+- **Temporary variables.** VEX uses temporary variables as internal registers: IR Expressions are stored in temporary variables between use. The content of a temporary variable can be retrieved using an IR Expression. These temporaries are numbered, starting at `t0`. These temporaries are strongly typed (i.e., "64-bit integer" or "32-bit float").
+- **Statements.** IR Statements model changes in the state of the target machine, such as the effect of memory stores and register writes. IR Statements use IR Expressions for values they may need. For example, a memory store *IR Statement* uses an *IR Expression* for the target address of the write, and another *IR Expression* for the content.
+- **Blocks.** An IR Block is a collection of IR Statements, representing an extended basic block (termed "IR Super Block" or "IRSB") in the target architecture. A block can have several exits. For conditional exits from the middle of a basic block, a special *Exit* IR Statement is used. An IR Expression is used to represent the target of the unconditional exit at the end of the block.
 
-## Bugs/Issues
+VEX IR is actually quite well documented in the `libvex_ir.h` file (https://git.seclab.cs.ucsb.edu/gitlab/angr/vex/blob/master/pub/libvex_ir.h) in the VEX repository. For the lazy, we'll detail some parts of VEX that you'll likely interact with fairly frequently. To begin with, here are some IR Expressions:
 
-- Some class members are named incorrectly. I started out trying to name things nicer, but then realized that the naming should be consistent with the C structs. The inconsistencies should be fixed.
-- help() is sorely lacking
-- The class objects for the different sub-statements, sub-expressions, and sub-constants get inherited for instances of these classes. This is kindof ugly (ie, pyvex.IRStmt.NoOp().WrTmp is a valid reference to the WrTmp class).
-- pretty-printing an emptyIRSB segfaults
-- when used statically, memory is never freed
-- converting from string to tag is currently very slow (a hastily written consecutive bunch of strcmps)
-- IRCallee assumes that addresses are 64-bytes long, and will corrupt memory otherwise. This can be fixed by writing a getter/setter instead of using the macroed ones.
-- CCalls are created by creating the IRCallee and manually building the args list, instead of by calling the helper functions. Not sure if this is good or bad. On the other hand, Dirty statements are created through helper functions.
-- deepCopying a binder IRExpr seems to crash VEX
-- deepCopying a V256 const is not implemented by VEX's deepCopy stuff
-- IRDirty's fxState array access is untested
-- equality (for those things that easily have it) should be implemented as a rich comparator
-- the hwcaps for the various guest architectures are currently hardcoded. It should be possible to set them from Python.
-- You may come acorss a "a.out.h not found" error while compiling the Valgrind. Please turn to http://git.buildroot.net/buildroot/plain/package/valgrind/valgrind-dont-include-a-out-header.patch for a workaround.
+| IR Expression | Evaluated Value | VEX Output Example |
+| ------------- | --------------- | ------- |
+| Constant | A constant value. | 0x4:I32 |
+| Read Temp | The value stored in a VEX temporary variable. | RdTmp(t10) |
+| Get Register | The value stored in a register. | GET:I32(16) |
+| Load Memory | The value stored at a memory address, with the address specified by another IR Expression. | LDle:I32 / LDbe:I64 |
+| Operation | A result of a specified IR Operation, applied to specified IR Expression arguments. | Add32 |
+| If-Then-Else | If a given IR Expression evaluates to 0, return one IR Expression. Otherwise, return another. | ITE |
+| Helper Function | VEX uses C helper functions for certain operations, such as computing the conditional flags registers of certain architectures. These functions return IR Expressions. | function\_name() |
+
+These expressions are then, in turn, used in IR Statements. Here are some common ones:
+
+| IR Statement | Meaning | VEX Output Example |
+| ------------ | ------- | ------------------ |
+Write Temp | Set a VEX temporary variable to the value of the given IR Expression. | WrTmp(t1) = (IR Expression) |
+Put Register | Update a register with the value of the given IR Expression. | PUT(16) = (IR Expression) |
+Store Memory | Update a location in memory, given as an IR Expression, with a value, also given as an IR Expression. | STle(0x1000) = (IR Expression) |
+Exit | A conditional exit from a basic block, with the jump target specified by an IR Expression. The condition is specified by an IR Expression. | if (condition) goto (Boring) 0x4000A00:I32 |
+
+An example of an IR translation, on ARM, is produced below. In the example, the subtraction operation is translated into a single IR block comprising 5 IR Statements, each of which contains at least one IR Expression (although, in real life, an IR block would typically consist of more than one instruction). Register names are translated into numerical indices given to the *GET* Expression and *PUT* Statement.
+The astute reader will observe that the actual subtraction is modeled by the first 4 IR Statements of the block, and the incrementing of the program counter to point to the next instruction (which, in this case, is located at `0x59FC8`) is modeled by the last statement.
+
+The following ARM instruction:
+
+	subs R2, R2, #8
+	
+Becomes this VEX IR:
+
+	t0 = GET:I32(16)
+	t1 = 0x8:I32
+	t3 = Sub32(t0,t1)
+	PUT(16) = t3
+	PUT(68) = 0x59FC8:I32
+
+Cool stuff!
