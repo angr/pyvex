@@ -50,7 +50,7 @@ except ImportError:
 	print "Proper 'develop' support unavailable."
 
 setup(
-	name="pyvex", version="1.0",
+	name="pyvex", version="3.0",
 	packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
 	install_requires=[i.strip() for i in open('requirements.txt').readlines() if 'git' not in i],
 	data_files=[
