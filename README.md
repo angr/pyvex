@@ -5,8 +5,7 @@
 PyVEX can be pip-installed:
 
 ```bash
-pip install git+https://github.com/angr/pyvex
-pip install git+https://github.com/angr/archinfo # pyvex depends on this
+pip install pyvex
 ```
 
 # Using PyVEX
