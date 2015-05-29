@@ -1,14 +1,20 @@
-import sys
-
 import collections
 _counts = collections.Counter()
 
 import os
-pyvex_path = os.path.join(os.path.dirname(__file__), '..', 'pyvex_c', 'pyvex_static.so')
-if not os.path.exists(pyvex_path) and "VIRTUAL_ENV" in os.environ:
-    virtual_env = os.environ["VIRTUAL_ENV"]
-    pyvex_path = os.path.join(virtual_env, 'lib', 'pyvex_static.so')
-if not os.path.exists(pyvex_path):
+import sys
+
+_pyvex_paths = [ os.path.join(os.path.dirname(__file__), '..', 'pyvex_c', 'pyvex_static.so'), os.path.join(sys.prefix, 'lib', 'pyvex_static.so') ]
+
+_sigh = os.path.abspath(__file__)
+while _sigh != '/':
+    _sigh = os.path.dirname(_sigh)
+    _pyvex_paths.append(os.path.join(_sigh, 'lib', 'pyvex_static.so'))
+
+for pyvex_path in _pyvex_paths:
+    if os.path.exists(pyvex_path):
+        break
+else:
     raise ImportError("unable to find pyvex_static.so")
 
 #
@@ -18,7 +24,7 @@ import cffi
 ffi = cffi.FFI()
 from . import vex_ffi
 ffi.cdef(vex_ffi.ffi_str)
-pvc = ffi.dlopen(pyvex_path)
+pvc = ffi.dlopen(pyvex_path) #pylint:disable=undefined-loop-variable
 pvc.vex_init()
 dir(pvc) # lookup all the definitions (wtf)
 enums_to_ints = { _:getattr(pvc,_) for _ in dir(pvc) if isinstance(getattr(pvc,_), int) }
