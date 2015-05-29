@@ -65,7 +65,7 @@ print irsb.tyenv.types
 print irsb.tyenv.types[0]
 ```
 
-Keep in mind that this is a *syntactic* respresentation of a basic block. That is, it'll tell you what the block means, but you don't have any context to say, for example, what *actual* data is written by a store instruction. We'll get to that next.
+Keep in mind that this is a *syntactic* respresentation of a basic block. That is, it'll tell you what the block means, but you don't have any context to say, for example, what *actual* data is written by a store instruction.
 
 # VEX Intermediate Representation
 
