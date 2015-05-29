@@ -179,14 +179,12 @@ class IRSB(VEXObject):
         if not (self.jumpkind == 'Ijk_Boring' or self.jumpkind == 'Ijk_Call'):
             return False
 
-        next = self.next
-        if isinstance(next, IRExpr.Const):
+        if isinstance(self.next, IRExpr.Const):
             return True
-
-        tmp_next = next.tmp
+        tmp_next = self.next.tmp
 
         for stmt in reversed(self.statements):
-            if type(stmt) is IRStmt.WrTmp and stmt.tmp == tmp_next:
+            if isinstance(stmt, IRStmt.WrTmp) and stmt.tmp == tmp_next:
                 data = stmt.data
 
                 if isinstance(data, IRExpr.Const):
