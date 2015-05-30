@@ -92,7 +92,7 @@ class F32i(IRConst):
 
     def __init__(self, c_expr):
         IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.F32i
+        self.value = c_expr.Ico.F32
 
     def __str__(self):
         return "%f" % self.value
@@ -112,7 +112,7 @@ class F64i(IRConst):
 
     def __init__(self, c_expr):
         IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.F64i
+        self.value = c_expr.Ico.F64
 
     def __str__(self):
         return "%f" % self.value
