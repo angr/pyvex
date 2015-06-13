@@ -7,7 +7,9 @@ import sys
 _pyvex_paths = [ os.path.join(os.path.dirname(__file__), '..', 'pyvex_c', 'pyvex_static.so'), os.path.join(sys.prefix, 'lib', 'pyvex_static.so') ]
 
 _sigh = os.path.abspath(__file__)
-while _sigh != '/':
+_prev_sigh = '$'
+while _sigh != _prev_sigh:
+    _prev_sigh = _sigh
     _sigh = os.path.dirname(_sigh)
     _pyvex_paths.append(os.path.join(_sigh, 'lib', 'pyvex_static.so'))
 

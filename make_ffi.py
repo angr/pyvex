@@ -55,9 +55,10 @@ def doit(vex_path):
     header,_ = subprocess.Popen(['cpp', '-I'+vex_path, 'pyvex_c/pyvex_static.h'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
     #header = vex_pp + pyvex_pp
 
-    ffi_text = '\n'.join(line for line in header.split('\n') if not line.startswith('#') and line != '')
-    ffi_text = ffi_text.replace('{\n  } NoOp;', '{ int DONOTUSE; } NoOp;')
-    ffi_lines = ffi_text.split('\n')
+    linesep = '\r\n' if '\r\n' in header else '\n'
+    ffi_text = linesep.join(line for line in header.split(linesep) if not line.startswith('#') and line != '')
+    ffi_text = ffi_text.replace('{'+linesep+'  } NoOp;', '{ int DONOTUSE; } NoOp;')
+    ffi_lines = ffi_text.split(linesep)
 
     good = find_good_scan([], ffi_lines)
     remaining = ffi_lines[len(good)+1:]
