@@ -269,6 +269,10 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 			vai->hwcaps = 0x00010000;
 			vai->endness = endness;
 			break;
+		case VexArchMIPS64:
+			vai->hwcaps = 0;
+			vai->endness = endness;
+			break;
 		default:
 			pyvex_error("Invalid arch in vex_prepare_vai.\n");
 			break;
@@ -280,7 +284,7 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 //----------------------------------------------------------------------
 IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, unsigned long long insn_addr, int max_insns)
 {
-	vex_prepare_vai(guest, endness,  &vai_guest);
+	vex_prepare_vai(guest, endness, &vai_guest);
 
 	debug("Guest arch: %d\n", guest);
 	debug("Guest arch hwcaps: %08x\n", vai_guest.hwcaps);
