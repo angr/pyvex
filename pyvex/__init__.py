@@ -196,6 +196,9 @@ class IRSB(VEXObject):
                 else:
                     return False
 
+            elif isinstance(stmt, IRStmt.LoadG) and stmt.dst == tmp_next:
+                return False
+
         raise PyVEXError('Malformed IRSB at address 0x%x. Please report to Fish.' % mem_addr)
 
 
