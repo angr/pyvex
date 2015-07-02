@@ -1,0 +1,24 @@
+before_script:
+    - angr-test sync
+
+# pyvex has no local tests
+#local:
+#    script: "angr-test simuvex"
+#    tags:
+#        - "angr"
+#    except:
+#        - "master"
+
+reverse_deps:
+    script: "angr-test simuvex angr fidget"
+    tags:
+        - "angr"
+    except:
+        - "master"
+
+lint:
+    script: "angr-test lint"
+    tags:
+        - "angr"
+    except:
+        - "master"
