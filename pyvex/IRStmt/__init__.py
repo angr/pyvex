@@ -199,7 +199,7 @@ class Exit(IRStmt):
 		return self.jk
 
 	def __str__(self):
-		return "if (%s) { PUT(%d) = %s; %s }" % (self.guard, self.arch.translate_register_name(self.offsIP), hex(self.dst.value), self.jumpkind)
+		return "if (%s) { PUT(%s) = %s; %s }" % (self.guard, self.arch.translate_register_name(self.offsIP), hex(self.dst.value), self.jumpkind)
 
 class LoadG(IRStmt):
 	def __init__(self, c_stmt, irsb):
