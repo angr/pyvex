@@ -8,6 +8,18 @@ PyVEX can be pip-installed:
 pip install pyvex
 ```
 
+# Citing PyVEX
+
+If you use PyVEX in an academic work, please cite the paper for which it was developed:
+
+```bibtex
+@article{shoshitaishvili2015firmalice,
+  title={Firmalice - Automatic Detection of Authentication Bypass Vulnerabilities in Binary Firmware},
+  author={Shoshitaishvili, Yan and Wang, Ruoyu and Hauser, Christophe and Kruegel, Christopher and Vigna, Giovanni},
+  year={2015}
+}
+```
+
 # Using PyVEX
 
 PyVEX exposes VEX into Python. To understand VEX, read the "VEX Intermediate Representation" section below.
