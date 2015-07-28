@@ -167,7 +167,6 @@ void vex_init()
 	//
 	vta.arch_guest          = VexArch_INVALID; // to be assigned later
 	vta.arch_host          = VexArch_INVALID; // to be assigned later
-	vta.abiinfo_both	= vbi;
 
 	//
 	// The actual stuff to vex
@@ -325,6 +324,7 @@ IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, uns
 
 	vta.archinfo_guest = vai_guest;
 	vta.arch_guest = guest;
+	vta.abiinfo_both = vbi; // Set the vbi value
 
 	vta.guest_bytes         = (UChar *)(insn_start);  // Ptr to actual bytes of start of instruction
 	vta.guest_bytes_addr    = (Addr64)(insn_addr);
