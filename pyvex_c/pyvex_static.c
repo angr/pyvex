@@ -153,9 +153,9 @@ void vex_init()
 	vai_host.endness = VexEndnessLE; // TODO: Don't assume this
 
 	// various settings to make stuff work
-	// ... forgot what the former one is for, but it avoids an assert somewhere
+	// ... former is set to 'unspecified', but gets set in vex_inst for archs which care
 	// ... the latter two are for dealing with gs and fs in VEX
-	vbi.guest_stack_redzone_size = 128;
+	vbi.guest_stack_redzone_size = 0;
 	vbi.guest_amd64_assume_fs_is_const = True;
 	vbi.guest_amd64_assume_gs_is_const = True;
 
@@ -279,12 +279,32 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 	}
 }
 
+// Prepare the VexAbiInfo
+void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi)
+{
+	// only setting the guest_stack_redzone_size for now
+	// this attribute is only specified by the PPC64 and AMD64 ABIs
+
+	switch (arch)
+	{
+		case VexArchAMD64:
+			vbi->guest_stack_redzone_size = 128;
+			break;
+		case VexArchPPC64:
+			vbi->guest_stack_redzone_size = 288;
+			break;
+		default:
+			break;
+	}
+}
+
 //----------------------------------------------------------------------
 // Translate 1 instruction to VEX IR.
 //----------------------------------------------------------------------
 IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, unsigned long long insn_addr, int max_insns)
 {
 	vex_prepare_vai(guest, endness, &vai_guest);
+	vex_prepare_vbi(guest, &vbi);
 
 	debug("Guest arch: %d\n", guest);
 	debug("Guest arch hwcaps: %08x\n", vai_guest.hwcaps);
