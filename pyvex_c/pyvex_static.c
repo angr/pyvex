@@ -211,23 +211,23 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 	{
 		case VexArchX86:
 			vai->hwcaps =   VEX_HWCAPS_X86_MMXEXT |
-                            VEX_HWCAPS_X86_SSE1 |
-                            VEX_HWCAPS_X86_SSE2 |
-                            VEX_HWCAPS_X86_SSE3 |
-                            VEX_HWCAPS_X86_LZCNT;
+							VEX_HWCAPS_X86_SSE1 |
+							VEX_HWCAPS_X86_SSE2 |
+							VEX_HWCAPS_X86_SSE3 |
+							VEX_HWCAPS_X86_LZCNT;
 			assert(endness == VexEndnessLE);
-                        vai->endness = VexEndnessLE;
+						vai->endness = VexEndnessLE;
 			break;
 		case VexArchAMD64:
 			vai->hwcaps =   VEX_HWCAPS_AMD64_SSE3 |
-			                VEX_HWCAPS_AMD64_CX16 |
-			                VEX_HWCAPS_AMD64_LZCNT |
-			                VEX_HWCAPS_AMD64_AVX |
-			                VEX_HWCAPS_AMD64_RDTSCP |
-			                VEX_HWCAPS_AMD64_BMI |
-			                VEX_HWCAPS_AMD64_AVX2;
+							VEX_HWCAPS_AMD64_CX16 |
+							VEX_HWCAPS_AMD64_LZCNT |
+							VEX_HWCAPS_AMD64_AVX |
+							VEX_HWCAPS_AMD64_RDTSCP |
+							VEX_HWCAPS_AMD64_BMI |
+							VEX_HWCAPS_AMD64_AVX2;
 			assert(endness == VexEndnessLE);
-                        vai->endness = VexEndnessLE;
+						vai->endness = VexEndnessLE;
 			break;
 		case VexArchARM:
 			vai->hwcaps = 7;
@@ -241,22 +241,22 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 			break;
 		case VexArchPPC32:
 			vai->hwcaps =   VEX_HWCAPS_PPC32_F |
-                            VEX_HWCAPS_PPC32_V |
-                            VEX_HWCAPS_PPC32_FX |
-                            VEX_HWCAPS_PPC32_GX |
-                            VEX_HWCAPS_PPC32_VX |
-                            VEX_HWCAPS_PPC32_DFP |
-                            VEX_HWCAPS_PPC32_ISA2_07;
+							VEX_HWCAPS_PPC32_V |
+							VEX_HWCAPS_PPC32_FX |
+							VEX_HWCAPS_PPC32_GX |
+							VEX_HWCAPS_PPC32_VX |
+							VEX_HWCAPS_PPC32_DFP |
+							VEX_HWCAPS_PPC32_ISA2_07;
 			vai->ppc_icache_line_szB = 32; // unsure if correct
-            		vai->endness = endness;
+					vai->endness = endness;
 			break;
 		case VexArchPPC64:
 			vai->hwcaps =   VEX_HWCAPS_PPC64_V |
-                            VEX_HWCAPS_PPC64_FX |
-                            VEX_HWCAPS_PPC64_GX |
-                            VEX_HWCAPS_PPC64_VX |
-                            VEX_HWCAPS_PPC64_DFP |
-                            VEX_HWCAPS_PPC64_ISA2_07;
+							VEX_HWCAPS_PPC64_FX |
+							VEX_HWCAPS_PPC64_GX |
+							VEX_HWCAPS_PPC64_VX |
+							VEX_HWCAPS_PPC64_DFP |
+							VEX_HWCAPS_PPC64_ISA2_07;
 			vai->ppc_icache_line_szB = 64; // unsure if correct
 			vai->endness = endness;
 			break;
@@ -348,31 +348,55 @@ int vex_count_instructions(VexArch guest, VexEndness endness, unsigned char *ins
 
 	unsigned int count = 0;
 	unsigned int processed = 0;
+	int per_lift = basic_only ? 3 : 1;
 
 	while (processed < num_bytes && count < 99)
 	{
 		debug("Next byte: %02x\n", instructions[processed]);
-		IRSB *sb = vex_inst(guest, endness, instructions + processed, block_addr + processed, 1);
+		IRSB *sb = vex_inst(guest, endness, instructions + processed, block_addr + processed, per_lift);
 
 		if (vge.len[0] == 0 || sb == NULL)
 		{
-			pyvex_error("Something went wrong in IR translation at position %x of addr %x in vex_count_instructions.\n", processed,block_addr);
+			if (sb) {
+				// Block translated, got length of zero: first instruction is NoDecode
+				count += 1;
+			}
+		pyvex_error("Something went wrong in IR translation at position %x of addr %x in vex_count_instructions.\n", processed, block_addr);
 			break;
 		}
 
-		processed += vge.len[0];
+		IRStmt *first_imark = NULL;
+		for (int i = 0; i < sb->stmts_used; i++) {
+			if (sb->stmts[i]->tag == Ist_IMark) {
+				first_imark = sb->stmts[i];
+				break;
+			}
+		}
+		assert(first_imark);
+
+		if (basic_only) {
+			if (vtr.n_guest_instrs < 3) {
+				// Found an exit!!
+				if (processed + first_imark->Ist.IMark.len >= num_bytes) {
+					// edge case: This is the first run through this loop (processed == 0) and
+					// the first instruction is long enough to fill up the byte quota.
+					count += 1;
+					processed += first_imark->Ist.IMark.len;
+					debug("Processed %d bytes\n", processed);
+					break;
+				}
+				count += vtr.n_guest_instrs;
+				processed += vge.len[0];
+				debug("Processed %d bytes\n", processed);
+				break;
+			}
+		}
+
+		processed += first_imark->Ist.IMark.len;
 		debug("Processed %d bytes\n", processed);
 
 		assert(vge.n_used == 1);
 		count++;
-
-		// stop getting instructions if we are looking for non-extended basic blocks and we see an exit
-		if (basic_only)
-		{
-			for (int i = 0; i < sb->stmts_used; i++)
-				if (sb->stmts[i]->tag == Ist_Exit) break;
-		}
-
 	}
 
 	debug("... found %d instructions!\n", count);
@@ -435,5 +459,5 @@ IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructi
 }
 
 void set_iropt_level(int level) {
-    vex_update_iropt_level(level);
+	vex_update_iropt_level(level);
 }

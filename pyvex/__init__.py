@@ -82,7 +82,7 @@ class IRSB(VEXObject):
 
         if isinstance(bytes, (str, _bytes)):
             num_bytes = len(bytes) if num_bytes is None else num_bytes
-            c_bytes = ffi.new('char [%d]' % num_bytes, bytes)
+            c_bytes = ffi.new('char [%d]' % (num_bytes + 8), bytes + '\0'*8)
         else:
             if not num_bytes:
                 raise PyVEXError("C-backed bytes must have the length specified by num_bytes")
@@ -98,7 +98,7 @@ class IRSB(VEXObject):
         if num_inst is not None:
             c_irsb = pvc.vex_block_inst(vex_arch, vex_end, c_bytes + bytes_offset, mem_addr, num_inst)
         else:
-            c_irsb = pvc.vex_block_bytes(vex_arch, vex_end, c_bytes + bytes_offset, mem_addr, num_bytes, 0)
+            c_irsb = pvc.vex_block_bytes(vex_arch, vex_end, c_bytes + bytes_offset, mem_addr, num_bytes, 1)
 
         if c_irsb == ffi.NULL:
             raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
