@@ -58,13 +58,13 @@ IRSB *irbb_current = NULL;
 //
 //======================================================================
 
-__attribute((noreturn)) void failure_exit( void )
+static __attribute((noreturn)) void failure_exit( void )
 {
 	printf("SHIIIIIT\n");
 	exit(1);
 }
 
-void log_bytes( const HChar* bytes, SizeT nbytes )
+static void log_bytes( const HChar* bytes, SizeT nbytes )
 {
 	SizeT i;
 	for (i = 0; i < nbytes - 3; i += 4)
@@ -73,18 +73,18 @@ void log_bytes( const HChar* bytes, SizeT nbytes )
 		printf("%c", bytes[i]);
 }
 
-Bool chase_into_ok( void *closureV, Addr addr64 )
+static Bool chase_into_ok( void *closureV, Addr addr64 )
 {
 	return False;
 }
 
 // TODO: figure out what this is for
-UInt needs_self_check(void *callback_opaque, VexRegisterUpdates* pxControl, const VexGuestExtents *guest_extents)
+static UInt needs_self_check(void *callback_opaque, VexRegisterUpdates* pxControl, const VexGuestExtents *guest_extents)
 {
 	return 0;
 }
 
-void *dispatch(void)
+static void *dispatch(void)
 {
 	return NULL;
 }
@@ -92,13 +92,13 @@ void *dispatch(void)
 //----------------------------------------------------------------------
 // This is where we copy out the IRSB
 //----------------------------------------------------------------------
-IRSB *instrument1(  void *callback_opaque,
-                    IRSB *irbb,
-                    const VexGuestLayout *vgl,
-                    const VexGuestExtents *vge,
-                    const VexArchInfo *vae,
-                    IRType gWordTy,
-                    IRType hWordTy )
+static IRSB *instrument1(  void *callback_opaque,
+                           IRSB *irbb,
+                           const VexGuestLayout *vgl,
+                           const VexGuestExtents *vge,
+                           const VexArchInfo *vae,
+                           IRType gWordTy,
+                           IRType hWordTy )
 {
 
 	assert(irbb);
@@ -205,7 +205,7 @@ void vex_init()
 }
 
 // Prepare the VexArchInfo struct
-void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
+static void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 {
 	switch (arch)
 	{
@@ -279,7 +279,7 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 }
 
 // Prepare the VexAbiInfo
-void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi)
+static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi)
 {
 	// only setting the guest_stack_redzone_size for now
 	// this attribute is only specified by the PPC64 and AMD64 ABIs
@@ -300,7 +300,7 @@ void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi)
 //----------------------------------------------------------------------
 // Translate 1 instruction to VEX IR.
 //----------------------------------------------------------------------
-IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, unsigned long long insn_addr, int max_insns)
+static IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, unsigned long long insn_addr, int max_insns)
 {
 	vex_prepare_vai(guest, endness, &vai_guest);
 	vex_prepare_vbi(guest, &vbi);
