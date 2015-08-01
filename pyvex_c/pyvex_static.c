@@ -66,7 +66,7 @@ __attribute((noreturn)) void failure_exit( void )
 
 void log_bytes( const HChar* bytes, SizeT nbytes )
 {
-	Int i;
+	SizeT i;
 	for (i = 0; i < nbytes - 3; i += 4)
 		printf("%c%c%c%c", bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3]);
 	for (; i < nbytes; i++)
