@@ -342,7 +342,7 @@ static IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_sta
 	return irbb_current;
 }
 
-int vex_count_instructions(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
+unsigned int vex_count_instructions(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
 {
 	debug("Counting instructions in %d bytes starting at 0x%x, basic %d\n", num_bytes, block_addr, basic_only);
 
