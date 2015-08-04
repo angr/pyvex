@@ -24,7 +24,6 @@ void vex_init(void);
 
 //
 // Translates assembly instructions and blocks into VEX
-IRSB *vex_instruction(VexArch guest, VexEndness endness, unsigned char *insn_start, unsigned int insn_addr, int max_insns);
 IRSB *vex_block_bytes(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only);
 IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_inst);
 unsigned int vex_count_instructions(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only);
