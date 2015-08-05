@@ -18,9 +18,9 @@ void vex_init(void);
 
 //
 // Translates assembly instructions and blocks into VEX
-IRSB *vex_block_bytes(VexArch guest, VexArchInfo archinfo, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only);
-IRSB *vex_block_inst(VexArch guest, VexArchInfo archinfo, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_inst);
-unsigned int vex_count_instructions(VexArch guest, VexArchInfo archinfo, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only);
+IRSB *vex_block_bytes(VexArch guest, VexArchInfo archinfo, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only);
+IRSB *vex_block_inst(VexArch guest, VexArchInfo archinfo, unsigned char *instructions, unsigned long long block_addr, unsigned int num_inst);
+unsigned int vex_count_instructions(VexArch guest, VexArchInfo archinfo, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only);
 void set_iropt_level(int level);
 
 #endif

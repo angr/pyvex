@@ -68,6 +68,26 @@ def _get_op_type(op):
 _op_types = { _:_get_op_type(_) for _ in enums_to_ints if _.startswith('Iop_') and _ != 'Iop_INVALID' and _ != 'Iop_LAST' }
 def typeOfIROp(op): return _op_types[op]
 
+def vex_endness_from_string(endness_str):
+    return getattr(pvc, endness_str)
+
+def default_vex_archinfo():
+    return {
+        'hwcaps': 0,
+        'endness': vex_endness_from_string('VexEndnessLE'),
+        'ppc_icache_line_szB': 0,
+        'ppc_dcbz_szB': 0,
+        'ppc_dcbzl_szB': 0,
+        'arm64_dMinLine_lg2_szB': 0,
+        'arm64_iMinLine_lg2_szB': 0,
+        'hwcache_info': {
+            'num_levels': 0,
+            'num_caches': 0,
+            'caches': None,
+            'icaches_maintain_coherence': True,
+        },
+    }
+
 class VEXObject(object):
     pass
     #def __init__(self):
@@ -99,15 +119,19 @@ class IRSB(VEXObject):
         pvc.vta.traceflags = traceflags
 
         vex_arch = getattr(pvc, arch.vex_arch)
-        vex_end = getattr(pvc, arch.vex_endness)
+
+        arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
 
         if num_inst is not None:
-            c_irsb = pvc.vex_block_inst(vex_arch, vex_end, c_bytes + bytes_offset, mem_addr, num_inst)
+            c_irsb = pvc.vex_block_inst(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_inst)
         else:
-            c_irsb = pvc.vex_block_bytes(vex_arch, vex_end, c_bytes + bytes_offset, mem_addr, num_bytes, 1)
+            c_irsb = pvc.vex_block_bytes(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_bytes, 1)
 
         if c_irsb == ffi.NULL:
             raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
+
+        # We must use a pickle value, CData objects are not pickeable so not ffi.NULL
+        arch.vex_archinfo['hwcache_info']['caches'] = None
 
         self.c_irsb = c_irsb
         self.arch = arch
