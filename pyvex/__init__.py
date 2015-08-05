@@ -86,6 +86,7 @@ def default_vex_archinfo():
             'caches': None,
             'icaches_maintain_coherence': True,
         },
+        'x86_cr0': 0xffffffff
     }
 
 class VEXObject(object):
