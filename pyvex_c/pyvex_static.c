@@ -166,7 +166,18 @@ void vex_init()
 	// Architecture info
 	//
 	vta.arch_guest          = VexArch_INVALID; // to be assigned later
-	vta.arch_host          = VexArch_INVALID; // to be assigned later
+	vta.archinfo_host = vai_host;
+#if __amd64__
+	vta.arch_host = VexArchAMD64;
+#elif __i386__
+	vta.arch_host = VexArchX86;
+#elif __arm__
+	vta.arch_host = VexArchARM;
+#elif __aarch64__
+	vta.arch_host = VexArchARM64;
+#else
+#error "Unsupported host arch"
+#endif
 
 	//
 	// The actual stuff to vex
@@ -308,19 +319,6 @@ static IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_sta
 	debug("Guest arch: %d\n", guest);
 	debug("Guest arch hwcaps: %08x\n", vai_guest.hwcaps);
 	//vta.traceflags = 0xffffffff;
-
-	vta.archinfo_host = vai_host;
-#if __amd64__
-	vta.arch_host = VexArchAMD64;
-#elif __i386__
-	vta.arch_host = VexArchX86;
-#elif __arm__
-	vta.arch_host = VexArchARM;
-#elif __aarch64__
-	vta.arch_host = VexArchARM64;
-#else
-#error "Unsupported host arch"
-#endif
 
 	vta.archinfo_guest = vai_guest;
 	vta.arch_guest = guest;
