@@ -201,6 +201,10 @@ class Exit(IRStmt):
 	def __str__(self):
 		return "if (%s) { PUT(%s) = %s; %s }" % (self.guard, self.arch.translate_register_name(self.offsIP), hex(self.dst.value), self.jumpkind)
 
+        @property
+        def child_expressions(self):
+                return [self.guard, self.dst] + self.guard.child_expressions
+
 class LoadG(IRStmt):
 	def __init__(self, c_stmt, irsb):
 		IRStmt.__init__(self, c_stmt, irsb)
