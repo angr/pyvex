@@ -112,7 +112,8 @@ class IRSB(VEXObject):
         self.stmts_used = c_irsb.stmts_used
         self.jumpkind = ints_to_enums[c_irsb.jumpkind]
 
-        self.direct_next = self._is_defaultexit_direct_jump(mem_addr)
+        self._addr = mem_addr
+        self.direct_next = self._is_defaultexit_direct_jump()
 
         del self.c_irsb
 
@@ -174,33 +175,58 @@ class IRSB(VEXObject):
         '''
         return sum((s.constants for s in self.statements if not (isinstance(s, IRStmt.Put) and s.offset == self.offsIP)), [ ])
 
-    def _is_defaultexit_direct_jump(self, mem_addr):
+    @property
+    def constant_jump_targets(self):
+        '''
+        The static jump targets of the basic block.
+        '''
+        exits = set()
+        for s in self.statements:
+            if isinstance(s, IRStmt.Exit):
+                exits.add(s.dst.value)
+
+        default_target = self._get_defaultexit_target()
+        if default_target is not None:
+            exits.add(default_target)
+
+        return exits
+
+    def _get_defaultexit_target(self):
+        '''
+        Retrieves the default exit target, if it is constant.
+        '''
+        if isinstance(self.next, IRExpr.Const):
+            return self.next.con.value
+
+        if not isinstance(self.next, IRExpr.RdTmp):
+            raise PyVEXError("unexpected self.next type: %s", self.next.__class__.__name__)
+
+        tmp_next = self.next.tmp
+        for stmt in reversed(self.statements):
+            if isinstance(stmt, IRStmt.WrTmp) and stmt.tmp == tmp_next:
+                data = stmt.data
+
+                if isinstance(data, IRExpr.Const):
+                    return data.con.value
+                elif isinstance(data, IRExpr.RdTmp):
+                    tmp_next = data.tmp
+                else:
+                    return None
+
+            elif isinstance(stmt, IRStmt.LoadG) and stmt.dst == tmp_next:
+                return None
+
+        raise PyVEXError('Malformed IRSB at address 0x%x. Please report to Fish.' % self._addr)
+
+    def _is_defaultexit_direct_jump(self):
         """
         Checks if the default of this IRSB a direct jump or not.
         """
         if not (self.jumpkind == 'Ijk_Boring' or self.jumpkind == 'Ijk_Call'):
             return False
 
-        if isinstance(self.next, IRExpr.Const):
-            return True
-        tmp_next = self.next.tmp
-
-        for stmt in reversed(self.statements):
-            if isinstance(stmt, IRStmt.WrTmp) and stmt.tmp == tmp_next:
-                data = stmt.data
-
-                if isinstance(data, IRExpr.Const):
-                    return True
-                elif isinstance(data, IRExpr.RdTmp):
-                    tmp_next = data.tmp
-                else:
-                    return False
-
-            elif isinstance(stmt, IRStmt.LoadG) and stmt.dst == tmp_next:
-                return False
-
-        raise PyVEXError('Malformed IRSB at address 0x%x. Please report to Fish.' % mem_addr)
-
+        target = self._get_defaultexit_target()
+        return target is not None
 
 class IRTypeEnv(VEXObject):
     def __init__(self, tyenv):
