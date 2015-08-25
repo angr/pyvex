@@ -44,7 +44,7 @@ class IRExpr(VEXObject):
 
     @staticmethod
     def _translate(c_expr, irsb):
-        if c_expr[0] == ffi.NULL:
+        if c_expr == ffi.NULL or c_expr[0] == ffi.NULL:
             return None
 
         tag = c_expr.tag
