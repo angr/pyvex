@@ -1,9 +1,16 @@
 import os
 import urllib2
 import subprocess
+import sys
 from distutils.errors import LibError
 from distutils.core import setup
 from distutils.command.build import build as _build
+
+if sys.platform == 'darwin':
+    library_file = "pyvex_static.dylib"
+else:
+    library_file = "pyvex_static.so"
+
 
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
 VEX_PATH = "vex"
@@ -53,7 +60,7 @@ setup(
 	name="pyvex", version="3.12", description="A Python interface to libVEX and VEX IR.",
 	packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
 	data_files=[
-		('lib', ('pyvex_c/pyvex_static.so',),),
+		('lib', (os.path.join('pyvex_c', library_file),),),
 	],
 	cmdclass=cmdclass,
 	install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo' ]
