@@ -4,14 +4,20 @@ _counts = collections.Counter()
 import os
 import sys
 
-_pyvex_paths = [ os.path.join(os.path.dirname(__file__), '..', 'pyvex_c', 'pyvex_static.so'), os.path.join(sys.prefix, 'lib', 'pyvex_static.so') ]
+if sys.platform == 'darwin':
+    library_file = "pyvex_static.dylib"
+else:
+    library_file = "pyvex_static.so"
+
+
+_pyvex_paths = [ os.path.join(os.path.dirname(__file__), '..', 'pyvex_c', library_file), os.path.join(sys.prefix, 'lib', library_file) ]
 
 _sigh = os.path.abspath(__file__)
 _prev_sigh = '$'
 while _sigh != _prev_sigh:
     _prev_sigh = _sigh
     _sigh = os.path.dirname(_sigh)
-    _pyvex_paths.append(os.path.join(_sigh, 'lib', 'pyvex_static.so'))
+    _pyvex_paths.append(os.path.join(_sigh, 'lib', library_file))
 
 for pyvex_path in _pyvex_paths:
     if os.path.exists(pyvex_path):
