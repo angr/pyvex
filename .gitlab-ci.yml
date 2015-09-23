@@ -24,6 +24,11 @@ fidget:
     tags:
         - "angr"
 
+angrop:
+    script: "angr-test angrop"
+    tags:
+        - "angr"
+
 pyvex_lint:
     script: "angr-test lint"
     tags:
