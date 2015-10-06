@@ -4,11 +4,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#include "pyvex_logging.h"
+
 int debug_on = 0;
 int info_on =  0;
 int error_on = 0;
 
-void debug(char *fmt, ...)
+void debug(const char *fmt, ...)
 {
 	if (!debug_on) return;
 
@@ -21,7 +23,7 @@ void debug(char *fmt, ...)
 	fflush(stdout);
 }
 
-void info(char *fmt, ...)
+void info(const char *fmt, ...)
 {
 	if (!info_on) return;
 
@@ -34,7 +36,7 @@ void info(char *fmt, ...)
 	fflush(stdout);
 }
 
-void pyvex_error(char *fmt, ...)
+void pyvex_error(const char *fmt, ...)
 {
 	if (!error_on) return;
 

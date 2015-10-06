@@ -41,7 +41,6 @@ char *last_error;
 
 // Some info required for translation
 VexArchInfo         vai_host;
-VexArchInfo         vai_guest;
 VexGuestExtents     vge;
 VexTranslateArgs    vta;
 VexTranslateResult  vtr;
@@ -58,33 +57,33 @@ IRSB *irbb_current = NULL;
 //
 //======================================================================
 
-__attribute((noreturn)) void failure_exit( void )
+static __attribute((noreturn)) void failure_exit( void )
 {
 	printf("SHIIIIIT\n");
 	exit(1);
 }
 
-void log_bytes( const HChar* bytes, SizeT nbytes )
+static void log_bytes( const HChar* bytes, SizeT nbytes )
 {
-	Int i;
+	SizeT i;
 	for (i = 0; i < nbytes - 3; i += 4)
 		printf("%c%c%c%c", bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3]);
 	for (; i < nbytes; i++)
 		printf("%c", bytes[i]);
 }
 
-Bool chase_into_ok( void *closureV, Addr addr64 )
+static Bool chase_into_ok( void *closureV, Addr addr64 )
 {
 	return False;
 }
 
 // TODO: figure out what this is for
-UInt needs_self_check(void *callback_opaque, VexRegisterUpdates* pxControl, const VexGuestExtents *guest_extents)
+static UInt needs_self_check(void *callback_opaque, VexRegisterUpdates* pxControl, const VexGuestExtents *guest_extents)
 {
 	return 0;
 }
 
-void *dispatch(void)
+static void *dispatch(void)
 {
 	return NULL;
 }
@@ -92,13 +91,13 @@ void *dispatch(void)
 //----------------------------------------------------------------------
 // This is where we copy out the IRSB
 //----------------------------------------------------------------------
-IRSB *instrument1(  void *callback_opaque,
-                    IRSB *irbb,
-                    const VexGuestLayout *vgl,
-                    const VexGuestExtents *vge,
-                    const VexArchInfo *vae,
-                    IRType gWordTy,
-                    IRType hWordTy )
+static IRSB *instrument1(  void *callback_opaque,
+                           IRSB *irbb,
+                           const VexGuestLayout *vgl,
+                           const VexGuestExtents *vge,
+                           const VexArchInfo *vae,
+                           IRType gWordTy,
+                           IRType hWordTy )
 {
 
 	assert(irbb);
@@ -146,7 +145,6 @@ void vex_init()
 	            &vc );
 	debug("LibVEX_Init() done....\n");
 
-	LibVEX_default_VexArchInfo(&vai_guest);
 	LibVEX_default_VexArchInfo(&vai_host);
 	LibVEX_default_VexAbiInfo(&vbi);
 
@@ -166,7 +164,18 @@ void vex_init()
 	// Architecture info
 	//
 	vta.arch_guest          = VexArch_INVALID; // to be assigned later
-	vta.arch_host          = VexArch_INVALID; // to be assigned later
+	vta.archinfo_host = vai_host;
+#if __amd64__
+	vta.arch_host = VexArchAMD64;
+#elif __i386__
+	vta.arch_host = VexArchX86;
+#elif __arm__
+	vta.arch_host = VexArchARM;
+#elif __aarch64__
+	vta.arch_host = VexArchARM64;
+#else
+#error "Unsupported host arch"
+#endif
 
 	//
 	// The actual stuff to vex
@@ -205,7 +214,7 @@ void vex_init()
 }
 
 // Prepare the VexArchInfo struct
-void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
+static void vex_prepare_vai(VexArch arch, VexArchInfo *vai)
 {
 	switch (arch)
 	{
@@ -215,8 +224,6 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 							VEX_HWCAPS_X86_SSE2 |
 							VEX_HWCAPS_X86_SSE3 |
 							VEX_HWCAPS_X86_LZCNT;
-			assert(endness == VexEndnessLE);
-						vai->endness = VexEndnessLE;
 			break;
 		case VexArchAMD64:
 			vai->hwcaps =   VEX_HWCAPS_AMD64_SSE3 |
@@ -226,16 +233,12 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 							VEX_HWCAPS_AMD64_RDTSCP |
 							VEX_HWCAPS_AMD64_BMI |
 							VEX_HWCAPS_AMD64_AVX2;
-			assert(endness == VexEndnessLE);
-						vai->endness = VexEndnessLE;
 			break;
 		case VexArchARM:
 			vai->hwcaps = 7;
-			vai->endness = endness;
 			break;
 		case VexArchARM64:
 			vai->hwcaps = 0;
-			vai->endness = endness;
 			vai->arm64_dMinLine_lg2_szB = 6;
 			vai->arm64_iMinLine_lg2_szB = 6;
 			break;
@@ -248,7 +251,6 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 							VEX_HWCAPS_PPC32_DFP |
 							VEX_HWCAPS_PPC32_ISA2_07;
 			vai->ppc_icache_line_szB = 32; // unsure if correct
-					vai->endness = endness;
 			break;
 		case VexArchPPC64:
 			vai->hwcaps =   VEX_HWCAPS_PPC64_V |
@@ -258,19 +260,15 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 							VEX_HWCAPS_PPC64_DFP |
 							VEX_HWCAPS_PPC64_ISA2_07;
 			vai->ppc_icache_line_szB = 64; // unsure if correct
-			vai->endness = endness;
 			break;
 		case VexArchS390X:
 			vai->hwcaps = 0;
-			// WHICH? vai->endness = Iend_BE; // unsure if correct
 			break;
 		case VexArchMIPS32:
 			vai->hwcaps = 0x00010000;
-			vai->endness = endness;
 			break;
 		case VexArchMIPS64:
 			vai->hwcaps = 0;
-			vai->endness = endness;
 			break;
 		default:
 			pyvex_error("Invalid arch in vex_prepare_vai.\n");
@@ -279,7 +277,7 @@ void vex_prepare_vai(VexArch arch, VexEndness endness, VexArchInfo *vai)
 }
 
 // Prepare the VexAbiInfo
-void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi)
+static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi)
 {
 	// only setting the guest_stack_redzone_size for now
 	// this attribute is only specified by the PPC64 and AMD64 ABIs
@@ -300,29 +298,16 @@ void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi)
 //----------------------------------------------------------------------
 // Translate 1 instruction to VEX IR.
 //----------------------------------------------------------------------
-IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, unsigned long long insn_addr, int max_insns)
+static IRSB *vex_inst(VexArch guest, VexArchInfo archinfo, unsigned char *insn_start, unsigned long long insn_addr, int max_insns)
 {
-	vex_prepare_vai(guest, endness, &vai_guest);
+	vex_prepare_vai(guest, &archinfo);
 	vex_prepare_vbi(guest, &vbi);
 
 	debug("Guest arch: %d\n", guest);
-	debug("Guest arch hwcaps: %08x\n", vai_guest.hwcaps);
+	debug("Guest arch hwcaps: %08x\n", archinfo.hwcaps);
 	//vta.traceflags = 0xffffffff;
 
-	vta.archinfo_host = vai_host;
-#if __amd64__
-	vta.arch_host = VexArchAMD64;
-#elif __i386__
-	vta.arch_host = VexArchX86;
-#elif __arm__
-	vta.arch_host = VexArchARM;
-#elif __aarch64__
-	vta.arch_host = VexArchARM64;
-#else
-#error "Unsupported host arch"
-#endif
-
-	vta.archinfo_guest = vai_guest;
+	vta.archinfo_guest = archinfo;
 	vta.arch_guest = guest;
 	vta.abiinfo_both = vbi; // Set the vbi value
 
@@ -342,7 +327,7 @@ IRSB *vex_inst(VexArch guest, VexEndness endness, unsigned char *insn_start, uns
 	return irbb_current;
 }
 
-int vex_count_instructions(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
+unsigned int vex_count_instructions(VexArch guest, VexArchInfo archinfo, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
 {
 	debug("Counting instructions in %d bytes starting at 0x%x, basic %d\n", num_bytes, block_addr, basic_only);
 
@@ -353,7 +338,7 @@ int vex_count_instructions(VexArch guest, VexEndness endness, unsigned char *ins
 	while (processed < num_bytes && count < 99)
 	{
 		debug("Next byte: %02x\n", instructions[processed]);
-		IRSB *sb = vex_inst(guest, endness, instructions + processed, block_addr + processed, per_lift);
+		IRSB *sb = vex_inst(guest, archinfo, instructions + processed, block_addr + processed, per_lift);
 
 		if (vge.len[0] == 0 || sb == NULL)
 		{
@@ -403,17 +388,17 @@ int vex_count_instructions(VexArch guest, VexEndness endness, unsigned char *ins
 	return count;
 }
 
-IRSB *vex_block_bytes(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
+IRSB *vex_block_bytes(VexArch guest, VexArchInfo archinfo, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
 {
 	IRSB *sb = NULL;
 
 	try
 	{
-		unsigned int count = vex_count_instructions(guest, endness, instructions, block_addr, num_bytes, basic_only);
-		sb = vex_block_inst(guest, endness, instructions, block_addr, count);
+		unsigned int count = vex_count_instructions(guest, archinfo, instructions, block_addr, num_bytes, basic_only);
+		sb = vex_block_inst(guest, archinfo, instructions, block_addr, count);
 		// this is a workaround. Basically, on MIPS, leaving this (the second translation of the same crap)
 		// out leads to exits being dropped in some IRSBs
-		sb = vex_block_inst(guest, endness, instructions, block_addr, count);
+		sb = vex_block_inst(guest, archinfo, instructions, block_addr, count);
 		if (vge.len[0] != num_bytes)
 		{
 			info("vex_block_bytes: only translated %d bytes out of %d in block_addr %x\n", vge.len[0], num_bytes, block_addr);
@@ -428,7 +413,7 @@ IRSB *vex_block_bytes(VexArch guest, VexEndness endness, unsigned char *instruct
 	return sb;
 }
 
-IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructions, unsigned long long block_addr, unsigned int num_inst)
+IRSB *vex_block_inst(VexArch guest, VexArchInfo archinfo, unsigned char *instructions, unsigned long long block_addr, unsigned int num_inst)
 {
 	debug("Translating %d instructions starting at 0x%x\n", num_inst, block_addr);
 
@@ -447,7 +432,7 @@ IRSB *vex_block_inst(VexArch guest, VexEndness endness, unsigned char *instructi
 
 	try
 	{
-		fullblock = vex_inst(guest, endness, instructions, block_addr, num_inst);
+		fullblock = vex_inst(guest, archinfo, instructions, block_addr, num_inst);
 		assert(vge.n_used == 1);
 	}
 	catch (VEXError)

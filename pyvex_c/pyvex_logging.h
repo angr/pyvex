@@ -7,8 +7,8 @@ extern int debug_on;
 extern int info_on;
 extern int error_on;
 
-void debug(char *, ...);
-void info(char *, ...);
-void pyvex_error(char *, ...);
+void debug(const char *, ...);
+void info(const char *, ...);
+void pyvex_error(const char *, ...);
 
 #endif
