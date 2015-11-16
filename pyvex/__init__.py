@@ -4,6 +4,10 @@ _counts = collections.Counter()
 import os
 import sys
 
+# the lock
+import threading
+_libvex_lock = threading.Lock()
+
 if sys.platform == 'darwin':
     library_file = "pyvex_static.dylib"
 else:
@@ -105,48 +109,53 @@ class PyVEXError(Exception): pass
 _bytes = bytes
 class IRSB(VEXObject):
     def __init__(self, bytes, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=0, traceflags=0): #pylint:disable=redefined-builtin
-        VEXObject.__init__(self)
+        try:
+            _libvex_lock.acquire()
 
-        if isinstance(bytes, (str, _bytes)):
-            num_bytes = len(bytes) if num_bytes is None else num_bytes
-            c_bytes = ffi.new('char [%d]' % (num_bytes + 8), bytes + '\0'*8)
-        else:
-            if not num_bytes:
-                raise PyVEXError("C-backed bytes must have the length specified by num_bytes")
-            c_bytes = bytes
+            VEXObject.__init__(self)
 
-        if num_bytes == 0:
-            raise PyVEXError("No bytes provided")
-        pvc.vta.traceflags = traceflags
+            if isinstance(bytes, (str, _bytes)):
+                num_bytes = len(bytes) if num_bytes is None else num_bytes
+                c_bytes = ffi.new('char [%d]' % (num_bytes + 8), bytes + '\0'*8)
+            else:
+                if not num_bytes:
+                    raise PyVEXError("C-backed bytes must have the length specified by num_bytes")
+                c_bytes = bytes
 
-        vex_arch = getattr(pvc, arch.vex_arch)
+            if num_bytes == 0:
+                raise PyVEXError("No bytes provided")
+            pvc.vta.traceflags = traceflags
 
-        arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
+            vex_arch = getattr(pvc, arch.vex_arch)
 
-        if num_inst is not None:
-            c_irsb = pvc.vex_block_inst(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_inst)
-        else:
-            c_irsb = pvc.vex_block_bytes(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_bytes, 1)
+            arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
 
-        if c_irsb == ffi.NULL:
-            raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
+            if num_inst is not None:
+                c_irsb = pvc.vex_block_inst(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_inst)
+            else:
+                c_irsb = pvc.vex_block_bytes(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_bytes, 1)
 
-        # We must use a pickle value, CData objects are not pickeable so not ffi.NULL
-        arch.vex_archinfo['hwcache_info']['caches'] = None
+            if c_irsb == ffi.NULL:
+                raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
 
-        self.c_irsb = c_irsb
-        self.arch = arch
-        self.statements = [ IRStmt.IRStmt._translate(c_irsb.stmts[i], self) for i in range(c_irsb.stmts_used) ]
-        self.next = IRExpr.IRExpr._translate(c_irsb.next, self)
-        self.tyenv = IRTypeEnv(c_irsb.tyenv)
-        self.offsIP = c_irsb.offsIP
-        self.stmts_used = c_irsb.stmts_used
-        self.jumpkind = ints_to_enums[c_irsb.jumpkind]
+            # We must use a pickle value, CData objects are not pickeable so not ffi.NULL
+            arch.vex_archinfo['hwcache_info']['caches'] = None
 
-        self._addr = mem_addr
-        self.direct_next = self._is_defaultexit_direct_jump()
+            self.c_irsb = c_irsb
+            self.arch = arch
+            self.statements = [ IRStmt.IRStmt._translate(c_irsb.stmts[i], self) for i in range(c_irsb.stmts_used) ]
+            self.next = IRExpr.IRExpr._translate(c_irsb.next, self)
+            self.tyenv = IRTypeEnv(c_irsb.tyenv)
+            self.offsIP = c_irsb.offsIP
+            self.stmts_used = c_irsb.stmts_used
+            self.jumpkind = ints_to_enums[c_irsb.jumpkind]
 
-        del self.c_irsb
+            self._addr = mem_addr
+            self.direct_next = self._is_defaultexit_direct_jump()
+
+            del self.c_irsb
+        finally:
+            _libvex_lock.release()
 
     def pp(self):
         print self._pp_str()
