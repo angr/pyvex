@@ -143,9 +143,9 @@ class LLSC(IRStmt):
 
 	def __str__(self):
 		if self.storedata is None:
-			return "result = LD%s-Linked(%s)" % (self.end[-2:].lower(), self.addr)
+			return "t%d = LD%s-Linked(%s)" % (self.result, self.end[-2:].lower(), self.addr)
 		else:
-			return "result = ( ST%s-Cond(%s) = %s )" % (self.end[-2:].lower(), self.addr, self.storedata)
+			return "t%d = ( ST%s-Cond(%s) = %s )" % (self.result, self.end[-2:].lower(), self.addr, self.storedata)
 
 class MBE(IRStmt):
 	def __init__(self, c_stmt, irsb):
