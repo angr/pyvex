@@ -1,41 +1,54 @@
 before_script:
     - angr-test sync hard
 
-# pyvex has no local tests
-#pyvex:
-#    script: "angr-test pyvex"
-#    tags:
-#        - "angr"
-#    except:
-#        - "master"
+### local
+lint:
+    script: "angr-test lint"
+    tags: [angr]
 
+### first level
 simuvex:
     script: "angr-test simuvex"
-    tags:
-        - "angr"
+    tags: [angr]
 
 angr:
     script: "angr-test angr"
-    tags:
-        - "angr"
+    tags: [angr]
 
 fidget:
     script: "angr-test fidget"
-    tags:
-        - "angr"
+    tags: [angr]
 
 angrop:
     script: "angr-test angrop"
-    tags:
-        - "angr"
-
-pyvex_lint:
-    script: "angr-test lint"
-    tags:
-        - "angr"
+    tags: [angr]
 
 docs:
     script: "angr-test docs"
-    tags:
-        - "angr"
+    tags: [angr]
 
+### other levels
+cle:
+    script: "angr-test cle"
+    tags: [angr]
+
+driller:
+    script: "angr-test driller"
+    tags: [angr]
+
+tracer:
+    script: "angr-test tracer"
+    tags: [angr]
+
+topsecret:
+    script: "angr-test top-secret"
+    tags: [angr]
+
+rex:
+    script: "angr-test rex"
+    tags: [angr]
+
+# FIXME: disable until tests are fixed
+# pwnrex:
+#     script: "angr-test pwnrex"
+#     tags: [angr]
