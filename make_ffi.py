@@ -1,3 +1,4 @@
+import re
 import cffi
 import subprocess
 
@@ -56,8 +57,8 @@ def doit(vex_path):
     #header = vex_pp + pyvex_pp
 
     linesep = '\r\n' if '\r\n' in header else '\n'
-    ffi_text = linesep.join(line for line in header.split(linesep) if not line.startswith('#') and line != '')
-    ffi_text = ffi_text.replace('{'+linesep+'  } NoOp;', '{ int DONOTUSE; } NoOp;')
+    ffi_text = linesep.join(line for line in header.split(linesep) if '#' not in line and line.strip() != '' and 'jmp_buf' not in line)
+    ffi_text = re.sub('\{\s*\} NoOp;', '{ int DONOTUSE; } NoOp;', ffi_text)
     ffi_lines = ffi_text.split(linesep)
 
     good = find_good_scan([], ffi_lines)
