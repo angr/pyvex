@@ -39,8 +39,8 @@ ffi.cdef(vex_ffi.ffi_str)
 pvc = ffi.dlopen(pyvex_path) #pylint:disable=undefined-loop-variable
 pvc.vex_init()
 dir(pvc) # lookup all the definitions (wtf)
-enums_to_ints = { _:getattr(pvc,_) for _ in dir(pvc) if isinstance(getattr(pvc,_), int) }
-ints_to_enums = { getattr(pvc,_):_ for _ in dir(pvc) if isinstance(getattr(pvc,_), int) }
+enums_to_ints = { _:getattr(pvc,_) for _ in dir(pvc) if hasattr(pvc,_) and isinstance(getattr(pvc,_), int) }
+ints_to_enums = { getattr(pvc,_):_ for _ in dir(pvc) if hasattr(pvc,_) and isinstance(getattr(pvc,_), int) }
 enum_IROp_fromstr = { _:enums_to_ints[_] for _ in enums_to_ints if _.startswith('Iop_') }
 type_sizes = {
     'Ity_INVALID': None,
