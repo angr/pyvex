@@ -384,6 +384,11 @@ unsigned int vex_count_instructions(VexArch guest, VexArchInfo archinfo, unsigne
 		count++;
 	}
 
+	// count is one too high if the number of processed bytes is greater than num_bytes
+	if (processed > num_bytes) {
+	  count--;
+	}
+
 	debug("... found %d instructions!\n", count);
 	return count;
 }
