@@ -15,12 +15,12 @@ else:
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
 VEX_PATH = "vex"
 if not os.path.exists(VEX_PATH):
-    VEX_URL = 'https://github.com/angr/vex/archive/dev.tar.gz'
-    with open('dev.tar.gz', 'w') as v:
+    VEX_URL = 'https://github.com/angr/vex/archive/master.tar.gz'
+    with open('master.tar.gz', 'w') as v:
         v.write(urllib2.urlopen(VEX_URL).read())
-    if subprocess.call(['tar', 'xzf', 'dev.tar.gz']) != 0:
+    if subprocess.call(['tar', 'xzf', 'master.tar.gz']) != 0:
         raise LibError("Unable to retrieve libVEX.")
-    VEX_PATH='./vex-dev'
+    VEX_PATH='./vex-master'
 
 def _build_vex():
     if subprocess.call(['make'], cwd=VEX_PATH) != 0:
