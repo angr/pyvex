@@ -57,7 +57,7 @@ except ImportError:
     print "Proper 'develop' support unavailable."
 
 setup(
-    name="pyvex", version='4.6.1.4b', description="A Python interface to libVEX and VEX IR.",
+    name="pyvex", version='4.6.1.4.post1', description="A Python interface to libVEX and VEX IR.",
     packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
     data_files=[
         ('lib', (os.path.join('pyvex_c', library_file),),),
