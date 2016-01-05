@@ -63,5 +63,6 @@ setup(
         ('lib', (os.path.join('pyvex_c', library_file),),),
     ],
     cmdclass=cmdclass,
-    install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo' ]
+    install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo' ],
+    setup_requires=[ 'pycparser', 'cffi>=1.0.3' ]
 )
