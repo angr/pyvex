@@ -15,12 +15,12 @@ else:
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
 VEX_PATH = "vex"
 if not os.path.exists(VEX_PATH):
-    VEX_URL = 'https://github.com/angr/vex/archive/dev.tar.gz'
-    with open('dev.tar.gz', 'w') as v:
+    VEX_URL = 'https://github.com/angr/vex/archive/master.tar.gz'
+    with open('master.tar.gz', 'w') as v:
         v.write(urllib2.urlopen(VEX_URL).read())
-    if subprocess.call(['tar', 'xzf', 'dev.tar.gz']) != 0:
+    if subprocess.call(['tar', 'xzf', 'master.tar.gz']) != 0:
         raise LibError("Unable to retrieve libVEX.")
-    VEX_PATH='./vex-dev'
+    VEX_PATH='./vex-master'
 
 def _build_vex():
     if subprocess.call(['make'], cwd=VEX_PATH) != 0:
@@ -33,8 +33,8 @@ def _build_pyvex():
         raise LibError("Unable to build pyvex-static.")
 
 def _build_ffi():
-    if subprocess.call(['python', 'make_ffi.py', os.path.join(VEX_PATH,'pub')]) != 0:
-        raise LibError("Unable to generate cffi file.")
+    import make_ffi
+    make_ffi.doit(os.path.join(VEX_PATH,'pub'))
 
 class build(_build):
     def run(self):
@@ -57,11 +57,12 @@ except ImportError:
     print "Proper 'develop' support unavailable."
 
 setup(
-    name="pyvex", version='4.5.12.12', description="A Python interface to libVEX and VEX IR.",
+    name="pyvex", version='4.6.1.4.post3', description="A Python interface to libVEX and VEX IR.",
     packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
     data_files=[
         ('lib', (os.path.join('pyvex_c', library_file),),),
     ],
     cmdclass=cmdclass,
-    install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo' ]
+    install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo' ],
+    setup_requires=[ 'pycparser', 'cffi>=1.0.3' ]
 )
