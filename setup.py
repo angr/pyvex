@@ -33,8 +33,8 @@ def _build_pyvex():
         raise LibError("Unable to build pyvex-static.")
 
 def _build_ffi():
-    if subprocess.call(['python', 'make_ffi.py', os.path.join(VEX_PATH,'pub')]) != 0:
-        raise LibError("Unable to generate cffi file.")
+    import make_ffi
+    make_ffi.doit(os.path.join(VEX_PATH,'pub'))
 
 class build(_build):
     def run(self):
