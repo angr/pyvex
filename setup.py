@@ -25,7 +25,7 @@ if not os.path.exists(VEX_PATH):
     if subprocess.call(['tar', 'xzf', 'master.tar.gz']) != 0:
         raise LibError("Unable to retrieve libVEX.")
     VEX_PATH='./vex-master'
-exit(0)
+
 def _build_vex():
     if subprocess.call(['make'], cwd=VEX_PATH) != 0:
         raise LibError("Unable to build libVEX.")
