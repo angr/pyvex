@@ -10,9 +10,10 @@ _libvex_lock = threading.Lock()
 
 if sys.platform == 'darwin':
     library_file = "pyvex_static.dylib"
+elif sys.platform == "win32":
+    library_file = "pyvex_static.dll"
 else:
     library_file = "pyvex_static.so"
-
 
 _pyvex_paths = [ os.path.join(os.path.dirname(__file__), '..', 'pyvex_c', library_file), os.path.join(sys.prefix, 'lib', library_file) ]
 
