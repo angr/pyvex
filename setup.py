@@ -73,6 +73,6 @@ setup(
     packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
     data_files=data_files,
     cmdclass=cmdclass,
-    install_requires=[ 'pycparser', 'cffi>=1.0.3'],
+    install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo' ],
     setup_requires=[ 'pycparser', 'cffi>=1.0.3' ]
 )
