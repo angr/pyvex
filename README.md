@@ -8,6 +8,8 @@ PyVEX can be pip-installed:
 pip install pyvex
 ```
 
+On Windows, this likely won't work unless you have Cygwin64 installed. You can download pre-build wheel files for Windows at <https://github.com/Owlz/angr-Windows>
+
 # Citing PyVEX
 
 If you use PyVEX in an academic work, please cite the paper for which it was developed:

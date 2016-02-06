@@ -8,15 +8,18 @@ from distutils.command.build import build as _build
 
 if sys.platform == 'darwin':
     library_file = "pyvex_static.dylib"
+elif sys.platform == "win32":
+    library_file = "pyvex_static.dll"
 else:
     library_file = "pyvex_static.so"
 
 
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
 VEX_PATH = "vex"
+
 if not os.path.exists(VEX_PATH):
     VEX_URL = 'https://github.com/angr/vex/archive/master.tar.gz'
-    with open('master.tar.gz', 'w') as v:
+    with open('master.tar.gz', 'wb') as v:
         v.write(urllib2.urlopen(VEX_URL).read())
     if subprocess.call(['tar', 'xzf', 'master.tar.gz']) != 0:
         raise LibError("Unable to retrieve libVEX.")
@@ -56,12 +59,19 @@ try:
 except ImportError:
     print "Proper 'develop' support unavailable."
 
+# A little hackish... If building for Windows we need to include cygwin1.dll
+# Also note I'm assuming here we're using a standard install of Cygwin64 to
+# build for Windows
+data_files=[
+    ('lib', (os.path.join('pyvex_c', library_file),),),
+]
+if sys.platform == "win32":
+    data_files.append(('Scripts', (os.path.join(os.path.expandvars("%SYSTEMDRIVE%"), "\\", "cygwin64","bin","cygwin1.dll"),),))
+	
 setup(
     name="pyvex", version='4.6.1.27', description="A Python interface to libVEX and VEX IR.",
     packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
-    data_files=[
-        ('lib', (os.path.join('pyvex_c', library_file),),),
-    ],
+    data_files=data_files,
     cmdclass=cmdclass,
     install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo' ],
     setup_requires=[ 'pycparser', 'cffi>=1.0.3' ]

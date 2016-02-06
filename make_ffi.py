@@ -1,6 +1,7 @@
 import re
 import cffi
 import subprocess
+import os.path
 
 import logging
 l = logging.getLogger('cffier')
@@ -53,7 +54,7 @@ def find_good_scan(known_good, questionable):
 
 def doit(vex_path):
     #vex_pp,_ = subprocess.Popen(['cpp', 'vex/pub/libvex.h'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
-    header,_ = subprocess.Popen(['cpp', '-I'+vex_path, 'pyvex_c/pyvex_static.h'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
+    header,_ = subprocess.Popen(['cpp', '-I'+vex_path, os.path.join('pyvex_c','pyvex_static.h')], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
     #header = vex_pp + pyvex_pp
 
     linesep = '\r\n' if '\r\n' in header else '\n'
