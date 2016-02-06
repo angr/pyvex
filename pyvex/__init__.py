@@ -28,7 +28,7 @@ for pyvex_path in _pyvex_paths:
     if os.path.exists(pyvex_path):
         break
 else:
-    raise ImportError("unable to find pyvex_static.so")
+    raise ImportError("unable to find {0}".format(library_file))
 
 #
 # Heeeere's pyvex!
