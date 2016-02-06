@@ -8,20 +8,24 @@ from distutils.command.build import build as _build
 
 if sys.platform == 'darwin':
     library_file = "pyvex_static.dylib"
+elif sys.platform == "win32":
+    library_file = "pyvex_static.dll"
 else:
     library_file = "pyvex_static.so"
 
 
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
 VEX_PATH = "vex"
+
 if not os.path.exists(VEX_PATH):
+    print("Path not exists")
     VEX_URL = 'https://github.com/angr/vex/archive/master.tar.gz'
-    with open('master.tar.gz', 'w') as v:
+    with open('master.tar.gz', 'wb') as v:
         v.write(urllib2.urlopen(VEX_URL).read())
     if subprocess.call(['tar', 'xzf', 'master.tar.gz']) != 0:
         raise LibError("Unable to retrieve libVEX.")
     VEX_PATH='./vex-master'
-
+exit(0)
 def _build_vex():
     if subprocess.call(['make'], cwd=VEX_PATH) != 0:
         raise LibError("Unable to build libVEX.")
