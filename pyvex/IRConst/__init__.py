@@ -1,6 +1,6 @@
 from .. import VEXObject
 
-# IRConst heirarchy
+# IRConst hierarchy
 class IRConst(VEXObject):
     type = None
 
