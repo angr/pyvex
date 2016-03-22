@@ -1,18 +1,19 @@
 """
 Python bindings for Valgrind's VEX IR.
 """
-import collections
-
-_counts = collections.Counter()
-
 import os
 import sys
-
-# the lock
+import collections
 import threading
+import cffi
 
+from . import vex_ffi
+
+ffi = cffi.FFI()
+_counts = collections.Counter()
 _libvex_lock = threading.Lock()
 
+# Load the c library for calling into VEX
 if sys.platform == 'darwin':
     library_file = "pyvex_static.dylib"
 else:
@@ -37,10 +38,6 @@ else:
 #
 # Heeeere's pyvex!
 #
-import cffi
-
-ffi = cffi.FFI()
-from . import vex_ffi
 
 ffi.cdef(vex_ffi.ffi_str)
 pvc = ffi.dlopen(pyvex_path)  # pylint:disable=undefined-loop-variable
@@ -89,7 +86,8 @@ _op_types = {_: _get_op_type(_) for _ in enums_to_ints if
              _.startswith('Iop_') and _ != 'Iop_INVALID' and _ != 'Iop_LAST'}
 
 
-def typeOfIROp(op): return _op_types[op]
+def typeOfIROp(op):
+    return _op_types[op]
 
 
 def vex_endness_from_string(endness_str):
