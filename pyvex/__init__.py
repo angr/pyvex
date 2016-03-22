@@ -70,6 +70,11 @@ type_sizes = {
 
 
 def set_iropt_level(lvl):
+    """
+    Set the VEX optimization level to `lvl`. Valid values are 0, 1 and 2.
+
+    0 performs no optimization, 1 performs basic optimizations, and 2 performs loop unrolling, among other things.
+    """
     pvc.vex_control.iropt_level = lvl
 
 
@@ -127,29 +132,52 @@ class VEXObject(object):
 class PyVEXError(Exception): pass
 
 
-# various objects
-_bytes = bytes
-
-
 class IRSB(VEXObject):
     """
-    IRSB stands for *Intermediate Representation Super Block*. An IRSB in VEX is a single-entry, multiple-exit code
+    The IRSB is the primary interface to pyvex. Constructing one of these will make a call into LibVEX to perform a
+    translation.
+
+    IRSB stands for *Intermediate Representation Super-Block*. An IRSB in VEX is a single-entry, multiple-exit code
     block.
+
+    :ivar arch:             The architecture this block is lifted under
+    :vartype arch:          :class:`archinfo.Arch`
+    :ivar statements:       The statements in this block
+    :vartype statements:    list of :class:`IRStmt`
+    :ivar next:             The expression for the default exit target of this block
+    :vartype next:          :class:`IRExpr`
+    :ivar int offsIP:       The offset of the instruction pointer in the VEX guest state
+    :ivar int stmts_used:   The number of statements in this IRSB
+    :ivar str jumpkind:     The type of this block's default jump (call, boring, syscall, etc) as a VEX enum string
+    :ivar bool direct_next: Whether this block ends with a direct (not indirect) jump or branch
     """
-    def __init__(self, bytes, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=0,
+    def __init__(self, data, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=0,
                  traceflags=0):  # pylint:disable=redefined-builtin
+        """
+        :param data:            The bytes to lift. Can be either a string of bytes or a cffi buffer object.
+        :type data:             str or bytes or cffi.FFI.CData
+        :param int mem_addr:    The address to lift the data at.
+        :param arch:            The architecture to lift the data as.
+        :type arch:             :class:`archinfo.Arch`
+
+        The following are optional:
+        :param num_inst:        The maximum number of instructions to lift. Max 99.
+        :param num_bytes:       The maximum number of bytes to use. Max 400.
+        :param bytes_offset:    The offset into `data` to start lifting at.
+        :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
+        """
         try:
             _libvex_lock.acquire()
 
             VEXObject.__init__(self)
 
-            if isinstance(bytes, (str, _bytes)):
-                num_bytes = len(bytes) if num_bytes is None else num_bytes
-                c_bytes = ffi.new('char [%d]' % (num_bytes + 8), bytes + '\0' * 8)
+            if isinstance(data, (str, bytes)):
+                num_bytes = len(data) if num_bytes is None else num_bytes
+                c_bytes = ffi.new('char [%d]' % (num_bytes + 8), data + '\0' * 8)
             else:
                 if not num_bytes:
                     raise PyVEXError("C-backed bytes must have the length specified by num_bytes")
-                c_bytes = bytes
+                c_bytes = data
 
             if num_bytes == 0:
                 raise PyVEXError("No bytes provided")
@@ -188,9 +216,17 @@ class IRSB(VEXObject):
             _libvex_lock.release()
 
     def pp(self):
+        """
+        Pretty-print the IRSB to stdout.
+        """
         print self._pp_str()
 
     def _pp_str(self):
+        """
+        Return the pretty-printed IRSB.
+
+        :rtype: str
+        """
         sa = []
         sa.append("IRSB {")
         sa.append("   %s" % self.tyenv)
@@ -206,6 +242,7 @@ class IRSB(VEXObject):
     def expressions(self):
         """
         All expressions contained in the IRSB.
+        :rtype: list of :class:`IRExpr`
         """
         expressions = []
         for s in self.statements:
@@ -215,16 +252,25 @@ class IRSB(VEXObject):
 
     @property
     def instructions(self):
+        """
+        The number of instructions in this block
+        :rtype: int
+        """
         return len([s.addr for s in self.statements if isinstance(s, IRStmt.IMark)])
 
     @property
     def size(self):
+        """
+        The size of this block, in bytes
+        :rtype: int
+        """
         return sum([s.len for s in self.statements if isinstance(s, IRStmt.IMark)])
 
     @property
     def operations(self):
         """
-        All operations done by the IRSB.
+        All operations done by the IRSB, as libVEX enum names
+        :rtype: list of str
         """
         ops = []
         for e in self.expressions:
@@ -236,6 +282,7 @@ class IRSB(VEXObject):
     def all_constants(self):
         """
         Returns all constants (including incrementing of the program counter).
+        :rtype: list of :class:`IRConst`
         """
         return sum((e.constants for e in self.expressions), [])
 
@@ -243,6 +290,7 @@ class IRSB(VEXObject):
     def constants(self):
         """
         The constants (excluding updates of the program counter) in the IRSB.
+        :rtype: list of :class:`IRConst`
         """
         return sum(
             (s.constants for s in self.statements if not (isinstance(s, IRStmt.Put) and s.offset == self.offsIP)), [])
@@ -251,6 +299,7 @@ class IRSB(VEXObject):
     def constant_jump_targets(self):
         """
         The static jump targets of the basic block.
+        :rtype: set of int
         """
         exits = set()
         for s in self.statements:
@@ -266,6 +315,7 @@ class IRSB(VEXObject):
     def _get_defaultexit_target(self):
         """
         Retrieves the default exit target, if it is constant.
+        :rtype: int or None
         """
         if isinstance(self.next, IRExpr.Const):
             return self.next.con.value
@@ -293,6 +343,7 @@ class IRSB(VEXObject):
     def _is_defaultexit_direct_jump(self):
         """
         Checks if the default of this IRSB a direct jump or not.
+        :rtype: bool
         """
         if not (self.jumpkind == 'Ijk_Boring' or self.jumpkind == 'Ijk_Call'):
             return False
@@ -304,6 +355,10 @@ class IRSB(VEXObject):
 class IRTypeEnv(VEXObject):
     """
     An IR type environment.
+
+    :ivar types:        A list of the types of all the temporaries in this block as VEX enum strings.
+                        `types[3]` is the type of t3.
+    :vartype types:     list of str
     """
     def __init__(self, tyenv):
         VEXObject.__init__(self)
@@ -333,6 +388,10 @@ class IRRegArray(VEXObject):
     """
     A section of the guest state that we want te be able to index at run time, so as to be able to describe indexed or
     rotating register files on the guest.
+
+    :ivar int base:     The offset into the state that this array starts
+    :ivar str elemTy:   The types of the elements in this array, as VEX enum strings
+    :ivar int nElems:   The number of elements in this array
     """
     def __init__(self, arr):
         VEXObject.__init__(self)
