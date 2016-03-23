@@ -54,3 +54,8 @@ def set_iropt_level(lvl):
 from .enums import *
 from .block import *
 from . import stmt, expr, const
+
+# aliases....
+IRStmt = stmt
+IRExpr = expr
+IRConst = const
