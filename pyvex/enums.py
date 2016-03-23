@@ -1,5 +1,5 @@
 import collections
-from . import pvc
+from . import pvc, ffi
 
 _counts = collections.Counter()
 

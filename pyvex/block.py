@@ -196,7 +196,7 @@ class IRSB(VEXObject):
 
         tmp_next = self.next.tmp
         for stat in reversed(self.statements):
-            if isinstance(stmt, stmt.WrTmp) and stat.tmp == tmp_next:
+            if isinstance(stat, stmt.WrTmp) and stat.tmp == tmp_next:
                 data = stat.data
 
                 if isinstance(data, expr.Const):
