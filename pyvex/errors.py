@@ -1,0 +1,2 @@
+class PyVEXError(Exception):
+    pass

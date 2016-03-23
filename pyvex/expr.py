@@ -1,4 +1,4 @@
-from .. import VEXObject
+from . import VEXObject
 
 class IRExpr(VEXObject):
     """
@@ -272,14 +272,14 @@ class CCall(IRExpr):
         self.retty = ints_to_enums[c_expr.Iex.CCall.retty]
         self.cee = IRCallee(c_expr.Iex.CCall.cee)
 
-        self.args = [ ]
+        args = [ ]
         for i in range(20):
             a = c_expr.Iex.CCall.args[i]
             if a == ffi.NULL:
                 break
 
-            self.args.append(IRExpr._translate(a, irsb))
-        self.args = tuple(self.args)
+            args.append(IRExpr._translate(a, irsb))
+        self.args = tuple(args)
 
     @property
     def ret_type(self):
@@ -298,8 +298,10 @@ class CCall(IRExpr):
         expressions.extend(self.args)
         return expressions
 
-from ..IRConst import IRConst
-from .. import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, PyVEXError, ffi, pvc, type_sizes
+from .const import IRConst
+from .enums import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, type_sizes
+from .errors import PyVEXError
+from . import ffi, pvc
 
 tag_to_class = {
     enums_to_ints['Iex_Binder']: Binder,
