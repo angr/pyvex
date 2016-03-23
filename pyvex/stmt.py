@@ -1,4 +1,4 @@
-from .. import VEXObject
+from . import VEXObject
 
 
 class IRStmt(VEXObject):
@@ -212,14 +212,14 @@ class Dirty(IRStmt):
         self.mSize = c_stmt.Ist.Dirty.details.mSize
         self.nFxState = c_stmt.Ist.Dirty.details.nFxState
 
-        self.args = []
+        args = []
         for i in range(20):
             a = c_stmt.Ist.Dirty.details.args[i]
             if a == ffi.NULL:
                 break
 
-            self.args.append(IRExpr._translate(a, irsb))
-        self.args = tuple(self.args)
+            args.append(IRExpr._translate(a, irsb))
+        self.args = tuple(args)
 
     def __str__(self):
         return "t%s = DIRTY %s %s ::: %s(%s)" % (
@@ -309,9 +309,11 @@ class StoreG(IRStmt):
         return "if (%s) ST%s(%s) = %s" % (self.guard, self.end[-2:].lower(), self.addr, self.data)
 
 
-from ..IRExpr import IRExpr
-from ..IRConst import IRConst
-from .. import IRRegArray, ints_to_enums, enums_to_ints, IRCallee, ffi, pvc, PyVEXError
+from .expr import IRExpr
+from .const import IRConst
+from .enums import IRRegArray, ints_to_enums, enums_to_ints, IRCallee
+from .errors import PyVEXError
+from . import ffi, pvc
 
 _tag_to_class = {
     enums_to_ints['Ist_NoOp']: NoOp,
