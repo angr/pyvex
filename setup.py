@@ -58,7 +58,7 @@ except ImportError:
 
 setup(
     name="pyvex", version='4.6.3.15', description="A Python interface to libVEX and VEX IR.",
-    packages=['pyvex', 'pyvex.IRConst', 'pyvex.IRExpr', 'pyvex.IRStmt'],
+    packages=['pyvex'],
     data_files=[
         ('lib', (os.path.join('pyvex_c', library_file),),),
     ],
