@@ -112,8 +112,7 @@ class IRSB(VEXObject):
     @property
     def expressions(self):
         """
-        All expressions contained in the IRSB.
-        :rtype: list of :class:`IRExpr`
+        A list of all expressions contained in the IRSB.
         """
         expressions = []
         for s in self.statements:
@@ -125,7 +124,6 @@ class IRSB(VEXObject):
     def instructions(self):
         """
         The number of instructions in this block
-        :rtype: int
         """
         return len([s.addr for s in self.statements if isinstance(s, stmt.IMark)])
 
@@ -133,15 +131,13 @@ class IRSB(VEXObject):
     def size(self):
         """
         The size of this block, in bytes
-        :rtype: int
         """
         return sum([s.len for s in self.statements if isinstance(s, stmt.IMark)])
 
     @property
     def operations(self):
         """
-        All operations done by the IRSB, as libVEX enum names
-        :rtype: list of str
+        A list of all operations done by the IRSB, as libVEX enum names
         """
         ops = []
         for e in self.expressions:
@@ -152,16 +148,14 @@ class IRSB(VEXObject):
     @property
     def all_constants(self):
         """
-        Returns all constants (including incrementing of the program counter).
-        :rtype: list of :class:`IRConst`
+        Returns all constants in the block (including incrementing of the program counter) as :class:`pyvex.const.IRConst`.
         """
         return sum((e.constants for e in self.expressions), [])
 
     @property
     def constants(self):
         """
-        The constants (excluding updates of the program counter) in the IRSB.
-        :rtype: list of :class:`IRConst`
+        The constants (excluding updates of the program counter) in the IRSB as :class:`pyvex.const.IRConst`.
         """
         return sum(
             (s.constants for s in self.statements if not (isinstance(s, stmt.Put) and s.offset == self.offsIP)), [])
@@ -169,8 +163,7 @@ class IRSB(VEXObject):
     @property
     def constant_jump_targets(self):
         """
-        The static jump targets of the basic block.
-        :rtype: set of int
+        A set of the static jump targets of the basic block.
         """
         exits = set()
         for s in self.statements:
@@ -185,8 +178,7 @@ class IRSB(VEXObject):
 
     def _get_defaultexit_target(self):
         """
-        Retrieves the default exit target, if it is constant.
-        :rtype: int or None
+        The default exit target, if it is constant, or None.
         """
         if isinstance(self.next, expr.Const):
             return self.next.con.value
@@ -214,7 +206,6 @@ class IRSB(VEXObject):
     def _is_defaultexit_direct_jump(self):
         """
         Checks if the default of this IRSB a direct jump or not.
-        :rtype: bool
         """
         if not (self.jumpkind == 'Ijk_Boring' or self.jumpkind == 'Ijk_Call'):
             return False
