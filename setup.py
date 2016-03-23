@@ -5,6 +5,7 @@ import sys
 from distutils.errors import LibError
 from distutils.core import setup
 from distutils.command.build import build as _build
+from setuptools.command.bdist_egg import bdist_egg as _bdist_egg
 
 if sys.platform == 'darwin':
     library_file = "pyvex_static.dylib"
@@ -43,6 +44,12 @@ class build(_build):
         self.execute(_build_ffi, (), msg="Creating CFFI defs file")
         _build.run(self)
 cmdclass = { 'build': build }
+
+class bdist_egg(_bdist_egg):
+    def run(self):
+        self.run_command('build')
+        _bdist_egg.run(self)
+cmdclass['bdist_egg'] = bdist_egg
 
 try:
     from setuptools.command.develop import develop as _develop
