@@ -213,7 +213,9 @@ class IRSB(VEXObject):
             else:
                 return None
 
-        raise PyVEXError('Malformed IRSB at address 0x%x. Please report to Fish.' % self._addr)
+        if tmp_next is not None:
+            raise PyVEXError('Malformed IRSB at address #%x. Please report to Fish.' % self._addr)
+        return None
 
     def _is_defaultexit_direct_jump(self):
         """
