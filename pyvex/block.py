@@ -187,21 +187,35 @@ class IRSB(VEXObject):
             raise PyVEXError("unexpected self.next type: %s", self.next.__class__.__name__)
 
         tmp_next = self.next.tmp
+        reg_next = None
+        reg_next_size = None
         for stat in reversed(self.statements):
             if isinstance(stat, stmt.WrTmp) and stat.tmp == tmp_next:
                 data = stat.data
-
-                if isinstance(data, expr.Const):
-                    return data.con.value
-                elif isinstance(data, expr.RdTmp):
-                    tmp_next = data.tmp
-                else:
+            elif isinstance(stat, stmt.Put) and stat.offset == reg_next:
+                data = stat.data
+                if data.result_size != reg_next_size:
                     return None
-
             elif isinstance(stat, stmt.LoadG) and stat.dst == tmp_next:
                 return None
+            else:
+                continue
 
-        raise PyVEXError('Malformed IRSB at address 0x%x. Please report to Fish.' % self._addr)
+            if isinstance(data, expr.Const):
+                return data.con.value
+            elif isinstance(data, expr.RdTmp):
+                tmp_next = data.tmp
+                reg_next = None
+            elif isinstance(data, expr.Get):
+                tmp_next = None
+                reg_next = data.offset
+                reg_next_size = data.result_size
+            else:
+                return None
+
+        if tmp_next is not None:
+            raise PyVEXError('Malformed IRSB at address #%x. Please report to Fish.' % self._addr)
+        return None
 
     def _is_defaultexit_direct_jump(self):
         """
