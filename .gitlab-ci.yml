@@ -51,3 +51,7 @@ rex:
 pwnrex:
     script: "angr-test pwnrex"
     tags: [angr]
+
+patcherex:
+    script: "angr-test patcherex"
+    tags: [angr]
