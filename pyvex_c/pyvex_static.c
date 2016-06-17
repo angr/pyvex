@@ -451,3 +451,7 @@ IRSB *vex_block_inst(VexArch guest, VexArchInfo archinfo, unsigned char *instruc
 void set_iropt_level(int level) {
 	vex_update_iropt_level(level);
 }
+
+void enable_debug(int debug) {
+	debug_on = debug;
+}
