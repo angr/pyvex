@@ -51,6 +51,19 @@ def set_iropt_level(lvl):
     """
     pvc.vex_control.iropt_level = lvl
 
+def enable_debug(debug):
+    """
+    Set the debug flag to `debug`. Valid values are True. False, 0 and 1.
+
+    False/0 disables debugging output, True/1 enables it.
+    """
+
+    if debug is True:
+        debug = 1
+    elif debug is False:
+        debug = 0
+    pvc.enable_debug(debug)
+
 from .enums import *
 from .block import *
 from . import stmt, expr, const

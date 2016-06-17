@@ -351,16 +351,32 @@ unsigned int vex_count_instructions(VexArch guest, VexArchInfo archinfo, unsigne
 		}
 
 		IRStmt *first_imark = NULL;
+		IRStmt *first_exit = NULL;
+		int bytes_until_exit = 0;
+		int instrs_until_exit = 0;
 		for (int i = 0; i < sb->stmts_used; i++) {
 			if (sb->stmts[i]->tag == Ist_IMark) {
-				first_imark = sb->stmts[i];
+				if (first_imark == NULL) {
+					first_imark = sb->stmts[i];
+				}
+				bytes_until_exit += sb->stmts[i]->Ist.IMark.len;
+				instrs_until_exit += 1;
+			}
+			if (sb->stmts[i]->tag == Ist_Exit && sb->stmts[i]->Ist.Exit.jk == Ijk_Boring) {
 				break;
 			}
 		}
 		assert(first_imark);
 
 		if (basic_only) {
-			if (vtr.n_guest_instrs < 3) {
+			int guest_instrs = vtr.n_guest_instrs;
+			int guest_bytes = vge.len[0];
+
+			if (instrs_until_exit < guest_instrs) {
+				guest_instrs = instrs_until_exit;
+				guest_bytes = bytes_until_exit;
+			}
+			if (guest_instrs < 3) {
 				// Found an exit!!
 				if (processed + first_imark->Ist.IMark.len >= num_bytes) {
 					// edge case: This is the first run through this loop (processed == 0) and
@@ -370,8 +386,8 @@ unsigned int vex_count_instructions(VexArch guest, VexArchInfo archinfo, unsigne
 					debug("Processed %d bytes\n", processed);
 					break;
 				}
-				count += vtr.n_guest_instrs;
-				processed += vge.len[0];
+				count += guest_instrs;
+				processed += guest_bytes;
 				debug("Processed %d bytes\n", processed);
 				break;
 			}
@@ -450,4 +466,8 @@ IRSB *vex_block_inst(VexArch guest, VexArchInfo archinfo, unsigned char *instruc
 
 void set_iropt_level(int level) {
 	vex_update_iropt_level(level);
+}
+
+void enable_debug(int debug) {
+	debug_on = debug;
 }
