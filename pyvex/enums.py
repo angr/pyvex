@@ -8,6 +8,8 @@ class VEXObject(object):
     The base class for Vex types.
     """
 
+    __slots__ = [ ]
+
     # def __init__(self):
     #   print "CREATING:",type(self)
     #   _counts[type(self)] += 1
@@ -20,6 +22,9 @@ class IRCallee(VEXObject):
     """
     Describes a helper function to call.
     """
+
+    __slots__ = ['regparms', 'name', 'mcx_mask', 'addr']
+
     def __init__(self, callee):
         VEXObject.__init__(self)
         self.regparms = callee.regparms
@@ -40,6 +45,9 @@ class IRRegArray(VEXObject):
     :ivar str elemTy:   The types of the elements in this array, as VEX enum strings
     :ivar int nElems:   The number of elements in this array
     """
+
+    __slots__ = ['base', 'elemTy', 'nElems']
+
     def __init__(self, arr):
         VEXObject.__init__(self)
         self.base = arr.base

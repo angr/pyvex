@@ -5,6 +5,9 @@ class IRStmt(VEXObject):
     """
     IR statements in VEX represents operations with side-effects.
     """
+
+    __slots__ = ['arch', 'tag']
+
     def __init__(self, c_stmt, irsb):
         VEXObject.__init__(self)
         self.arch = irsb.arch
@@ -17,7 +20,8 @@ class IRStmt(VEXObject):
     @property
     def expressions(self):
         expressions = []
-        for _, v in self.__dict__.iteritems():
+        for k in self.__slots__:
+            v = getattr(self, k)
             if isinstance(v, IRExpr):
                 expressions.append(v)
                 expressions.extend(v.child_expressions)
@@ -57,6 +61,9 @@ class IMark(IRStmt):
     those statements is marked by the next IMark or the end of the IRSB).  Contains the address and length of the
     instruction.
     """
+
+    __slots__ = ['addr', 'len', 'delta']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.addr = c_stmt.Ist.IMark.addr
@@ -71,6 +78,9 @@ class AbiHint(IRStmt):
     """
     An ABI hint, provides specific information about this platform's ABI.
     """
+
+    __slots__ = ['base', 'len', 'nia']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.base = IRExpr._translate(c_stmt.Ist.AbiHint.base, irsb)
@@ -85,6 +95,9 @@ class Put(IRStmt):
     """
     Write to a guest register, at a fixed offset in the guest state.
     """
+
+    __slots__ = ['data', 'offset']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.data = IRExpr._translate(c_stmt.Ist.Put.data, irsb)
@@ -98,6 +111,9 @@ class PutI(IRStmt):
     """
     Write to a guest register, at a non-fixed offset in the guest state.
     """
+
+    __slots__ = ['descr', 'ix', 'data', 'bias']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.descr = IRRegArray(c_stmt.Ist.PutI.details.descr)
@@ -114,6 +130,9 @@ class WrTmp(IRStmt):
     Assign a value to a temporary.  Note that SSA rules require each tmp is only assigned to once.  IR sanity checking
     will reject any block containing a temporary which is not assigned to exactly once.
     """
+
+    __slots__ = ['data', 'tmp']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
 
@@ -128,6 +147,9 @@ class Store(IRStmt):
     """
     Write a value to memory..
     """
+
+    __slots__ = ['addr', 'data', 'end']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
 
@@ -147,6 +169,9 @@ class CAS(IRStmt):
     """
     an atomic compare-and-swap operation.
     """
+
+    __slots__ = ['addr', 'dataLo', 'dataHi', 'expdLo', 'expdHi', 'oldLo', 'oldHi', 'end']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
 
@@ -173,6 +198,9 @@ class LLSC(IRStmt):
      Either Load-Linked or Store-Conditional, depending on STOREDATA. If STOREDATA is NULL then this is a Load-Linked,
      else it is a Store-Conditional.
     """
+
+    __slots__ = ['addr', 'storedata', 'result', 'end']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
 
@@ -193,6 +221,9 @@ class LLSC(IRStmt):
 
 
 class MBE(IRStmt):
+
+    __slots__ = ['event']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.event = ints_to_enums[c_stmt.Ist.MBE.event]
@@ -202,6 +233,9 @@ class MBE(IRStmt):
 
 
 class Dirty(IRStmt):
+
+    __slots__ = ['cee', 'guard', 'tmp', 'mFx', 'mAddr', 'mSize', 'nFxState', 'args']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.cee = IRCallee(c_stmt.Ist.Dirty.details.cee)
@@ -238,6 +272,9 @@ class Exit(IRStmt):
     """
     A conditional exit from the middle of an IRSB.
     """
+
+    __slots__ = ['guard', 'dst', 'offsIP', 'jk']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.guard = IRExpr._translate(c_stmt.Ist.Exit.guard, irsb)
@@ -262,6 +299,9 @@ class LoadG(IRStmt):
     """
     A guarded load.
     """
+
+    __slots__ = ['addr', 'alt', 'guard', 'dst', 'cvt', 'end', 'cvt_types']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
 
@@ -293,6 +333,9 @@ class StoreG(IRStmt):
     """
     A guarded store.
     """
+
+    __slots__ = ['addr', 'data', 'guard', 'end']
+
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
 

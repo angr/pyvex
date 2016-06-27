@@ -2,6 +2,9 @@ from . import VEXObject
 
 # IRConst hierarchy
 class IRConst(VEXObject):
+
+    __slots__ = ['tag', 'value']
+
     type = None
 
     def __init__(self, c_expr):

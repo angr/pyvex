@@ -4,6 +4,9 @@ class IRExpr(VEXObject):
     """
     IR expressions in VEX represent operations without side effects.
     """
+
+    __slots__ = ['tag', 'arch', 'result_type', 'result_size']
+
     def __init__(self, c_expr, irsb):
         VEXObject.__init__(self)
         self.tag = ints_to_enums[c_expr.tag]
@@ -25,7 +28,8 @@ class IRExpr(VEXObject):
         A list of all of the expressions that this expression ends up evaluating.
         """
         expressions = [ ]
-        for _,v in self.__dict__.iteritems():
+        for k in self.__slots__:
+            v = getattr(self, k)
             if isinstance(v, IRExpr):
                 expressions.append(v)
                 expressions.extend(v.child_expressions)
@@ -37,7 +41,8 @@ class IRExpr(VEXObject):
         A list of all of the constants that this expression ends up using.
         """
         constants = [ ]
-        for _,v in self.__dict__.iteritems():
+        for k in self.__slots__:
+            v = getattr(self, k)
             if isinstance(v, IRExpr):
                 constants.extend(v.constants)
             elif isinstance(v, IRConst):
@@ -61,6 +66,9 @@ class Binder(IRExpr):
     """
     Used only in pattern matching within Vex. Should not be seen outside of Vex.
     """
+
+    __slots__ = ['binder']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.binder = c_expr.iex.Binder.binder
@@ -76,6 +84,9 @@ class VECRET(IRExpr):
         return "VECRET"
 
 class BBPTR(IRExpr):
+
+    __slots__ = ['result_type', 'result_size']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.result_type = 'Ity_INVALID'
@@ -88,6 +99,9 @@ class GetI(IRExpr):
     """
     Read a guest register at a non-fixed offset in the guest state.
     """
+
+    __slots__ = ['descr', 'ix', 'bias']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.descr = IRRegArray(c_expr.Iex.GetI.descr)
@@ -109,6 +123,9 @@ class RdTmp(IRExpr):
     """
     Read the value held by a temporary.
     """
+
+    __slots__ = ['tmp']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.tmp = c_expr.Iex.RdTmp.tmp
@@ -120,6 +137,9 @@ class Get(IRExpr):
     """
     Read a guest register, at a fixed offset in the guest state.
     """
+
+    __slots__ = ['offset', 'ty']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.offset = c_expr.Iex.Get.offset
@@ -136,6 +156,9 @@ class Qop(IRExpr):
     """
     A quaternary operation (4 arguments).
     """
+
+    __slots__ = ['op', 'args']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.op = ints_to_enums[c_expr.Iex.Qop.details.op]
@@ -159,6 +182,9 @@ class Triop(IRExpr):
     """
     A ternary operation (3 arguments)
     """
+
+    __slots__ = ['op', 'args']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.op = ints_to_enums[c_expr.Iex.Triop.details.op]
@@ -181,6 +207,9 @@ class Binop(IRExpr):
     """
     A binary operation (2 arguments).
     """
+
+    __slots__ = ['op', 'args']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.op = ints_to_enums[c_expr.Iex.Binop.op]
@@ -202,6 +231,9 @@ class Unop(IRExpr):
     """
     A unary operation (1 argument).
     """
+
+    __slots__ = ['op', 'args']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.op = ints_to_enums[c_expr.Iex.Unop.op]
@@ -222,6 +254,9 @@ class Load(IRExpr):
     """
     A load from memory.
     """
+
+    __slots__ = ['end', 'ty', 'addr']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.end = ints_to_enums[c_expr.Iex.Load.end]
@@ -243,6 +278,9 @@ class Const(IRExpr):
     """
     A constant expression.
     """
+
+    __slots__ = ['con']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.con = IRConst._translate(c_expr.Iex.Const.con)
@@ -254,6 +292,9 @@ class ITE(IRExpr):
     """
     An if-then-else expression.
     """
+
+    __slots__ = ['cond', 'iffalse', 'iftrue']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.cond = IRExpr._translate(c_expr.Iex.ITE.cond, irsb)
@@ -267,6 +308,9 @@ class CCall(IRExpr):
     """
     A call to a pure (no side-effects) helper C function.
     """
+
+    __slots__ = ['retty', 'cee', 'args']
+
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.retty = ints_to_enums[c_expr.Iex.CCall.retty]

@@ -22,6 +22,11 @@ class IRSB(VEXObject):
     :ivar str jumpkind:     The type of this block's default jump (call, boring, syscall, etc) as a VEX enum string
     :ivar bool direct_next: Whether this block ends with a direct (not indirect) jump or branch
     """
+
+    __slots__ = ['c_irsb', 'arch', 'statements', 'next', 'tyenv', 'offsIP', 'stmts_used', 'jumpkind', '_addr',
+                 'direct_next'
+                 ]
+
     def __init__(self, data, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=0,
                  traceflags=0):  # pylint:disable=redefined-builtin
         """
