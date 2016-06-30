@@ -181,6 +181,23 @@ class IRSB(VEXObject):
 
         return exits
 
+    @property
+    def constant_jump_targets_and_jumpkinds(self):
+        """
+        A dict of the static jump targets of the basic block to their jumpkind.
+        """
+        exits = dict()
+        for s in self.statements:
+            if isinstance(s, stmt.Exit):
+                exits[s.dst.value] = s.jumpkind
+
+        default_target = self._get_defaultexit_target()
+        if default_target is not None:
+            exits[default_target] = self.jumpkind
+
+        return exits
+
+
     def _get_defaultexit_target(self):
         """
         The default exit target, if it is constant, or None.
