@@ -35,10 +35,17 @@ class IRSB(VEXObject):
         :param int mem_addr:    The address to lift the data at.
         :param arch:            The architecture to lift the data as.
         :type arch:             :class:`archinfo.Arch`
-        :param num_inst:        The maximum number of instructions to lift. Max 99.
+        :param num_inst:        The maximum number of instructions to lift. Max 99. (See note below)
         :param num_bytes:       The maximum number of bytes to use. Max 400.
         :param bytes_offset:    The offset into `data` to start lifting at.
         :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
+
+        .. note:: Explicitly specifying the number of instructions to lift (`num_inst`) may not always work
+                  exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
+                  instruction without its delay slot. VEX attempts to Do The Right Thing by possibly decoding
+                  fewer instructions than requested. Specifically, this means that lifting a branch or jump
+                  on MIPS as a single instruction (`num_inst=1`) will result in an empty IRSB, and subsequent
+                  attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
         """
         try:
             _libvex_lock.acquire()
