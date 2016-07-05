@@ -35,8 +35,6 @@ class IRSB(VEXObject):
         :param int mem_addr:    The address to lift the data at.
         :param arch:            The architecture to lift the data as.
         :type arch:             :class:`archinfo.Arch`
-
-        The following are optional:
         :param num_inst:        The maximum number of instructions to lift. Max 99.
         :param num_bytes:       The maximum number of bytes to use. Max 400.
         :param bytes_offset:    The offset into `data` to start lifting at.
