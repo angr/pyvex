@@ -77,7 +77,7 @@ class IRSB(VEXObject):
 
             self.c_irsb = c_irsb
             self.arch = arch
-            self.statements = [stmt.IRStmt._translate(c_irsb.stmts[i], self) for i in range(c_irsb.stmts_used)]
+            self.statements = [stmt.IRStmt._translate(c_irsb.stmts[i], self) for i in xrange(c_irsb.stmts_used)]
             self.next = expr.IRExpr._translate(c_irsb.next, self)
             self.tyenv = IRTypeEnv(c_irsb.tyenv)
             self.offsIP = c_irsb.offsIP
@@ -258,6 +258,9 @@ class IRTypeEnv(VEXObject):
                         `types[3]` is the type of t3.
     :vartype types:     list of str
     """
+
+    __slots__ = [ 'types', 'types_used' ]
+
     def __init__(self, tyenv):
         VEXObject.__init__(self)
         self.types = [ints_to_enums[tyenv.types[t]] for t in xrange(tyenv.types_used)]
