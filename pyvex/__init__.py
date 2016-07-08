@@ -34,7 +34,8 @@ def _find_c_lib():
         raise ImportError("unable to find pyvex_static.so")
 
     ffi.cdef(_ffi_str)
-    lib = ffi.dlopen(pyvex_path)
+    # RTLD_GLOBAL used for sim_unicorn.so
+    lib = ffi.dlopen(pyvex_path, flags=ffi.RTLD_NOW|ffi.RTLD_GLOBAL)
     lib.vex_init()
     # this looks up all the definitions (wtf)
     dir(lib)
