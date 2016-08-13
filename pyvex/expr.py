@@ -150,7 +150,7 @@ class Get(IRExpr):
         return self.ty
 
     def __str__(self):
-        return "GET:%s(%s)" % (self.ty[4:], self.arch.translate_register_name(self.offset))
+        return "GET:%s(%s)" % (self.ty[4:], self.arch.translate_register_name(self.offset, self.result_size/8))
 
 class Qop(IRExpr):
     """

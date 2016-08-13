@@ -104,7 +104,7 @@ class Put(IRStmt):
         self.offset = c_stmt.Ist.Put.offset
 
     def __str__(self):
-        return "PUT(%s) = %s" % (self.arch.translate_register_name(self.offset), self.data)
+        return "PUT(%s) = %s" % (self.arch.translate_register_name(self.offset, self.data.result_size/8), self.data)
 
 
 class PutI(IRStmt):
