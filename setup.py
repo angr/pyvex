@@ -71,6 +71,7 @@ try:
         def run(self):
             self.execute(_build_vex, (), msg="Building libVEX")
             self.execute(_build_pyvex, (), msg="Building pyvex-static")
+            self.execute(_shuffle_files, (), msg="Copying libraries and headers")
             self.execute(_build_ffi, (), msg="Creating CFFI defs file")
             _develop.run(self)
     cmdclass['develop'] = develop
