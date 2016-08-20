@@ -42,6 +42,7 @@ def _shuffle_files():
     os.mkdir('pyvex/include')
 
     shutil.copy(os.path.join('pyvex_c', library_file), 'pyvex/lib')
+    shutil.copy('pyvex_c/pyvex_static.h', 'pyvex/include')
     for f in glob.glob(os.path.join(VEX_PATH, 'pub', '*')):
         shutil.copy(f, 'pyvex/include')
 
