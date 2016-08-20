@@ -4,6 +4,7 @@ Python bindings for Valgrind's VEX IR.
 import os
 import sys
 import cffi
+import pkg_resources
 
 from .vex_ffi import ffi_str as _ffi_str
 ffi = cffi.FFI()
@@ -15,23 +16,7 @@ def _find_c_lib():
     else:
         library_file = "pyvex_static.so"
 
-    pyvex_paths = [os.path.join(os.path.dirname(__file__), '..', 'pyvex_c', library_file),
-                    os.path.join(sys.prefix, 'lib', library_file)]
-
-    sigh = os.path.abspath(__file__)
-    prev_sigh = '$'
-    while sigh != prev_sigh:
-        prev_sigh = sigh
-        sigh = os.path.dirname(sigh)
-        pyvex_paths.append(os.path.join(sigh, 'lib', library_file))
-
-    pyvex_path = None
-    for path in pyvex_paths:
-        if os.path.exists(path):
-            pyvex_path = path
-            break
-    else:
-        raise ImportError("unable to find pyvex_static.so")
+    pyvex_path = pkg_resources.resource_filename(__name__, os.path.join('lib', library_file))
 
     ffi.cdef(_ffi_str)
     # RTLD_GLOBAL used for sim_unicorn.so

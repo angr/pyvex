@@ -2,6 +2,8 @@ import os
 import urllib2
 import subprocess
 import sys
+import shutil
+import glob
 from distutils.errors import LibError
 from distutils.core import setup
 from distutils.command.build import build as _build
@@ -33,6 +35,16 @@ def _build_pyvex():
     if subprocess.call(['make'], cwd='pyvex_c', env=e) != 0:
         raise LibError("Unable to build pyvex-static.")
 
+def _shuffle_files():
+    shutil.rmtree('pyvex/lib', ignore_errors=True)
+    shutil.rmtree('pyvex/include', ignore_errors=True)
+    os.mkdir('pyvex/lib')
+    os.mkdir('pyvex/include')
+
+    shutil.copy(os.path.join('pyvex_c', library_file), 'pyvex/lib')
+    for f in glob.glob(os.path.join(VEX_PATH, 'pub', '*')):
+        shutil.copy(f, 'pyvex/include')
+
 def _build_ffi():
     import make_ffi
     make_ffi.doit(os.path.join(VEX_PATH,'pub'))
@@ -41,6 +53,7 @@ class build(_build):
     def run(self):
         self.execute(_build_vex, (), msg="Building libVEX")
         self.execute(_build_pyvex, (), msg="Building pyvex-static")
+        self.execute(_shuffle_files, (), msg="Copying libraries and headers")
         self.execute(_build_ffi, (), msg="Creating CFFI defs file")
         _build.run(self)
 cmdclass = { 'build': build }
@@ -66,10 +79,11 @@ except ImportError:
 setup(
     name="pyvex", version='4.6.6.28', description="A Python interface to libVEX and VEX IR.",
     packages=['pyvex'],
-    data_files=[
-        ('lib', (os.path.join('pyvex_c', library_file),),),
-    ],
     cmdclass=cmdclass,
     install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo' ],
-    setup_requires=[ 'pycparser', 'cffi>=1.0.3' ]
+    setup_requires=[ 'pycparser', 'cffi>=1.0.3' ],
+    include_package_data=True,
+    package_data={
+        'pyvex': ['lib/*', 'include/*']
+    }
 )
