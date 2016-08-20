@@ -12,15 +12,15 @@ ffi = cffi.FFI()
 def _find_c_lib():
     # Load the c library for calling into VEX
     if sys.platform == 'darwin':
-        library_file = "pyvex_static.dylib"
+        library_file = "libpyvex.dylib"
     else:
-        library_file = "pyvex_static.so"
+        library_file = "libpyvex.so"
 
     pyvex_path = pkg_resources.resource_filename(__name__, os.path.join('lib', library_file))
 
     ffi.cdef(_ffi_str)
     # RTLD_GLOBAL used for sim_unicorn.so
-    lib = ffi.dlopen(pyvex_path, flags=ffi.RTLD_NOW|ffi.RTLD_GLOBAL)
+    lib = ffi.dlopen(pyvex_path)
     lib.vex_init()
     # this looks up all the definitions (wtf)
     dir(lib)
@@ -50,6 +50,7 @@ def enable_debug(debug):
         debug = 0
     pvc.enable_debug(debug)
 
+# pylint: disable=wildcard-import
 from .enums import *
 from .block import *
 from . import stmt, expr, const

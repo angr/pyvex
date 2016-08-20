@@ -10,9 +10,9 @@ from distutils.command.build import build as _build
 from setuptools.command.bdist_egg import bdist_egg as _bdist_egg
 
 if sys.platform == 'darwin':
-    library_file = "pyvex_static.dylib"
+    library_file = "libpyvex.dylib"
 else:
-    library_file = "pyvex_static.so"
+    library_file = "libpyvex.so"
 
 
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
@@ -42,7 +42,7 @@ def _shuffle_files():
     os.mkdir('pyvex/include')
 
     shutil.copy(os.path.join('pyvex_c', library_file), 'pyvex/lib')
-    shutil.copy('pyvex_c/pyvex_static.h', 'pyvex/include')
+    shutil.copy('pyvex_c/pyvex.h', 'pyvex/include')
     for f in glob.glob(os.path.join(VEX_PATH, 'pub', '*')):
         shutil.copy(f, 'pyvex/include')
 

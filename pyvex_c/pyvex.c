@@ -23,8 +23,8 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <assert.h>
 #include <libvex.h>
 
-#include "pyvex_static.h"
-#include "pyvex_logging.h"
+#include "pyvex.h"
+#include "logging.h"
 
 // these are problematic because we need to link with vex statically to use them, I think
 extern VexControl vex_control;

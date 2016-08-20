@@ -1,7 +1,7 @@
 build
 pyvex_python
 vex_ffi.py
-pyvex_static.so
+libpyvex.so
 *.egg-info
 *.eggs
 *.pyc
