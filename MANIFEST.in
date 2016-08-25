@@ -1,6 +1,4 @@
 include LICENSE
 include README.md
 include make_ffi.py
-include setup.py
-recursive-include pyvex *
-recursive-include pyvex_c *
+recursive-include pyvex_c *.c *.h Makefile LICENSE
