@@ -1,4 +1,5 @@
 build
+dist
 pyvex_python
 vex_ffi.py
 libpyvex.so
@@ -6,3 +7,5 @@ libpyvex.so
 *.eggs
 *.pyc
 *.swp
+pyvex/lib
+pyvex/include
