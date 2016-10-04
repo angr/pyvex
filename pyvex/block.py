@@ -54,7 +54,7 @@ class IRSB(VEXObject):
 
             if isinstance(data, (str, bytes)):
                 num_bytes = len(data) if num_bytes is None else num_bytes
-                c_bytes = ffi.new('char [%d]' % (num_bytes + 8), data + '\0' * 8)
+                c_bytes = ffi.new('char [%d]' % (len(data) + 8), data + '\0' * 8)
             else:
                 if not num_bytes:
                     raise PyVEXError("C-backed bytes must have the length specified by num_bytes")
