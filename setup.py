@@ -4,6 +4,8 @@ import subprocess
 import sys
 import shutil
 import glob
+import platform
+from distutils.util import get_platform
 from distutils.errors import LibError
 from distutils.core import setup
 from distutils.command.build import build as _build
@@ -77,6 +79,17 @@ try:
     cmdclass['develop'] = develop
 except ImportError:
     print "Proper 'develop' support unavailable."
+
+if 'bdist_wheel' in sys.argv and '--plat-name' not in sys.argv:
+    sys.argv.append('--plat-name')
+    name = get_platform()
+    if 'linux' in name:
+        # linux_* platform tags are disallowed because the python ecosystem is fubar
+        # linux builds should be built in the centos 5 vm for maximum compatibility
+        sys.argv.append('manylinux1_' + platform.machine())
+    else:
+        # https://www.python.org/dev/peps/pep-0425/
+        sys.argv.append(name.replace('.', '_').replace('-', '_'))
 
 setup(
     name="pyvex", version='5.6.10.5', description="A Python interface to libVEX and VEX IR.",
