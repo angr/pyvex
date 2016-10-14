@@ -7,5 +7,9 @@ libpyvex.so
 *.eggs
 *.pyc
 *.swp
+*.obj
+*.lib
+*.dll
+*.exp
 pyvex/lib
 pyvex/include

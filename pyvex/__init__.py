@@ -11,7 +11,9 @@ ffi = cffi.FFI()
 
 def _find_c_lib():
     # Load the c library for calling into VEX
-    if sys.platform == 'darwin':
+    if sys.platform in ('win32', 'cygwin'):
+        library_file = 'pyvex.dll'
+    elif sys.platform == 'darwin':
         library_file = "libpyvex.dylib"
     else:
         library_file = "libpyvex.so"

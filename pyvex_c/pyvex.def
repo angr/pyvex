@@ -1,0 +1,15 @@
+LIBRARY pyvex.dll
+
+EXPORTS
+  emptyIRSB
+  enable_debug
+  IRExpr_RdTmp
+  IRExpr_Unop
+  last_error
+  newIRTemp
+  typeOfIRExpr
+  typeOfIRLoadGOp
+  vex_block_bytes
+  vex_block_inst
+  vex_control
+  vta

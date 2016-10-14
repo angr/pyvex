@@ -57,7 +57,7 @@ IRSB *irbb_current = NULL;
 //
 //======================================================================
 
-static __attribute((noreturn)) void failure_exit( void )
+static void failure_exit( void )
 {
 	printf("SHIIIIIT\n");
 	exit(1);
@@ -165,9 +165,9 @@ void vex_init()
 	//
 	vta.arch_guest          = VexArch_INVALID; // to be assigned later
 	vta.archinfo_host = vai_host;
-#if __amd64__
+#if __amd64__ || _WIN64
 	vta.arch_host = VexArchAMD64;
-#elif __i386__
+#elif __i386__ || _WIN32
 	vta.arch_host = VexArchX86;
 #elif __arm__
 	vta.arch_host = VexArchARM;

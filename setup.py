@@ -4,6 +4,8 @@ import subprocess
 import sys
 import shutil
 import glob
+import tarfile
+import multiprocessing
 import platform
 from distutils.util import get_platform
 from distutils.errors import LibError
@@ -11,7 +13,9 @@ from distutils.core import setup
 from distutils.command.build import build as _build
 from setuptools.command.bdist_egg import bdist_egg as _bdist_egg
 
-if sys.platform == 'darwin':
+if sys.platform in ('win32', 'cygwin'):
+    library_file = 'pyvex.dll'
+elif sys.platform == 'darwin':
     library_file = "libpyvex.dylib"
 else:
     library_file = "libpyvex.so"
@@ -19,23 +23,26 @@ else:
 
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
 VEX_PATH = "vex"
+VEX_PATH = '../vex'
 if not os.path.exists(VEX_PATH):
     VEX_URL = 'https://github.com/angr/vex/archive/master.tar.gz'
-    with open('master.tar.gz', 'w') as v:
+    with open('master.tar.gz', 'wb') as v:
         v.write(urllib2.urlopen(VEX_URL).read())
-    if subprocess.call(['tar', 'xzf', 'master.tar.gz']) != 0:
-        raise LibError("Unable to retrieve libVEX.")
+    with tarfile.open('master.tar.gz') as tar:
+        tar.extractall()
     VEX_PATH='./vex-master'
 
 def _build_vex():
-    if subprocess.call(['make'], cwd=VEX_PATH) != 0:
+    cmd = ['nmake', '/f', 'Makefile-win', 'all'] if sys.platform == 'win32' else ['make', '-j', str(multiprocessing.cpu_count())]
+    if subprocess.call(cmd, cwd=VEX_PATH) != 0:
         raise LibError("Unable to build libVEX.")
 
 def _build_pyvex():
     e = os.environ.copy()
-    e['VEX_PATH'] = '../' + VEX_PATH
-    if subprocess.call(['make'], cwd='pyvex_c', env=e) != 0:
-        raise LibError("Unable to build pyvex-static.")
+    e['VEX_PATH'] = os.path.join('..', VEX_PATH)
+    cmd = ['cl', '-LD', '-O2' ,'-I' + os.path.join('..', VEX_PATH, 'pub'), 'pyvex.c', 'logging.c', os.path.join('..', VEX_PATH, 'libvex.lib'), '/link', '/DEF:pyvex.def'] if sys.platform == 'win32' else ['make', '-j', str(multiprocessing.cpu_count())]
+    if subprocess.call(cmd, cwd='pyvex_c', env=e) != 0:
+        raise LibError("Unable to build libpyvex.")
 
 def _shuffle_files():
     shutil.rmtree('pyvex/lib', ignore_errors=True)
@@ -50,7 +57,11 @@ def _shuffle_files():
 
 def _build_ffi():
     import make_ffi
-    make_ffi.doit(os.path.join(VEX_PATH,'pub'))
+    try:
+        make_ffi.doit(os.path.join(VEX_PATH,'pub'))
+    except Exception as e:
+        print repr(e)
+        raise
 
 class build(_build):
     def run(self):

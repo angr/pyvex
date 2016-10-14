@@ -1,4 +1,6 @@
 import re
+import os
+import sys
 import cffi
 import subprocess
 
@@ -53,14 +55,20 @@ def find_good_scan(known_good, questionable):
 
 def doit(vex_path):
     #vex_pp,_ = subprocess.Popen(['cpp', 'vex/pub/libvex.h'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
-    header,_ = subprocess.Popen(['cpp', '-I'+vex_path, 'pyvex_c/pyvex.h'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
+    cmd = ['cl', '-I'+vex_path, 'pyvex_c\\pyvex.h', '-E'] if sys.platform == 'win32' else ['cpp', '-I'+vex_path, 'pyvex_c/pyvex.h']
+    header,_ = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=open(os.devnull, 'wb')).communicate()
     #header = vex_pp + pyvex_pp
 
     linesep = '\r\n' if '\r\n' in header else '\n'
     ffi_text = linesep.join(line for line in header.split(linesep) if '#' not in line and line.strip() != '' and 'jmp_buf' not in line)
     ffi_text = re.sub('\{\s*\} NoOp;', '{ int DONOTUSE; } NoOp;', ffi_text)
     ffi_text = re.sub('__attribute__\s*\(.*\)', '', ffi_text)
+    ffi_text = re.sub('__declspec\s*\([^\)]*\)', '', ffi_text)
     ffi_text = ffi_text.replace('__const', 'const')
+    ffi_text = ffi_text.replace('__inline', '')
+    ffi_text = ffi_text.replace('__w64', '')
+    ffi_text = ffi_text.replace('__cdecl', '')
+    ffi_text = ffi_text.replace('__int64', 'long')
     ffi_lines = ffi_text.split(linesep)
 
     good = find_good_scan([], ffi_lines)
