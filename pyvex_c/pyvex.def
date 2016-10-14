@@ -12,4 +12,5 @@ EXPORTS
   vex_block_bytes
   vex_block_inst
   vex_control
+  vex_init
   vta
