@@ -199,7 +199,7 @@ class LLSC(IRStmt):
      else it is a Store-Conditional.
     """
 
-    __slots__ = ['addr', 'storedata', 'result', 'end']
+    __slots__ = ['addr', 'storedata', 'result', 'result_size', 'end']
 
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
@@ -207,6 +207,7 @@ class LLSC(IRStmt):
         self.addr = IRExpr._translate(c_stmt.Ist.LLSC.addr, irsb)
         self.storedata = IRExpr._translate(c_stmt.Ist.LLSC.storedata, irsb)
         self.result = c_stmt.Ist.LLSC.result
+        self.result_size = type_sizes[irsb.tyenv.types[self.result]]
         self.end = ints_to_enums[c_stmt.Ist.LLSC.end]
 
     @property
@@ -234,7 +235,7 @@ class MBE(IRStmt):
 
 class Dirty(IRStmt):
 
-    __slots__ = ['cee', 'guard', 'tmp', 'mFx', 'mAddr', 'mSize', 'nFxState', 'args']
+    __slots__ = ['cee', 'guard', 'tmp', 'mFx', 'mAddr', 'mSize', 'nFxState', 'args', 'result_size']
 
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
@@ -254,6 +255,7 @@ class Dirty(IRStmt):
 
             args.append(IRExpr._translate(a, irsb))
         self.args = tuple(args)
+        self.result_size = type_sizes[irsb.tyenv.types[self.tmp]]
 
     def __str__(self):
         return "t%s = DIRTY %s %s ::: %s(%s)" % (
@@ -354,7 +356,7 @@ class StoreG(IRStmt):
 
 from .expr import IRExpr
 from .const import IRConst
-from .enums import IRRegArray, ints_to_enums, enums_to_ints, IRCallee
+from .enums import IRRegArray, ints_to_enums, enums_to_ints, IRCallee, type_sizes
 from .errors import PyVEXError
 from . import ffi, pvc
 
