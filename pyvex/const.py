@@ -6,10 +6,10 @@ class IRConst(VEXObject):
     __slots__ = ['tag', 'value']
 
     type = None
+    tag = None
 
-    def __init__(self, c_expr):
+    def __init__(self):
         VEXObject.__init__(self)
-        self.tag = ints_to_enums[c_expr.tag]
 
     def pp(self):
         print self.__str__()
@@ -23,122 +23,177 @@ class IRConst(VEXObject):
         if c_expr[0] == ffi.NULL:
             return None
 
-        tag = c_expr.tag
+        tag_int = c_expr.tag
 
         try:
-            return tag_to_class[tag](c_expr)
+            return tag_to_class[tag_int].from_c(c_expr)
         except KeyError:
-            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % ints_to_enums[tag])
+            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % ints_to_enums[tag_int])
 
 class U1(IRConst):
     type = 'Ity_I1'
-
-    def __init__(self, c_expr):
-        IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.U1
+    tag = 'Ico_U1'
+    
+    def __init__(self, value):
+        IRConst.__init__(self)
+        self.value = value
 
     def __str__(self):
         return "%d" % self.value
 
+    @staticmethod
+    def from_c(c_expr):
+        return U1(c_expr.Ico.U1)
+
 class U8(IRConst):
     type = 'Ity_I8'
-
-    def __init__(self, c_expr):
-        IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.U8
+    tag = 'Ico_U8'
+    
+    def __init__(self, value):
+        IRConst.__init__(self)
+        self.value = value
 
     def __str__(self):
         return "0x%02x" % self.value
 
+    @staticmethod
+    def from_c(c_expr):
+        return U8(c_expr.Ico.U8)
+
 class U16(IRConst):
     type = 'Ity_I16'
+    tag = 'Ico_U16'
 
-    def __init__(self, c_expr):
-        IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.U16
+    def __init__(self, value):
+        IRConst.__init__(self)
+        self.value = value
 
     def __str__(self):
         return "0x%04x" % self.value
 
+    @staticmethod
+    def from_c(c_expr):
+        return U16(c_expr.Ico.U16)
+
 class U32(IRConst):
     type = 'Ity_I32'
-
-    def __init__(self, c_expr):
-        IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.U32
+    tag = 'Ico_U32'
+    
+    def __init__(self, value):
+        IRConst.__init__(self)
+        self.value = value
 
     def __str__(self):
         return "0x%08x" % self.value
 
+    @staticmethod
+    def from_c(c_expr):
+        return U32(c_expr.Ico.U32)
+
 class U64(IRConst):
     type = 'Ity_I64'
+    tag = 'Ico_U64'
 
-    def __init__(self, c_expr):
-        IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.U64
+    def __init__(self, value):
+        IRConst.__init__(self)
+        self.value = value
 
     def __str__(self):
         return "0x%016x" % self.value
 
+    @staticmethod
+    def from_c(c_expr):
+        return U64(c_expr.Ico.U64)
+
 class F32(IRConst):
     type = 'Ity_F32'
-
-    def __init__(self, c_expr):
-        IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.F32
+    tag = 'Ico_F32'
+    
+    def __init__(self, value):
+        IRConst.__init__(self)
+        self.value = value
 
     def __str__(self):
         return "%f" % self.value
+
+    @staticmethod
+    def from_c(c_expr):
+        return F32(c_expr.Ico.F32)
 
 class F32i(IRConst):
     type = 'Ity_F32'
+    tag = 'Ico_F32i'
 
-    def __init__(self, c_expr):
-        IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.F32
+    def __init__(self, value):
+        IRConst.__init__(self)
+        self.value = value
 
     def __str__(self):
         return "%f" % self.value
+
+    @staticmethod
+    def from_c(c_expr):
+        return F32i(c_expr.Ico.F32)
 
 class F64(IRConst):
     type = 'Ity_F64'
+    tag = 'Ico_F64'
 
-    def __init__(self, c_expr):
-        IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.F64
+    def __init__(self, value):
+        IRConst.__init__(self)
+        self.value = value
 
     def __str__(self):
         return "%f" % self.value
+
+    @staticmethod
+    def from_c(c_expr):
+        return F64(c_expr.Ico.F64)
 
 class F64i(IRConst):
     type = 'Ity_F64'
+    tag = 'Ico_F64i'
 
-    def __init__(self, c_expr):
-        IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.F64
+    def __init__(self, value):
+        IRConst.__init__(self)
+        self.value = value
 
     def __str__(self):
         return "%f" % self.value
 
+    @staticmethod
+    def from_c(c_expr):
+        return F64i(c_expr.Ico.F64)
+
 class V128(IRConst):
     type = 'Ity_V128'
-
-    def __init__(self, c_expr):
-        IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.V128
+    tag = 'Ico_V128'
+    
+    def __init__(self, value):
+        IRConst.__init__(self)
+        self.value = value
 
     def __str__(self):
         return "%x" % self.value
+
+    @staticmethod
+    def from_c(c_expr):
+        return V128(c_expr.Ico.V128)
 
 class V256(IRConst):
     type = 'Ity_V256'
+    tag = 'Ico_V256'
 
-    def __init__(self, c_expr):
-        IRConst.__init__(self, c_expr)
-        self.value = c_expr.Ico.V256
+    def __init__(self, value):
+        IRConst.__init__(self)
+        self.value = value
 
     def __str__(self):
         return "%x" % self.value
+
+    @staticmethod
+    def from_c(c_expr):
+        return V256(c_expr.Ico.V256)
 
 from .enums import ints_to_enums, enums_to_ints, type_sizes
 from .errors import PyVEXError
