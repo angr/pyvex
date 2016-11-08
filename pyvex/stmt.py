@@ -207,8 +207,11 @@ class LLSC(IRStmt):
         self.addr = IRExpr._translate(c_stmt.Ist.LLSC.addr, irsb)
         self.storedata = IRExpr._translate(c_stmt.Ist.LLSC.storedata, irsb)
         self.result = c_stmt.Ist.LLSC.result
-        self.result_size = type_sizes[irsb.tyenv.types[self.result]]
         self.end = ints_to_enums[c_stmt.Ist.LLSC.end]
+        try:
+            self.result_size = type_sizes[irsb.tyenv.types[self.result]]
+        except IndexError:
+            self.result_size = None
 
     @property
     def endness(self):
@@ -255,7 +258,10 @@ class Dirty(IRStmt):
 
             args.append(IRExpr._translate(a, irsb))
         self.args = tuple(args)
-        self.result_size = type_sizes[irsb.tyenv.types[self.tmp]]
+        try:
+            self.result_size = type_sizes[irsb.tyenv.types[self.tmp]]
+        except IndexError:
+            self.result_size = None
 
     def __str__(self):
         return "t%s = DIRTY %s %s ::: %s(%s)" % (
