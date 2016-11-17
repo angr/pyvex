@@ -54,7 +54,7 @@ class IRSB(VEXObject):
 
             if isinstance(data, (str, bytes)):
                 num_bytes = len(data) if num_bytes is None else num_bytes
-                c_bytes = ffi.new('char [%d]' % (len(data) + 8), data + '\0' * 8)
+                c_bytes = ffi.new('unsigned char [%d]' % (len(data) + 8), data + '\0' * 8)
             else:
                 if not num_bytes:
                     raise PyVEXError("C-backed bytes must have the length specified by num_bytes")
@@ -71,8 +71,7 @@ class IRSB(VEXObject):
             if num_inst is not None:
                 c_irsb = pvc.vex_block_inst(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_inst)
             else:
-                c_irsb = pvc.vex_block_bytes(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_bytes,
-                                             1)
+                c_irsb = pvc.vex_block_bytes(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_bytes, 1)
 
             if c_irsb == ffi.NULL:
                 raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
@@ -82,9 +81,9 @@ class IRSB(VEXObject):
 
             self.c_irsb = c_irsb
             self.arch = arch
+            self.tyenv = IRTypeEnv(c_irsb.tyenv)
             self.statements = [stmt.IRStmt._translate(c_irsb.stmts[i], self) for i in xrange(c_irsb.stmts_used)]
             self.next = expr.IRExpr._translate(c_irsb.next, self)
-            self.tyenv = IRTypeEnv(c_irsb.tyenv)
             self.offsIP = c_irsb.offsIP
             self.stmts_used = c_irsb.stmts_used
             self.jumpkind = ints_to_enums[c_irsb.jumpkind]
