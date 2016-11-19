@@ -5,20 +5,13 @@ class IRExpr(VEXObject):
     IR expressions in VEX represent operations without side effects.
     """
 
-    __slots__ = ['tag', 'arch', 'result_type', 'result_size']
+    __slots__ = ['tag']
 
-    def __init__(self, c_expr, irsb):
+    tag = None
+    
+    def __init__(self):
         VEXObject.__init__(self)
-        self.tag = ints_to_enums[c_expr.tag]
-        #self.c_expr = c_expr
-        self.arch = irsb.arch
-
-        if isinstance(self, (VECRET, Binder, BBPTR)):
-            self.result_type = 'Ity_INVALID'
-        else:
-            self.result_type = ints_to_enums[pvc.typeOfIRExpr(irsb.c_irsb.tyenv, c_expr)]
-        self.result_size = type_sizes[self.result_type]
-
+    
     def pp(self):
         print self.__str__()
 
@@ -49,18 +42,26 @@ class IRExpr(VEXObject):
                 constants.append(v)
         return constants
 
+    def result_size(self, tyenv):
+        return type_sizes[self.result_type(tyenv)]
+
+    def result_type(self, tyenv):
+        if isinstance(self, (VECRET, Binder, BBPTR)):
+            return 'Ity_INVALID'
+        else:
+            return ints_to_enums[pvc.typeOfIRExpr(tyenv, c_expr)]
+
     @staticmethod
-    def _translate(c_expr, irsb):
+    def _translate(c_expr):
         if c_expr == ffi.NULL or c_expr[0] == ffi.NULL:
             return None
 
-        tag = c_expr.tag
+        tag_int = c_expr.tag
 
         try:
-            expr_class = tag_to_class[tag]
+            return tag_to_class[tag_int].from_c(c_expr)
         except KeyError:
-            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % ints_to_enums[tag])
-        return expr_class(c_expr, irsb)
+            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % ints_to_enums[tag_int])
 
 class Binder(IRExpr):
     """
@@ -69,31 +70,46 @@ class Binder(IRExpr):
 
     __slots__ = ['binder']
 
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.binder = c_expr.iex.Binder.binder
+    tag = 'Iex_Binder'
 
+    def __init__(self, binder):
+        IRExpr.__init__(self)
+        self.binder = binder
+    
     def __str__(self):
         return "Binder"
 
+    @staticmethod
+    def from_c(c_expr):
+        return Binder(c_expr.iex.Binder.binder)
+
 class VECRET(IRExpr):
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
+
+    tag = 'Iex_VECRET'
+    
+    def __init__(self):
+        IRExpr.__init__(self, c_expr)
 
     def __str__(self):
         return "VECRET"
 
+    @staticmethod
+    def from_c(c_expr):
+        return VECRET()
+
 class BBPTR(IRExpr):
 
-    __slots__ = ['result_type', 'result_size']
-
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.result_type = 'Ity_INVALID'
-        self.result_size = 0
+    tag = 'Iex_BBPTR'
+    
+    def __init__(self):
+        IRExpr.__init__(self)
 
     def __str__(self):
         return "BBPTR"
+
+    @staticmethod
+    def from_c(c_expr):
+        return BBPTR()
 
 class GetI(IRExpr):
     """
@@ -102,12 +118,14 @@ class GetI(IRExpr):
 
     __slots__ = ['descr', 'ix', 'bias']
 
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.descr = IRRegArray(c_expr.Iex.GetI.descr)
-        self.ix = IRExpr._translate(c_expr.Iex.GetI.ix, irsb)
-        self.bias = c_expr.Iex.GetI.bias
+    tag = 'Iex_GetI'
 
+    def __init__(self, descr, ix, bias):
+        IRExpr.__init__(self)
+        self.descr = descr
+        self.ix = ix
+        self.bias = bias
+    
     @property
     def description(self):
         return self.descr
@@ -119,6 +137,13 @@ class GetI(IRExpr):
     def __str__(self):
         return "GetI(%s)[%s,%s]" % (self.descr, self.ix, self.bias)
 
+    @staticmethod
+    def from_c(c_expr):
+        descr = IRRegArray(c_expr.Iex.GetI.descr)
+        ix = IRExpr._translate(c_expr.Iex.GetI.ix)
+        bias = c_expr.Iex.GetI.bias
+        return GetI(descr, ix, bias)
+
 class RdTmp(IRExpr):
     """
     Read the value held by a temporary.
@@ -126,12 +151,18 @@ class RdTmp(IRExpr):
 
     __slots__ = ['tmp']
 
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.tmp = c_expr.Iex.RdTmp.tmp
+    tag = 'Iex_RdTmp'
+
+    def __init__(self, tmp):
+        IRExpr.__init__(self, c_expr)
+        self.tmp = tmp
 
     def __str__(self):
         return "t%d" % self.tmp
+
+    @staticmethod
+    def from_c(c_expr):
+        return RdTmp(c_expr.Iex.RdTmp.tmp)
 
 class Get(IRExpr):
     """
@@ -140,10 +171,12 @@ class Get(IRExpr):
 
     __slots__ = ['offset', 'ty']
 
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.offset = c_expr.Iex.Get.offset
-        self.ty = ints_to_enums[c_expr.Iex.Get.ty]
+    tag = 'Iex_Get'
+    
+    def __init__(self, offset, ty):
+        IRExpr.__init__(self, c_expr)
+        self.offset = offset
+        self.ty = ty
 
     @property
     def type(self):
@@ -152,6 +185,11 @@ class Get(IRExpr):
     def __str__(self):
         return "GET:%s(%s)" % (self.ty[4:], self.arch.translate_register_name(self.offset, self.result_size/8))
 
+    @staticmethod
+    def from_c(c_expr):
+        return Get(c_expr.Iex.Get.offset,
+                   ints_to_enums[c_expr.Iex.Get.ty])
+
 class Qop(IRExpr):
     """
     A quaternary operation (4 arguments).
@@ -159,16 +197,13 @@ class Qop(IRExpr):
 
     __slots__ = ['op', 'args']
 
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.op = ints_to_enums[c_expr.Iex.Qop.details.op]
-        self.args = (
-            IRExpr._translate(c_expr.Iex.Qop.details.arg1, irsb),
-            IRExpr._translate(c_expr.Iex.Qop.details.arg2, irsb),
-            IRExpr._translate(c_expr.Iex.Qop.details.arg3, irsb),
-            IRExpr._translate(c_expr.Iex.Qop.details.arg4, irsb),
-        )
+    tag = 'Iex_Qop'
 
+    def __init__(self, op, args):
+        IRExpr.__init__(self)
+        self.op = op
+        self.args = args
+    
     def __str__(self):
         return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
 
@@ -177,6 +212,15 @@ class Qop(IRExpr):
         expressions = sum((a.child_expressions for a in self.args), [ ])
         expressions.extend(self.args)
         return expressions
+
+    @staticmethod
+    def from_c(c_expr):
+        return Qop(ints_to_enums[c_expr.Iex.Qop.details.op],
+                   [IRExpr._translate(arg)
+                    for arg in [c_expr.Iex.Qop.details.arg1,
+                                c_expr.Iex.Qop.details.arg2,
+                                c_expr.Iex.Qop.details.arg3,
+                                c_expr.Iex.Qop.details.arg4]])
 
 class Triop(IRExpr):
     """
@@ -185,15 +229,13 @@ class Triop(IRExpr):
 
     __slots__ = ['op', 'args']
 
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.op = ints_to_enums[c_expr.Iex.Triop.details.op]
-        self.args = (
-            IRExpr._translate(c_expr.Iex.Triop.details.arg1, irsb),
-            IRExpr._translate(c_expr.Iex.Triop.details.arg2, irsb),
-            IRExpr._translate(c_expr.Iex.Triop.details.arg3, irsb),
-        )
+    tag = 'Iex_Triop'
 
+    def __init__(self, op, args):
+        IRExpr.__init__(self)
+        self.op = op
+        self.args = args
+    
     def __str__(self):
         return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
 
@@ -202,6 +244,14 @@ class Triop(IRExpr):
         expressions = sum((a.child_expressions for a in self.args), [ ])
         expressions.extend(self.args)
         return expressions
+
+    @staticmethod
+    def from_c(c_expr):
+        return Triop(ints_to_enums[c_expr.Iex.Triop.details.op],
+                     [IRExpr._translate(arg)
+                      for arg in [c_expr.Iex.Triop.details.arg1,
+                                  c_expr.Iex.Triop.details.arg2,
+                                  c_expr.Iex.Triop.details.arg3]])
 
 class Binop(IRExpr):
     """
@@ -210,14 +260,13 @@ class Binop(IRExpr):
 
     __slots__ = ['op', 'args']
 
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.op = ints_to_enums[c_expr.Iex.Binop.op]
-        self.args = (
-            IRExpr._translate(c_expr.Iex.Binop.arg1, irsb),
-            IRExpr._translate(c_expr.Iex.Binop.arg2, irsb),
-        )
+    tag = 'Iex_Binop'
 
+    def __init__(self, op, args):
+        IRExpr.__init__(self)
+        self.op = op
+        self.args = args
+    
     def __str__(self):
         return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
 
@@ -227,6 +276,13 @@ class Binop(IRExpr):
         expressions.extend(self.args)
         return expressions
 
+    @staticmethod
+    def from_c(c_expr):
+        return Binop(ints_to_enums[c_expr.Iex.Binop.details.op],
+                     [IRExpr._translate(arg)
+                      for arg in [c_expr.Iex.Binop.details.arg1,
+                                  c_expr.Iex.Binop.details.arg2]])
+
 class Unop(IRExpr):
     """
     A unary operation (1 argument).
@@ -234,6 +290,12 @@ class Unop(IRExpr):
 
     __slots__ = ['op', 'args']
 
+    tag = 'Iex_Unop'
+
+    def __init__(self, op, args):
+        self.op = op
+        self.args = args
+    
     def __init__(self, c_expr, irsb):
         IRExpr.__init__(self, c_expr, irsb)
         self.op = ints_to_enums[c_expr.Iex.Unop.op]
@@ -250,6 +312,11 @@ class Unop(IRExpr):
         expressions.extend(self.args)
         return expressions
 
+    @staticmethod
+    def from_c(c_expr):
+        return Unop(ints_to_enums[c_expr.Iex.Unop.details.op],
+                    [IRExpr._translate(c_expr.Iex.Unop.details.arg)])
+
 class Load(IRExpr):
     """
     A load from memory.
@@ -257,12 +324,14 @@ class Load(IRExpr):
 
     __slots__ = ['end', 'ty', 'addr']
 
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.end = ints_to_enums[c_expr.Iex.Load.end]
-        self.ty = ints_to_enums[c_expr.Iex.Load.ty]
-        self.addr = IRExpr._translate(c_expr.Iex.Load.addr, irsb)
+    tag = 'Iex_Load'
 
+    def __init__(self, end, ty, addr):
+        IRExpr.__init__(self)
+        self.end = end
+        self.ty = ty
+        self.addr = addr
+    
     @property
     def endness(self):
         return self.end
@@ -274,6 +343,12 @@ class Load(IRExpr):
     def __str__(self):
         return "LD%s:%s(%s)" % (self.end[-2:].lower(), self.ty[4:], self.addr)
 
+    @staticmethod
+    def from_c(c_expr):
+        return Load(ints_to_enums[c_expr.Iex.Load.end],
+                    ints_to_enums[c_expr.Iex.Load.ty]
+                    IRExpr._translate(c_expr.Iex.Load.addr))
+
 class Const(IRExpr):
     """
     A constant expression.
@@ -281,13 +356,18 @@ class Const(IRExpr):
 
     __slots__ = ['con']
 
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.con = IRConst._translate(c_expr.Iex.Const.con)
+    tag = 'Iex_Const'
 
+    def __init__(self, con):
+        self.con = con
+    
     def __str__(self):
         return str(self.con)
 
+    @staticmethod
+    def from_c(c_expr):
+        return Const(IRConst._translate(c_expr.Iex.Const.con))
+        
 class ITE(IRExpr):
     """
     An if-then-else expression.
@@ -295,14 +375,22 @@ class ITE(IRExpr):
 
     __slots__ = ['cond', 'iffalse', 'iftrue']
 
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.cond = IRExpr._translate(c_expr.Iex.ITE.cond, irsb)
-        self.iffalse = IRExpr._translate(c_expr.Iex.ITE.iffalse, irsb)
-        self.iftrue = IRExpr._translate(c_expr.Iex.ITE.iftrue, irsb)
+    tag = 'Iex_ITE'
+
+    def __init__(self, cond, iffalse, iftrue):
+        IRExpr.__init__(self)
+        self.cond = cond
+        self.iffalse = iffalse
+        self.iftrue = iftrue
 
     def __str__(self):
         return "ITE(%s,%s,%s)" % (self.cond, self.iftrue, self.iffalse)
+
+    @staticmethod
+    def from_c(c_expr):
+        return ITE(IRExpr._translate(c_expr.Iex.ITE.cond),
+                   IRExpr._translate(c_expr.Iex.ITE.iffalse),
+                   IRExpr._translate(c_expr.Iex.ITE.iftrue))
 
 class CCall(IRExpr):
     """
@@ -311,20 +399,14 @@ class CCall(IRExpr):
 
     __slots__ = ['retty', 'cee', 'args']
 
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.retty = ints_to_enums[c_expr.Iex.CCall.retty]
-        self.cee = IRCallee(c_expr.Iex.CCall.cee)
+    tag = 'Iex_CCall'
 
-        args = [ ]
-        for i in range(20):
-            a = c_expr.Iex.CCall.args[i]
-            if a == ffi.NULL:
-                break
-
-            args.append(IRExpr._translate(a, irsb))
+    def __init__(self, retty, cee, args):
+        IRExpr.__init__(self)
+        self.retty = retty
+        self.cee = cee
         self.args = tuple(args)
-
+    
     @property
     def ret_type(self):
         return self.retty
@@ -341,6 +423,14 @@ class CCall(IRExpr):
         expressions = sum((a.child_expressions for a in self.args), [ ])
         expressions.extend(self.args)
         return expressions
+
+    @staticmethod
+    def from_c(c_expr):
+        return CCall(ints_to_enums[c_expr.Iex.CCall.retty],
+                     IRCallee(c_expr.Iex.CCall.cee),
+                     tuple([IRExpr._translate(arg)
+                            for arg in itertools.takewhile(lambda a: a != ffi.NULL,
+                                                           c_expr.Iex.CCall.args)]))
 
 from .const import IRConst
 from .enums import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, type_sizes
