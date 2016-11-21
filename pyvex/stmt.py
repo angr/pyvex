@@ -8,11 +8,11 @@ class IRStmt(VEXObject):
 
     __slots__ = ['arch', 'tag']
 
-    def __init__(self, c_stmt, irsb):
+    tag = None
+    
+    def __init__(self):
         VEXObject.__init__(self)
-        self.arch = irsb.arch
-        # self.c_stmt = c_stmt
-        self.tag = ints_to_enums[c_stmt.tag]
+        self.arch = None
 
     def pp(self):
         print self.__str__()
@@ -32,28 +32,34 @@ class IRStmt(VEXObject):
         return sum((e.constants for e in self.expressions), [])
 
     @staticmethod
-    def _translate(c_stmt, irsb):
+    def _translate(c_stmt):
         if c_stmt[0] == ffi.NULL:
             return None
 
-        tag = c_stmt.tag
+        tag_int = c_stmt.tag
         try:
-            stmt_class = _tag_to_class[tag]
+            stmt_class = _tag_to_class[tag_int]
         except KeyError:
-            raise PyVEXError('Unknown/unsupported IRStmtTag %s\n' % ints_to_enums[tag])
-        return stmt_class(c_stmt, irsb)
+            raise PyVEXError('Unknown/unsupported IRStmtTag %s\n' % ints_to_enums[tag_int])
+        return stmt_class.from_c(c_stmt)
 
 
 class NoOp(IRStmt):
     """
     A no-operation statement. It is usually the result of an IR optimization.
     """
+
+    tag = 'Ist_NoOp'
+    
     def __init__(self, c_stmt, irsb):  # pylint:disable=unused-argument
         IRStmt.__init__(self, c_stmt, irsb)
 
     def __str__(self):
         return "IR-NoOp"
 
+    @staticmethod
+    def from_c(c_stmt):
+        return NoOp()
 
 class IMark(IRStmt):
     """
@@ -64,6 +70,8 @@ class IMark(IRStmt):
 
     __slots__ = ['addr', 'len', 'delta']
 
+    tag = 'Ist_IMark'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.addr = c_stmt.Ist.IMark.addr
@@ -81,6 +89,8 @@ class AbiHint(IRStmt):
 
     __slots__ = ['base', 'len', 'nia']
 
+    tag = 'Ist_AbiHint'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.base = IRExpr._translate(c_stmt.Ist.AbiHint.base, irsb)
@@ -98,6 +108,8 @@ class Put(IRStmt):
 
     __slots__ = ['data', 'offset']
 
+    tag = 'Ist_Put'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.data = IRExpr._translate(c_stmt.Ist.Put.data, irsb)
@@ -114,6 +126,8 @@ class PutI(IRStmt):
 
     __slots__ = ['descr', 'ix', 'data', 'bias']
 
+    tag = 'Ist_PutI'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.descr = IRRegArray(c_stmt.Ist.PutI.details.descr)
@@ -133,6 +147,8 @@ class WrTmp(IRStmt):
 
     __slots__ = ['data', 'tmp']
 
+    tag = 'Ist_WrTmp'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
 
@@ -150,6 +166,8 @@ class Store(IRStmt):
 
     __slots__ = ['addr', 'data', 'end']
 
+    tag = 'Ist_Store'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
 
@@ -172,6 +190,8 @@ class CAS(IRStmt):
 
     __slots__ = ['addr', 'dataLo', 'dataHi', 'expdLo', 'expdHi', 'oldLo', 'oldHi', 'end']
 
+    tag = 'Ist_CAS'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
 
@@ -201,6 +221,8 @@ class LLSC(IRStmt):
 
     __slots__ = ['addr', 'storedata', 'result', 'result_size', 'end']
 
+    tag = 'Ist_LLSC'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
 
@@ -228,6 +250,8 @@ class MBE(IRStmt):
 
     __slots__ = ['event']
 
+    tag = 'Ist_MBE'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.event = ints_to_enums[c_stmt.Ist.MBE.event]
@@ -240,6 +264,8 @@ class Dirty(IRStmt):
 
     __slots__ = ['cee', 'guard', 'tmp', 'mFx', 'mAddr', 'mSize', 'nFxState', 'args', 'result_size']
 
+    tag = 'Ist_Dirty'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.cee = IRCallee(c_stmt.Ist.Dirty.details.cee)
@@ -283,6 +309,8 @@ class Exit(IRStmt):
 
     __slots__ = ['guard', 'dst', 'offsIP', 'jk']
 
+    tag = 'Ist_Exit'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
         self.guard = IRExpr._translate(c_stmt.Ist.Exit.guard, irsb)
@@ -310,6 +338,8 @@ class LoadG(IRStmt):
 
     __slots__ = ['addr', 'alt', 'guard', 'dst', 'cvt', 'end', 'cvt_types']
 
+    tag = 'Ist_LoadG'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
 
@@ -344,6 +374,8 @@ class StoreG(IRStmt):
 
     __slots__ = ['addr', 'data', 'guard', 'end']
 
+    tag = 'Ist_StoreG'
+    
     def __init__(self, c_stmt, irsb):
         IRStmt.__init__(self, c_stmt, irsb)
 
