@@ -88,7 +88,7 @@ class VECRET(IRExpr):
     tag = 'Iex_VECRET'
     
     def __init__(self):
-        IRExpr.__init__(self, c_expr)
+        IRExpr.__init__(self)
 
     def __str__(self):
         return "VECRET"
@@ -154,7 +154,7 @@ class RdTmp(IRExpr):
     tag = 'Iex_RdTmp'
 
     def __init__(self, tmp):
-        IRExpr.__init__(self, c_expr)
+        IRExpr.__init__(self)
         self.tmp = tmp
 
     def __str__(self):
@@ -174,14 +174,14 @@ class Get(IRExpr):
     tag = 'Iex_Get'
     
     def __init__(self, offset, ty):
-        IRExpr.__init__(self, c_expr)
+        IRExpr.__init__(self)
         self.offset = offset
         self.ty = ty
 
     @property
     def type(self):
         return self.ty
-
+    
     def __str__(self):
         return "GET:%s(%s)" % (self.ty[4:], self.arch.translate_register_name(self.offset, self.result_size/8))
 
@@ -278,10 +278,10 @@ class Binop(IRExpr):
 
     @staticmethod
     def from_c(c_expr):
-        return Binop(ints_to_enums[c_expr.Iex.Binop.details.op],
+        return Binop(ints_to_enums[c_expr.Iex.Binop.op],
                      [IRExpr._translate(arg)
-                      for arg in [c_expr.Iex.Binop.details.arg1,
-                                  c_expr.Iex.Binop.details.arg2]])
+                      for arg in [c_expr.Iex.Binop.arg1,
+                                  c_expr.Iex.Binop.arg2]])
 
 class Unop(IRExpr):
     """
@@ -296,13 +296,6 @@ class Unop(IRExpr):
         self.op = op
         self.args = args
     
-    def __init__(self, c_expr, irsb):
-        IRExpr.__init__(self, c_expr, irsb)
-        self.op = ints_to_enums[c_expr.Iex.Unop.op]
-        self.args = (
-            IRExpr._translate(c_expr.Iex.Unop.arg, irsb),
-        )
-
     def __str__(self):
         return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
 
@@ -346,7 +339,7 @@ class Load(IRExpr):
     @staticmethod
     def from_c(c_expr):
         return Load(ints_to_enums[c_expr.Iex.Load.end],
-                    ints_to_enums[c_expr.Iex.Load.ty]
+                    ints_to_enums[c_expr.Iex.Load.ty],
                     IRExpr._translate(c_expr.Iex.Load.addr))
 
 class Const(IRExpr):
