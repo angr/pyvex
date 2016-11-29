@@ -82,8 +82,8 @@ class IRSB(VEXObject):
             self.c_irsb = c_irsb
             self.arch = arch
             self.tyenv = IRTypeEnv(c_irsb.tyenv)
-            self.statements = [stmt.IRStmt._translate(c_irsb.stmts[i], self) for i in xrange(c_irsb.stmts_used)]
-            self.next = expr.IRExpr._translate(c_irsb.next, self)
+            self.statements = [stmt.IRStmt._translate(c_irsb.stmts[i]) for i in xrange(c_irsb.stmts_used)]
+            self.next = expr.IRExpr._translate(c_irsb.next)
             self.offsIP = c_irsb.offsIP
             self.stmts_used = c_irsb.stmts_used
             self.jumpkind = ints_to_enums[c_irsb.jumpkind]
