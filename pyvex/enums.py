@@ -25,15 +25,30 @@ class IRCallee(VEXObject):
 
     __slots__ = ['regparms', 'name', 'mcx_mask', 'addr']
 
-    def __init__(self, callee):
+    def __init__(self, regparms, name, addr, mcx_mask):
         VEXObject.__init__(self)
-        self.regparms = callee.regparms
-        self.name = ffi.string(callee.name)
-        self.mcx_mask = callee.mcx_mask
-        self.addr = int(ffi.cast("unsigned long long", callee.mcx_mask))
+        self.regparms = regparms
+        self.name = name
+        self.addr = addr
+        self.mcx_mask = mcx_mask
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def _from_c(c_callee):
+        return IRCallee(c_callee.regparms,
+                        ffi.string(c_callee.name),
+                        int(ffi.cast("unsigned long long", c_callee.addr)),
+                        c_callee.mcx_mask)
+
+    @staticmethod
+    def _to_c(callee):
+        c_callee = pvc.mkIRCallee(callee.regparms,
+                                  callee.name,
+                                  callee.addr)
+        c_callee.mcx_mask = callee.mcx_mask
+        return c_callee
 
 
 class IRRegArray(VEXObject):
@@ -48,14 +63,26 @@ class IRRegArray(VEXObject):
 
     __slots__ = ['base', 'elemTy', 'nElems']
 
-    def __init__(self, arr):
+    def __init__(self, base, elemTy, nElems):
         VEXObject.__init__(self)
-        self.base = arr.base
-        self.elemTy = ints_to_enums[arr.elemTy]
-        self.nElems = arr.nElems
+        self.base = base
+        self.elemTy = elemTy
+        self.nElems = nElems
 
     def __str__(self):
         return "%s:%sx%d" % (self.base, self.elemTy[4:], self.nElems)
+
+    @staticmethod
+    def _from_c(c_arr):
+        return IRRegArray(c_arr.base,
+                          ints_to_enums[c_arr.elemTy],
+                          c_arr.nElems)
+
+    @staticmethod
+    def _to_c(arr):
+        return pvc.mkIRRegArray(arr.base,
+                                enums_to_ints[arr.elemTy],
+                                arr.nElems)
 
 enums_to_ints = {_: getattr(pvc, _) for _ in dir(pvc) if hasattr(pvc, _) and isinstance(getattr(pvc, _), int)}
 ints_to_enums = {getattr(pvc, _): _ for _ in dir(pvc) if hasattr(pvc, _) and isinstance(getattr(pvc, _), int)}

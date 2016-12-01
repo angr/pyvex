@@ -81,9 +81,9 @@ class IRSB(VEXObject):
 
             self.c_irsb = c_irsb
             self.arch = arch
-            self.tyenv = IRTypeEnv(c_irsb.tyenv)
-            self.statements = [stmt.IRStmt._translate(c_irsb.stmts[i]) for i in xrange(c_irsb.stmts_used)]
-            self.next = expr.IRExpr._translate(c_irsb.next)
+            self.tyenv = IRTypeEnv._from_c(c_irsb.tyenv)
+            self.statements = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in xrange(c_irsb.stmts_used)]
+            self.next = expr.IRExpr._from_c(c_irsb.next)
             self.offsIP = c_irsb.offsIP
             self.stmts_used = c_irsb.stmts_used
             self.jumpkind = ints_to_enums[c_irsb.jumpkind]
@@ -265,14 +265,26 @@ class IRTypeEnv(VEXObject):
 
     __slots__ = [ 'types', 'types_used' ]
 
-    def __init__(self, tyenv):
+    def __init__(self, types, types_used):
         VEXObject.__init__(self)
-        self.types = [ints_to_enums[tyenv.types[t]] for t in xrange(tyenv.types_used)]
-        self.types_used = tyenv.types_used
+        self.types = types
+        self.types_used = types_used
 
     def __str__(self):
         return ' '.join(("t%d:%s" % (i, t)) for i, t in enumerate(self.types))
 
+    @staticmethod
+    def _from_c(c_tyenv):
+        return IRTypeEnv([ints_to_enums[c_tyenv.types[t]] for t in xrange(c_tyenv.types_used)],
+                         c_tyenv.types_used)
+
+    @staticmethod
+    def _to_c(tyenv):
+        c_tyenv = pvc.emptyIRTypeEnv()
+        for ty in tyenv.types:
+            pvc.newIRTemp(c_tyenv, enums_to_ints[ty])
+        return c_tyenv
+
 from . import expr, stmt, ffi, pvc
-from .enums import ints_to_enums
+from .enums import ints_to_enums, enums_to_ints
 from .errors import PyVEXError

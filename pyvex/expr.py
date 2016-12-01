@@ -49,19 +49,28 @@ class IRExpr(VEXObject):
         if isinstance(self, (VECRET, Binder, BBPTR)):
             return 'Ity_INVALID'
         else:
-            return ints_to_enums[pvc.typeOfIRExpr(tyenv, c_expr)]
+            return ints_to_enums[pvc.typeOfIRExpr(IRTypeEnv._to_c(tyenv), IRExpr._to_c(self))]
 
     @staticmethod
-    def _translate(c_expr):
+    def _from_c(c_expr):
         if c_expr == ffi.NULL or c_expr[0] == ffi.NULL:
             return None
 
         tag_int = c_expr.tag
 
         try:
-            return tag_to_class[tag_int].from_c(c_expr)
+            return tag_to_class[tag_int]._from_c(c_expr)
         except KeyError:
-            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % ints_to_enums[tag_int])
+            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % ints_to_enums[tag_int])            
+    _translate = _from_c
+
+    @staticmethod
+    def _to_c(expr):
+        try:
+            tag_int = enums_to_ints[expr.tag]
+            return tag_to_class[tag_int]._to_c(expr)
+        except KeyError:
+            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % expr.tag)
 
 class Binder(IRExpr):
     """
@@ -80,8 +89,12 @@ class Binder(IRExpr):
         return "Binder"
 
     @staticmethod
-    def from_c(c_expr):
+    def _from_c(c_expr):
         return Binder(c_expr.iex.Binder.binder)
+
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_Binder(expr.binder)
 
 class VECRET(IRExpr):
 
@@ -94,8 +107,12 @@ class VECRET(IRExpr):
         return "VECRET"
 
     @staticmethod
-    def from_c(c_expr):
+    def _from_c(c_expr):
         return VECRET()
+
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_VECRET()
 
 class BBPTR(IRExpr):
 
@@ -108,8 +125,12 @@ class BBPTR(IRExpr):
         return "BBPTR"
 
     @staticmethod
-    def from_c(c_expr):
+    def _from_c(c_expr):
         return BBPTR()
+
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_BBPTR()
 
 class GetI(IRExpr):
     """
@@ -138,11 +159,17 @@ class GetI(IRExpr):
         return "GetI(%s)[%s,%s]" % (self.descr, self.ix, self.bias)
 
     @staticmethod
-    def from_c(c_expr):
+    def _from_c(c_expr):
         descr = IRRegArray(c_expr.Iex.GetI.descr)
-        ix = IRExpr._translate(c_expr.Iex.GetI.ix)
+        ix = IRExpr._from_c(c_expr.Iex.GetI.ix)
         bias = c_expr.Iex.GetI.bias
         return GetI(descr, ix, bias)
+
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_GetI(IRRegArray._to_c(expr.descr),
+                               IRExpr._to_c(expr.ix),
+                               expr.bias)
 
 class RdTmp(IRExpr):
     """
@@ -161,8 +188,12 @@ class RdTmp(IRExpr):
         return "t%d" % self.tmp
 
     @staticmethod
-    def from_c(c_expr):
+    def _from_c(c_expr):
         return RdTmp(c_expr.Iex.RdTmp.tmp)
+
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_RdTmp(expr.tmp)
 
 class Get(IRExpr):
     """
@@ -186,10 +217,15 @@ class Get(IRExpr):
         return "GET:%s(%s)" % (self.ty[4:], self.arch.translate_register_name(self.offset, self.result_size/8))
 
     @staticmethod
-    def from_c(c_expr):
+    def _from_c(c_expr):
         return Get(c_expr.Iex.Get.offset,
                    ints_to_enums[c_expr.Iex.Get.ty])
 
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_Get(expr.offset,
+                              enums_to_ints[expr.ty])
+        
 class Qop(IRExpr):
     """
     A quaternary operation (4 arguments).
@@ -214,13 +250,19 @@ class Qop(IRExpr):
         return expressions
 
     @staticmethod
-    def from_c(c_expr):
+    def _from_c(c_expr):
         return Qop(ints_to_enums[c_expr.Iex.Qop.details.op],
-                   [IRExpr._translate(arg)
+                   [IRExpr._from_c(arg)
                     for arg in [c_expr.Iex.Qop.details.arg1,
                                 c_expr.Iex.Qop.details.arg2,
                                 c_expr.Iex.Qop.details.arg3,
                                 c_expr.Iex.Qop.details.arg4]])
+
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_Qop(enums_to_ints[expr.op],
+                              *[IRExpr._to_c(arg)
+                                for arg in expr.args])
 
 class Triop(IRExpr):
     """
@@ -246,12 +288,18 @@ class Triop(IRExpr):
         return expressions
 
     @staticmethod
-    def from_c(c_expr):
+    def _from_c(c_expr):
         return Triop(ints_to_enums[c_expr.Iex.Triop.details.op],
-                     [IRExpr._translate(arg)
+                     [IRExpr._from_c(arg)
                       for arg in [c_expr.Iex.Triop.details.arg1,
                                   c_expr.Iex.Triop.details.arg2,
                                   c_expr.Iex.Triop.details.arg3]])
+
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_Triop(enums_to_ints[expr.op],
+                                *[IRExpr._to_c(arg)
+                                  for arg in expr.args])
 
 class Binop(IRExpr):
     """
@@ -277,11 +325,17 @@ class Binop(IRExpr):
         return expressions
 
     @staticmethod
-    def from_c(c_expr):
+    def _from_c(c_expr):
         return Binop(ints_to_enums[c_expr.Iex.Binop.op],
-                     [IRExpr._translate(arg)
+                     [IRExpr._from_c(arg)
                       for arg in [c_expr.Iex.Binop.arg1,
                                   c_expr.Iex.Binop.arg2]])
+
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_Binop(enums_to_ints[expr.op],
+                                *[IRExpr._to_c(arg)
+                                  for arg in expr.args])
 
 class Unop(IRExpr):
     """
@@ -306,9 +360,14 @@ class Unop(IRExpr):
         return expressions
 
     @staticmethod
-    def from_c(c_expr):
-        return Unop(ints_to_enums[c_expr.Iex.Unop.details.op],
-                    [IRExpr._translate(c_expr.Iex.Unop.details.arg)])
+    def _from_c(c_expr):
+        return Unop(ints_to_enums[c_expr.Iex.Unop.op],
+                    [IRExpr._from_c(c_expr.Iex.Unop.arg)])
+
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_Unop(enums_to_ints[expr.op],
+                               IRExpr._to_c(expr.args[0]))
 
 class Load(IRExpr):
     """
@@ -337,10 +396,16 @@ class Load(IRExpr):
         return "LD%s:%s(%s)" % (self.end[-2:].lower(), self.ty[4:], self.addr)
 
     @staticmethod
-    def from_c(c_expr):
+    def _from_c(c_expr):
         return Load(ints_to_enums[c_expr.Iex.Load.end],
                     ints_to_enums[c_expr.Iex.Load.ty],
-                    IRExpr._translate(c_expr.Iex.Load.addr))
+                    IRExpr._from_c(c_expr.Iex.Load.addr))
+
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_Load(enums_to_ints[expr.end],
+                               enums_to_ints[expr.ty],
+                               IRExpr._to_c(expr.addr))
 
 class Const(IRExpr):
     """
@@ -358,8 +423,12 @@ class Const(IRExpr):
         return str(self.con)
 
     @staticmethod
-    def from_c(c_expr):
-        return Const(IRConst._translate(c_expr.Iex.Const.con))
+    def _from_c(c_expr):
+        return Const(IRConst._from_c(c_expr.Iex.Const.con))
+
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_Const(IRConst._to_c(expr.con))
         
 class ITE(IRExpr):
     """
@@ -380,10 +449,10 @@ class ITE(IRExpr):
         return "ITE(%s,%s,%s)" % (self.cond, self.iftrue, self.iffalse)
 
     @staticmethod
-    def from_c(c_expr):
-        return ITE(IRExpr._translate(c_expr.Iex.ITE.cond),
-                   IRExpr._translate(c_expr.Iex.ITE.iffalse),
-                   IRExpr._translate(c_expr.Iex.ITE.iftrue))
+    def _from_c(c_expr):
+        return ITE(IRExpr._from_c(c_expr.Iex.ITE.cond),
+                   IRExpr._from_c(c_expr.Iex.ITE.iffalse),
+                   IRExpr._from_c(c_expr.Iex.ITE.iftrue))
 
 class CCall(IRExpr):
     """
@@ -418,13 +487,14 @@ class CCall(IRExpr):
         return expressions
 
     @staticmethod
-    def from_c(c_expr):
+    def _from_c(c_expr):
         return CCall(ints_to_enums[c_expr.Iex.CCall.retty],
                      IRCallee(c_expr.Iex.CCall.cee),
-                     tuple([IRExpr._translate(arg)
+                     tuple([IRExpr._from_c(arg)
                             for arg in itertools.takewhile(lambda a: a != ffi.NULL,
                                                            c_expr.Iex.CCall.args)]))
 
+from .block import IRTypeEnv
 from .const import IRConst
 from .enums import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, type_sizes
 from .errors import PyVEXError
