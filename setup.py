@@ -1,3 +1,4 @@
+# pylint: disable=no-name-in-module,import-error
 import os
 import urllib2
 import subprocess
@@ -7,11 +8,18 @@ import glob
 import tarfile
 import multiprocessing
 import platform
+
+try:
+    from setuptools import setup
+    from setuptools import find_packages
+    packages = find_packages()
+except ImportError:
+    from distutils.core import setup
+    packages = [x.strip('./').replace('/','.') for x in os.popen('find -name "__init__.py" | xargs -n1 dirname').read().strip().split('\n')]
+
 from distutils.util import get_platform
 from distutils.errors import LibError
-from distutils.core import setup
 from distutils.command.build import build as _build
-from setuptools.command.bdist_egg import bdist_egg as _bdist_egg
 
 if sys.platform in ('win32', 'cygwin'):
     library_file = 'pyvex.dll'
@@ -72,14 +80,9 @@ class build(_build):
         _build.run(self)
 cmdclass = { 'build': build }
 
-class bdist_egg(_bdist_egg):
-    def run(self):
-        self.run_command('build')
-        _bdist_egg.run(self)
-cmdclass['bdist_egg'] = bdist_egg
-
 try:
     from setuptools.command.develop import develop as _develop
+    from setuptools.command.bdist_egg import bdist_egg as _bdist_egg
     class develop(_develop):
         def run(self):
             self.execute(_build_vex, (), msg="Building libVEX")
@@ -88,6 +91,12 @@ try:
             self.execute(_build_ffi, (), msg="Creating CFFI defs file")
             _develop.run(self)
     cmdclass['develop'] = develop
+
+    class bdist_egg(_bdist_egg):
+        def run(self):
+            self.run_command('build')
+            _bdist_egg.run(self)
+    cmdclass['bdist_egg'] = bdist_egg
 except ImportError:
     print "Proper 'develop' support unavailable."
 
