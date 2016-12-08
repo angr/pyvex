@@ -1,5 +1,6 @@
 build
 dist
+MANIFEST
 pyvex_python
 vex_ffi.py
 libpyvex.so
