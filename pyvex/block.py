@@ -112,7 +112,14 @@ class IRSB(VEXObject):
         sa.append("   %s" % self.tyenv)
         sa.append("")
         for i, s in enumerate(self.statements):
-            sa.append("   %02d | %s" % (i, s))
+            stmt_str = ''
+            if isinstance(s, stmt.Put):
+                stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.offset, s.data.result_size(self.tyenv)/8))
+            elif isinstance(s, stmt.WrTmp) and isinstance(s.data, expr.Get):
+                stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.data.offset, s.data.result_size(self.tyenv)/8))
+            else:
+                stmt_str = s.__str__()
+            sa.append("   %02d | %s" % (i, stmt_str))
         sa.append(
             "   NEXT: PUT(%s) = %s; %s" % (self.arch.translate_register_name(self.offsIP), self.next, self.jumpkind))
         sa.append("}")

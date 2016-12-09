@@ -160,7 +160,7 @@ class GetI(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        descr = IRRegArray(c_expr.Iex.GetI.descr)
+        descr = IRRegArray._from_c(c_expr.Iex.GetI.descr)
         ix = IRExpr._from_c(c_expr.Iex.GetI.ix)
         bias = c_expr.Iex.GetI.bias
         return GetI(descr, ix, bias)
@@ -213,8 +213,11 @@ class Get(IRExpr):
     def type(self):
         return self.ty
     
-    def __str__(self):
-        return "GET:%s(%s)" % (self.ty[4:], self.arch.translate_register_name(self.offset, self.result_size/8))
+    def __str__(self, reg_name=None):
+        if reg_name:
+            return "GET:%s(%s)" % (self.ty[4:], reg_name)
+        else:
+            return "GET:%s(offset=%s)" % (self.ty[4:], self.offset)
 
     @staticmethod
     def _from_c(c_expr):
@@ -488,11 +491,18 @@ class CCall(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
+        i = 0
+        args = []
+        while True:
+            arg = c_expr.Iex.CCall.args[i]
+            if arg == ffi.NULL:
+                break
+            args.append(IRExpr._from_c(arg))
+            i += 1
+            
         return CCall(ints_to_enums[c_expr.Iex.CCall.retty],
-                     IRCallee(c_expr.Iex.CCall.cee),
-                     tuple([IRExpr._from_c(arg)
-                            for arg in itertools.takewhile(lambda a: a != ffi.NULL,
-                                                           c_expr.Iex.CCall.args)]))
+                     IRCallee._from_c(c_expr.Iex.CCall.cee),
+                     tuple(args))
 
 from .block import IRTypeEnv
 from .const import IRConst

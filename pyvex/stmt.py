@@ -6,13 +6,12 @@ class IRStmt(VEXObject):
     IR statements in VEX represents operations with side-effects.
     """
 
-    __slots__ = ['arch', 'tag']
+    __slots__ = ['tag']
 
     tag = None
     
     def __init__(self):
         VEXObject.__init__(self)
-        self.arch = None
 
     def pp(self):
         print self.__str__()
@@ -125,10 +124,13 @@ class Put(IRStmt):
         IRStmt.__init__(self)
         self.data = data
         self.offset = offset
-
+        
     ## TODO: Check if result_size and arch are available before looking of arch register name
-    def __str__(self):
-        return "PUT(%s) = %s" % (self.arch.translate_register_name(self.offset, self.data.result_size/8), self.data)
+    def __str__(self, reg_name=None):
+        if reg_name:
+            return "PUT(%s) = %s" % (reg_name, self.data)
+        else:
+            return "PUT(offset=%s) = %s" % (self.offset, self.data)
 
     @staticmethod
     def _from_c(c_stmt):
@@ -177,8 +179,12 @@ class WrTmp(IRStmt):
         self.tmp = tmp
         self.data = data
 
-    def __str__(self):
-        return "t%d = %s" % (self.tmp, self.data)
+    def __str__(self, reg_name=None):
+        # Support for named register in string representation of expr.Get
+        if reg_name and isinstance(self.data, expr.Get):
+            return "t%d = %s" % (self.tmp, self.data.__str__(reg_name=reg_name))
+        else:
+            return "t%d = %s" % (self.tmp, self.data)
 
     @staticmethod
     def _from_c(c_stmt):
@@ -404,7 +410,7 @@ class LoadG(IRStmt):
 
         type_in = ffi.new('IRType *')
         type_out = ffi.new('IRType *')
-        pvc.typeOfIRLoadGOp(c_stmt.Ist.LoadG.details.cvt, type_out, type_in)
+        pvc.typeOfIRLoadGOp(enums_to_ints[self.cvt], type_out, type_in)
         type_in = ffi.cast('int *', type_in)[0]
         type_out = ffi.cast('int *', type_out)[0]
         self.cvt_types = (ints_to_enums[type_in], ints_to_enums[type_out])
@@ -419,12 +425,12 @@ class LoadG(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return IRLoadG(ints_to_enums[c_stmt.Ist.LoadG.details.end],
-                       ints_to_enums[c_stmt.Ist.LoadG.details.cvt],
-                       c_stmt.Ist.LoadG.details.dst,
-                       IRExpr._from_c(c_stmt.Ist.LoadG.details.addr),
-                       IRExpr._from_c(c_stmt.Ist.LoadG.details.alt),
-                       IRExpr._from_c(c_stmt.Ist.LoadG.details.guard))
+        return LoadG(ints_to_enums[c_stmt.Ist.LoadG.details.end],
+                     ints_to_enums[c_stmt.Ist.LoadG.details.cvt],
+                     c_stmt.Ist.LoadG.details.dst,
+                     IRExpr._from_c(c_stmt.Ist.LoadG.details.addr),
+                     IRExpr._from_c(c_stmt.Ist.LoadG.details.alt),
+                     IRExpr._from_c(c_stmt.Ist.LoadG.details.guard))
 
 class StoreG(IRStmt):
     """
@@ -462,7 +468,7 @@ from .expr import IRExpr
 from .const import IRConst
 from .enums import IRRegArray, ints_to_enums, enums_to_ints, IRCallee, type_sizes
 from .errors import PyVEXError
-from . import ffi, pvc
+from . import ffi, pvc, expr
 
 _tag_to_class = {
     enums_to_ints['Ist_NoOp']: NoOp,
