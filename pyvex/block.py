@@ -28,7 +28,7 @@ class IRSB(VEXObject):
                  ]
 
     def __init__(self, data, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=0,
-                 traceflags=0):  # pylint:disable=redefined-builtin
+                 traceflags=0, empty=False):  # pylint:disable=redefined-builtin
         """
         :param data:            The bytes to lift. Can be either a string of bytes or a cffi buffer object.
         :type data:             str or bytes or cffi.FFI.CData
@@ -39,6 +39,7 @@ class IRSB(VEXObject):
         :param num_bytes:       The maximum number of bytes to use. Max 400.
         :param bytes_offset:    The offset into `data` to start lifting at.
         :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
+        :param empty:           The empty flag, when True, returns an empty IRSB.
 
         .. note:: Explicitly specifying the number of instructions to lift (`num_inst`) may not always work
                   exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
@@ -47,53 +48,29 @@ class IRSB(VEXObject):
                   on MIPS as a single instruction (`num_inst=1`) will result in an empty IRSB, and subsequent
                   attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
         """
-        try:
-            _libvex_lock.acquire()
+        VEXObject.__init__(self)
 
-            VEXObject.__init__(self)
-
-            if isinstance(data, (str, bytes)):
-                num_bytes = len(data) if num_bytes is None else num_bytes
-                c_bytes = ffi.new('unsigned char [%d]' % (len(data) + 8), data + '\0' * 8)
-            else:
-                if not num_bytes:
-                    raise PyVEXError("C-backed bytes must have the length specified by num_bytes")
-                c_bytes = data
-
-            if num_bytes == 0:
-                raise PyVEXError("No bytes provided")
-            pvc.vta.traceflags = traceflags
-
-            vex_arch = getattr(pvc, arch.vex_arch)
-
-            arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
-
-            if num_inst is not None:
-                c_irsb = pvc.vex_block_inst(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_inst)
-            else:
-                c_irsb = pvc.vex_block_bytes(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_bytes, 1)
-
-            if c_irsb == ffi.NULL:
-                raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
-
-            # We must use a pickle value, CData objects are not pickeable so not ffi.NULL
-            arch.vex_archinfo['hwcache_info']['caches'] = None
-
-            self.c_irsb = c_irsb
-            self.arch = arch
-            self.tyenv = IRTypeEnv._from_c(c_irsb.tyenv)
-            self.statements = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in xrange(c_irsb.stmts_used)]
-            self.next = expr.IRExpr._from_c(c_irsb.next)
-            self.offsIP = c_irsb.offsIP
-            self.stmts_used = c_irsb.stmts_used
-            self.jumpkind = ints_to_enums[c_irsb.jumpkind]
-
+        if empty:
+            self.tyenv = None
+            self.statements = None
+            self.next = None
+            self.jumpkind = None
+            self.offsIP = None
             self._addr = mem_addr
-            self.direct_next = self._is_defaultexit_direct_jump()
+            self.arch = arch
+            self.direct_next = None
 
-            del self.c_irsb
-        finally:
-            _libvex_lock.release()
+            return
+        
+        irsb = IRSB.lift(data, mem_addr, arch, num_inst, num_bytes, bytes_offset, traceflags)
+        self.tyenv = irsb.tyenv
+        self.statements = irsb.statements
+        self.next = irsb.next
+        self.jumpkind = irsb.jumpkind
+        self.offsIP = irsb.offsIP
+        self._addr = irsb._addr
+        self.arch = irsb.arch
+        self.direct_next = self._is_defaultexit_direct_jump()
 
     def pp(self):
         """
@@ -260,6 +237,92 @@ class IRSB(VEXObject):
         target = self._get_defaultexit_target()
         return target is not None
 
+    @staticmethod
+    def lift(data, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=0,
+             traceflags=0):  # pylint:disable=redefined-builtin
+        """
+        :param data:            The bytes to lift. Can be either a string of bytes or a cffi buffer object.
+        :type data:             str or bytes or cffi.FFI.CData
+        :param int mem_addr:    The address to lift the data at.
+        :param arch:            The architecture to lift the data as.
+        :type arch:             :class:`archinfo.Arch`
+        :param num_inst:        The maximum number of instructions to lift. Max 99. (See note below)
+        :param num_bytes:       The maximum number of bytes to use. Max 400.
+        :param bytes_offset:    The offset into `data` to start lifting at.
+        :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
+
+        .. note:: Explicitly specifying the number of instructions to lift (`num_inst`) may not always work
+                  exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
+                  instruction without its delay slot. VEX attempts to Do The Right Thing by possibly decoding
+                  fewer instructions than requested. Specifically, this means that lifting a branch or jump
+                  on MIPS as a single instruction (`num_inst=1`) will result in an empty IRSB, and subsequent
+                  attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
+        """
+        irsb = None
+        
+        try:
+            _libvex_lock.acquire()
+
+            if isinstance(data, (str, bytes)):
+                num_bytes = len(data) if num_bytes is None else num_bytes
+                c_bytes = ffi.new('unsigned char [%d]' % (len(data) + 8), data + '\0' * 8)
+            else:
+                if not num_bytes:
+                    raise PyVEXError("C-backed bytes must have the length specified by num_bytes")
+                c_bytes = data
+
+            if num_bytes == 0:
+                raise PyVEXError("No bytes provided")
+            pvc.vta.traceflags = traceflags
+
+            vex_arch = getattr(pvc, arch.vex_arch)
+
+            arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
+
+            if num_inst is not None:
+                c_irsb = pvc.vex_block_inst(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_inst)
+            else:
+                c_irsb = pvc.vex_block_bytes(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_bytes, 1)
+
+            if c_irsb == ffi.NULL:
+                raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
+
+            # We must use a pickle value, CData objects are not pickeable so not ffi.NULL
+            arch.vex_archinfo['hwcache_info']['caches'] = None
+            
+            irsb = IRSB._from_c(c_irsb, mem_addr, arch)
+            
+            del c_irsb
+        finally:
+            _libvex_lock.release()
+            
+        return irsb
+            
+    @staticmethod
+    def _from_c(c_irsb, mem_addr, arch):
+        stmts = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in xrange(c_irsb.stmts_used)]
+        return IRSB._from_py(IRTypeEnv._from_c(c_irsb.tyenv),
+                             stmts,
+                             c_irsb.stmts_used,
+                             expr.IRExpr._from_c(c_irsb.next),
+                             ints_to_enums[c_irsb.jumpkind],
+                             c_irsb.offsIP,
+                             mem_addr,
+                             arch)
+
+    @staticmethod
+    def _from_py(tyenv, stmts, stmts_used, next, jumpkind, offsIP, mem_addr, arch):
+        irsb = IRSB(None, mem_addr, arch, empty=True)
+
+        irsb.tyenv = tyenv
+        irsb.statements = stmts
+        irsb.stmts_used = stmts_used
+        irsb.next = next
+        irsb.jumpkind = jumpkind
+        irsb.offsIP = offsIP
+        irsb.direct_next = irsb._is_defaultexit_direct_jump()
+
+        return irsb
 
 class IRTypeEnv(VEXObject):
     """
