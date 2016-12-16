@@ -457,6 +457,12 @@ class ITE(IRExpr):
                    IRExpr._from_c(c_expr.Iex.ITE.iffalse),
                    IRExpr._from_c(c_expr.Iex.ITE.iftrue))
 
+    @staticmethod
+    def _to_c(expr):
+        return pvc.IRExpr_ITE(IRExpr._to_c(expr.cond),
+                              IRExpr._to_c(expr.iftrue),
+                              IRExpr._to_c(expr.iffalse))
+
 class CCall(IRExpr):
     """
     A call to a pure (no side-effects) helper C function.
