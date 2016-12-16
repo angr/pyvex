@@ -5,8 +5,6 @@ class IRExpr(VEXObject):
     IR expressions in VEX represent operations without side effects.
     """
 
-    __slots__ = ['tag']
-
     tag = None
 
     def __init__(self):

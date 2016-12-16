@@ -6,8 +6,6 @@ class IRStmt(VEXObject):
     IR statements in VEX represents operations with side-effects.
     """
 
-    __slots__ = ['tag']
-
     tag = None
     
     def __init__(self):

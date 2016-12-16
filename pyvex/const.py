@@ -3,7 +3,7 @@ from . import VEXObject
 # IRConst hierarchy
 class IRConst(VEXObject):
 
-    __slots__ = ['tag', 'value']
+    __slots__ = ['value']
 
     type = None
     tag = None
