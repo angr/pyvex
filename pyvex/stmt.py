@@ -156,11 +156,11 @@ class PutI(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return PutI(IRRegArray(c_stmt.Ist.PutI.details.descr),
+        return PutI(IRRegArray._from_c(c_stmt.Ist.PutI.details.descr),
                     IRExpr._from_c(c_stmt.Ist.PutI.details.ix),
-                    IRExpr._from_c(c_stmt.Ist.PutU.details.data),
+                    IRExpr._from_c(c_stmt.Ist.PutI.details.data),
                     c_stmt.Ist.PutI.details.bias)
-        
+
 class WrTmp(IRStmt):
     """
     Assign a value to a temporary.  Note that SSA rules require each tmp is only assigned to once.  IR sanity checking
