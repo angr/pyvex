@@ -7,7 +7,7 @@ class IRStmt(VEXObject):
     """
 
     tag = None
-    
+
     def __init__(self):
         VEXObject.__init__(self)
 
@@ -47,7 +47,7 @@ class NoOp(IRStmt):
     """
 
     tag = 'Ist_NoOp'
-    
+
     def __init__(self):  # pylint:disable=unused-argument
         IRStmt.__init__(self)
 
@@ -68,11 +68,11 @@ class IMark(IRStmt):
     __slots__ = ['addr', 'len', 'delta']
 
     tag = 'Ist_IMark'
-    
-    def __init__(self, addr, len, delta):
+
+    def __init__(self, addr, length, delta):
         IRStmt.__init__(self)
         self.addr = addr
-        self.len = len
+        self.len = length
         self.delta = delta
 
     def __str__(self):
@@ -93,11 +93,11 @@ class AbiHint(IRStmt):
     __slots__ = ['base', 'len', 'nia']
 
     tag = 'Ist_AbiHint'
-    
-    def __init__(self, base, len, nia):
+
+    def __init__(self, base, length, nia):
         IRStmt.__init__(self)
         self.base = base
-        self.len = len
+        self.len = length
         self.nia = nia
 
     def __str__(self):
@@ -117,12 +117,12 @@ class Put(IRStmt):
     __slots__ = ['data', 'offset']
 
     tag = 'Ist_Put'
-    
+
     def __init__(self, data, offset):
         IRStmt.__init__(self)
         self.data = data
         self.offset = offset
-        
+
     ## TODO: Check if result_size and arch are available before looking of arch register name
     def __str__(self, reg_name=None):
         if reg_name:
@@ -143,7 +143,7 @@ class PutI(IRStmt):
     __slots__ = ['descr', 'ix', 'data', 'bias']
 
     tag = 'Ist_PutI'
-    
+
     def __init__(self, descr, ix, data, bias):
         IRStmt.__init__(self)
         self.descr = descr
@@ -170,7 +170,7 @@ class WrTmp(IRStmt):
     __slots__ = ['data', 'tmp']
 
     tag = 'Ist_WrTmp'
-    
+
     def __init__(self, tmp, data):
         IRStmt.__init__(self)
 
@@ -197,7 +197,7 @@ class Store(IRStmt):
     __slots__ = ['addr', 'data', 'end']
 
     tag = 'Ist_Store'
-    
+
     def __init__(self, addr, data, end):
         IRStmt.__init__(self)
 
@@ -226,7 +226,7 @@ class CAS(IRStmt):
     __slots__ = ['addr', 'dataLo', 'dataHi', 'expdLo', 'expdHi', 'oldLo', 'oldHi', 'end']
 
     tag = 'Ist_CAS'
-    
+
     def __init__(self, addr, dataLo, dataHi, expdLo, expdHi, oldLo, oldHi, end):
         IRStmt.__init__(self)
 
@@ -257,7 +257,7 @@ class CAS(IRStmt):
                    c_stmt.Ist.CAS.details.oldLo,
                    c_stmt.Ist.CAS.details.oldHi,
                    ints_to_enums[c_stmt.Ist.CAS.details.end])
-    
+
 class LLSC(IRStmt):
     """
      Either Load-Linked or Store-Conditional, depending on STOREDATA. If STOREDATA is NULL then this is a Load-Linked,
@@ -267,7 +267,7 @@ class LLSC(IRStmt):
     __slots__ = ['addr', 'storedata', 'result', 'end']
 
     tag = 'Ist_LLSC'
-    
+
     def __init__(self, addr, storedata, result, end):
         IRStmt.__init__(self)
 
@@ -298,14 +298,14 @@ class MBE(IRStmt):
     __slots__ = ['event']
 
     tag = 'Ist_MBE'
-    
+
     def __init__(self, event):
         IRStmt.__init__(self)
         self.event = event
 
     def __str__(self):
         return "MBusEvent-" + self.event
-    
+
     @staticmethod
     def _from_c(c_stmt):
         return MBE(ints_to_enums[c_stmt.Ist.MBE.event])
@@ -315,7 +315,7 @@ class Dirty(IRStmt):
     __slots__ = ['cee', 'guard', 'args', 'tmp', 'mFx', 'mAddr', 'mSize', 'nFxState']
 
     tag = 'Ist_Dirty'
-    
+
     def __init__(self, cee, guard, args, tmp, mFx, mAddr, mSize, nFxState):
         IRStmt.__init__(self)
         self.cee = cee
@@ -366,7 +366,7 @@ class Exit(IRStmt):
     __slots__ = ['guard', 'dst', 'offsIP', 'jk']
 
     tag = 'Ist_Exit'
-    
+
     def __init__(self, guard, dst, jk, offsIP):
         IRStmt.__init__(self)
         self.guard = guard
@@ -403,7 +403,7 @@ class LoadG(IRStmt):
     __slots__ = ['addr', 'alt', 'guard', 'dst', 'cvt', 'end', 'cvt_types']
 
     tag = 'Ist_LoadG'
-    
+
     def __init__(self, end, cvt, dst, addr, alt, guard):
         IRStmt.__init__(self)
 
@@ -446,7 +446,7 @@ class StoreG(IRStmt):
     __slots__ = ['addr', 'data', 'guard', 'end']
 
     tag = 'Ist_StoreG'
-    
+
     def __init__(self, end, addr, data, guard):
         IRStmt.__init__(self)
 
@@ -472,7 +472,7 @@ class StoreG(IRStmt):
 
 from .expr import IRExpr
 from .const import IRConst
-from .enums import IRRegArray, ints_to_enums, enums_to_ints, IRCallee, type_sizes
+from .enums import IRRegArray, ints_to_enums, enums_to_ints, IRCallee
 from .errors import PyVEXError
 from . import ffi, pvc, expr
 

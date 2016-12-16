@@ -140,4 +140,3 @@ def default_vex_archinfo():
         },
         'x86_cr0': 0xffffffff
     }
-

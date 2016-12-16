@@ -36,17 +36,17 @@ class IRConst(VEXObject):
         # libvex throws an exception when constructing a U1 with a value other than 0 or 1
         if const.tag == 'Ico_U1' and not const.value in (0, 1):
             raise PyVEXError('Invalid U1 value: %d' % const.value)
-        
+
         try:
             return tag_to_ctor[const.tag](const.value)
         except KeyError:
             raise PyVEXError('Unknown/unsupported IRConstTag %s]n' % const.tag)
-        
+
 
 class U1(IRConst):
     type = 'Ity_I1'
     tag = 'Ico_U1'
-    
+
     def __init__(self, value):
         IRConst.__init__(self)
         self.value = value
@@ -61,7 +61,7 @@ class U1(IRConst):
 class U8(IRConst):
     type = 'Ity_I8'
     tag = 'Ico_U8'
-    
+
     def __init__(self, value):
         IRConst.__init__(self)
         self.value = value
@@ -91,7 +91,7 @@ class U16(IRConst):
 class U32(IRConst):
     type = 'Ity_I32'
     tag = 'Ico_U32'
-    
+
     def __init__(self, value):
         IRConst.__init__(self)
         self.value = value
@@ -121,7 +121,7 @@ class U64(IRConst):
 class F32(IRConst):
     type = 'Ity_F32'
     tag = 'Ico_F32'
-    
+
     def __init__(self, value):
         IRConst.__init__(self)
         self.value = value
@@ -181,7 +181,7 @@ class F64i(IRConst):
 class V128(IRConst):
     type = 'Ity_V128'
     tag = 'Ico_V128'
-    
+
     def __init__(self, value):
         IRConst.__init__(self)
         self.value = value

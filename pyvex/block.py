@@ -52,25 +52,25 @@ class IRSB(VEXObject):
 
         if empty:
             self.tyenv = None
-            self.statements = None
+            self.statements = []
             self.next = None
             self.jumpkind = None
             self.offsIP = None
             self._addr = mem_addr
             self.arch = arch
             self.direct_next = None
+            self.stmts_used = 0
 
-            return
-        
-        irsb = IRSB.lift(data, mem_addr, arch, num_inst, num_bytes, bytes_offset, traceflags)
-        self.tyenv = irsb.tyenv
-        self.statements = irsb.statements
-        self.next = irsb.next
-        self.jumpkind = irsb.jumpkind
-        self.offsIP = irsb.offsIP
-        self._addr = irsb._addr
-        self.arch = irsb.arch
-        self.direct_next = self._is_defaultexit_direct_jump()
+        else:
+            irsb = IRSB.lift(data, mem_addr, arch, num_inst, num_bytes, bytes_offset, traceflags)
+            self.tyenv = irsb.tyenv
+            self.statements = irsb.statements
+            self.next = irsb.next
+            self.jumpkind = irsb.jumpkind
+            self.offsIP = irsb.offsIP
+            self._addr = irsb._addr
+            self.arch = irsb.arch
+            self.direct_next = self._is_defaultexit_direct_jump()
 
     def pp(self):
         """
@@ -261,7 +261,7 @@ class IRSB(VEXObject):
                   attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
         """
         irsb = None
-        
+
         try:
             _libvex_lock.acquire()
 
@@ -291,15 +291,15 @@ class IRSB(VEXObject):
 
             # We must use a pickle value, CData objects are not pickeable so not ffi.NULL
             arch.vex_archinfo['hwcache_info']['caches'] = None
-            
+
             irsb = IRSB._from_c(c_irsb, mem_addr, arch)
-            
+
             del c_irsb
         finally:
             _libvex_lock.release()
-            
+
         return irsb
-            
+
     @staticmethod
     def _from_c(c_irsb, mem_addr, arch):
         stmts = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in xrange(c_irsb.stmts_used)]
@@ -313,13 +313,13 @@ class IRSB(VEXObject):
                              arch)
 
     @staticmethod
-    def _from_py(tyenv, stmts, stmts_used, next, jumpkind, offsIP, mem_addr, arch):
+    def _from_py(tyenv, stmts, stmts_used, next_expr, jumpkind, offsIP, mem_addr, arch):
         irsb = IRSB(None, mem_addr, arch, empty=True)
 
         irsb.tyenv = tyenv
         irsb.statements = stmts
         irsb.stmts_used = stmts_used
-        irsb.next = next
+        irsb.next = next_expr
         irsb.jumpkind = jumpkind
         irsb.offsIP = offsIP
         irsb.direct_next = irsb._is_defaultexit_direct_jump()
