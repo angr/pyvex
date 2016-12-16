@@ -378,9 +378,11 @@ class Exit(IRStmt):
     def jumpkind(self):
         return self.jk
 
-    def __str__(self):
-        return "if (%s) { PUT(%s) = %s; %s }" % (
-        self.guard, self.arch.translate_register_name(self.offsIP), hex(self.dst.value), self.jumpkind)
+    def __str__(self, reg_name=None):
+        if reg_name is None:
+            return "if (%s) { PUT(offset=%d) = %#x; %s }" % (self.guard, self.offsIP, self.dst.value, self.jumpkind)
+        else:
+            return "if (%s) { PUT(%s) = %#x; %s }" % (self.guard, reg_name, self.dst.value, self.jumpkind)
 
     @property
     def child_expressions(self):
