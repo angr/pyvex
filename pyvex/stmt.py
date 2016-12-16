@@ -343,7 +343,7 @@ class Dirty(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return Dirty(IRCallee(c_stmt.Ist.Dirty.details.cee),
+        return Dirty(IRCallee._from_c(c_stmt.Ist.Dirty.details.cee),
                      IRExpr._from_c(c_stmt.Ist.Dirty.details.guard),
                      tuple([IRExpr._from_c(arg)
                             for arg in itertools.takewhile(lambda a: a != ffi.NULL,
