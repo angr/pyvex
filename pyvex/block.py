@@ -343,6 +343,14 @@ class IRTypeEnv(VEXObject):
     def __str__(self):
         return ' '.join(("t%d:%s" % (i, t)) for i, t in enumerate(self.types))
 
+    def lookup(self, tmp):
+        """
+        Return the type of temporary variable `tmp` as an enum string
+        """
+        if tmp < 0 or tmp > self.types_used:
+            raise IndexError(tmp)
+        return self.types[tmp]
+
     @staticmethod
     def _from_c(c_tyenv):
         return IRTypeEnv([ints_to_enums[c_tyenv.types[t]] for t in xrange(c_tyenv.types_used)],

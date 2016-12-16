@@ -8,10 +8,10 @@ class IRExpr(VEXObject):
     __slots__ = ['tag']
 
     tag = None
-    
+
     def __init__(self):
         VEXObject.__init__(self)
-    
+
     def pp(self):
         print self.__str__()
 
@@ -46,10 +46,7 @@ class IRExpr(VEXObject):
         return type_sizes[self.result_type(tyenv)]
 
     def result_type(self, tyenv):
-        if isinstance(self, (VECRET, Binder, BBPTR)):
-            return 'Ity_INVALID'
-        else:
-            return ints_to_enums[pvc.typeOfIRExpr(IRTypeEnv._to_c(tyenv), IRExpr._to_c(self))]
+        raise NotImplementedError
 
     @staticmethod
     def _from_c(c_expr):
@@ -61,7 +58,7 @@ class IRExpr(VEXObject):
         try:
             return tag_to_class[tag_int]._from_c(c_expr)
         except KeyError:
-            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % ints_to_enums[tag_int])            
+            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % ints_to_enums[tag_int])
     _translate = _from_c
 
     @staticmethod
@@ -84,7 +81,7 @@ class Binder(IRExpr):
     def __init__(self, binder):
         IRExpr.__init__(self)
         self.binder = binder
-    
+
     def __str__(self):
         return "Binder"
 
@@ -96,10 +93,13 @@ class Binder(IRExpr):
     def _to_c(expr):
         return pvc.IRExpr_Binder(expr.binder)
 
+    def result_type(self, tyenv):
+        return 'Ity_INVALID'
+
 class VECRET(IRExpr):
 
     tag = 'Iex_VECRET'
-    
+
     def __init__(self):
         IRExpr.__init__(self)
 
@@ -114,10 +114,14 @@ class VECRET(IRExpr):
     def _to_c(expr):
         return pvc.IRExpr_VECRET()
 
+    def result_type(self, tyenv):
+        return 'Ity_INVALID'
+
+
 class BBPTR(IRExpr):
 
     tag = 'Iex_BBPTR'
-    
+
     def __init__(self):
         IRExpr.__init__(self)
 
@@ -131,6 +135,10 @@ class BBPTR(IRExpr):
     @staticmethod
     def _to_c(expr):
         return pvc.IRExpr_BBPTR()
+
+    def result_type(self, tyenv):
+        return 'Ity_INVALID'
+
 
 class GetI(IRExpr):
     """
@@ -146,7 +154,7 @@ class GetI(IRExpr):
         self.descr = descr
         self.ix = ix
         self.bias = bias
-    
+
     @property
     def description(self):
         return self.descr
@@ -170,6 +178,10 @@ class GetI(IRExpr):
         return pvc.IRExpr_GetI(IRRegArray._to_c(expr.descr),
                                IRExpr._to_c(expr.ix),
                                expr.bias)
+
+    def result_type(self, tyenv):
+        return self.descr.elemTy
+
 
 class RdTmp(IRExpr):
     """
@@ -195,6 +207,10 @@ class RdTmp(IRExpr):
     def _to_c(expr):
         return pvc.IRExpr_RdTmp(expr.tmp)
 
+    def result_type(self, tyenv):
+        return tyenv.lookup(self.tmp)
+
+
 class Get(IRExpr):
     """
     Read a guest register, at a fixed offset in the guest state.
@@ -203,7 +219,7 @@ class Get(IRExpr):
     __slots__ = ['offset', 'ty']
 
     tag = 'Iex_Get'
-    
+
     def __init__(self, offset, ty):
         IRExpr.__init__(self)
         self.offset = offset
@@ -212,7 +228,7 @@ class Get(IRExpr):
     @property
     def type(self):
         return self.ty
-    
+
     def __str__(self, reg_name=None):
         if reg_name:
             return "GET:%s(%s)" % (self.ty[4:], reg_name)
@@ -228,7 +244,11 @@ class Get(IRExpr):
     def _to_c(expr):
         return pvc.IRExpr_Get(expr.offset,
                               enums_to_ints[expr.ty])
-        
+
+    def result_type(self, tyenv):
+        return self.ty
+
+
 class Qop(IRExpr):
     """
     A quaternary operation (4 arguments).
@@ -242,7 +262,7 @@ class Qop(IRExpr):
         IRExpr.__init__(self)
         self.op = op
         self.args = args
-    
+
     def __str__(self):
         return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
 
@@ -267,6 +287,9 @@ class Qop(IRExpr):
                               *[IRExpr._to_c(arg)
                                 for arg in expr.args])
 
+    def result_type(self, tyenv):
+        return op_type(self.op)
+
 class Triop(IRExpr):
     """
     A ternary operation (3 arguments)
@@ -280,7 +303,7 @@ class Triop(IRExpr):
         IRExpr.__init__(self)
         self.op = op
         self.args = args
-    
+
     def __str__(self):
         return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
 
@@ -304,6 +327,10 @@ class Triop(IRExpr):
                                 *[IRExpr._to_c(arg)
                                   for arg in expr.args])
 
+    def result_type(self, tyenv):
+        return op_type(self.op)
+
+
 class Binop(IRExpr):
     """
     A binary operation (2 arguments).
@@ -317,7 +344,7 @@ class Binop(IRExpr):
         IRExpr.__init__(self)
         self.op = op
         self.args = args
-    
+
     def __str__(self):
         return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
 
@@ -340,6 +367,10 @@ class Binop(IRExpr):
                                 *[IRExpr._to_c(arg)
                                   for arg in expr.args])
 
+    def result_type(self, tyenv):
+        return op_type(self.op)
+
+
 class Unop(IRExpr):
     """
     A unary operation (1 argument).
@@ -350,9 +381,10 @@ class Unop(IRExpr):
     tag = 'Iex_Unop'
 
     def __init__(self, op, args):
+        IRExpr.__init__(self)
         self.op = op
         self.args = args
-    
+
     def __str__(self):
         return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
 
@@ -372,6 +404,10 @@ class Unop(IRExpr):
         return pvc.IRExpr_Unop(enums_to_ints[expr.op],
                                IRExpr._to_c(expr.args[0]))
 
+    def result_type(self, tyenv):
+        return op_type(self.op)
+
+
 class Load(IRExpr):
     """
     A load from memory.
@@ -386,7 +422,7 @@ class Load(IRExpr):
         self.end = end
         self.ty = ty
         self.addr = addr
-    
+
     @property
     def endness(self):
         return self.end
@@ -410,6 +446,10 @@ class Load(IRExpr):
                                enums_to_ints[expr.ty],
                                IRExpr._to_c(expr.addr))
 
+    def result_type(self, tyenv):
+        return self.ty
+
+
 class Const(IRExpr):
     """
     A constant expression.
@@ -420,8 +460,9 @@ class Const(IRExpr):
     tag = 'Iex_Const'
 
     def __init__(self, con):
+        IRExpr.__init__(self)
         self.con = con
-    
+
     def __str__(self):
         return str(self.con)
 
@@ -432,7 +473,11 @@ class Const(IRExpr):
     @staticmethod
     def _to_c(expr):
         return pvc.IRExpr_Const(IRConst._to_c(expr.con))
-        
+
+    def result_type(self, tyenv):
+        return self.con.type
+
+
 class ITE(IRExpr):
     """
     An if-then-else expression.
@@ -463,6 +508,9 @@ class ITE(IRExpr):
                               IRExpr._to_c(expr.iftrue),
                               IRExpr._to_c(expr.iffalse))
 
+    def result_type(self, tyenv):
+        return self.iftrue.result_type(tyenv)
+
 class CCall(IRExpr):
     """
     A call to a pure (no side-effects) helper C function.
@@ -477,7 +525,7 @@ class CCall(IRExpr):
         self.retty = retty
         self.cee = cee
         self.args = tuple(args)
-    
+
     @property
     def ret_type(self):
         return self.retty
@@ -505,7 +553,7 @@ class CCall(IRExpr):
                 break
             args.append(IRExpr._from_c(arg))
             i += 1
-            
+
         return CCall(ints_to_enums[c_expr.Iex.CCall.retty],
                      IRCallee._from_c(c_expr.Iex.CCall.cee),
                      tuple(args))
@@ -517,7 +565,22 @@ class CCall(IRExpr):
                                 enums_to_ints[expr.retty],
                                 mkIRExprVec[len(args)](*args))
 
-from .block import IRTypeEnv
+    def result_type(self, tyenv):
+        return self.retty
+
+_op_type_cache = {}
+
+def op_type(op):
+    try:
+        return _op_type_cache[op]
+    except KeyError:
+        out_int = ffi.new('IRType *')
+        unused = ffi.new('IRType *')
+        pvc.typeOfPrimop(enums_to_ints[op], out_int, unused, unused, unused, unused)
+        out = ints_to_enums[out_int[0]]
+        _op_type_cache[op] = out
+        return out
+
 from .const import IRConst
 from .enums import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, type_sizes
 from .errors import PyVEXError
