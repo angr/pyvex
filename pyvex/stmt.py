@@ -343,11 +343,17 @@ class Dirty(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
+        args = []
+        for i in xrange(20):
+            a = c_stmt.Ist.Dirty.details.args[i]
+            if a == ffi.NULL:
+                break
+
+            args.append(IRExpr._from_c(a))
+
         return Dirty(IRCallee._from_c(c_stmt.Ist.Dirty.details.cee),
                      IRExpr._from_c(c_stmt.Ist.Dirty.details.guard),
-                     tuple([IRExpr._from_c(arg)
-                            for arg in itertools.takewhile(lambda a: a != ffi.NULL,
-                                                           c_stmt.Ist.Dirty.details.args)]),
+                     tuple(args),
                      c_stmt.Ist.Dirty.details.tmp,
                      ints_to_enums[c_stmt.Ist.Dirty.details.mFx],
                      IRExpr._from_c(c_stmt.Ist.Dirty.details.mAddr),
