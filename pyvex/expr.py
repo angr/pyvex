@@ -504,6 +504,13 @@ class CCall(IRExpr):
                      IRCallee._from_c(c_expr.Iex.CCall.cee),
                      tuple(args))
 
+    @staticmethod
+    def _to_c(expr):
+        args = [IRExpr._to_c(arg) for arg in expr.args]
+        return pvc.IRExpr_CCall(IRCallee._to_c(expr.cee),
+                                enums_to_ints[expr.retty],
+                                mkIRExprVec[len(args)](*args))
+
 from .block import IRTypeEnv
 from .const import IRConst
 from .enums import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, type_sizes
@@ -526,3 +533,15 @@ tag_to_class = {
     enums_to_ints['Iex_BBPTR']: BBPTR,
     enums_to_ints['Iex_VECRET']: VECRET,
 }
+
+mkIRExprVec = [
+    pvc.mkIRExprVec_0,
+    pvc.mkIRExprVec_1,
+    pvc.mkIRExprVec_2,
+    pvc.mkIRExprVec_3,
+    pvc.mkIRExprVec_4,
+    pvc.mkIRExprVec_5,
+    pvc.mkIRExprVec_6,
+    pvc.mkIRExprVec_7,
+    pvc.mkIRExprVec_8
+]

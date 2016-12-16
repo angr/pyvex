@@ -46,7 +46,7 @@ class IRCallee(VEXObject):
     def _to_c(callee):
         c_callee = pvc.mkIRCallee(callee.regparms,
                                   callee.name,
-                                  callee.addr)
+                                  ffi.cast("void *", callee.addr))
         c_callee.mcx_mask = callee.mcx_mask
         return c_callee
 
