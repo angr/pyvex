@@ -206,7 +206,7 @@ class IRSB(VEXObject):
                 data = stat.data
             elif isinstance(stat, stmt.Put) and stat.offset == reg_next:
                 data = stat.data
-                if data.result_size != reg_next_size:
+                if data.result_size(self.tyenv) != reg_next_size:
                     return None
             elif isinstance(stat, stmt.LoadG) and stat.dst == tmp_next:
                 return None
@@ -221,7 +221,7 @@ class IRSB(VEXObject):
             elif isinstance(data, expr.Get):
                 tmp_next = None
                 reg_next = data.offset
-                reg_next_size = data.result_size
+                reg_next_size = data.result_size(self.tyenv)
             else:
                 return None
 
