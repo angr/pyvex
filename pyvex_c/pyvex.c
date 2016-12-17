@@ -148,7 +148,11 @@ void vex_init()
 	LibVEX_default_VexArchInfo(&vai_host);
 	LibVEX_default_VexAbiInfo(&vbi);
 
-	vai_host.endness = VexEndnessLE; // TODO: Don't assume this
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	vai_host.endness = VexEndnessLE;
+#else
+	vai_host.endness = VexEndnessBE;
+#endif
 
 	// various settings to make stuff work
 	// ... former is set to 'unspecified', but gets set in vex_inst for archs which care
@@ -164,18 +168,20 @@ void vex_init()
 	// Architecture info
 	//
 	vta.arch_guest          = VexArch_INVALID; // to be assigned later
-	vta.archinfo_host = vai_host;
 #if __amd64__ || _WIN64
 	vta.arch_host = VexArchAMD64;
 #elif __i386__ || _WIN32
 	vta.arch_host = VexArchX86;
 #elif __arm__
 	vta.arch_host = VexArchARM;
+	vai_host.hwcaps = 7;
 #elif __aarch64__
 	vta.arch_host = VexArchARM64;
 #else
 #error "Unsupported host arch"
 #endif
+
+	vta.archinfo_host = vai_host;
 
 	//
 	// The actual stuff to vex
