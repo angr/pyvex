@@ -1,5 +1,7 @@
 from . import VEXObject
 
+import logging
+l = logging.getLogger('pyvex.stmt')
 
 class IRStmt(VEXObject):
     """
@@ -39,6 +41,9 @@ class IRStmt(VEXObject):
         except KeyError:
             raise PyVEXError('Unknown/unsupported IRStmtTag %s\n' % ints_to_enums[tag_int])
         return stmt_class._from_c(c_stmt)
+
+    def typecheck(self, tyenv): # pylint: disable=unused-argument,no-self-use
+        return True
 
 
 class NoOp(IRStmt):
@@ -135,6 +140,9 @@ class Put(IRStmt):
         return Put(IRExpr._from_c(c_stmt.Ist.Put.data),
                    c_stmt.Ist.Put.offset)
 
+    def typecheck(self, tyenv):
+        return self.data.typecheck(tyenv)
+
 class PutI(IRStmt):
     """
     Write to a guest register, at a non-fixed offset in the guest state.
@@ -160,6 +168,15 @@ class PutI(IRStmt):
                     IRExpr._from_c(c_stmt.Ist.PutI.details.ix),
                     IRExpr._from_c(c_stmt.Ist.PutI.details.data),
                     c_stmt.Ist.PutI.details.bias)
+
+    def typecheck(self, tyenv):
+        dataty = self.data.typecheck(tyenv)
+        if dataty is None:
+            return False
+        if dataty != self.descr.elemTy:
+            l.debug("Expression doesn't match RegArray type")
+            return False
+        return True
 
 class WrTmp(IRStmt):
     """
@@ -189,6 +206,15 @@ class WrTmp(IRStmt):
         return WrTmp(c_stmt.Ist.WrTmp.tmp,
                      IRExpr._from_c(c_stmt.Ist.WrTmp.data))
 
+    def typecheck(self, tyenv):
+        dataty = self.data.typecheck(tyenv)
+        if dataty is None:
+            return False
+        if dataty != tyenv.lookup(self.tmp):
+            l.debug("Expression doesn't match tmp type")
+            return False
+        return True
+
 class Store(IRStmt):
     """
     Write a value to memory..
@@ -217,6 +243,21 @@ class Store(IRStmt):
         return Store(IRExpr._from_c(c_stmt.Ist.Store.addr),
                      IRExpr._from_c(c_stmt.Ist.Store.data),
                      ints_to_enums[c_stmt.Ist.Store.end])
+
+    def typecheck(self, tyenv):
+        dataty = self.data.typecheck(tyenv)
+        if dataty is None:
+            return False
+        addrty = self.addr.typecheck(tyenv)
+        if addrty is None:
+            return False
+        if addrty != tyenv.wordty:
+            l.debug("addr must be full word for arch")
+            return False
+        if self.end not in ('Iend_LE', 'Iend_BE'):
+            l.debug("invalid endness enum")
+            return False
+        return True
 
 class CAS(IRStmt):
     """
@@ -258,6 +299,45 @@ class CAS(IRStmt):
                    c_stmt.Ist.CAS.details.oldHi,
                    ints_to_enums[c_stmt.Ist.CAS.details.end])
 
+    def typecheck(self, tyenv):
+        addrty = self.addr.typecheck(tyenv)
+        if addrty is None:
+            return False
+        if addrty != tyenv.wordty:
+            l.debug("addr must be full word for arch")
+            return False
+        if self.end not in ('Iend_LE', 'Iend_BE'):
+            l.debug("invalid endness enum")
+            return False
+
+        if self.oldHi == 0xFFFFFFFF:
+            # single-element case
+            if self.expdHi is not None or self.dataHi is not None:
+                l.debug("expdHi and dataHi must be None")
+                return False
+            expdLoTy = self.expdLo.typecheck(tyenv)
+            dataLoTy = self.dataLo.typecheck(tyenv)
+            if expdLoTy is None or dataLoTy is None:
+                return False
+            if tyenv.lookup(self.oldLo) != expdLoTy or expdLoTy != dataLoTy:
+                l.debug("oldLo, expdL, dataLo must all have the same type")
+                return False
+        else:
+            # double-element case
+            expdLoTy = self.expdLo.typecheck(tyenv)
+            dataLoTy = self.dataLo.typecheck(tyenv)
+            expdHiTy = self.expdHi.typecheck(tyenv)
+            dataHiTy = self.dataHi.typecheck(tyenv)
+            if expdLoTy is None or dataLoTy is None or expdHiTy is None or dataHiTy is None:
+                return False
+            if tyenv.lookup(self.oldLo) != expdLoTy or expdLoTy != dataLoTy or \
+               tyenv.lookup(self.oldHi) != expdHiTy or expdHiTy != dataHiTy or \
+               expdLoTy != expdHiTy:
+                l.debug("oldLo, expdLo, dataLo, oldHi, expdHi, dataHi must all have the same type")
+                return False
+
+        return True
+
 class LLSC(IRStmt):
     """
      Either Load-Linked or Store-Conditional, depending on STOREDATA. If STOREDATA is NULL then this is a Load-Linked,
@@ -292,6 +372,30 @@ class LLSC(IRStmt):
                     IRExpr._from_c(c_stmt.Ist.LLSC.storedata),
                     c_stmt.Ist.LLSC.result,
                     ints_to_enums[c_stmt.Ist.LLSC.end])
+
+    def typecheck(self, tyenv):
+        addrty = self.addr.typecheck(tyenv)
+        if addrty is None:
+            return False
+        if addrty != tyenv.wordty:
+            l.debug("addr must be full word for arch")
+            return False
+        if self.end not in ('Iend_LE', 'Iend_BE'):
+            l.debug("invalid endness enum")
+            return False
+
+        if tyenv.lookup(self.result) != 'Ity_I1':
+            l.debug("result tmp must be Ity_I1")
+            return False
+
+        if self.storedata is None:
+            # load-linked
+            storety = self.storedata.typecheck(tyenv)
+            if storety is None:
+                return False
+
+        return True
+
 
 class MBE(IRStmt):
 
@@ -395,6 +499,19 @@ class Exit(IRStmt):
                     ints_to_enums[c_stmt.Ist.Exit.jk],
                     c_stmt.Ist.Exit.offsIP)
 
+    def typecheck(self, tyenv):
+        if not self.jk.startswith("Ijk_"):
+            l.debug("Jumpkind is not a jumpkind enum")
+            return False
+        guardty = self.guard.typecheck(tyenv)
+        if guardty is None:
+            return False
+        if guardty != 'Ity_I1':
+            l.debug("guard must be Ity_I1")
+            return False
+        return True
+
+
 class LoadG(IRStmt):
     """
     A guarded load.
@@ -438,6 +555,35 @@ class LoadG(IRStmt):
                      IRExpr._from_c(c_stmt.Ist.LoadG.details.alt),
                      IRExpr._from_c(c_stmt.Ist.LoadG.details.guard))
 
+    def typecheck(self, tyenv):
+        addrty = self.addr.typecheck(tyenv)
+        if addrty is None:
+            return False
+        if addrty != tyenv.wordty:
+            l.debug("addr must be full word for arch")
+            return False
+        if self.end not in ('Iend_LE', 'Iend_BE'):
+            l.debug("invalid endness enum")
+            return False
+
+        dstty = tyenv.lookup(self.dst)
+        guardty = self.guard.typecheck(tyenv)
+        altty = self.alt.typecheck(tyenv)
+
+        if guardty is None or altty is None:
+            return False
+        if dstty != 'Ity_I32' or altty != 'Ity_I32':
+            l.debug('dst and alt must be Ity_I32')
+            return False
+        if guardty != 'Ity_I1':
+            l.debug('guard must be Ity_I1')
+            return False
+        if not self.cvt.startswith('ILGop_'):
+            l.debug("Invalid cvt enum")
+            return False
+        return True
+
+
 class StoreG(IRStmt):
     """
     A guarded store.
@@ -468,6 +614,27 @@ class StoreG(IRStmt):
                       IRExpr._from_c(c_stmt.Ist.StoreG.details.addr),
                       IRExpr._from_c(c_stmt.Ist.StoreG.details.data),
                       IRExpr._from_c(c_stmt.Ist.StoreG.details.guard))
+
+    def typecheck(self, tyenv):
+        addrty = self.addr.typecheck(tyenv)
+        if addrty is None:
+            return False
+        if addrty != tyenv.wordty:
+            l.debug("addr must be full word for arch")
+            return False
+        if self.end not in ('Iend_LE', 'Iend_BE'):
+            l.debug("invalid endness enum")
+            return False
+
+        guardty = self.guard.typecheck(tyenv)
+        dataty = self.data.typecheck(tyenv)
+
+        if guardty is None or dataty is None:
+            return False
+        if guardty != 'Ity_I1':
+            l.debug('guard must be Ity_I1')
+            return False
+        return True
 
 
 from .expr import IRExpr

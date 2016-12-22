@@ -1,5 +1,8 @@
 from . import VEXObject
 
+import logging
+l = logging.getLogger("pyvex.expr")
+
 class IRExpr(VEXObject):
     """
     IR expressions in VEX represent operations without side effects.
@@ -66,6 +69,10 @@ class IRExpr(VEXObject):
             return tag_to_class[tag_int]._to_c(expr)
         except KeyError:
             raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % expr.tag)
+
+    def typecheck(self, tyenv):
+        return self.result_type(tyenv)
+
 
 class Binder(IRExpr):
     """
@@ -288,6 +295,30 @@ class Qop(IRExpr):
     def result_type(self, tyenv):
         return op_type(self.op)
 
+    def typecheck(self, tyenv):
+        resty, (arg1ty, arg2ty, arg3ty, arg4ty) = op_arg_types(self.op)
+        arg1ty_real = self.args[0].typecheck(tyenv)
+        arg2ty_real = self.args[1].typecheck(tyenv)
+        arg3ty_real = self.args[2].typecheck(tyenv)
+        arg4ty_real = self.args[3].typecheck(tyenv)
+        if arg1ty_real is None or arg2ty_real is None or arg3ty_real is None or arg4ty_real is None:
+            return None
+
+        if arg1ty_real != arg1ty:
+            l.debug("First arg of %s must be %s", self.op, arg1ty)
+            return None
+        if arg2ty_real != arg2ty:
+            l.debug("Second arg of %s must be %s", self.op, arg2ty)
+            return None
+        if arg3ty_real != arg3ty:
+            l.debug("Third arg of %s must be %s", self.op, arg3ty)
+            return None
+        if arg4ty_real != arg4ty:
+            l.debug("Fourth arg of %s must be %s", self.op, arg4ty)
+            return None
+
+        return resty
+
 class Triop(IRExpr):
     """
     A ternary operation (3 arguments)
@@ -327,6 +358,26 @@ class Triop(IRExpr):
 
     def result_type(self, tyenv):
         return op_type(self.op)
+
+    def typecheck(self, tyenv):
+        resty, (arg1ty, arg2ty, arg3ty) = op_arg_types(self.op)
+        arg1ty_real = self.args[0].typecheck(tyenv)
+        arg2ty_real = self.args[1].typecheck(tyenv)
+        arg3ty_real = self.args[2].typecheck(tyenv)
+        if arg1ty_real is None or arg2ty_real is None or arg3ty_real is None:
+            return None
+
+        if arg1ty_real != arg1ty:
+            l.debug("First arg of %s must be %s", self.op, arg1ty)
+            return None
+        if arg2ty_real != arg2ty:
+            l.debug("Second arg of %s must be %s", self.op, arg2ty)
+            return None
+        if arg3ty_real != arg3ty:
+            l.debug("Third arg of %s must be %s", self.op, arg3ty)
+            return None
+
+        return resty
 
 
 class Binop(IRExpr):
@@ -368,6 +419,22 @@ class Binop(IRExpr):
     def result_type(self, tyenv):
         return op_type(self.op)
 
+    def typecheck(self, tyenv):
+        resty, (arg1ty, arg2ty) = op_arg_types(self.op)
+        arg1ty_real = self.args[0].typecheck(tyenv)
+        arg2ty_real = self.args[1].typecheck(tyenv)
+        if arg1ty_real is None or arg2ty_real is None:
+            return None
+
+        if arg1ty_real != arg1ty:
+            l.debug("First arg of %s must be %s", self.op, arg1ty)
+            return None
+        if arg2ty_real != arg2ty:
+            l.debug("Second arg of %s must be %s", self.op, arg2ty)
+            return None
+
+        return resty
+
 
 class Unop(IRExpr):
     """
@@ -404,6 +471,18 @@ class Unop(IRExpr):
 
     def result_type(self, tyenv):
         return op_type(self.op)
+
+    def typecheck(self, tyenv):
+        resty, (arg1ty,) = op_arg_types(self.op)
+        arg1ty_real = self.args[0].typecheck(tyenv)
+        if arg1ty_real is None:
+            return None
+
+        if arg1ty_real != arg1ty:
+            l.debug("First arg of %s must be %s", self.op, arg1ty)
+            return None
+
+        return resty
 
 
 class Load(IRExpr):
@@ -445,6 +524,15 @@ class Load(IRExpr):
                                IRExpr._to_c(expr.addr))
 
     def result_type(self, tyenv):
+        return self.ty
+
+    def typecheck(self, tyenv):
+        addrty = self.addr.typecheck(tyenv)
+        if addrty is None:
+            return None
+        if addrty != tyenv.wordty:
+            l.debug("Address must be word-sized")
+            return None
         return self.ty
 
 
@@ -508,6 +596,24 @@ class ITE(IRExpr):
 
     def result_type(self, tyenv):
         return self.iftrue.result_type(tyenv)
+
+    def typecheck(self, tyenv):
+        condty = self.cond.typecheck(tyenv)
+        falsety = self.iffalse.typecheck(tyenv)
+        truety = self.iftrue.typecheck(tyenv)
+
+        if condty is None or falsety is None or truety is None:
+            return None
+
+        if condty != 'Ity_I1':
+            l.debug("guard must be Ity_I1")
+            return None
+
+        if falsety != truety:
+            l.debug("false condition must be same type as true condition")
+            return None
+
+        return falsety
 
 class CCall(IRExpr):
     """
@@ -578,6 +684,36 @@ def op_type(op):
         out = ints_to_enums[out_int[0]]
         _op_type_cache[op] = out
         return out
+
+def op_arg_types(op):
+    res_ty = ffi.new('IRType *')
+    arg1_ty = ffi.new('IRType *')
+    arg2_ty = ffi.new('IRType *')
+    arg3_ty = ffi.new('IRType *')
+    arg4_ty = ffi.new('IRType *')
+    arg2_ty[0] = 0x1100
+    arg3_ty[0] = 0x1100
+    arg4_ty[0] = 0x1100
+
+    pvc.typeOfPrimop(enums_to_ints[op], res_ty, arg1_ty, arg2_ty, arg3_ty, arg4_ty)
+    if arg2_ty[0] == 0x1100:
+        return (ints_to_enums[res_ty[0]],
+                (ints_to_enums[arg1_ty[0]],))
+    elif arg3_ty[0] == 0x1100:
+        return (ints_to_enums[res_ty[0]],
+                (ints_to_enums[arg1_ty[0]],
+                 ints_to_enums[arg2_ty[0]],))
+    elif arg4_ty[0] == 0x1100:
+        return (ints_to_enums[res_ty[0]],
+                (ints_to_enums[arg1_ty[0]],
+                 ints_to_enums[arg2_ty[0]],
+                 ints_to_enums[arg3_ty[0]],))
+    else:
+        return (ints_to_enums[res_ty[0]],
+                (ints_to_enums[arg1_ty[0]],
+                 ints_to_enums[arg2_ty[0]],
+                 ints_to_enums[arg3_ty[0]],
+                 ints_to_enums[arg4_ty[0]],))
 
 from .const import IRConst
 from .enums import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, type_sizes

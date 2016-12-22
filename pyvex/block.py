@@ -1,6 +1,9 @@
 import threading
 from . import VEXObject
 
+import logging
+l = logging.getLogger("pyvex.block")
+
 _libvex_lock = threading.Lock()
 
 class IRSB(VEXObject):
@@ -23,15 +26,13 @@ class IRSB(VEXObject):
     :ivar bool direct_next: Whether this block ends with a direct (not indirect) jump or branch
     """
 
-    __slots__ = ['c_irsb', 'arch', 'statements', 'next', 'tyenv', 'offsIP', 'stmts_used', 'jumpkind', '_addr',
-                 'direct_next'
-                 ]
+    __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next']
 
-    def __init__(self, data, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=0,
-                 traceflags=0, empty=False):  # pylint:disable=redefined-builtin
+    def __init__(self, data, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=0, traceflags=0):
         """
         :param data:            The bytes to lift. Can be either a string of bytes or a cffi buffer object.
-        :type data:             str or bytes or cffi.FFI.CData
+                                You may also pass None to initialize an empty IRSB.
+        :type data:             str or bytes or cffi.FFI.CData or None
         :param int mem_addr:    The address to lift the data at.
         :param arch:            The architecture to lift the data as.
         :type arch:             :class:`archinfo.Arch`
@@ -39,7 +40,6 @@ class IRSB(VEXObject):
         :param num_bytes:       The maximum number of bytes to use. Max 400.
         :param bytes_offset:    The offset into `data` to start lifting at.
         :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
-        :param empty:           The empty flag, when True, returns an empty IRSB.
 
         .. note:: Explicitly specifying the number of instructions to lift (`num_inst`) may not always work
                   exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
@@ -49,28 +49,18 @@ class IRSB(VEXObject):
                   attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
         """
         VEXObject.__init__(self)
+        self._addr = mem_addr
+        self.arch = arch
 
-        if empty:
-            self.tyenv = None
-            self.statements = []
-            self.next = None
-            self.jumpkind = None
-            self.offsIP = None
-            self._addr = mem_addr
-            self.arch = arch
-            self.direct_next = None
-            self.stmts_used = 0
+        self.statements = []
+        self.next = None
+        self.tyenv = IRTypeEnv(arch)
+        self.jumpkind = None
+        self._direct_next = None
 
-        else:
-            irsb = IRSB.lift(data, mem_addr, arch, num_inst, num_bytes, bytes_offset, traceflags)
-            self.tyenv = irsb.tyenv
-            self.statements = irsb.statements
-            self.next = irsb.next
-            self.jumpkind = irsb.jumpkind
-            self.offsIP = irsb.offsIP
-            self._addr = irsb._addr
-            self.arch = irsb.arch
-            self.direct_next = self._is_defaultexit_direct_jump()
+        if data is not None:
+            self._lift(data, num_inst, num_bytes, bytes_offset, traceflags)
+            self.typecheck()
 
     def pp(self):
         """
@@ -78,31 +68,87 @@ class IRSB(VEXObject):
         """
         print self._pp_str()
 
-    def _pp_str(self):
-        """
-        Return the pretty-printed IRSB.
+    def typecheck(self):
+        try:
+            # existence assertions
+            assert self.next is not None, "Missing next expression"
+            assert self.jumpkind is not None, "Missing jumpkind"
 
-        :rtype: str
-        """
-        sa = []
-        sa.append("IRSB {")
-        sa.append("   %s" % self.tyenv)
-        sa.append("")
-        for i, s in enumerate(self.statements):
-            stmt_str = ''
-            if isinstance(s, stmt.Put):
-                stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.offset, s.data.result_size(self.tyenv)/8))
-            elif isinstance(s, stmt.WrTmp) and isinstance(s.data, expr.Get):
-                stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.data.offset, s.data.result_size(self.tyenv)/8))
-            elif isinstance(s, stmt.Exit):
-                stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.offsIP, self.arch.bits))
-            else:
-                stmt_str = s.__str__()
-            sa.append("   %02d | %s" % (i, stmt_str))
-        sa.append(
-            "   NEXT: PUT(%s) = %s; %s" % (self.arch.translate_register_name(self.offsIP), self.next, self.jumpkind))
-        sa.append("}")
-        return '\n'.join(sa)
+            # type assertions
+            assert isinstance(self.next, expr.IRExpr), "Next expression is not an expression"
+            assert type(self.jumpkind is str), "Jumpkind is not a string"
+            assert self.jumpkind.startswith('Ijk_'), "Jumpkind is not a jumpkind enum"
+            assert self.tyenv.typecheck(), "Type environment contains invalid types"
+
+            # statement assertions
+            last_imark = None
+            found_exit = False
+            for i, st in enumerate(self.statements):
+                assert isinstance(st, stmt.IRStmt), "Statement %d is not an IRStmt" % i
+                try:
+                    assert st.typecheck(self.tyenv), "Statement %d failed to typecheck" % i
+                except: # pylint: disable=bare-except
+                    assert False, "Statement %d errored in typechecking" % i
+
+                if type(st) is stmt.NoOp:
+                    continue
+                elif type(st) is stmt.IMark:
+                    assert not found_exit, "Exit appears outside of last instruction"
+                    if last_imark is not None:
+                        # pylint: disable=unsubscriptable-object
+                        assert last_imark[0] + last_imark[1] == st.addr, "IMarks sizes overlap or have gaps"
+                    last_imark = (st.addr, st.len)
+                else:
+                    assert last_imark is not None, "Operation statement appears before IMark"
+                    if type(st) is stmt.Exit:
+                        found_exit = True
+
+            assert last_imark is not None, "No IMarks present in block"
+        except AssertionError as e:
+            l.debug(e.args[0])
+            raise
+            return False
+        return True
+
+    #
+    # alternate constructors
+    #
+
+    @staticmethod
+    def from_c(c_irsb, mem_addr, arch):
+        irsb = IRSB(None, mem_addr, arch)
+        irsb._from_c(c_irsb)
+        return irsb
+
+    @staticmethod
+    def from_py(tyenv, stmts, next_expr, jumpkind, mem_addr, arch):
+        irsb = IRSB(None, mem_addr, arch)
+
+        irsb.tyenv = tyenv
+        irsb.statements = stmts
+        irsb.next = next_expr
+        irsb.jumpkind = jumpkind
+        irsb.direct_next = irsb._is_defaultexit_direct_jump()
+
+        return irsb
+
+    #
+    # simple properties useful for analysis
+    #
+
+    @property
+    def stmts_used(self):
+        return len(self.statements)
+
+    @property
+    def offsIP(self):
+        return self.arch.ip_offset
+
+    @property
+    def direct_next(self):
+        if self._direct_next is None:
+            self._direct_next = self._is_defaultexit_direct_jump()
+        return self._direct_next
 
     @property
     def expressions(self):
@@ -187,6 +233,35 @@ class IRSB(VEXObject):
 
         return exits
 
+    #
+    # private methods
+    #
+
+    def _pp_str(self):
+        """
+        Return the pretty-printed IRSB.
+
+        :rtype: str
+        """
+        sa = []
+        sa.append("IRSB {")
+        sa.append("   %s" % self.tyenv)
+        sa.append("")
+        for i, s in enumerate(self.statements):
+            stmt_str = ''
+            if isinstance(s, stmt.Put):
+                stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.offset, s.data.result_size(self.tyenv)/8))
+            elif isinstance(s, stmt.WrTmp) and isinstance(s.data, expr.Get):
+                stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.data.offset, s.data.result_size(self.tyenv)/8))
+            elif isinstance(s, stmt.Exit):
+                stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.offsIP, self.arch.bits))
+            else:
+                stmt_str = s.__str__()
+            sa.append("   %02d | %s" % (i, stmt_str))
+        sa.append(
+            "   NEXT: PUT(%s) = %s; %s" % (self.arch.translate_register_name(self.offsIP), self.next, self.jumpkind))
+        sa.append("}")
+        return '\n'.join(sa)
 
     def _get_defaultexit_target(self):
         """
@@ -239,9 +314,11 @@ class IRSB(VEXObject):
         target = self._get_defaultexit_target()
         return target is not None
 
-    @staticmethod
-    def lift(data, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=0,
-             traceflags=0):  # pylint:disable=redefined-builtin
+    #
+    # internal "constructors" to fill this block out with data from various sources
+    #
+
+    def _lift(self, data, num_inst=None, num_bytes=None, bytes_offset=0, traceflags=0):
         """
         :param data:            The bytes to lift. Can be either a string of bytes or a cffi buffer object.
         :type data:             str or bytes or cffi.FFI.CData
@@ -277,54 +354,32 @@ class IRSB(VEXObject):
                 raise PyVEXError("No bytes provided")
             pvc.vta.traceflags = traceflags
 
-            vex_arch = getattr(pvc, arch.vex_arch)
+            vex_arch = getattr(pvc, self.arch.vex_arch)
 
-            arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
+            self.arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
 
             if num_inst is not None:
-                c_irsb = pvc.vex_block_inst(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_inst)
+                c_irsb = pvc.vex_block_inst(vex_arch, self.arch.vex_archinfo, c_bytes + bytes_offset, self._addr, num_inst)
             else:
-                c_irsb = pvc.vex_block_bytes(vex_arch, arch.vex_archinfo, c_bytes + bytes_offset, mem_addr, num_bytes, 1)
+                c_irsb = pvc.vex_block_bytes(vex_arch, self.arch.vex_archinfo, c_bytes + bytes_offset, self._addr, num_bytes, 1)
 
             if c_irsb == ffi.NULL:
                 raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
 
             # We must use a pickle value, CData objects are not pickeable so not ffi.NULL
-            arch.vex_archinfo['hwcache_info']['caches'] = None
+            self.arch.vex_archinfo['hwcache_info']['caches'] = None
 
-            irsb = IRSB._from_c(c_irsb, mem_addr, arch)
-
-            del c_irsb
+            self._from_c(c_irsb)
         finally:
             _libvex_lock.release()
 
         return irsb
 
-    @staticmethod
-    def _from_c(c_irsb, mem_addr, arch):
-        stmts = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in xrange(c_irsb.stmts_used)]
-        return IRSB._from_py(IRTypeEnv._from_c(c_irsb.tyenv),
-                             stmts,
-                             c_irsb.stmts_used,
-                             expr.IRExpr._from_c(c_irsb.next),
-                             ints_to_enums[c_irsb.jumpkind],
-                             c_irsb.offsIP,
-                             mem_addr,
-                             arch)
-
-    @staticmethod
-    def _from_py(tyenv, stmts, stmts_used, next_expr, jumpkind, offsIP, mem_addr, arch):
-        irsb = IRSB(None, mem_addr, arch, empty=True)
-
-        irsb.tyenv = tyenv
-        irsb.statements = stmts
-        irsb.stmts_used = stmts_used
-        irsb.next = next_expr
-        irsb.jumpkind = jumpkind
-        irsb.offsIP = offsIP
-        irsb.direct_next = irsb._is_defaultexit_direct_jump()
-
-        return irsb
+    def _from_c(self, c_irsb):
+        self.statements = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in xrange(c_irsb.stmts_used)]
+        self.tyenv = IRTypeEnv._from_c(self.arch, c_irsb.tyenv)
+        self.next = expr.IRExpr._from_c(c_irsb.next)
+        self.jumpkind = ints_to_enums[c_irsb.jumpkind]
 
 class IRTypeEnv(VEXObject):
     """
@@ -335,12 +390,12 @@ class IRTypeEnv(VEXObject):
     :vartype types:     list of str
     """
 
-    __slots__ = [ 'types', 'types_used' ]
+    __slots__ = ['types', 'wordty']
 
-    def __init__(self, types, types_used):
+    def __init__(self, arch, types=None):
         VEXObject.__init__(self)
-        self.types = types
-        self.types_used = types_used
+        self.types = [] if types is None else types
+        self.wordty = 'Ity_I%d' % arch.bits
 
     def __str__(self):
         return ' '.join(("t%d:%s" % (i, t)) for i, t in enumerate(self.types))
@@ -350,13 +405,24 @@ class IRTypeEnv(VEXObject):
         Return the type of temporary variable `tmp` as an enum string
         """
         if tmp < 0 or tmp > self.types_used:
+            l.debug("Invalid temporary number %d", tmp)
             raise IndexError(tmp)
         return self.types[tmp]
 
+    def add(self, ty):
+        """
+        Add a new tmp of type `ty` to the environment. Returns the number of the new tmp.
+        """
+        self.types.append(ty)
+        return self.types_used - 1
+
+    @property
+    def types_used(self):
+        return len(self.types)
+
     @staticmethod
-    def _from_c(c_tyenv):
-        return IRTypeEnv([ints_to_enums[c_tyenv.types[t]] for t in xrange(c_tyenv.types_used)],
-                         c_tyenv.types_used)
+    def _from_c(arch, c_tyenv):
+        return IRTypeEnv(arch, [ints_to_enums[c_tyenv.types[t]] for t in xrange(c_tyenv.types_used)])
 
     @staticmethod
     def _to_c(tyenv):
@@ -365,6 +431,9 @@ class IRTypeEnv(VEXObject):
             pvc.newIRTemp(c_tyenv, enums_to_ints[ty])
         return c_tyenv
 
+    def typecheck(self):
+        return all(map(lambda t: t in type_sizes and t != 'Ity_INVALID', self.types))
+
 from . import expr, stmt, ffi, pvc
-from .enums import ints_to_enums, enums_to_ints
+from .enums import ints_to_enums, enums_to_ints, type_sizes
 from .errors import PyVEXError
