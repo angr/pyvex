@@ -3,7 +3,6 @@ from . import VEXObject
 
 import logging
 l = logging.getLogger("pyvex.block")
-logging.getLogger('pyvex').setLevel('DEBUG')
 
 _libvex_lock = threading.Lock()
 
@@ -61,7 +60,6 @@ class IRSB(VEXObject):
 
         if data is not None:
             self._lift(data, num_inst, num_bytes, bytes_offset, traceflags)
-            self.typecheck()
 
     def pp(self):
         """
@@ -103,7 +101,6 @@ class IRSB(VEXObject):
             assert last_imark is not None, "No IMarks present in block"
         except AssertionError as e:
             l.debug(e.args[0])
-            raise
             return False
         return True
 
