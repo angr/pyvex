@@ -384,14 +384,15 @@ class LLSC(IRStmt):
             l.debug("invalid endness enum")
             return False
 
-        if tyenv.lookup(self.result) != 'Ity_I1':
-            l.debug("result tmp must be Ity_I1")
-            return False
 
-        if self.storedata is None:
+        if self.storedata is not None:
             # load-linked
             storety = self.storedata.typecheck(tyenv)
             if storety is None:
+                return False
+
+            if tyenv.lookup(self.result) != 'Ity_I1':
+                l.debug("result tmp must be Ity_I1")
                 return False
 
         return True

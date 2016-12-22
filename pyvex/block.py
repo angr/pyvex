@@ -3,6 +3,7 @@ from . import VEXObject
 
 import logging
 l = logging.getLogger("pyvex.block")
+logging.getLogger('pyvex').setLevel('DEBUG')
 
 _libvex_lock = threading.Lock()
 
@@ -82,7 +83,6 @@ class IRSB(VEXObject):
 
             # statement assertions
             last_imark = None
-            found_exit = False
             for i, st in enumerate(self.statements):
                 assert isinstance(st, stmt.IRStmt), "Statement %d is not an IRStmt" % i
                 try:
@@ -93,15 +93,12 @@ class IRSB(VEXObject):
                 if type(st) is stmt.NoOp:
                     continue
                 elif type(st) is stmt.IMark:
-                    assert not found_exit, "Exit appears outside of last instruction"
                     if last_imark is not None:
                         # pylint: disable=unsubscriptable-object
                         assert last_imark[0] + last_imark[1] == st.addr, "IMarks sizes overlap or have gaps"
                     last_imark = (st.addr, st.len)
                 else:
                     assert last_imark is not None, "Operation statement appears before IMark"
-                    if type(st) is stmt.Exit:
-                        found_exit = True
 
             assert last_imark is not None, "No IMarks present in block"
         except AssertionError as e:
