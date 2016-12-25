@@ -55,8 +55,16 @@ def find_good_scan(known_good, questionable):
 
 def doit(vex_path):
     #vex_pp,_ = subprocess.Popen(['cpp', 'vex/pub/libvex.h'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
-    cmd = ['cl', '-I'+vex_path, 'pyvex_c\\pyvex.h', '-E'] if sys.platform == 'win32' else ['cpp', '-I'+vex_path, 'pyvex_c/pyvex.h']
-    header,_ = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=open(os.devnull, 'wb')).communicate()
+    cmd1 = ['cl', '-I'+vex_path, 'pyvex_c\\pyvex.h', '-E']
+    cmd2 = ['cpp', '-I'+vex_path, 'pyvex_c/pyvex.h']
+    for cmd in (cmd1, cmd2):
+        try:
+            header,_ = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=open(os.devnull, 'wb')).communicate()
+            break
+        except OSError:
+            continue
+    else:
+        raise Exception("Couldn't process pyvex headers")
     #header = vex_pp + pyvex_pp
 
     linesep = '\r\n' if '\r\n' in header else '\n'

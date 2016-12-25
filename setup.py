@@ -41,15 +41,29 @@ if not os.path.exists(VEX_PATH):
     VEX_PATH='./vex-master'
 
 def _build_vex():
-    cmd = ['nmake', '/f', 'Makefile-win', 'all'] if sys.platform == 'win32' else ['make', '-j', str(multiprocessing.cpu_count())]
-    if subprocess.call(cmd, cwd=VEX_PATH) != 0:
+    cmd1 = ['nmake', '/f', 'Makefile-win', 'all']
+    cmd2 = ['make', '-j', str(multiprocessing.cpu_count())]
+    for cmd in (cmd1, cmd2):
+        try:
+            if subprocess.call(cmd, cwd=VEX_PATH) == 0:
+                break
+        except OSError:
+            continue
+    else:
         raise LibError("Unable to build libVEX.")
 
 def _build_pyvex():
     e = os.environ.copy()
     e['VEX_PATH'] = os.path.join('..', VEX_PATH)
-    cmd = ['cl', '-LD', '-O2' ,'-I' + os.path.join('..', VEX_PATH, 'pub'), 'pyvex.c', 'logging.c', os.path.join('..', VEX_PATH, 'libvex.lib'), '/link', '/DEF:pyvex.def'] if sys.platform == 'win32' else ['make', '-j', str(multiprocessing.cpu_count())]
-    if subprocess.call(cmd, cwd='pyvex_c', env=e) != 0:
+    cmd1 = ['cl', '-LD', '-O2' ,'-I' + os.path.join('..', VEX_PATH, 'pub'), 'pyvex.c', 'logging.c', os.path.join('..', VEX_PATH, 'libvex.lib'), '/link', '/DEF:pyvex.def']
+    cmd2 = ['make', '-j', str(multiprocessing.cpu_count())]
+    for cmd in (cmd1, cmd2):
+        try:
+            if subprocess.call(cmd, cwd='pyvex_c', env=e) == 0:
+                break
+        except OSError:
+            continue
+    else:
         raise LibError("Unable to build libpyvex.")
 
 def _shuffle_files():
@@ -86,7 +100,7 @@ try:
     class develop(_develop):
         def run(self):
             self.execute(_build_vex, (), msg="Building libVEX")
-            self.execute(_build_pyvex, (), msg="Building pyvex-static")
+            self.execute(_build_pyvex, (), msg="Building libpyvex")
             self.execute(_shuffle_files, (), msg="Copying libraries and headers")
             self.execute(_build_ffi, (), msg="Creating CFFI defs file")
             _develop.run(self)
