@@ -1,16 +1,52 @@
 LIBRARY pyvex.dll
 
 EXPORTS
-  emptyIRSB
-  enable_debug
-  IRExpr_RdTmp
-  IRExpr_Unop
-  last_error
-  newIRTemp
-  typeOfIRExpr
-  typeOfIRLoadGOp
   vex_block_bytes
   vex_block_inst
   vex_control
   vex_init
+  enable_debug
+  last_error
+  emptyIRTypeEnv
+  emptyIRSB
+  IRConst_U1
+  IRConst_U8
+  IRConst_U16
+  IRConst_U32
+  IRConst_U64
+  IRConst_F32
+  IRConst_F32i
+  IRConst_F64
+  IRConst_F64i
+  IRConst_V128
+  IRConst_V256
+  IRExpr_Binder
+  IRExpr_VECRET
+  IRExpr_BBPTR
+  IRExpr_Get
+  IRExpr_GetI
+  IRExpr_RdTmp
+  IRExpr_Qop
+  IRExpr_Triop
+  IRExpr_Binop
+  IRExpr_Unop
+  IRExpr_Load
+  IRExpr_Const
+  IRExpr_ITE
+  IRExpr_CCall
+  mkIRCallee
+  mkIRExprVec_0
+  mkIRExprVec_1
+  mkIRExprVec_2
+  mkIRExprVec_3
+  mkIRExprVec_4
+  mkIRExprVec_5
+  mkIRExprVec_6
+  mkIRExprVec_7
+  mkIRExprVec_8
+  mkIRRegArray
+  newIRTemp
+  typeOfIRExpr
+  typeOfIRLoadGOp
+  typeOfPrimop
   vta
