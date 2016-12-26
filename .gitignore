@@ -12,5 +12,7 @@ libpyvex.so
 *.lib
 *.dll
 *.exp
+*.o
+*.a
 pyvex/lib
 pyvex/include

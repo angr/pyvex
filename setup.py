@@ -45,7 +45,7 @@ if not os.path.exists(VEX_PATH):
 
 def _build_vex():
     cmd1 = ['nmake', '/f', 'Makefile-win', 'all']
-    cmd2 = ['make', '-j', str(multiprocessing.cpu_count())]
+    cmd2 = ['make', '-j', str(multiprocessing.cpu_count()), 'all']
     for cmd in (cmd1, cmd2):
         try:
             if subprocess.call(cmd, cwd=VEX_PATH) == 0:
