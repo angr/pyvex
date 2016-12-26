@@ -1,22 +1,23 @@
-VEX_PATH?=../../vex/
-
 UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
 	LIBRARY_FILE=libpyvex.dylib
-	SONAME_CMD=-Wl,-install_name,${LIBRARY_FILE}
+	LDFLAGS=-Wl,-install_name,$(LIBRARY_FILE)
 endif
 ifeq ($(UNAME), Linux)
 	LIBRARY_FILE=libpyvex.so
-	SONAME_CMD=-Wl,-soname,${LIBRARY_FILE}
+	LDFLAGS=-Wl,-soname,$(LIBRARY_FILE)
 endif
 ifeq ($(findstring MINGW,$(UNAME)), MINGW)
 	LIBRARY_FILE=pyvex.dll
-	SONAME_CMD=
+	LDFLAGS=
 endif
 
+CC=gcc
+INCFLAGS=-I $(VEX_INCLUDE_PATH)
+CFLAGS=-O2 -shared -fPIC --std=c99 $(INCFLAGS)
 
-${LIBRARY_FILE}: pyvex.c logging.c ${VEX_PATH}/libvex.a
-	gcc -O2 -shared -fPIC -I${VEX_PATH}/pub --std=c99 -o ${LIBRARY_FILE} pyvex.c logging.c ${VEX_PATH}/libvex.a ${SONAME_CMD}
+$(LIBRARY_FILE): pyvex.c logging.c
+	$(CC) $(CFLAGS) -o $(LIBRARY_FILE) pyvex.c logging.c $(VEX_LIB_PATH)/libvex.a $(LDFLAGS)
 
 clean:
-	rm -f ${LIBRARY_FILE}
+	rm -f $(LIBRARY_FILE)

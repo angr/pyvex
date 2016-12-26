@@ -22,23 +22,26 @@ from distutils.errors import LibError
 from distutils.command.build import build as _build
 
 if sys.platform in ('win32', 'cygwin'):
-    library_file = 'pyvex.dll'
+    LIBRARY_FILE = 'pyvex.dll'
+    STATIC_LIBRARY_FILE = 'pyvex.lib'
 elif sys.platform == 'darwin':
-    library_file = "libpyvex.dylib"
+    LIBRARY_FILE = "libpyvex.dylib"
+    STATIC_LIBRARY_FILE = 'libpyvex.a'
 else:
-    library_file = "libpyvex.so"
+    LIBRARY_FILE = "libpyvex.so"
+    STATIC_LIBRARY_FILE = 'libpyvex.a'
 
 
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
-VEX_PATH = "vex"
-VEX_PATH = '../vex'
+VEX_PATH = os.path.join('..', 'vex')
+
 if not os.path.exists(VEX_PATH):
     VEX_URL = 'https://github.com/angr/vex/archive/master.tar.gz'
     with open('master.tar.gz', 'wb') as v:
         v.write(urllib2.urlopen(VEX_URL).read())
     with tarfile.open('master.tar.gz') as tar:
         tar.extractall()
-    VEX_PATH='./vex-master'
+    VEX_PATH='vex-master'
 
 def _build_vex():
     cmd1 = ['nmake', '/f', 'Makefile-win', 'all']
@@ -54,14 +57,17 @@ def _build_vex():
 
 def _build_pyvex():
     e = os.environ.copy()
-    e['VEX_PATH'] = os.path.join('..', VEX_PATH)
-    cmd1 = ['cl', '-LD', '-O2' ,'-I' + os.path.join('..', VEX_PATH, 'pub'), 'pyvex.c', 'logging.c', os.path.join('..', VEX_PATH, 'libvex.lib'), '/link', '/DEF:pyvex.def']
+    e['VEX_LIB_PATH'] = os.path.join('..', VEX_PATH)
+    e['VEX_INCLUDE_PATH'] = os.path.join('..', VEX_PATH, 'pub')
+    e['VEX_LIB_FILE'] = os.path.join('..', VEX_PATH, 'libvex.lib')
+
+    cmd1 = ['nmake', '/f', 'Makefile-win']
     cmd2 = ['make', '-j', str(multiprocessing.cpu_count())]
     for cmd in (cmd1, cmd2):
         try:
             if subprocess.call(cmd, cwd='pyvex_c', env=e) == 0:
                 break
-        except OSError:
+        except OSError as err:
             continue
     else:
         raise LibError("Unable to build libpyvex.")
@@ -72,7 +78,8 @@ def _shuffle_files():
     os.mkdir('pyvex/lib')
     os.mkdir('pyvex/include')
 
-    shutil.copy(os.path.join('pyvex_c', library_file), 'pyvex/lib')
+    shutil.copy(os.path.join('pyvex_c', LIBRARY_FILE), 'pyvex/lib')
+    shutil.copy(os.path.join('pyvex_c', STATIC_LIBRARY_FILE), 'pyvex/lib')
     shutil.copy('pyvex_c/pyvex.h', 'pyvex/include')
     for f in glob.glob(os.path.join(VEX_PATH, 'pub', '*')):
         shutil.copy(f, 'pyvex/include')
@@ -88,7 +95,7 @@ def _build_ffi():
 class build(_build):
     def run(self):
         self.execute(_build_vex, (), msg="Building libVEX")
-        self.execute(_build_pyvex, (), msg="Building pyvex-static")
+        self.execute(_build_pyvex, (), msg="Building libpyvex")
         self.execute(_shuffle_files, (), msg="Copying libraries and headers")
         self.execute(_build_ffi, (), msg="Creating CFFI defs file")
         _build.run(self)
