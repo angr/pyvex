@@ -3,7 +3,7 @@ INCFLAGS=/I $(VEX_INCLUDE_PATH)
 CFLAGS=/LD /O2 $(INCFLAGS)
 LDFLAGS=/link /DEF:pyvex.def
 
-pyvex.dll: pyvex.c logging.c
+pyvex.dll: pyvex.c logging.c $(VEX_LIB_FILE)
 	$(CC) $(CFLAGS) pyvex.c logging.c $(VEX_LIB_FILE) $(LDFLAGS)
 
 clean:
