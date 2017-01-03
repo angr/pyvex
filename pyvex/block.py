@@ -357,11 +357,11 @@ class IRSB(VEXObject):
             else:
                 c_irsb = pvc.vex_block_bytes(vex_arch, self.arch.vex_archinfo, c_bytes + bytes_offset, self._addr, num_bytes, 1)
 
-            if c_irsb == ffi.NULL:
-                raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
-
             # We must use a pickle value, CData objects are not pickeable so not ffi.NULL
             self.arch.vex_archinfo['hwcache_info']['caches'] = None
+
+            if c_irsb == ffi.NULL:
+                raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
 
             self._from_c(c_irsb)
         finally:
