@@ -27,10 +27,10 @@ all: $(LIBRARY_FILE) $(STATIC_LIBRARY_FILE)
 %.o: %.c
 	$(CC) -c $(CFLAGS) $<
 
-$(LIBRARY_FILE): pyvex.o logging.o
+$(LIBRARY_FILE): pyvex.o logging.o $(VEX_LIB_PATH)/libvex.a
 	$(CC) $(CFLAGS) -o $(LIBRARY_FILE) pyvex.o logging.o $(VEX_LIB_PATH)/libvex.a $(LDFLAGS)
 
-$(STATIC_LIBRARY_FILE): pyvex.o logging.o
+$(STATIC_LIBRARY_FILE): pyvex.o logging.o $(VEX_LIB_PATH)/libvex.a
 	$(AR) rcs $(STATIC_LIBRARY_FILE) pyvex.o logging.o
 
 clean:
