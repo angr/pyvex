@@ -1,10 +1,8 @@
-import threading
 from . import VEXObject
+from .lift import lift
 
 import logging
 l = logging.getLogger("pyvex.block")
-
-_libvex_lock = threading.Lock()
 
 class IRSB(VEXObject):
     """
@@ -59,7 +57,7 @@ class IRSB(VEXObject):
         self._direct_next = None
 
         if data is not None:
-            self._lift(data, num_inst, num_bytes, bytes_offset, traceflags)
+            lift(self, data, num_bytes, num_inst, bytes_offset, traceflags)
 
     def pp(self):
         """
@@ -312,63 +310,6 @@ class IRSB(VEXObject):
     # internal "constructors" to fill this block out with data from various sources
     #
 
-    def _lift(self, data, num_inst=None, num_bytes=None, bytes_offset=0, traceflags=0):
-        """
-        :param data:            The bytes to lift. Can be either a string of bytes or a cffi buffer object.
-        :type data:             str or bytes or cffi.FFI.CData
-        :param int mem_addr:    The address to lift the data at.
-        :param arch:            The architecture to lift the data as.
-        :type arch:             :class:`archinfo.Arch`
-        :param num_inst:        The maximum number of instructions to lift. Max 99. (See note below)
-        :param num_bytes:       The maximum number of bytes to use. Max 400.
-        :param bytes_offset:    The offset into `data` to start lifting at.
-        :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
-
-        .. note:: Explicitly specifying the number of instructions to lift (`num_inst`) may not always work
-                  exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
-                  instruction without its delay slot. VEX attempts to Do The Right Thing by possibly decoding
-                  fewer instructions than requested. Specifically, this means that lifting a branch or jump
-                  on MIPS as a single instruction (`num_inst=1`) will result in an empty IRSB, and subsequent
-                  attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
-        """
-        irsb = None
-
-        try:
-            _libvex_lock.acquire()
-
-            if isinstance(data, (str, bytes)):
-                num_bytes = len(data) if num_bytes is None else num_bytes
-                c_bytes = ffi.new('unsigned char [%d]' % (len(data) + 8), data + '\0' * 8)
-            else:
-                if not num_bytes:
-                    raise PyVEXError("C-backed bytes must have the length specified by num_bytes")
-                c_bytes = data
-
-            if num_bytes == 0:
-                raise PyVEXError("No bytes provided")
-            pvc.vta.traceflags = traceflags
-
-            vex_arch = getattr(pvc, self.arch.vex_arch)
-
-            self.arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
-
-            if num_inst is not None:
-                c_irsb = pvc.vex_block_inst(vex_arch, self.arch.vex_archinfo, c_bytes + bytes_offset, self._addr, num_inst)
-            else:
-                c_irsb = pvc.vex_block_bytes(vex_arch, self.arch.vex_archinfo, c_bytes + bytes_offset, self._addr, num_bytes, 1)
-
-            # We must use a pickle value, CData objects are not pickeable so not ffi.NULL
-            self.arch.vex_archinfo['hwcache_info']['caches'] = None
-
-            if c_irsb == ffi.NULL:
-                raise PyVEXError(ffi.string(pvc.last_error) if pvc.last_error != ffi.NULL else "unknown error")
-
-            self._from_c(c_irsb)
-        finally:
-            _libvex_lock.release()
-
-        return irsb
-
     def _from_c(self, c_irsb):
         self.statements = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in xrange(c_irsb.stmts_used)]
         self.tyenv = IRTypeEnv._from_c(self.arch, c_irsb.tyenv)
@@ -428,6 +369,6 @@ class IRTypeEnv(VEXObject):
     def typecheck(self):
         return all(map(lambda t: t in type_sizes and t != 'Ity_INVALID', self.types))
 
-from . import expr, stmt, ffi, pvc
+from . import expr, stmt, pvc
 from .enums import ints_to_enums, enums_to_ints, type_sizes
 from .errors import PyVEXError
