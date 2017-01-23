@@ -54,17 +54,33 @@ def find_good_scan(known_good, questionable):
     return find_good_scan(known_good, questionable[:fail-2-len(known_good)])
 
 def doit(vex_path):
-    #vex_pp,_ = subprocess.Popen(['cpp', 'vex/pub/libvex.h'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
-    cmd1 = ['cl', '-I'+vex_path, 'pyvex_c\\pyvex.h', '-E']
-    cmd2 = ['cpp', '-I'+vex_path, 'pyvex_c/pyvex.h']
-    for cmd in (cmd1, cmd2):
+    cxxlist = ['cl', 'cpp']
+    cxx = os.getenv("CXX")
+    if cxx:
+        cxxlist.insert(0, cxx)
+
+    errs = []
+    for cxx in cxxlist:
+        cmd = [cxx, '-I' + vex_path, os.path.join("pyvex_c", "pyvex.h")]
+        if cxx == 'cl':
+            cmd.append("-E")
         try:
-            header,_ = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=open(os.devnull, 'wb')).communicate()
-            break
+            p = subprocess.Popen(cmd,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            header, stderr = p.communicate()
+            if p.returncode != 0 or stderr:
+                errs.append((" ".join(cmd), stderr))
+                continue
+            else:
+                break
         except OSError:
+            errs.append((" ".join(cmd), "does not exist"))
             continue
     else:
-        raise Exception("Couldn't process pyvex headers")
+        l.warning("failed commands:\n" +
+                  "\n".join("{} -- {}".format(*e) for e in errs))
+        raise Exception("Couldn't process pyvex headers - set CXX env var")
     #header = vex_pp + pyvex_pp
 
     linesep = '\r\n' if '\r\n' in header else '\n'
@@ -94,4 +110,5 @@ def doit(vex_path):
 
 if __name__ == '__main__':
     import sys
+    logging.basicConfig(level=logging.DEBUG)
     doit(sys.argv[1])
