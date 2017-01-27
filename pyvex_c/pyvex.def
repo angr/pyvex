@@ -22,7 +22,7 @@ EXPORTS
   IRConst_V256
   IRExpr_Binder
   IRExpr_VECRET
-  IRExpr_BBPTR
+  IRExpr_GSPTR
   IRExpr_Get
   IRExpr_GetI
   IRExpr_RdTmp

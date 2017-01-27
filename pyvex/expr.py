@@ -123,23 +123,23 @@ class VECRET(IRExpr):
         return 'Ity_INVALID'
 
 
-class BBPTR(IRExpr):
+class GSPTR(IRExpr):
 
-    tag = 'Iex_BBPTR'
+    tag = 'Iex_GSPTR'
 
     def __init__(self):
         IRExpr.__init__(self)
 
     def __str__(self):
-        return "BBPTR"
+        return "GSPTR"
 
     @staticmethod
     def _from_c(c_expr):
-        return BBPTR()
+        return GSPTR()
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_BBPTR()
+        return pvc.IRExpr_GSPTR()
 
     def result_type(self, tyenv):
         return 'Ity_INVALID'
@@ -733,7 +733,7 @@ tag_to_class = {
     enums_to_ints['Iex_Const']: Const,
     enums_to_ints['Iex_ITE']: ITE,
     enums_to_ints['Iex_CCall']: CCall,
-    enums_to_ints['Iex_BBPTR']: BBPTR,
+    enums_to_ints['Iex_GSPTR']: GSPTR,
     enums_to_ints['Iex_VECRET']: VECRET,
 }
 
