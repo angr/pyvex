@@ -54,15 +54,15 @@ def find_good_scan(known_good, questionable):
     return find_good_scan(known_good, questionable[:fail-2-len(known_good)])
 
 def doit(vex_path):
-    cxxlist = ['cl', 'cpp']
-    cxx = os.getenv("CXX")
-    if cxx:
-        cxxlist.insert(0, cxx)
+    cpplist = ['cl', 'cpp']
+    cpp = os.getenv("CPP")
+    if cpp:
+        cpplist.insert(0, cpp)
 
     errs = []
-    for cxx in cxxlist:
-        cmd = [cxx, '-I' + vex_path, os.path.join("pyvex_c", "pyvex.h")]
-        if cxx == 'cl':
+    for cpp in cpplist:
+        cmd = [cpp, '-I' + vex_path, os.path.join("pyvex_c", "pyvex.h")]
+        if cpp == 'cl':
             cmd.append("-E")
         try:
             p = subprocess.Popen(cmd,
@@ -80,7 +80,7 @@ def doit(vex_path):
     else:
         l.warning("failed commands:\n" +
                   "\n".join("{} -- {}".format(*e) for e in errs))
-        raise Exception("Couldn't process pyvex headers - set CXX env var")
+        raise Exception("Couldn't process pyvex headers - set CPP env var")
     #header = vex_pp + pyvex_pp
 
     linesep = '\r\n' if '\r\n' in header else '\n'
