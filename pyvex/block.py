@@ -120,7 +120,7 @@ class IRSB(VEXObject):
         irsb.statements = stmts
         irsb.next = next_expr
         irsb.jumpkind = jumpkind
-        irsb.direct_next = irsb._is_defaultexit_direct_jump()
+        irsb._direct_next = irsb._is_defaultexit_direct_jump()
 
         return irsb
 
