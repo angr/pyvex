@@ -26,7 +26,7 @@ class IRSB(VEXObject):
 
     __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next']
 
-    def __init__(self, data, mem_addr, arch, num_inst=None, num_bytes=None, bytes_offset=0, traceflags=0):
+    def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None, bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None):
         """
         :param data:            The bytes to lift. Can be either a string of bytes or a cffi buffer object.
                                 You may also pass None to initialize an empty IRSB.
@@ -34,18 +34,21 @@ class IRSB(VEXObject):
         :param int mem_addr:    The address to lift the data at.
         :param arch:            The architecture to lift the data as.
         :type arch:             :class:`archinfo.Arch`
-        :param num_inst:        The maximum number of instructions to lift. Max 99. (See note below)
-        :param num_bytes:       The maximum number of bytes to use. Max 400.
+        :param max_inst:        The maximum number of instructions to lift. Max 99. (See note below)
+        :param max_bytes:       The maximum number of bytes to use. Max 5000.
         :param bytes_offset:    The offset into `data` to start lifting at.
         :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
+        :param opt_level:       The level of optimization to apply to the IR, 0-2.
 
-        .. note:: Explicitly specifying the number of instructions to lift (`num_inst`) may not always work
+        .. note:: Explicitly specifying the number of instructions to lift (`max_inst`) may not always work
                   exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
                   instruction without its delay slot. VEX attempts to Do The Right Thing by possibly decoding
                   fewer instructions than requested. Specifically, this means that lifting a branch or jump
-                  on MIPS as a single instruction (`num_inst=1`) will result in an empty IRSB, and subsequent
+                  on MIPS as a single instruction (`max_inst=1`) will result in an empty IRSB, and subsequent
                   attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
         """
+        if max_inst is None: max_inst = num_inst
+        if max_bytes is None: max_bytes = num_bytes
         VEXObject.__init__(self)
         self._addr = mem_addr
         self.arch = arch
@@ -57,7 +60,7 @@ class IRSB(VEXObject):
         self._direct_next = None
 
         if data is not None:
-            lift(self, data, num_bytes, num_inst, bytes_offset, traceflags)
+            lift(self, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
 
     def pp(self):
         """

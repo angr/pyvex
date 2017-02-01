@@ -6,22 +6,27 @@
 #include <libvex.h>
 
 // Some info required for translation
+extern int log_level;
 extern VexTranslateArgs    vta;
 
-extern char *last_error;
+extern char *msg_buffer;
+extern size_t msg_current_size;
 
 //
-// Initializes VEX. This function must be called before vex_insn
+// Initializes VEX. This function must be called before vex_lift
 // can be used. 
 //
 void vex_init(void);
 
-//
-// Translates assembly instructions and blocks into VEX
-IRSB *vex_block_bytes(VexArch guest, VexArchInfo archinfo, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only);
-IRSB *vex_block_inst(VexArch guest, VexArchInfo archinfo, unsigned char *instructions, unsigned long long block_addr, unsigned int num_inst);
-unsigned int vex_count_instructions(VexArch guest, VexArchInfo archinfo, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only);
-void set_iropt_level(int level);
-void enable_debug(int debug);
+IRSB *vex_lift(
+		VexArch guest,
+		VexArchInfo archinfo,
+		unsigned char *insn_start,
+		unsigned long long insn_addr,
+		unsigned int max_insns,
+		unsigned int max_bytes,
+		int opt_level,
+		int traceflags,
+		int allow_lookback);
 
 #endif

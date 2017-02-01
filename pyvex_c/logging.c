@@ -6,31 +6,29 @@
 
 #include "logging.h"
 
-int debug_on = 0;
-int info_on =  0;
-int error_on = 0;
+int log_level = 50;
 
-void debug(const char *fmt, ...)
+void pyvex_debug(const char *fmt, ...)
 {
-	if (!debug_on) return;
+	if (log_level > 10) return;
 
-	printf("+++ ");
+	fprintf(stderr, "[[pyvex_c]]\tDEBUG:\t");
 	va_list args;
 	va_start(args,fmt);
-	vprintf(fmt,args);
+	vfprintf(stderr, fmt, args);
 	va_end(args);
 
 	fflush(stdout);
 }
 
-void info(const char *fmt, ...)
+void pyvex_info(const char *fmt, ...)
 {
-	if (!info_on) return;
+	if (log_level > 20) return;
 
-	printf("||| ");
+	fprintf(stderr, "[[pyvex_c]]\tINFO:\t");
 	va_list args;
-	va_start(args,fmt);
-	vprintf(fmt,args);
+	va_start(args, fmt);
+	vfprintf(stderr, fmt, args);
 	va_end(args);
 
 	fflush(stdout);
@@ -38,9 +36,9 @@ void info(const char *fmt, ...)
 
 void pyvex_error(const char *fmt, ...)
 {
-	if (!error_on) return;
+	if (log_level > 40) return;
 
-	fprintf(stderr, "### ERROR: ");
+	fprintf(stderr, "[[pyvex_c]]\tERROR:\t");
 	va_list args;
 	va_start(args,fmt);
 	vfprintf(stderr, fmt,args);

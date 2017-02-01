@@ -18,7 +18,7 @@ endif
 CC=gcc
 AR=ar
 INCFLAGS=-I $(VEX_INCLUDE_PATH)
-CFLAGS=-O2 -shared -fPIC --std=c99 $(INCFLAGS)
+CFLAGS=-g -O2 -shared -fPIC --std=c99 $(INCFLAGS)
 
 OBJECTS=pyvex.o logging.o
 
@@ -34,4 +34,4 @@ $(STATIC_LIBRARY_FILE): pyvex.o logging.o $(VEX_LIB_PATH)/libvex.a
 	$(AR) rcs $(STATIC_LIBRARY_FILE) pyvex.o logging.o
 
 clean:
-	rm -f $(LIBRARY_FILE)
+	rm -f $(LIBRARY_FILE) $(STATIC_LIBRARY_FILE) *.o

@@ -3,12 +3,10 @@
 #ifndef __COMMON_H
 #define __COMMON_H
 
-extern int debug_on;
-extern int info_on;
-extern int error_on;
+extern int log_level;
 
-void debug(const char *, ...);
-void info(const char *, ...);
+void pyvex_debug(const char *, ...);
+void pyvex_info(const char *, ...);
 void pyvex_error(const char *, ...);
 
 #endif

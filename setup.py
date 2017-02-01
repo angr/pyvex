@@ -44,11 +44,15 @@ if not os.path.exists(VEX_PATH):
     VEX_PATH='vex-master'
 
 def _build_vex():
+    e = os.environ.copy()
+    e['MULTIARCH'] = '1'
+    e['DEBUG'] = '1'
+
     cmd1 = ['nmake', '/f', 'Makefile-win', 'all']
     cmd2 = ['make', '-j', str(multiprocessing.cpu_count()), 'all']
     for cmd in (cmd1, cmd2):
         try:
-            if subprocess.call(cmd, cwd=VEX_PATH) == 0:
+            if subprocess.call(cmd, cwd=VEX_PATH, env=e) == 0:
                 break
         except OSError:
             continue

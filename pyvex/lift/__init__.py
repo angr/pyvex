@@ -9,13 +9,23 @@ class Lifter(object):
     REQUIRE_DATA_C = False
     REQUIRE_DATA_PY = False
 
-    def __init__(self, irsb, data, num_inst, num_bytes, bytes_offset, traceflags):
+    def __init__(self,
+            irsb,
+            data,
+            max_inst,
+            max_bytes,
+            bytes_offset,
+            opt_level,
+            traceflags,
+            allow_lookback):
         self.irsb = irsb
         self.data = data
-        self.num_inst = num_inst
-        self.num_bytes = num_bytes
+        self.max_inst = max_inst
+        self.max_bytes = max_bytes
         self.bytes_offset = bytes_offset
+        self.opt_level = opt_level
         self.traceflags = traceflags
+        self.allow_lookback = allow_lookback
 
         self._error = None  # you might want to use this
 
@@ -42,15 +52,15 @@ class Lifter(object):
         """
         pass
 
-# num_bytes should always be provided
-# num_inst might be none
-def lift(irsb, data, num_bytes, num_inst, bytes_offset, traceflags):
-    if not num_bytes and not isinstance(data, (str, bytes)):
-        raise PyVEXError("C-backed bytes must have the length specified by num_bytes")
-    if not num_bytes:
-        num_bytes = len(data)
+# max_bytes should always be provided
+# max_inst might be none
+def lift(irsb, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags):
+    if not max_bytes and not isinstance(data, (str, bytes)):
+        raise PyVEXError("C-backed bytes must have the length specified by max_bytes")
+    if not max_bytes:
+        max_bytes = len(data)
 
-    if num_bytes == 0:
+    if max_bytes == 0:
         raise PyVEXError("No bytes provided")
 
     errors = []
@@ -58,9 +68,11 @@ def lift(irsb, data, num_bytes, num_inst, bytes_offset, traceflags):
     if isinstance(data, (str, bytes)):
         py_data = data
         c_data = None
+        allow_lookback = False
     else:
         c_data = data
         py_data = None
+        allow_lookback = True
 
     for lifter in lifters:
         u_data = data
@@ -70,12 +82,12 @@ def lift(irsb, data, num_bytes, num_inst, bytes_offset, traceflags):
             u_data = c_data
         elif lifter.REQUIRE_DATA_PY:
             if py_data is None:
-                py_data = str(ffi.buffer(data, num_bytes))
+                py_data = str(ffi.buffer(data, max_bytes))
             u_data = py_data
 
         # Setting it up with an instance per lift like this allows us thread safety, hypothetically
         # this could be done more efficiently with thread-local vars
-        lifter_inst = lifter(irsb, u_data, num_inst, num_bytes, bytes_offset, traceflags)
+        lifter_inst = lifter(irsb, u_data, max_inst, max_bytes, bytes_offset, opt_level, traceflags, allow_lookback)
         if lifter_inst.lift():
             break
         else:
@@ -95,9 +107,9 @@ def lift(irsb, data, num_bytes, num_inst, bytes_offset, traceflags):
             u_data = c_data
         elif lifter.REQUIRE_DATA_PY:
             if py_data is None:
-                py_data = str(ffi.buffer(data, num_bytes))
+                py_data = str(ffi.buffer(data, max_bytes))
             u_data = py_data
-        lifter_inst = lifter(irsb, u_data, num_inst, num_bytes, bytes_offset, traceflags)
+        lifter_inst = lifter(irsb, u_data, max_inst, max_bytes, bytes_offset, opt_level, traceflags, allow_lookback)
         lifter_inst.postprocess()
 
 def register(lifter):

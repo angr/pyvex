@@ -32,28 +32,6 @@ def _find_c_lib():
 
 pvc = _find_c_lib()
 
-
-def set_iropt_level(lvl):
-    """
-    Set the VEX optimization level to `lvl`. Valid values are 0, 1 and 2.
-
-    0 performs no optimization, 1 performs basic optimizations, and 2 performs loop unrolling, among other things.
-    """
-    pvc.vex_control.iropt_level = lvl
-
-def enable_debug(debug):
-    """
-    Set the debug flag to `debug`. Valid values are True. False, 0 and 1.
-
-    False/0 disables debugging output, True/1 enables it.
-    """
-
-    if debug is True:
-        debug = 1
-    elif debug is False:
-        debug = 0
-    pvc.enable_debug(debug)
-
 # pylint: disable=wildcard-import
 from .enums import *
 from .block import *

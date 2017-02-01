@@ -21,17 +21,11 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <setjmp.h>
 #include <libvex.h>
 
 #include "pyvex.h"
 #include "logging.h"
-
-// these are problematic because we need to link with vex statically to use them, I think
-extern VexControl vex_control;
-extern Bool vex_initdone;
-
-// the last thrown error
-char *last_error;
 
 //======================================================================
 //
@@ -44,12 +38,14 @@ VexArchInfo         vai_host;
 VexGuestExtents     vge;
 VexTranslateArgs    vta;
 VexTranslateResult  vtr;
-VexAbiInfo	    vbi;
-VexControl vc;
+VexAbiInfo	        vbi;
+VexControl          vc;
 
-// Global for saving the intermediate results of translation from
-// within the callback (instrument1)
-IRSB *irbb_current = NULL;
+// Log message buffer, from vex itself
+char *msg_buffer = NULL;
+size_t msg_capacity = 0, msg_current_size = 0;
+
+jmp_buf jumpout;
 
 //======================================================================
 //
@@ -57,96 +53,81 @@ IRSB *irbb_current = NULL;
 //
 //======================================================================
 
-static void failure_exit( void )
-{
-	printf("SHIIIIIT\n");
-	exit(1);
+__attribute__((noreturn))
+static void failure_exit(void) {
+	longjmp(jumpout, 1);
 }
 
-static void log_bytes( const HChar* bytes, SizeT nbytes )
-{
-	SizeT i;
-	for (i = 0; i < nbytes - 3; i += 4)
-		printf("%c%c%c%c", bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3]);
-	for (; i < nbytes; i++)
-		printf("%c", bytes[i]);
+static void log_bytes(const HChar* bytes, SizeT nbytes) {
+	if (msg_buffer == NULL) {
+		msg_buffer = malloc(nbytes);
+		msg_capacity = nbytes;
+	}
+	if (nbytes + msg_current_size > msg_capacity) {
+		do {
+			msg_capacity *= 2;
+		} while (nbytes + msg_current_size > msg_capacity);
+		msg_buffer = realloc(msg_buffer, msg_capacity);
+	}
+
+	memcpy(&msg_buffer[msg_current_size], bytes, nbytes);
+	msg_current_size += nbytes;
 }
 
-static Bool chase_into_ok( void *closureV, Addr addr64 )
-{
+static void clear_log() {
+	if (msg_buffer != NULL) {
+			free(msg_buffer);
+			msg_buffer = NULL;
+			msg_capacity = 0;
+			msg_current_size = 0;
+	}
+}
+
+static Bool chase_into_ok(void *closureV, Addr addr64) {
 	return False;
 }
 
-// TODO: figure out what this is for
-static UInt needs_self_check(void *callback_opaque, VexRegisterUpdates* pxControl, const VexGuestExtents *guest_extents)
-{
+static UInt needs_self_check(void *callback_opaque, VexRegisterUpdates* pxControl, const VexGuestExtents *guest_extents) {
 	return 0;
 }
 
-static void *dispatch(void)
-{
+static void *dispatch(void) {
 	return NULL;
 }
 
-//----------------------------------------------------------------------
-// This is where we copy out the IRSB
-//----------------------------------------------------------------------
-static IRSB *instrument1(  void *callback_opaque,
-                           IRSB *irbb,
-                           const VexGuestLayout *vgl,
-                           const VexGuestExtents *vge,
-                           const VexArchInfo *vae,
-                           IRType gWordTy,
-                           IRType hWordTy )
-{
-
-	assert(irbb);
-
-	//irbb_current = (IRSB *)vx_dopyIRSB(irbb);
-	irbb_current = deepCopyIRSB(irbb);
-
-	if (debug_on) ppIRSB(irbb);
-	return irbb;
-}
 
 //----------------------------------------------------------------------
 // Initializes VEX
 // It must be called before using VEX for translation to Valgrind IR
 //----------------------------------------------------------------------
-void vex_init()
-{
+void vex_init() {
 	static int initialized = 0;
-	debug("Initializing VEX.\n");
+	pyvex_debug("Initializing VEX.\n");
 
-	if (initialized || vex_initdone)
-	{
-		debug("VEX already initialized.\n");
+	if (initialized) {
+		pyvex_debug("VEX already initialized.\n");
 		return;
 	}
 	initialized = 1;
 
-	//
 	// Initialize VEX
-	//
 	LibVEX_default_VexControl(&vc);
+	LibVEX_default_VexArchInfo(&vai_host);
+	LibVEX_default_VexAbiInfo(&vbi);
 
 	vc.iropt_verbosity              = 0;
 	vc.iropt_level                  = 0;    // No optimization by default
-	//vc.iropt_level                  = 2;
 	//vc.iropt_precise_memory_exns    = False;
 	vc.iropt_unroll_thresh          = 0;
 	vc.guest_max_insns              = 1;    // By default, we vex 1 instruction at a time
 	vc.guest_chase_thresh           = 0;
+	vc.arm64_allow_reordered_writeback = 0;
+	vc.x86_optimize_callpop_idiom = 0;
 
-	debug("Calling LibVEX_Init()....\n");
-	LibVEX_Init(&failure_exit,
-	            &log_bytes,
-	            0,              // Debug level
-	            &vc );
-	debug("LibVEX_Init() done....\n");
-
-	LibVEX_default_VexArchInfo(&vai_host);
-	LibVEX_default_VexAbiInfo(&vbi);
+	pyvex_debug("Calling LibVEX_Init()....\n");
+	// the 0 is the debug level
+	LibVEX_Init(&failure_exit, &log_bytes, 0, &vc);
+	pyvex_debug("LibVEX_Init() done....\n");
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	vai_host.endness = VexEndnessLE;
@@ -195,20 +176,15 @@ void vex_init()
 	vta.callback_opaque     = NULL;             // Used by chase_into_ok, but never actually called
 	vta.chase_into_ok       = chase_into_ok;    // Always returns false
 	vta.preamble_function   = NULL;
-	vta.instrument1         = instrument1;      // Callback we defined to help us save the IR
+	vta.instrument1         = NULL;
 	vta.instrument2         = NULL;
 	vta.finaltidy	    	= NULL;
 	vta.needs_self_check	= needs_self_check;	
 
-	#if 0
-		vta.dispatch_assisted	= (void *)dispatch; // Not used
-		vta.dispatch_unassisted	= (void *)dispatch; // Not used
-	#else
-		vta.disp_cp_chain_me_to_slowEP = (void *)dispatch; // Not used
-		vta.disp_cp_chain_me_to_fastEP = (void *)dispatch; // Not used
-		vta.disp_cp_xindir = (void *)dispatch; // Not used
-		vta.disp_cp_xassisted = (void *)dispatch; // Not used
-	#endif
+	vta.disp_cp_chain_me_to_slowEP = (void *)dispatch; // Not used
+	vta.disp_cp_chain_me_to_fastEP = (void *)dispatch; // Not used
+	vta.disp_cp_xindir = (void *)dispatch; // Not used
+	vta.disp_cp_xassisted = (void *)dispatch; // Not used
 
 	vta.guest_extents       = &vge;
 	vta.host_bytes          = NULL;           // Buffer for storing the output binary
@@ -220,10 +196,8 @@ void vex_init()
 }
 
 // Prepare the VexArchInfo struct
-static void vex_prepare_vai(VexArch arch, VexArchInfo *vai)
-{
-	switch (arch)
-	{
+static void vex_prepare_vai(VexArch arch, VexArchInfo *vai) {
+	switch (arch) {
 		case VexArchX86:
 			vai->hwcaps =   VEX_HWCAPS_X86_MMXEXT |
 							VEX_HWCAPS_X86_SSE1 |
@@ -271,10 +245,8 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai)
 			vai->hwcaps = 0;
 			break;
 		case VexArchMIPS32:
-			vai->hwcaps = 0x00010000;
-			break;
 		case VexArchMIPS64:
-			vai->hwcaps = 0;
+			vai->hwcaps = 0x00010000;
 			break;
 		default:
 			pyvex_error("Invalid arch in vex_prepare_vai.\n");
@@ -283,13 +255,11 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai)
 }
 
 // Prepare the VexAbiInfo
-static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi)
-{
+static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 	// only setting the guest_stack_redzone_size for now
 	// this attribute is only specified by the PPC64 and AMD64 ABIs
 
-	switch (arch)
-	{
+	switch (arch) {
 		case VexArchAMD64:
 			vbi->guest_stack_redzone_size = 128;
 			break;
@@ -302,16 +272,25 @@ static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi)
 }
 
 //----------------------------------------------------------------------
-// Translate 1 instruction to VEX IR.
+// Main entry point. Do a lift.
 //----------------------------------------------------------------------
-static IRSB *vex_inst(VexArch guest, VexArchInfo archinfo, unsigned char *insn_start, unsigned long long insn_addr, int max_insns)
-{
+IRSB *vex_lift(
+		VexArch guest,
+		VexArchInfo archinfo,
+		unsigned char *insn_start,
+		unsigned long long insn_addr,
+		unsigned int max_insns,
+		unsigned int max_bytes,
+		int opt_level,
+		int traceflags,
+		int allow_lookback) {
+	VexRegisterUpdates pxControl;
+
 	vex_prepare_vai(guest, &archinfo);
 	vex_prepare_vbi(guest, &vbi);
 
-	debug("Guest arch: %d\n", guest);
-	debug("Guest arch hwcaps: %08x\n", archinfo.hwcaps);
-	//vta.traceflags = 0xffffffff;
+	pyvex_debug("Guest arch: %d\n", guest);
+	pyvex_debug("Guest arch hwcaps: %08x\n", archinfo.hwcaps);
 
 	vta.archinfo_guest = archinfo;
 	vta.arch_guest = guest;
@@ -319,161 +298,20 @@ static IRSB *vex_inst(VexArch guest, VexArchInfo archinfo, unsigned char *insn_s
 
 	vta.guest_bytes         = (UChar *)(insn_start);  // Ptr to actual bytes of start of instruction
 	vta.guest_bytes_addr    = (Addr64)(insn_addr);
+	vta.traceflags          = traceflags;
 
-	debug("Setting VEX max instructions...\n");
-	debug("... old: %d\n", vex_control.guest_max_insns);
-	vex_control.guest_max_insns = max_insns;    // By default, we vex 1 instruction at a time
-	debug("... new: %d\n", vex_control.guest_max_insns);
+	vc.guest_max_bytes     = max_bytes;
+	vc.guest_max_insns     = max_insns;
+	vc.iropt_level         = opt_level;
+	vc.arm_allow_optimizing_lookback = allow_lookback;
+	LibVEX_Update_Control(&vc);
+
+	clear_log();
 
 	// Do the actual translation
-	vtr = LibVEX_Translate(&vta);
-	debug("Translated!\n");
-
-	assert(irbb_current);
-	return irbb_current;
-}
-
-unsigned int vex_count_instructions(VexArch guest, VexArchInfo archinfo, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
-{
-	debug("Counting instructions in %d bytes starting at 0x%x, basic %d\n", num_bytes, block_addr, basic_only);
-
-	unsigned int count = 0;
-	unsigned int processed = 0;
-	int per_lift = basic_only ? 3 : 1;
-
-	while (processed < num_bytes && count < 99)
-	{
-		debug("Next byte: %02x\n", instructions[processed]);
-		IRSB *sb = vex_inst(guest, archinfo, instructions + processed, block_addr + processed, per_lift);
-
-		if (vge.len[0] == 0 || sb == NULL)
-		{
-			if (sb) {
-				// Block translated, got length of zero: first instruction is NoDecode
-				count += 1;
-			}
-		pyvex_error("Something went wrong in IR translation at position %x of addr %x in vex_count_instructions.\n", processed, block_addr);
-			break;
-		}
-
-		IRStmt *first_imark = NULL;
-		IRStmt *first_exit = NULL;
-		int bytes_until_exit = 0;
-		int instrs_until_exit = 0;
-		for (int i = 0; i < sb->stmts_used; i++) {
-			if (sb->stmts[i]->tag == Ist_IMark) {
-				if (first_imark == NULL) {
-					first_imark = sb->stmts[i];
-				}
-				bytes_until_exit += sb->stmts[i]->Ist.IMark.len;
-				instrs_until_exit += 1;
-			}
-			if (sb->stmts[i]->tag == Ist_Exit && sb->stmts[i]->Ist.Exit.jk == Ijk_Boring) {
-				break;
-			}
-		}
-		assert(first_imark);
-
-		if (basic_only) {
-			int guest_instrs = vtr.n_guest_instrs;
-			int guest_bytes = vge.len[0];
-
-			if (instrs_until_exit < guest_instrs) {
-				guest_instrs = instrs_until_exit;
-				guest_bytes = bytes_until_exit;
-			}
-			if (guest_instrs < 3) {
-				// Found an exit!!
-				if (processed + first_imark->Ist.IMark.len >= num_bytes) {
-					// edge case: This is the first run through this loop (processed == 0) and
-					// the first instruction is long enough to fill up the byte quota.
-					count += 1;
-					processed += first_imark->Ist.IMark.len;
-					debug("Processed %d bytes\n", processed);
-					break;
-				}
-				count += guest_instrs;
-				processed += guest_bytes;
-				debug("Processed %d bytes\n", processed);
-				break;
-			}
-		}
-
-		processed += first_imark->Ist.IMark.len;
-		debug("Processed %d bytes\n", processed);
-
-		assert(vge.n_used == 1);
-		count++;
-	}
-
-	// count is one too high if the number of processed bytes is greater than num_bytes
-	if (processed > num_bytes) {
-	  count--;
-	}
-
-	debug("... found %d instructions!\n", count);
-	return count;
-}
-
-IRSB *vex_block_bytes(VexArch guest, VexArchInfo archinfo, unsigned char *instructions, unsigned long long block_addr, unsigned int num_bytes, int basic_only)
-{
-	IRSB *sb = NULL;
-
-	try
-	{
-		unsigned int count = vex_count_instructions(guest, archinfo, instructions, block_addr, num_bytes, basic_only);
-		sb = vex_block_inst(guest, archinfo, instructions, block_addr, count);
-		// this is a workaround. Basically, on MIPS, leaving this (the second translation of the same crap)
-		// out leads to exits being dropped in some IRSBs
-		sb = vex_block_inst(guest, archinfo, instructions, block_addr, count);
-		if (vge.len[0] != num_bytes)
-		{
-			info("vex_block_bytes: only translated %d bytes out of %d in block_addr %x\n", vge.len[0], num_bytes, block_addr);
-		}
-		//assert(vge.len[0] == num_bytes);
-	}
-	catch (VEXError)
-	{
-		last_error = E4C_EXCEPTION.message;
-	}
-
-	return sb;
-}
-
-IRSB *vex_block_inst(VexArch guest, VexArchInfo archinfo, unsigned char *instructions, unsigned long long block_addr, unsigned int num_inst)
-{
-	debug("Translating %d instructions starting at 0x%x\n", num_inst, block_addr);
-
-	if (num_inst == 0)
-	{
-		pyvex_error("vex_block_inst: asked to create IRSB with 0 instructions, at block_addr %x\n", block_addr);
+	if (setjmp(jumpout) == 0) {
+		return LibVEX_Lift(&vta, &vtr, &pxControl);
+	} else {
 		return NULL;
 	}
-	else if (num_inst > 99)
-	{
-		pyvex_error("vex_block_inst: maximum instruction count is 99.\n");
-		num_inst = 99;
-	}
-
-	IRSB *fullblock = NULL;
-
-	try
-	{
-		fullblock = vex_inst(guest, archinfo, instructions, block_addr, num_inst);
-		assert(vge.n_used == 1);
-	}
-	catch (VEXError)
-	{
-		last_error = E4C_EXCEPTION.message;
-	}
-
-	return fullblock;
-}
-
-void set_iropt_level(int level) {
-	vex_update_iropt_level(level);
-}
-
-void enable_debug(int debug) {
-	debug_on = debug;
 }
