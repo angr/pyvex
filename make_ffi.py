@@ -3,6 +3,7 @@ import os
 import sys
 import cffi
 import subprocess
+import platform
 
 import logging
 l = logging.getLogger('cffier')
@@ -58,6 +59,8 @@ def doit(vex_path):
     cpp = os.getenv("CPP")
     if cpp:
         cpplist.insert(0, cpp)
+    if platform.system() == 'Darwin':
+        cpplist.insert("clang")
 
     errs = []
     for cpp in cpplist:
