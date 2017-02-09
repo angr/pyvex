@@ -62,24 +62,24 @@ def doit(vex_path):
     errs = []
     for cpp in cpplist:
         cmd = [cpp, '-I' + vex_path, os.path.join("pyvex_c", "pyvex.h")]
-        if cpp == 'cl':
+        if cpp in ('cl', 'clang', 'gcc', 'cc', 'clang++', 'g++'):
             cmd.append("-E")
         try:
             p = subprocess.Popen(cmd,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             header, stderr = p.communicate()
-            if p.returncode != 0 or stderr:
-                errs.append((" ".join(cmd), stderr))
+            if not header.strip() or p.returncode != 0:
+                errs.append((" ".join(cmd), p.returncode, stderr))
                 continue
             else:
                 break
         except OSError:
-            errs.append((" ".join(cmd), "does not exist"))
+            errs.append((" ".join(cmd), -1, "does not exist"))
             continue
     else:
         l.warning("failed commands:\n" +
-                  "\n".join("{} -- {}".format(*e) for e in errs))
+                  "\n".join("{} ({}) -- {}".format(*e) for e in errs))
         raise Exception("Couldn't process pyvex headers - set CPP env var")
     #header = vex_pp + pyvex_pp
 
