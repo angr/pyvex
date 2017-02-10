@@ -69,7 +69,7 @@ def doit(vex_path):
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             header, stderr = p.communicate()
-            if p.returncode != 0 or stderr:
+            if p.returncode != 0 or stderr or not header:
                 errs.append((" ".join(cmd), stderr))
                 continue
             else:
@@ -80,7 +80,10 @@ def doit(vex_path):
     else:
         l.warning("failed commands:\n" +
                   "\n".join("{} -- {}".format(*e) for e in errs))
-        raise Exception("Couldn't process pyvex headers - set CPP env var")
+        raise Exception("Couldn't process pyvex headers." +
+                "Please set CPP environmental variable to local path of \"cpp\"." +
+                "Note that \"cpp\" and \"g++\" are different."
+                )
     #header = vex_pp + pyvex_pp
 
     linesep = '\r\n' if '\r\n' in header else '\n'
