@@ -60,7 +60,7 @@ def doit(vex_path):
     if cpp:
         cpplist.insert(0, cpp)
     if platform.system() == 'Darwin':
-        cpplist.insert(0, "clang")
+        cpplist.insert("clang")
 
     errs = []
     for cpp in cpplist:
