@@ -344,6 +344,9 @@ class IRTypeEnv(VEXObject):
             raise IndexError(tmp)
         return self.types[tmp]
 
+    def sizeof(self, tmp):
+        return type_sizes[self.lookup(tmp)]
+
     def add(self, ty):
         """
         Add a new tmp of type `ty` to the environment. Returns the number of the new tmp.
