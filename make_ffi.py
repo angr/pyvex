@@ -3,6 +3,7 @@ import os
 import sys
 import cffi
 import subprocess
+import platform
 
 import logging
 l = logging.getLogger('cffier')
@@ -58,11 +59,13 @@ def doit(vex_path):
     cpp = os.getenv("CPP")
     if cpp:
         cpplist.insert(0, cpp)
+    if platform.system() == 'Darwin':
+        cpplist.insert(0, "clang")
 
     errs = []
     for cpp in cpplist:
         cmd = [cpp, '-I' + vex_path, os.path.join("pyvex_c", "pyvex.h")]
-        if cpp == 'cl':
+        if cpp in ('cl', 'clang', 'gcc', 'cc', 'clang++', 'g++'):
             cmd.append("-E")
         try:
             p = subprocess.Popen(cmd,
@@ -75,7 +78,7 @@ def doit(vex_path):
             else:
                 break
         except OSError:
-            errs.append((" ".join(cmd), "does not exist"))
+            errs.append((" ".join(cmd), -1, "does not exist"))
             continue
     else:
         l.warning("failed commands:\n" +
