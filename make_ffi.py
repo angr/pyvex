@@ -72,7 +72,7 @@ def doit(vex_path):
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             header, stderr = p.communicate()
-            if p.returncode != 0 or stderr or not header:
+            if p.returncode != 0 or not header:
                 errs.append((" ".join(cmd), stderr))
                 continue
             else:
