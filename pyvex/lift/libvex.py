@@ -38,7 +38,6 @@ class LibVEXLifter(Lifter):
                 return False
             else:
                 if log_str is not None:
-                    print 'BOOP'
                     l.info(log_str)
 
             self.irsb._from_c(c_irsb)
