@@ -11,6 +11,9 @@ import pkg_resources
 from .vex_ffi import ffi_str as _ffi_str
 ffi = cffi.FFI()
 
+import logging
+logging.getLogger("pyvex").addHandler(logging.NullHandler())
+
 def _find_c_lib():
     # Load the c library for calling into VEX
     if sys.platform in ('win32', 'cygwin'):
