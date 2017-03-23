@@ -138,7 +138,7 @@ if 'bdist_wheel' in sys.argv and '--plat-name' not in sys.argv:
 
 setup(
     name="pyvex", version='6.7.1.31', description="A Python interface to libVEX and VEX IR.",
-    packages=['pyvex', 'pyvex.lift'],
+    packages=['pyvex', 'pyvex.lift', 'pyvex.lift.util'],
     cmdclass=cmdclass,
     install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo' ],
     setup_requires=[ 'pycparser', 'cffi>=1.0.3' ],
