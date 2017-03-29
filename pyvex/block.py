@@ -24,7 +24,7 @@ class IRSB(VEXObject):
     :ivar bool direct_next: Whether this block ends with a direct (not indirect) jump or branch
     """
 
-    __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next']
+    __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next', '_size']
 
     def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None, bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None):
         """
@@ -58,6 +58,7 @@ class IRSB(VEXObject):
         self.tyenv = IRTypeEnv(arch)
         self.jumpkind = None
         self._direct_next = None
+        self._size = None
 
         if data is not None:
             lift(self, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
@@ -168,7 +169,9 @@ class IRSB(VEXObject):
         """
         The size of this block, in bytes
         """
-        return sum([s.len for s in self.statements if isinstance(s, stmt.IMark)])
+        if self._size is None:
+            self._size = sum([s.len for s in self.statements if isinstance(s, stmt.IMark)])
+        return self._size
 
     @property
     def operations(self):
