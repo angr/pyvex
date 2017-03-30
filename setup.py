@@ -48,7 +48,7 @@ def _build_vex():
     e['MULTIARCH'] = '1'
     e['DEBUG'] = '1'
 
-    cmd1 = ['nmake', '/f', 'Makefile-win', 'all']
+    cmd1 = ['nmake', '/f', 'Makefile-msvc', 'all']
     cmd2 = ['make', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
     for cmd in (cmd1, cmd2):
         try:
@@ -65,7 +65,7 @@ def _build_pyvex():
     e['VEX_INCLUDE_PATH'] = os.path.join('..', VEX_PATH, 'pub')
     e['VEX_LIB_FILE'] = os.path.join('..', VEX_PATH, 'libvex.lib')
 
-    cmd1 = ['nmake', '/f', 'Makefile-win']
+    cmd1 = ['nmake', '/f', 'Makefile-msvc']
     cmd2 = ['make', '-j', str(multiprocessing.cpu_count())]
     for cmd in (cmd1, cmd2):
         try:
