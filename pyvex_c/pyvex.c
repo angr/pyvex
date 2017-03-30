@@ -304,12 +304,12 @@ IRSB *vex_lift(
 	vc.guest_max_insns     = max_insns;
 	vc.iropt_level         = opt_level;
 	vc.arm_allow_optimizing_lookback = allow_lookback;
-	LibVEX_Update_Control(&vc);
 
 	clear_log();
 
 	// Do the actual translation
 	if (setjmp(jumpout) == 0) {
+        LibVEX_Update_Control(&vc);
 		return LibVEX_Lift(&vta, &vtr, &pxControl);
 	} else {
 		return NULL;
