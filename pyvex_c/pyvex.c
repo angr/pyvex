@@ -53,7 +53,11 @@ jmp_buf jumpout;
 //
 //======================================================================
 
+#ifdef _MSC_VER
+__declspec(noreturn)
+#else
 __attribute__((noreturn))
+#endif
 static void failure_exit(void) {
 	longjmp(jumpout, 1);
 }

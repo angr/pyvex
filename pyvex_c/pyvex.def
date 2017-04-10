@@ -1,12 +1,8 @@
 LIBRARY pyvex.dll
 
 EXPORTS
-  vex_block_bytes
-  vex_block_inst
   vex_control
   vex_init
-  enable_debug
-  last_error
   emptyIRTypeEnv
   emptyIRSB
   IRConst_U1
