@@ -3,6 +3,7 @@ LIBRARY pyvex.dll
 EXPORTS
   vex_control
   vex_init
+  vex_lift
   emptyIRTypeEnv
   emptyIRSB
   IRConst_U1
