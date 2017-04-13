@@ -93,7 +93,7 @@ def _build_ffi():
     try:
         make_ffi.doit(os.path.join(VEX_PATH,'pub'))
     except Exception as e:
-        print repr(e)
+        print(repr(e))
         raise
 
 class build(_build):
@@ -123,7 +123,7 @@ try:
             _bdist_egg.run(self)
     cmdclass['bdist_egg'] = bdist_egg
 except ImportError:
-    print "Proper 'develop' support unavailable."
+    print("Proper 'develop' support unavailable.")
 
 if 'bdist_wheel' in sys.argv and '--plat-name' not in sys.argv:
     sys.argv.append('--plat-name')
