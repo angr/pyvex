@@ -45,6 +45,9 @@ class IRStmt(VEXObject):
     def typecheck(self, tyenv): # pylint: disable=unused-argument,no-self-use
         return True
 
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
+        raise NotImplementedError()
+
 
 class NoOp(IRStmt):
     """
@@ -56,7 +59,7 @@ class NoOp(IRStmt):
     def __init__(self):  # pylint:disable=unused-argument
         IRStmt.__init__(self)
 
-    def __str__(self):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "IR-NoOp"
 
     @staticmethod
@@ -80,7 +83,7 @@ class IMark(IRStmt):
         self.len = length
         self.delta = delta
 
-    def __str__(self):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "------ IMark(0x%x, %d, %d) ------" % (self.addr, self.len, self.delta)
 
     @staticmethod
@@ -105,7 +108,7 @@ class AbiHint(IRStmt):
         self.len = length
         self.nia = nia
 
-    def __str__(self):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "====== AbiHint(0x%s, %d, %s) ======" % (self.base, self.len, self.nia)
 
     @staticmethod
@@ -129,8 +132,11 @@ class Put(IRStmt):
         self.offset = offset
 
     ## TODO: Check if result_size and arch are available before looking of arch register name
-    def __str__(self, reg_name=None):
-        if reg_name:
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
+        if arch is not None and tyenv is not None:
+            reg_name = arch.translate_register_name(self.offset, self.data.result_size(tyenv) / 8)
+
+        if reg_name is not None:
             return "PUT(%s) = %s" % (reg_name, self.data)
         else:
             return "PUT(offset=%s) = %s" % (self.offset, self.data)
@@ -159,7 +165,7 @@ class PutI(IRStmt):
         self.data = data
         self.bias = bias
 
-    def __str__(self):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "PutI(%s)[%s,%d] = %s" % (self.descr, self.ix, self.bias, self.data)
 
     @staticmethod
@@ -194,9 +200,13 @@ class WrTmp(IRStmt):
         self.tmp = tmp
         self.data = data
 
-    def __str__(self, reg_name=None):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
         # Support for named register in string representation of expr.Get
-        if reg_name and isinstance(self.data, expr.Get):
+
+        if arch is not None and tyenv is not None and isinstance(self.data, Get):
+            reg_name = arch.translate_register_name(self.data.offset, self.data.result_size(tyenv) / 8)
+
+        if reg_name is not None and isinstance(self.data, expr.Get):
             return "t%d = %s" % (self.tmp, self.data.__str__(reg_name=reg_name))
         else:
             return "t%d = %s" % (self.tmp, self.data)
@@ -235,7 +245,7 @@ class Store(IRStmt):
     def endness(self):
         return self.end
 
-    def __str__(self):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "ST%s(%s) = %s" % (self.endness[-2:].lower(), self.addr, self.data)
 
     @staticmethod
@@ -284,7 +294,7 @@ class CAS(IRStmt):
     def endness(self):
         return self.end
 
-    def __str__(self):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "t(%s,%s) = CAS%s(%s :: (%s,%s)->(%s,%s))" % (
         self.oldLo, self.oldHi, self.end[-2:].lower(), self.addr, self.expdLo, self.expdHi, self.dataLo, self.dataHi)
 
@@ -360,7 +370,7 @@ class LLSC(IRStmt):
     def endness(self):
         return self.end
 
-    def __str__(self):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
         if self.storedata is None:
             return "t%d = LD%s-Linked(%s)" % (self.result, self.end[-2:].lower(), self.addr)
         else:
@@ -408,7 +418,7 @@ class MBE(IRStmt):
         IRStmt.__init__(self)
         self.event = event
 
-    def __str__(self):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "MBusEvent-" + self.event
 
     @staticmethod
@@ -432,7 +442,7 @@ class Dirty(IRStmt):
         self.mSize = mSize
         self.nFxState = nFxState
 
-    def __str__(self):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "t%s = DIRTY %s %s ::: %s(%s)" % (
         self.tmp, self.guard, "TODO(effects)", self.cee, ','.join(str(a) for a in self.args))
 
@@ -483,7 +493,11 @@ class Exit(IRStmt):
     def jumpkind(self):
         return self.jk
 
-    def __str__(self, reg_name=None):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
+
+        if arch is not None and tyenv is not None:
+            reg_name = arch.translate_register_name(self.offsIP, arch.bits / 8)
+
         if reg_name is None:
             return "if (%s) { PUT(offset=%d) = %#x; %s }" % (self.guard, self.offsIP, self.dst.value, self.jumpkind)
         else:
@@ -543,7 +557,7 @@ class LoadG(IRStmt):
     def endness(self):
         return self.end
 
-    def __str__(self):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "t%d = if (%s) %s(LD%s(%s)) else %s" % (
         self.dst, self.guard, self.cvt, self.end[-2:].lower(), self.addr, self.alt)
 
@@ -606,7 +620,7 @@ class StoreG(IRStmt):
     def endness(self):
         return self.end
 
-    def __str__(self):
+    def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "if (%s) ST%s(%s) = %s" % (self.guard, self.end[-2:].lower(), self.addr, self.data)
 
     @staticmethod
@@ -638,7 +652,7 @@ class StoreG(IRStmt):
         return True
 
 
-from .expr import IRExpr
+from .expr import IRExpr, Get
 from .const import IRConst
 from .enums import IRRegArray, ints_to_enums, enums_to_ints, IRCallee
 from .errors import PyVEXError

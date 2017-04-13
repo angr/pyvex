@@ -1,12 +1,9 @@
 LIBRARY pyvex.dll
 
 EXPORTS
-  vex_block_bytes
-  vex_block_inst
   vex_control
   vex_init
-  enable_debug
-  last_error
+  vex_lift
   emptyIRTypeEnv
   emptyIRSB
   IRConst_U1
@@ -34,6 +31,7 @@ EXPORTS
   IRExpr_Const
   IRExpr_ITE
   IRExpr_CCall
+  log_level
   mkIRCallee
   mkIRExprVec_0
   mkIRExprVec_1
@@ -45,6 +43,7 @@ EXPORTS
   mkIRExprVec_7
   mkIRExprVec_8
   mkIRRegArray
+  msg_buffer
   newIRTemp
   sizeofIRType
   typeOfIRExpr
