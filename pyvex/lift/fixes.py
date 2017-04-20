@@ -75,7 +75,6 @@ class FixesPostProcessor(Lifter):
                         # Create a new IRConst
                         irconst = expr.Const.__new__(expr.Const)    # XXX: does this work???
                         irconst.con = dst
-                        irconst.result_type = dst.type
                         irconst.tag = 'Iex_Const'
 
                         self.irsb.statements = self.irsb.statements[: exit_stt_idx] + self.irsb.statements[exit_stt_idx + 1:]
