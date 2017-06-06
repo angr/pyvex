@@ -162,7 +162,7 @@ class IRSB(VEXObject):
         """
         The number of instructions in this block
         """
-        return len([s.addr for s in self.statements if isinstance(s, stmt.IMark)])
+        return len([s for s in self.statements if isinstance(s, stmt.IMark)])
 
     @property
     def size(self):
