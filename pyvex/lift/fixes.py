@@ -17,18 +17,41 @@ class FixesPostProcessor(Lifter):
             # MOV LR, PC
             # MOV PC, R8
 
-            lr_store_id = None
+            pc_holders = []
+            lr_store_pc = False
             inst_ctr = 1
-            for i, stt in reversed(list(enumerate(self.irsb.statements))):
-                if isinstance(stt, stmt.Put):
+            next_inst_addr = self.irsb.statements[0].addr + self.irsb.size
+            for stt in reversed(list(self.irsb.statements)):
+                # lr is modified within the last 2 instructions of the block... 
+                if isinstance(stt, stmt.Put) and inst_ctr == 2:
                     if stt.offset == self.irsb.arch.registers['lr'][0]:
-                        lr_store_id = i
-                        break
+                        # ... by a temporary variable, so track it down to see whether
+                        # pc is the source of the write
+                        if isinstance(stt.data, expr.RdTmp):
+                            pc_holders.append(stt.data.tmp)
+                        # ... by a constant, so test whether it is the address of the
+                        # next instruction
+                        elif isinstance(stt.data, expr.Const):
+                            if stt.data.con == next_inst_addr:
+                                lr_store_pc = True
+                            break
+                # Tracking down the temporary variable that modifies lr
+                if isinstance(stt, stmt.WrTmp) and stt.tmp in pc_holders:
+                    # pc found
+                    if isinstance(stt.data, expr.Get):
+                        if stt.data.offset == self.irsb.arch.registers['pc'][0]:
+                            lr_store_pc = True
+                            break
+                    # the temporary variable can hold not exactly pc but
+                    # something relative to pc
+                    elif isinstance(stt.data, (expr.Unop, expr.Binop,
+                                               expr.Triop, expr.Qop)):
+                        pc_holders.pop()
+                        for arg in stt.data.args:
+                            if isinstance(arg, expr.RdTmp):
+                                pc_holders.append(arg.tmp)
                 if isinstance(stt, stmt.IMark):
                     inst_ctr += 1
-
-            if lr_store_id is not None and inst_ctr == 2:
-                self.irsb.jumpkind = "Ijk_Call"
 
     _post_process_ARMEL = _post_process_ARM
     _post_process_ARMHF = _post_process_ARM
