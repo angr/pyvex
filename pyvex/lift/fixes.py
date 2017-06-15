@@ -33,31 +33,31 @@ class FixesPostProcessor(Lifter):
             inst_ctr = 0
             next_irsb_addr = self.irsb.statements[0].addr + self.irsb.size
             for stt in self.irsb.statements:
-                if isinstance(stt, stmt.Put):
+                if type(stt) == stmt.Put:
                     # LR is modified just before the last instruction of the
                     # block...
                     if stt.offset == self.irsb.arch.registers['lr'][0] \
                        and inst_ctr == self.irsb.instructions - 1:
                         # ... by a constant, so test whether it is the address
                         # of the next IRSB
-                        if isinstance(stt.data, expr.Const):
+                        if type(stt.data) == expr.Const:
                             if stt.data.con.value == next_irsb_addr:
                                 lr_store_pc = True
                         # ... by a temporary variable, so test whether it holds
                         # the address of the next IRSB
-                        elif isinstance(stt.data, expr.RdTmp):
+                        elif type(stt.data) == expr.RdTmp:
                             if next_irsb_addr == pc_holders.get(stt.data.tmp):
                                 lr_store_pc = True
                         break
                     else:
                         reg_name = self.irsb.arch.translate_register_name(stt.offset)
-                        if isinstance(stt.data, expr.Const):
+                        if type(stt.data) == expr.Const:
                             pc_holders[reg_name] = stt.data.con.value
-                        elif isinstance(stt.data, expr.RdTmp) and pc_holders.get(stt.data.tmp) is not None:
+                        elif type(stt.data) == expr.RdTmp and pc_holders.get(stt.data.tmp) is not None:
                             pc_holders[reg_name] = pc_holders[stt.data.tmp]
-                        elif isinstance(stt.data, expr.Get) and pc_holders.get(stt.data.offset) is not None:
+                        elif type(stt.data) == expr.Get and pc_holders.get(stt.data.offset) is not None:
                             pc_holders[reg_name] = pc_holders[stt.data.offset]
-                elif isinstance(stt, stmt.WrTmp):
+                elif type(stt) == stmt.WrTmp:
                     # the PC value may propagate through the block, and since
                     # LR is modified at the end of the block, the PC value have
                     # to be incremented in order to match the address of the
@@ -67,12 +67,12 @@ class FixesPostProcessor(Lifter):
                     #   as "add r0, #4")
                     #   - Iop_And*, Iop_Or*, Iop_Xor*, Iop_Sh*, Iop_Not* (there
                     #   may be some tricky and twisted ways to increment PC)
-                    if isinstance(stt.data, (expr.Unop, expr.Binop, expr.Triop, expr.Qop)):
-                        if all(isinstance(a, expr.Const)
-                               or (isinstance(a, expr.RdTmp) and pc_holders.get(a.tmp) is not None)
+                    if type(stt.data) in (expr.Unop, expr.Binop, expr.Triop, expr.Qop):
+                        if all(type(a) == expr.Const
+                               or (type(a) == expr.RdTmp and pc_holders.get(a.tmp) is not None)
                                     for a in stt.data.args):
                             op = stt.data.op
-                            vals = [a.con.value if isinstance(a, expr.Const) else pc_holders[a.tmp] \
+                            vals = [a.con.value if type(a) == expr.Const else pc_holders[a.tmp] \
                                     for a in stt.data.args]
                             if 'Iop_Add' in op:
                                 pc_holders[stt.tmp] = sum(vals)
@@ -86,22 +86,22 @@ class FixesPostProcessor(Lifter):
                                 pc_holders[stt.tmp] = vals[0] << vals[1]
                             elif any(o in op for o in ('Iop_Shr', 'Iop_Sar')):
                                 pc_holders[stt.tmp] = vals[0] >> vals[1]
-                    elif isinstance(stt.data, expr.Get):
+                    elif type(stt.data) == expr.Get:
                         reg_name = self.irsb.arch.translate_register_name(stt.data.offset)
                         if pc_holders.get(reg_name) is not None:
                             pc_holders[stt.tmp] = pc_holders[reg_name]
-                    elif isinstance(stt.data, expr.ITE):
+                    elif type(stt.data) == expr.ITE:
                         for d in (stt.data.iffalse, stt.data.iftrue):
-                            if isinstance(d, expr.Const):
+                            if type(d) == expr.Const:
                                 pc_holders[stt.tmp] = d.con.value
-                            elif isinstance(d, expr.RdTmp) and pc_holders.get(d.tmp) is not None:
+                            elif type(d) == expr.RdTmp and pc_holders.get(d.tmp) is not None:
                                 pc_holders[stt.tmp] = pc_holders[d.tmp]
-                    elif isinstance(stt.data, expr.RdTmp) and pc_holders.get(stt.data.tmp) is not None:
+                    elif type(stt.data) == expr.RdTmp and pc_holders.get(stt.data.tmp) is not None:
                         pc_holders[stt.tmp] = pc_holders[stt.data.tmp]
-                    elif isinstance(stt.data, expr.Const):
+                    elif type(stt.data) == expr.Const:
                         pc_holders[stt.tmp] = stt.data.con.value
 
-                elif isinstance(stt, stmt.IMark):
+                elif type(stt) == stmt.IMark:
                     inst_ctr += 1
 
             if lr_store_pc:

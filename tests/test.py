@@ -563,4 +563,4 @@ def test_irexpr_ccall():
     nose.tools.assert_equals(len(m.args()), 0)
 
 if __name__ == '__main__':
-    test_arm_postprocess()
+    test_memory()
