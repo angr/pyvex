@@ -144,7 +144,7 @@ def test_irstmt_noop():
     nose.tools.assert_equal(irnop.tag, "Ist_NoOp")
     nose.tools.assert_equal(type(irnop), type(irnop2))
     nose.tools.assert_equal(type(irnop), type(irnop3))
-    
+
 def test_irstmt_imark():
     m = pyvex.IRStmt.IMark(1,2,3)
     nose.tools.assert_equal(m.tag, "Ist_IMark")
