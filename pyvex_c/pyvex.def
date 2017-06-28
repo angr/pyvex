@@ -1,36 +1,33 @@
 LIBRARY pyvex.dll
 
 EXPORTS
-  vex_control
-  vex_init
-  vex_lift
-  emptyIRTypeEnv
-  emptyIRSB
-  IRConst_U1
-  IRConst_U8
-  IRConst_U16
-  IRConst_U32
-  IRConst_U64
   IRConst_F32
   IRConst_F32i
   IRConst_F64
   IRConst_F64i
+  IRConst_U1
+  IRConst_U16
+  IRConst_U32
+  IRConst_U64
+  IRConst_U8
   IRConst_V128
   IRConst_V256
   IRExpr_Binder
-  IRExpr_VECRET
+  IRExpr_Binop
+  IRExpr_CCall
+  IRExpr_Const
   IRExpr_GSPTR
   IRExpr_Get
   IRExpr_GetI
-  IRExpr_RdTmp
-  IRExpr_Qop
-  IRExpr_Triop
-  IRExpr_Binop
-  IRExpr_Unop
-  IRExpr_Load
-  IRExpr_Const
   IRExpr_ITE
-  IRExpr_CCall
+  IRExpr_Load
+  IRExpr_Qop
+  IRExpr_RdTmp
+  IRExpr_Triop
+  IRExpr_Unop
+  IRExpr_VECRET
+  emptyIRSB
+  emptyIRTypeEnv
   log_level
   mkIRCallee
   mkIRExprVec_0
@@ -44,9 +41,11 @@ EXPORTS
   mkIRExprVec_8
   mkIRRegArray
   msg_buffer
+  msg_current_size
   newIRTemp
-  sizeofIRType
   typeOfIRExpr
   typeOfIRLoadGOp
   typeOfPrimop
-  vta
+  vex_lift
+  vex_init
+  sizeofIRType

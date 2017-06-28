@@ -1,0 +1,5 @@
+To generate the list of exports for windows:
+
+grep -E -o -h -r "pvc\.[a-zA-Z0-9_]+" | cut -c 5- | sort -u
+
+Then remove Ity_I8 and add vex_lift (called from __init__ where we can't use the name pvc to refernce it) and sizeofIRType (called from... the unicorn compatibility layer I think?)
