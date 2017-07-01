@@ -9,50 +9,76 @@ import logging
 l = logging.getLogger('cffier')
 l.setLevel(logging.DEBUG)
 
-def find_good_bsearch(known_good, questionable):
-    ffi = cffi.FFI()
-    l.debug("bsearch - trying %d good and %d questionable", len(known_good), len(questionable))
 
-    try:
-        ffi.cdef('\n'.join(known_good + questionable))
-    except (cffi.CDefError, AssertionError):
-        return find_good_bsearch(known_good, questionable[:len(questionable)/2])
+def find_good_scan(questionable):
+    known_good = []
 
-    return questionable
+    end_line = len(questionable)
 
-def find_good_scan(known_good, questionable):
-    ffi = cffi.FFI()
-    l.debug("scan - trying %d good and %d questionable", len(known_good), len(questionable))
+    while len(questionable):
+        ffi = cffi.FFI()
+        l.debug("scan - trying %d good and %d questionable", len(known_good), len(questionable))
 
-    #print "GOOD:"
-    #print '  ...'
-    #print '  ' + '\n  '.join(known_good[-5:])
-    #print "UNKNOWN:"
-    #print '  ' + '\n  '.join(questionable[:5])
-    #print '  ...'
-    #print '  ' + '\n  '.join(questionable[-5:])
+        candidate = known_good + questionable[:end_line]
+        failed_line = -1
 
-    try:
-        ffi.cdef('\n'.join(known_good + questionable))
-        return questionable
-    except AssertionError:
-        return [ ]
-    except cffi.CDefError as e:
-        if str(e).count(':') >= 2:
-            fail = int(str(e).split('\n')[1].split(':')[1])
-        elif 'unrecognized construct' in str(e):
-            fail = int(str(e).split()[1][:-1])
-        elif 'end of input' in str(e):
-            return find_good_scan(known_good, questionable[:-1])
-        else:
-            raise Exception("Unknown error")
-    except cffi.FFIError as e:
-        if str(e).count(':') >= 2:
-            fail = int(str(e).split('\n')[0].split(':')[1])
-        else:
-            raise Exception("Unknown error")
+        try:
+            ffi.cdef('\n'.join(candidate))
 
-    return find_good_scan(known_good, questionable[:fail-2-len(known_good)])
+            known_good = candidate
+            questionable = questionable[end_line:]
+            end_line = len(questionable)
+        except AssertionError:
+            questionable = questionable[1:]
+            end_line = len(questionable)
+        except cffi.CDefError as e:
+            if '<cdef source string>' in str(e):
+                failed_line = int(str(e).split('\n')[-1].split(':')[1])-1
+            elif str(e).count(':') >= 2:
+                failed_line = int(str(e).split('\n')[1].split(':')[1])
+                failed_line_description = str(e).split('\n')[0]
+                idx1 = failed_line_description.index('"')
+                idx2 = failed_line_description.rindex('"')
+                failed_reason = failed_line_description[idx1+1:idx2]
+
+                for i in range(failed_line, -1, -1):
+                    if failed_reason in candidate[i]:
+                        failed_line = i
+                print '------------------------------------'
+                print 'failed at %d, known_good: %d, questionable: %d' % (failed_line, len(known_good), len(questionable))
+                print '\n'.join(map(lambda x: '%3d| %s' % x, enumerate(candidate))[failed_line-4:failed_line+4])
+                print e
+                print '------------------------------------'
+            elif 'unrecognized construct' in str(e):
+                failed_line = int(str(e).split()[1][:-1])-1
+                print '===================================='
+                print 'failed at %d, known_good: %d, questionable: %d' % (failed_line, len(known_good), len(questionable))
+                print '\n'.join(map(lambda x: '%3d| %s' % x, enumerate(candidate))[failed_line-4:failed_line+4])
+                print e
+                print '===================================='
+            elif 'end of input' in str(e):
+                end_line -= 1
+            else:
+                raise Exception("Unknown error")
+        except cffi.FFIError as e:
+            if str(e).count(':') >= 2:
+                failed_line = int(str(e).split('\n')[0].split(':')[1])-1
+                print '************************************'
+                print 'failed at %d, known_good: %d, questionable: %d' % (failed_line, len(known_good), len(questionable))
+                print '\n'.join(map(lambda x: '%3d| %s' % x, enumerate(candidate))[failed_line-4:failed_line+4])
+                print e
+                print '************************************'
+            else:
+                raise Exception("Unknown error")
+
+        if failed_line != -1:
+            end_line = failed_line-len(known_good)
+
+        if end_line == 0:
+            questionable = questionable[1:]
+            end_line = len(questionable)
+    return known_good
+
 
 def doit(vex_path):
     cpplist = ['cl', 'cpp']
@@ -83,11 +109,12 @@ def doit(vex_path):
     else:
         l.warning("failed commands:\n" +
                   "\n".join("{} ({}) -- {}".format(*e) for e in errs))
-        raise Exception("Couldn't process pyvex headers." +
-                "Please set CPP environmental variable to local path of \"cpp\"." +
-                "Note that \"cpp\" and \"g++\" are different."
-                )
-    #header = vex_pp + pyvex_pp
+        raise Exception(
+            "Couldn't process pyvex headers." +
+            "Please set CPP environmental variable to local path of \"cpp\"." +
+            "Note that \"cpp\" and \"g++\" are different."
+        )
+    # header = vex_pp + pyvex_pp
 
     linesep = '\r\n' if '\r\n' in header else '\n'
     ffi_text = linesep.join(line for line in header.split(linesep) if '#' not in line and line.strip() != '' and 'jmp_buf' not in line)
@@ -101,16 +128,8 @@ def doit(vex_path):
     ffi_text = ffi_text.replace('__int64', 'long')
     ffi_lines = ffi_text.split(linesep)
 
-    good = find_good_scan([], ffi_lines)
-    remaining = ffi_lines[len(good)+1:]
-
-    while len(remaining) > 1:
-        l.debug("%d uncertain lines remaining", len(remaining))
-        new_good = find_good_scan(good, remaining[1:])
-        good += new_good
-        remaining = remaining[len(new_good)+1:]
-
-    good += [ 'extern VexControl vex_control;' ]
+    good = find_good_scan(ffi_lines)
+    good += ['extern VexControl vex_control;']
 
     open('pyvex/vex_ffi.py', 'w').write('ffi_str = """' + '\n'.join(good) + '"""')
 
