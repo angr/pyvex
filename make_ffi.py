@@ -44,18 +44,8 @@ def find_good_scan(questionable):
                 for i in range(failed_line, -1, -1):
                     if failed_reason in candidate[i]:
                         failed_line = i
-                print '------------------------------------'
-                print 'failed at %d, known_good: %d, questionable: %d' % (failed_line, len(known_good), len(questionable))
-                print '\n'.join(map(lambda x: '%3d| %s' % x, enumerate(candidate))[failed_line-4:failed_line+4])
-                print e
-                print '------------------------------------'
             elif 'unrecognized construct' in str(e):
                 failed_line = int(str(e).split()[1][:-1])-1
-                print '===================================='
-                print 'failed at %d, known_good: %d, questionable: %d' % (failed_line, len(known_good), len(questionable))
-                print '\n'.join(map(lambda x: '%3d| %s' % x, enumerate(candidate))[failed_line-4:failed_line+4])
-                print e
-                print '===================================='
             elif 'end of input' in str(e):
                 end_line -= 1
             else:
@@ -63,11 +53,6 @@ def find_good_scan(questionable):
         except cffi.FFIError as e:
             if str(e).count(':') >= 2:
                 failed_line = int(str(e).split('\n')[0].split(':')[1])-1
-                print '************************************'
-                print 'failed at %d, known_good: %d, questionable: %d' % (failed_line, len(known_good), len(questionable))
-                print '\n'.join(map(lambda x: '%3d| %s' % x, enumerate(candidate))[failed_line-4:failed_line+4])
-                print e
-                print '************************************'
             else:
                 raise Exception("Unknown error")
 
