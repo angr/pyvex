@@ -250,7 +250,7 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai) {
 			break;
 		case VexArchMIPS32:
 		case VexArchMIPS64:
-			vai->hwcaps = 0x00010000;
+			vai->hwcaps = VEX_PRID_COMP_CAVIUM;
 			break;
 		default:
 			pyvex_error("Invalid arch in vex_prepare_vai.\n");
