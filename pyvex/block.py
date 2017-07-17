@@ -22,6 +22,8 @@ class IRSB(VEXObject):
     :ivar int stmts_used:   The number of statements in this IRSB
     :ivar str jumpkind:     The type of this block's default jump (call, boring, syscall, etc) as a VEX enum string
     :ivar bool direct_next: Whether this block ends with a direct (not indirect) jump or branch
+    :ivar int size:         The size of this block in bytes
+    :ivar int addr:         The address of this basic block, i.e. the address in the first IMark
     """
 
     __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next', '_size']
@@ -172,6 +174,13 @@ class IRSB(VEXObject):
         if self._size is None:
             self._size = sum([s.len for s in self.statements if isinstance(s, stmt.IMark)])
         return self._size
+
+    @property
+    def addr(self):
+        for s in self.statements:
+            if isinstance(s, stmt.IMark):
+                return s.addr
+        return None
 
     @property
     def operations(self):
