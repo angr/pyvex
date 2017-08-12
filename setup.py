@@ -1,12 +1,18 @@
 # pylint: disable=no-name-in-module,import-error
 import os
-import urllib2
 import subprocess
 import sys
 import shutil
 import glob
 import tarfile
 import multiprocessing
+
+IS_PYTHON2 = sys.version_info < (3, 0)
+if IS_PYTHON2:
+    from urllib2 import urlopen
+else:
+    from urllib.request import urlopen
+
 import platform
 
 try:
@@ -42,7 +48,7 @@ VEX_PATH = os.path.join('..', 'vex')
 if not os.path.exists(VEX_PATH):
     VEX_URL = 'https://github.com/angr/vex/archive/master.tar.gz'
     with open('master.tar.gz', 'wb') as v:
-        v.write(urllib2.urlopen(VEX_URL).read())
+        v.write(urlopen(VEX_URL).read())
     with tarfile.open('master.tar.gz') as tar:
         tar.extractall()
     VEX_PATH='vex-master'
