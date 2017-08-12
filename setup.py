@@ -15,7 +15,11 @@ try:
     packages = find_packages()
 except ImportError:
     from distutils.core import setup
-    packages = [x.strip('./').replace('/','.') for x in os.popen('find -name "__init__.py" | xargs -n1 dirname').read().strip().split('\n')]
+    packages = []
+    path = os.path.dirname(os.path.realpath(__file__))
+    for root, _, filenames in os.walk(path):
+        if "__init__.py" in filenames:
+            packages.append(root)
 
 from distutils.util import get_platform
 from distutils.errors import LibError
