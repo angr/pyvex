@@ -15,6 +15,8 @@ else:
 
 import platform
 
+PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
+
 try:
     from setuptools import setup
     from setuptools import find_packages
@@ -22,8 +24,7 @@ try:
 except ImportError:
     from distutils.core import setup
     packages = []
-    path = os.path.dirname(os.path.realpath(__file__))
-    for root, _, filenames in os.walk(path):
+    for root, _, filenames in os.walk(PROJECT_DIR):
         if "__init__.py" in filenames:
             packages.append(root)
 
@@ -43,7 +44,7 @@ else:
 
 
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
-VEX_PATH = os.path.join('..', 'vex')
+VEX_PATH = os.path.join(PROJECT_DIR, '..', 'vex')
 
 if not os.path.exists(VEX_PATH):
     VEX_URL = 'https://github.com/angr/vex/archive/master.tar.gz'
@@ -71,9 +72,9 @@ def _build_vex():
 
 def _build_pyvex():
     e = os.environ.copy()
-    e['VEX_LIB_PATH'] = os.path.join('..', VEX_PATH)
-    e['VEX_INCLUDE_PATH'] = os.path.join('..', VEX_PATH, 'pub')
-    e['VEX_LIB_FILE'] = os.path.join('..', VEX_PATH, 'libvex.lib')
+    e['VEX_LIB_PATH'] = os.path.join(PROJECT_DIR, '..', VEX_PATH)
+    e['VEX_INCLUDE_PATH'] = os.path.join(PROJECT_DIR, '..', VEX_PATH, 'pub')
+    e['VEX_LIB_FILE'] = os.path.join(PROJECT_DIR, '..', VEX_PATH, 'libvex.lib')
 
     cmd1 = ['nmake', '/f', 'Makefile-msvc']
     cmd2 = ['make', '-j', str(multiprocessing.cpu_count())]
@@ -87,21 +88,26 @@ def _build_pyvex():
         raise LibError("Unable to build libpyvex.")
 
 def _shuffle_files():
-    shutil.rmtree('pyvex/lib', ignore_errors=True)
-    shutil.rmtree('pyvex/include', ignore_errors=True)
-    os.mkdir('pyvex/lib')
-    os.mkdir('pyvex/include')
+    pyvex_lib_dir = os.path.join(PROJECT_DIR, 'pyvex', 'lib')
+    pyvex_include_dir = os.path.join(PROJECT_DIR, 'pyvex', 'include')
 
-    shutil.copy(os.path.join('pyvex_c', LIBRARY_FILE), 'pyvex/lib')
-    shutil.copy(os.path.join('pyvex_c', STATIC_LIBRARY_FILE), 'pyvex/lib')
-    shutil.copy('pyvex_c/pyvex.h', 'pyvex/include')
+    shutil.rmtree(pyvex_lib_dir, ignore_errors=True)
+    shutil.rmtree(pyvex_include_dir, ignore_errors=True)
+    os.mkdir(pyvex_lib_dir)
+    os.mkdir(pyvex_include_dir)
+
+    pyvex_c_dir = os.path.join(PROJECT_DIR, 'pyvex_c')
+
+    shutil.copy(os.path.join(pyvex_c_dir, LIBRARY_FILE), pyvex_lib_dir)
+    shutil.copy(os.path.join(pyvex_c_dir, STATIC_LIBRARY_FILE), pyvex_lib_dir)
+    shutil.copy(os.path.join(pyvex_c_dir, 'pyvex.h'), pyvex_include_dir)
     for f in glob.glob(os.path.join(VEX_PATH, 'pub', '*')):
-        shutil.copy(f, 'pyvex/include')
+        shutil.copy(f, pyvex_include_dir)
 
 def _build_ffi():
     import make_ffi
     try:
-        make_ffi.doit(os.path.join(VEX_PATH,'pub'))
+        make_ffi.doit(os.path.join(VEX_PATH, 'pub'))
     except Exception as e:
         print(repr(e))
         raise
