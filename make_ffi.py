@@ -83,6 +83,8 @@ def doit(vex_path):
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             header, stderr = p.communicate()
+            header = header.decode("utf-8")
+            stderr = stderr.decode("utf-8")
             if not header.strip() or p.returncode != 0:
                 errs.append((" ".join(cmd), p.returncode, stderr))
                 continue
