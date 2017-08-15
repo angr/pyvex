@@ -44,7 +44,7 @@ else:
 
 
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
-VEX_PATH = os.path.join(PROJECT_DIR, '..', 'vex')
+VEX_PATH = os.path.abspath(os.path.join(PROJECT_DIR, '..', 'vex'))
 
 if not os.path.exists(VEX_PATH):
     VEX_URL = 'https://github.com/angr/vex/archive/master.tar.gz'
@@ -52,7 +52,7 @@ if not os.path.exists(VEX_PATH):
         v.write(urlopen(VEX_URL).read())
     with tarfile.open('master.tar.gz') as tar:
         tar.extractall()
-    VEX_PATH='vex-master'
+    VEX_PATH = os.path.abspath('vex-master')
 
 def _build_vex():
     e = os.environ.copy()
@@ -72,9 +72,9 @@ def _build_vex():
 
 def _build_pyvex():
     e = os.environ.copy()
-    e['VEX_LIB_PATH'] = os.path.join(PROJECT_DIR, '..', VEX_PATH)
-    e['VEX_INCLUDE_PATH'] = os.path.join(PROJECT_DIR, '..', VEX_PATH, 'pub')
-    e['VEX_LIB_FILE'] = os.path.join(PROJECT_DIR, '..', VEX_PATH, 'libvex.lib')
+    e['VEX_LIB_PATH'] = VEX_PATH
+    e['VEX_INCLUDE_PATH'] = os.path.join(VEX_PATH, 'pub')
+    e['VEX_LIB_FILE'] = os.path.join(VEX_PATH, 'libvex.lib')
 
     cmd1 = ['nmake', '/f', 'Makefile-msvc']
     cmd2 = ['make', '-j', str(multiprocessing.cpu_count())]
