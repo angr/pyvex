@@ -685,35 +685,39 @@ def op_type(op):
         _op_type_cache[op] = out
         return out
 
+op_signatures = {}
 def op_arg_types(op):
-    res_ty = ffi.new('IRType *')
-    arg1_ty = ffi.new('IRType *')
-    arg2_ty = ffi.new('IRType *')
-    arg3_ty = ffi.new('IRType *')
-    arg4_ty = ffi.new('IRType *')
-    arg2_ty[0] = 0x1100
-    arg3_ty[0] = 0x1100
-    arg4_ty[0] = 0x1100
+    try:
+        return op_signatures[op]
+    except KeyError:
+        res_ty = ffi.new('IRType *')
+        arg1_ty = ffi.new('IRType *')
+        arg2_ty = ffi.new('IRType *')
+        arg3_ty = ffi.new('IRType *')
+        arg4_ty = ffi.new('IRType *')
+        arg2_ty[0] = 0x1100
+        arg3_ty[0] = 0x1100
+        arg4_ty[0] = 0x1100
 
-    pvc.typeOfPrimop(enums_to_ints[op], res_ty, arg1_ty, arg2_ty, arg3_ty, arg4_ty)
-    if arg2_ty[0] == 0x1100:
-        return (ints_to_enums[res_ty[0]],
-                (ints_to_enums[arg1_ty[0]],))
-    elif arg3_ty[0] == 0x1100:
-        return (ints_to_enums[res_ty[0]],
-                (ints_to_enums[arg1_ty[0]],
-                 ints_to_enums[arg2_ty[0]],))
-    elif arg4_ty[0] == 0x1100:
-        return (ints_to_enums[res_ty[0]],
-                (ints_to_enums[arg1_ty[0]],
-                 ints_to_enums[arg2_ty[0]],
-                 ints_to_enums[arg3_ty[0]],))
-    else:
-        return (ints_to_enums[res_ty[0]],
-                (ints_to_enums[arg1_ty[0]],
-                 ints_to_enums[arg2_ty[0]],
-                 ints_to_enums[arg3_ty[0]],
-                 ints_to_enums[arg4_ty[0]],))
+        pvc.typeOfPrimop(enums_to_ints[op], res_ty, arg1_ty, arg2_ty, arg3_ty, arg4_ty)
+        if arg2_ty[0] == 0x1100:
+            return (ints_to_enums[res_ty[0]],
+                    (ints_to_enums[arg1_ty[0]],))
+        elif arg3_ty[0] == 0x1100:
+            return (ints_to_enums[res_ty[0]],
+                    (ints_to_enums[arg1_ty[0]],
+                     ints_to_enums[arg2_ty[0]],))
+        elif arg4_ty[0] == 0x1100:
+            return (ints_to_enums[res_ty[0]],
+                    (ints_to_enums[arg1_ty[0]],
+                     ints_to_enums[arg2_ty[0]],
+                     ints_to_enums[arg3_ty[0]],))
+        else:
+            return (ints_to_enums[res_ty[0]],
+                    (ints_to_enums[arg1_ty[0]],
+                     ints_to_enums[arg2_ty[0]],
+                     ints_to_enums[arg3_ty[0]],
+                     ints_to_enums[arg4_ty[0]],))
 
 from .const import IRConst
 from .enums import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, type_sizes
