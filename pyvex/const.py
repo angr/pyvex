@@ -38,7 +38,7 @@ class IRConst(VEXObject):
             raise PyVEXError('Invalid U1 value: %d' % const.value)
 
         try:
-            return tag_to_ctor[const.tag](const.value)
+            return tag_to_ctor[enums_to_ints[const.tag]](const.value)
         except KeyError:
             raise PyVEXError('Unknown/unsupported IRConstTag %s]n' % const.tag)
 
@@ -213,29 +213,29 @@ from .errors import PyVEXError
 from . import ffi, pvc
 
 tag_to_class = {
-    enums_to_ints['Ico_U1']: U1,
-    enums_to_ints['Ico_U8']: U8,
-    enums_to_ints['Ico_U16']: U16,
-    enums_to_ints['Ico_U32']: U32,
-    enums_to_ints['Ico_U64']: U64,
-    enums_to_ints['Ico_F32']: F32,
-    enums_to_ints['Ico_F32i']: F32i,
-    enums_to_ints['Ico_F64']: F64,
-    enums_to_ints['Ico_F64i']: F64i,
-    enums_to_ints['Ico_V128']: V128,
-    enums_to_ints['Ico_V256']: V256,
+    enums_to_ints['Ico_U1']   : U1,
+    enums_to_ints['Ico_U8']   : U8,
+    enums_to_ints['Ico_U16']  : U16,
+    enums_to_ints['Ico_U32']  : U32,
+    enums_to_ints['Ico_U64']  : U64,
+    enums_to_ints['Ico_F32']  : F32,
+    enums_to_ints['Ico_F32i'] : F32i,
+    enums_to_ints['Ico_F64']  : F64,
+    enums_to_ints['Ico_F64i'] : F64i,
+    enums_to_ints['Ico_V128'] : V128,
+    enums_to_ints['Ico_V256'] : V256,
 }
 
 tag_to_ctor = {
-    'Ico_U1': pvc.IRConst_U1,
-    'Ico_U8': pvc.IRConst_U8,
-    'Ico_U16': pvc.IRConst_U16,
-    'Ico_U32': pvc.IRConst_U32,
-    'Ico_U64': pvc.IRConst_U64,
-    'Ico_F32': pvc.IRConst_F32,
-    'Ico_F32i': pvc.IRConst_F32i,
-    'Ico_F64': pvc.IRConst_F64,
-    'Ico_F64i': pvc.IRConst_F64i,
-    'Ico_V128': pvc.IRConst_V128,
-    'Ico_V256': pvc.IRConst_V256,
+    enums_to_ints['Ico_U1']   : pvc.IRConst_U1,
+    enums_to_ints['Ico_U8']   : pvc.IRConst_U8,
+    enums_to_ints['Ico_U16']  : pvc.IRConst_U16,
+    enums_to_ints['Ico_U32']  : pvc.IRConst_U32,
+    enums_to_ints['Ico_U64']  : pvc.IRConst_U64,
+    enums_to_ints['Ico_F32']  : pvc.IRConst_F32,
+    enums_to_ints['Ico_F32i'] : pvc.IRConst_F32i,
+    enums_to_ints['Ico_F64']  : pvc.IRConst_F64,
+    enums_to_ints['Ico_F64i'] : pvc.IRConst_F64i,
+    enums_to_ints['Ico_V128'] : pvc.IRConst_V128,
+    enums_to_ints['Ico_V256'] : pvc.IRConst_V256,
 }
