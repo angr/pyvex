@@ -672,18 +672,8 @@ class CCall(IRExpr):
     def result_type(self, tyenv):
         return self.retty
 
-_op_type_cache = {}
-
 def op_type(op):
-    try:
-        return _op_type_cache[op]
-    except KeyError:
-        out_int = ffi.new('IRType *')
-        unused = ffi.new('IRType *')
-        pvc.typeOfPrimop(enums_to_ints[op], out_int, unused, unused, unused, unused)
-        out = ints_to_enums[out_int[0]]
-        _op_type_cache[op] = out
-        return out
+    return op_arg_types(op)[0]
 
 op_signatures = {}
 def op_arg_types(op):
@@ -691,33 +681,20 @@ def op_arg_types(op):
         return op_signatures[op]
     except KeyError:
         res_ty = ffi.new('IRType *')
-        arg1_ty = ffi.new('IRType *')
-        arg2_ty = ffi.new('IRType *')
-        arg3_ty = ffi.new('IRType *')
-        arg4_ty = ffi.new('IRType *')
-        arg2_ty[0] = 0x1100
-        arg3_ty[0] = 0x1100
-        arg4_ty[0] = 0x1100
+        arg_tys = [ffi.new('IRType *') for _ in xrange(4)]
+        for arg in arg_tys:
+            arg = 0x1100
+        pvc.typeOfPrimop(enums_to_ints[op], res_ty, *arg_tys)
 
-        pvc.typeOfPrimop(enums_to_ints[op], res_ty, arg1_ty, arg2_ty, arg3_ty, arg4_ty)
-        if arg2_ty[0] == 0x1100:
-            return (ints_to_enums[res_ty[0]],
-                    (ints_to_enums[arg1_ty[0]],))
-        elif arg3_ty[0] == 0x1100:
-            return (ints_to_enums[res_ty[0]],
-                    (ints_to_enums[arg1_ty[0]],
-                     ints_to_enums[arg2_ty[0]],))
-        elif arg4_ty[0] == 0x1100:
-            return (ints_to_enums[res_ty[0]],
-                    (ints_to_enums[arg1_ty[0]],
-                     ints_to_enums[arg2_ty[0]],
-                     ints_to_enums[arg3_ty[0]],))
-        else:
-            return (ints_to_enums[res_ty[0]],
-                    (ints_to_enums[arg1_ty[0]],
-                     ints_to_enums[arg2_ty[0]],
-                     ints_to_enums[arg3_ty[0]],
-                     ints_to_enums[arg4_ty[0]],))
+        try:
+            numargs = arg_tys.index(0x1100) + 1
+        except ValueError:
+            numargs = 4
+        args_tys_list = [ints_to_enums[arg_tys[i][0]] for i in range(numargs)]
+
+        op_ty_sig = (ints_to_enums[res_ty[0]], tuple(args_tys_list))
+        op_signatures[op] = op_ty_sig
+        return op_ty_sig
 
 from .const import IRConst
 from .enums import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, type_sizes
