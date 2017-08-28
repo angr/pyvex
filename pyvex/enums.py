@@ -1,4 +1,6 @@
+import re
 import collections
+
 from . import pvc, ffi
 
 class VEXObject(object):
@@ -71,7 +73,7 @@ class IRRegArray(VEXObject):
     @staticmethod
     def _to_c(arr):
         return pvc.mkIRRegArray(arr.base,
-                                enums_to_ints[arr.elemTy],
+                                get_int_from_enum(arr.elemTy),
                                 arr.nElems)
 
 ints_to_enums = { }
@@ -79,12 +81,18 @@ enums_to_ints = { }
 irop_enums_to_ints = { }
 will_be_overwritten = ['Ircr_GT', 'Ircr_LT']
 
-def add_enum(s, i=None):
+def get_enum_from_int(i):
+    return ints_to_enums[i]
+
+def get_int_from_enum(e):
+    return enums_to_ints[e]
+
+def _add_enum(s, i=None): # TODO get rid of this
     if i is None:
-        while add_enum.counter in ints_to_enums:
-            add_enum.counter += 1
-        i = add_enum.counter
-        add_enum.counter += 1 # Update for the next iteration
+        while _add_enum.counter in ints_to_enums:
+            _add_enum.counter += 1
+        i = _add_enum.counter
+        _add_enum.counter += 1 # Update for the next iteration
     if i in ints_to_enums:
         if ints_to_enums[i] not in will_be_overwritten:
             raise ValueError('Enum with intkey %d already present' % i)
@@ -92,30 +100,11 @@ def add_enum(s, i=None):
     ints_to_enums[i] = s
     if s.startswith('Iop_'):
         irop_enums_to_ints[s] = i
-add_enum.counter = 0
+_add_enum.counter = 0
 
 for attr in dir(pvc):
     if hasattr(pvc, attr) and isinstance(getattr(pvc, attr), int):
-        add_enum(attr, getattr(pvc, attr))
-
-type_sizes = {
-    'Ity_INVALID': None,
-    'Ity_I1': 1,
-    'Ity_I8': 8,
-    'Ity_I16': 16,
-    'Ity_I32': 32,
-    'Ity_I64': 64,
-    'Ity_I128': 128,
-    'Ity_F16': 16,
-    'Ity_F32': 32,
-    'Ity_F64': 64,
-    'Ity_F128': 128,
-    'Ity_D32': 32,
-    'Ity_D64': 64,
-    'Ity_D128': 128,
-    'Ity_V128': 128,
-    'Ity_V256': 256
-}
+        _add_enum(attr, getattr(pvc, attr))
 
 def vex_endness_from_string(endness_str):
     return getattr(pvc, endness_str)

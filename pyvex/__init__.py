@@ -40,6 +40,7 @@ from .enums import *
 from .block import *
 from . import stmt, expr, const
 from .expr import get_op_retty
+from .const import tag_to_const_class
 
 # aliases....
 IRStmt = stmt
