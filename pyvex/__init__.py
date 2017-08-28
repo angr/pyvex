@@ -39,7 +39,7 @@ pvc = _find_c_lib()
 from .enums import *
 from .block import *
 from . import stmt, expr, const
-from .expr import op_type
+from .expr import get_op_retty
 
 # aliases....
 IRStmt = stmt

@@ -1,4 +1,5 @@
 from . import VEXObject
+import re
 
 import logging
 l = logging.getLogger("pyvex.expr")
@@ -293,7 +294,7 @@ class Qop(IRExpr):
                                 for arg in expr.args])
 
     def result_type(self, tyenv):
-        return op_type(self.op)
+        return get_op_retty(self.op)
 
     def typecheck(self, tyenv):
         resty, (arg1ty, arg2ty, arg3ty, arg4ty) = op_arg_types(self.op)
@@ -357,7 +358,7 @@ class Triop(IRExpr):
                                   for arg in expr.args])
 
     def result_type(self, tyenv):
-        return op_type(self.op)
+        return get_op_retty(self.op)
 
     def typecheck(self, tyenv):
         resty, (arg1ty, arg2ty, arg3ty) = op_arg_types(self.op)
@@ -417,12 +418,15 @@ class Binop(IRExpr):
                                   for arg in expr.args])
 
     def result_type(self, tyenv):
-        return op_type(self.op)
+        return get_op_retty(self.op)
 
     def typecheck(self, tyenv):
-        resty, (arg1ty, arg2ty) = op_arg_types(self.op)
         arg1ty_real = self.args[0].typecheck(tyenv)
         arg2ty_real = self.args[1].typecheck(tyenv)
+
+        retty = get_op_retty(self.op, arg1ty_real, arg2ty_real)
+
+        resty, (arg1ty, arg2ty) = op_arg_types(self.op)
         if arg1ty_real is None or arg2ty_real is None:
             return None
 
@@ -470,7 +474,7 @@ class Unop(IRExpr):
                                IRExpr._to_c(expr.args[0]))
 
     def result_type(self, tyenv):
-        return op_type(self.op)
+        return get_op_retty(self.op)
 
     def typecheck(self, tyenv):
         resty, (arg1ty,) = op_arg_types(self.op)
@@ -665,36 +669,123 @@ class CCall(IRExpr):
     @staticmethod
     def _to_c(expr):
         args = [IRExpr._to_c(arg) for arg in expr.args]
+        mkIRExprVec = getattr(pvc, 'mkIRExprVec_%d' % len(args))
         return pvc.IRExpr_CCall(IRCallee._to_c(expr.cee),
                                 enums_to_ints[expr.retty],
-                                mkIRExprVec[len(args)](*args))
+                                mkIRExprVec(*args))
 
     def result_type(self, tyenv):
         return self.retty
 
-def op_type(op):
+def get_op_retty(op, *args):
     return op_arg_types(op)[0]
 
 op_signatures = {}
-def op_arg_types(op):
+def _request_op_type_from_cache(op):
+    return op_signatures[op]
+
+def _request_op_type_from_libvex(op):
+    res_ty = ffi.new('IRType *')
+    arg_tys = [ffi.new('IRType *') for _ in xrange(4)]
+    for arg in arg_tys:
+        arg = 0x1100
+    pvc.typeOfPrimop(enums_to_ints[op], res_ty, *arg_tys)
+    print [a[0] for a in arg_tys]
+
     try:
-        return op_signatures[op]
-    except KeyError:
-        res_ty = ffi.new('IRType *')
-        arg_tys = [ffi.new('IRType *') for _ in xrange(4)]
-        for arg in arg_tys:
-            arg = 0x1100
-        pvc.typeOfPrimop(enums_to_ints[op], res_ty, *arg_tys)
+        numargs = [a[0] for a in arg_tys].index(0x1100)
+    except ValueError:
+        numargs = 4
+    args_tys_list = [ints_to_enums[arg_tys[i][0]] for i in range(numargs)]
 
+    op_ty_sig = (ints_to_enums[res_ty[0]], tuple(args_tys_list))
+    op_signatures[op] = op_ty_sig
+    return op_ty_sig
+
+class PyvexOpMatchException(Exception):
+    pass
+
+class PyvexTypeErrorException(Exception):
+    pass
+
+def unop_signature(op):
+    m = re.match(r'Iop_(Not|Ctz|Clz)(?P<size>\d+)$', op)
+    if m is None:
+        raise PyvexOpMatchException()
+    size = int(m.group('size'))
+    return (size, (size,)) # TODO change this to return the class
+
+def binop_signature(op):
+    m = re.match(r'Iop_(Add|Sub|Mul|Or|And|Div(S|U))(?P<size>\d+)$', op)
+    if m is None:
+        raise PyvexOpMatchException()
+    size = int(m.group('size'))
+    return (size, (size, size))
+
+def shift_signature(op):
+    m = re.match(r'Iop_(Shl|Shr|Sar)(?P<size>\d+)$', op)
+    if m is None:
+        raise PyvexOpMatchException()
+    size = int(m.group('size'))
+    if size > 255:
+        raise PyvexTypeErrorException('Cannot apply shift operation to %d size int because shift index is 8-bit' % size)
+    return (size, (size, 8))
+
+def cmp_signature(op):
+    m = re.match(r'Iop_Cmp(EQ|NE)(?P<size>\d+)$', op)
+    m2 = re.match(r'Iop_Cmp(LT|LE)[SU](?P<size>\d+)$', op)
+    if (m is None) == (m2 is None):
+        raise PyvexOpMatchException()
+    size = int(m.group('size'))
+    return (1, (size, size))
+
+def mull_signature(op):
+    m = re.match(r'Iop_Mull[SU](?P<size>\d+)$', op)
+    if m is None:
+        raise PyvexOpMatchException()
+    size = int(m.group('size'))
+    return (2*size, (size, size))
+
+def half_signature(op):
+    m = re.match(r'Iop_DivMod[SU](?P<fullsize>\d+)to(?P<halfsize>\d+)$', op)
+    if m is None:
+        raise PyvexOpMatchException()
+    fullsize = int(m.group('fullsize'))
+    halfsize = int(m.group('halfsize'))
+    if halfsize * 2 != fullsize:
+        raise PyvexTypeErrorException('Invalid Instruction %s: Type 1 must be twice the size of type 2' % op)
+    return (fullsize, (fullsize, halfsize))
+
+polymorphic_op_processors = [ unop_signature,
+                              binop_signature,
+                              shift_signature,
+                              cmp_signature,
+                              mull_signature,
+                              half_signature ]
+
+def _request_polymorphic_op_type(op):
+    for polymorphic_signature in polymorphic_op_processors:
         try:
-            numargs = arg_tys.index(0x1100) + 1
-        except ValueError:
-            numargs = 4
-        args_tys_list = [ints_to_enums[arg_tys[i][0]] for i in range(numargs)]
+            op_ty_sig = polymorphic_signature(op)
+            break
+        except PyvexOpMatchException:
+            continue
+    else:
+        raise PyvexOpMatchException('Op %s not recognized' % op)
+    op_signatures[op] = op_ty_sig
+    return op_ty_sig
 
-        op_ty_sig = (ints_to_enums[res_ty[0]], tuple(args_tys_list))
-        op_signatures[op] = op_ty_sig
-        return op_ty_sig
+_request_funcs = [_request_op_type_from_cache,
+                  _request_op_type_from_libvex,
+                  _request_polymorphic_op_type]
+
+def op_arg_types(op):
+    for _request_func in _request_funcs:
+        try:
+           return _request_func(op)
+        except KeyError:
+            continue
+    raise ValueError("Cannot find type of op %s" % op)
 
 from .const import IRConst
 from .enums import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, type_sizes
@@ -717,15 +808,3 @@ tag_to_class = {
     enums_to_ints['Iex_GSPTR']: GSPTR,
     enums_to_ints['Iex_VECRET']: VECRET,
 }
-
-mkIRExprVec = [
-    pvc.mkIRExprVec_0,
-    pvc.mkIRExprVec_1,
-    pvc.mkIRExprVec_2,
-    pvc.mkIRExprVec_3,
-    pvc.mkIRExprVec_4,
-    pvc.mkIRExprVec_5,
-    pvc.mkIRExprVec_6,
-    pvc.mkIRExprVec_7,
-    pvc.mkIRExprVec_8
-]
