@@ -741,7 +741,7 @@ def shift_signature(op):
 
 def cmp_signature(op):
     m = re.match(r'Iop_Cmp(EQ|NE)(?P<size>\d+)$', op)
-    m2 = re.match(r'Iop_Cmp(LT|LE)(?P<size>\d+)[SU]$', op)
+    m2 = re.match(r'Iop_Cmp(GT|GE|LT|LE)(?P<size>\d+)[SU]$', op)
     if (m is None) == (m2 is None):
         raise PyvexOpMatchException()
     mfound = m if m is not None else m2
