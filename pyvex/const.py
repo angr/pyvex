@@ -118,6 +118,7 @@ class U32(IRConst):
 class U64(IRConst):
     type = 'Ity_I64'
     tag = 'Ico_U64'
+    op_format = '64'
     c_constructor = pvc.IRConst_U64
 
     def __init__(self, value):
