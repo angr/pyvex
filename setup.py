@@ -156,7 +156,7 @@ setup(
     name="pyvex", version='7.0.0.0rc1', description="A Python interface to libVEX and VEX IR.",
     packages=['pyvex', 'pyvex.lift', 'pyvex.lift.util'],
     cmdclass=cmdclass,
-    install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo' ],
+    install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo', 'bitstring' ],
     setup_requires=[ 'pycparser', 'cffi>=1.0.3' ],
     include_package_data=True,
     package_data={
