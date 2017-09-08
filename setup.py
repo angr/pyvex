@@ -196,7 +196,7 @@ setup(
     url='https://github.com/angr/pyvex',
     packages=packages,
     cmdclass=cmdclass,
-    install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo' ],
+    install_requires=[ 'pycparser', 'cffi>=1.0.3', 'archinfo', 'bitstring' ],
     setup_requires=[ 'pycparser', 'cffi>=1.0.3' ],
     include_package_data=True,
     package_data={

@@ -1,6 +1,10 @@
-from . import VEXObject
-
+import re
 import logging
+
+from . import VEXObject
+from .enums import IRCallee, IRRegArray, get_int_from_enum, get_enum_from_int
+from .const import get_type_size
+
 l = logging.getLogger("pyvex.expr")
 
 class IRExpr(VEXObject):
@@ -44,7 +48,7 @@ class IRExpr(VEXObject):
         return constants
 
     def result_size(self, tyenv):
-        return type_sizes[self.result_type(tyenv)]
+        return get_type_size(self.result_type(tyenv))
 
     def result_type(self, tyenv):
         raise NotImplementedError
@@ -54,19 +58,18 @@ class IRExpr(VEXObject):
         if c_expr == ffi.NULL or c_expr[0] == ffi.NULL:
             return None
 
-        tag_int = c_expr.tag
+        tag = get_enum_from_int(c_expr.tag)
 
         try:
-            return tag_to_class[tag_int]._from_c(c_expr)
+            return tag_to_expr_class(tag)._from_c(c_expr)
         except KeyError:
-            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % ints_to_enums[tag_int])
+            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % tag)
     _translate = _from_c
 
     @staticmethod
     def _to_c(expr):
         try:
-            tag_int = enums_to_ints[expr.tag]
-            return tag_to_class[tag_int]._to_c(expr)
+            return tag_to_expr_class(expr.tag)._to_c(expr)
         except KeyError:
             raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % expr.tag)
 
@@ -243,12 +246,12 @@ class Get(IRExpr):
     @staticmethod
     def _from_c(c_expr):
         return Get(c_expr.Iex.Get.offset,
-                   ints_to_enums[c_expr.Iex.Get.ty])
+                   get_enum_from_int(c_expr.Iex.Get.ty))
 
     @staticmethod
     def _to_c(expr):
         return pvc.IRExpr_Get(expr.offset,
-                              enums_to_ints[expr.ty])
+                              get_int_from_enum(expr.ty))
 
     def result_type(self, tyenv):
         return self.ty
@@ -279,7 +282,7 @@ class Qop(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return Qop(ints_to_enums[c_expr.Iex.Qop.details.op],
+        return Qop(get_enum_from_int(c_expr.Iex.Qop.details.op),
                    [IRExpr._from_c(arg)
                     for arg in [c_expr.Iex.Qop.details.arg1,
                                 c_expr.Iex.Qop.details.arg2,
@@ -288,14 +291,14 @@ class Qop(IRExpr):
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_Qop(enums_to_ints[expr.op],
+        return pvc.IRExpr_Qop(get_int_from_enum(expr.op),
                               *[IRExpr._to_c(arg)
                                 for arg in expr.args])
 
     def result_type(self, tyenv):
-        return op_type(self.op)
+        return get_op_retty(self.op)
 
-    def typecheck(self, tyenv):
+    def typecheck(self, tyenv): # TODO change all this to use PyvexTypeErrorException
         resty, (arg1ty, arg2ty, arg3ty, arg4ty) = op_arg_types(self.op)
         arg1ty_real = self.args[0].typecheck(tyenv)
         arg2ty_real = self.args[1].typecheck(tyenv)
@@ -344,7 +347,7 @@ class Triop(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return Triop(ints_to_enums[c_expr.Iex.Triop.details.op],
+        return Triop(get_enum_from_int(c_expr.Iex.Triop.details.op),
                      [IRExpr._from_c(arg)
                       for arg in [c_expr.Iex.Triop.details.arg1,
                                   c_expr.Iex.Triop.details.arg2,
@@ -352,12 +355,12 @@ class Triop(IRExpr):
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_Triop(enums_to_ints[expr.op],
+        return pvc.IRExpr_Triop(get_int_from_enum(expr.op),
                                 *[IRExpr._to_c(arg)
                                   for arg in expr.args])
 
     def result_type(self, tyenv):
-        return op_type(self.op)
+        return get_op_retty(self.op)
 
     def typecheck(self, tyenv):
         resty, (arg1ty, arg2ty, arg3ty) = op_arg_types(self.op)
@@ -405,24 +408,27 @@ class Binop(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return Binop(ints_to_enums[c_expr.Iex.Binop.op],
+        return Binop(get_enum_from_int(c_expr.Iex.Binop.op),
                      [IRExpr._from_c(arg)
                       for arg in [c_expr.Iex.Binop.arg1,
                                   c_expr.Iex.Binop.arg2]])
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_Binop(enums_to_ints[expr.op],
+        return pvc.IRExpr_Binop(get_int_from_enum(expr.op),
                                 *[IRExpr._to_c(arg)
                                   for arg in expr.args])
 
     def result_type(self, tyenv):
-        return op_type(self.op)
+        return get_op_retty(self.op)
 
     def typecheck(self, tyenv):
-        resty, (arg1ty, arg2ty) = op_arg_types(self.op)
         arg1ty_real = self.args[0].typecheck(tyenv)
         arg2ty_real = self.args[1].typecheck(tyenv)
+
+        retty = get_op_retty(self.op, arg1ty_real, arg2ty_real)
+
+        resty, (arg1ty, arg2ty) = op_arg_types(self.op)
         if arg1ty_real is None or arg2ty_real is None:
             return None
 
@@ -461,16 +467,16 @@ class Unop(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return Unop(ints_to_enums[c_expr.Iex.Unop.op],
+        return Unop(get_enum_from_int(c_expr.Iex.Unop.op),
                     [IRExpr._from_c(c_expr.Iex.Unop.arg)])
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_Unop(enums_to_ints[expr.op],
+        return pvc.IRExpr_Unop(get_int_from_enum(expr.op),
                                IRExpr._to_c(expr.args[0]))
 
     def result_type(self, tyenv):
-        return op_type(self.op)
+        return get_op_retty(self.op)
 
     def typecheck(self, tyenv):
         resty, (arg1ty,) = op_arg_types(self.op)
@@ -513,14 +519,14 @@ class Load(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return Load(ints_to_enums[c_expr.Iex.Load.end],
-                    ints_to_enums[c_expr.Iex.Load.ty],
+        return Load(get_enum_from_int(c_expr.Iex.Load.end),
+                    get_enum_from_int(c_expr.Iex.Load.ty),
                     IRExpr._from_c(c_expr.Iex.Load.addr))
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_Load(enums_to_ints[expr.end],
-                               enums_to_ints[expr.ty],
+        return pvc.IRExpr_Load(get_int_from_enum(expr.end),
+                               get_int_from_enum(expr.ty),
                                IRExpr._to_c(expr.addr))
 
     def result_type(self, tyenv):
@@ -658,93 +664,158 @@ class CCall(IRExpr):
             args.append(IRExpr._from_c(arg))
             i += 1
 
-        return CCall(ints_to_enums[c_expr.Iex.CCall.retty],
+        return CCall(get_enum_from_int(c_expr.Iex.CCall.retty),
                      IRCallee._from_c(c_expr.Iex.CCall.cee),
                      tuple(args))
 
     @staticmethod
     def _to_c(expr):
         args = [IRExpr._to_c(arg) for arg in expr.args]
+        mkIRExprVec = getattr(pvc, 'mkIRExprVec_%d' % len(args))
         return pvc.IRExpr_CCall(IRCallee._to_c(expr.cee),
-                                enums_to_ints[expr.retty],
-                                mkIRExprVec[len(args)](*args))
+                                get_int_from_enum(expr.retty),
+                                mkIRExprVec(*args))
 
     def result_type(self, tyenv):
         return self.retty
 
-_op_type_cache = {}
+def get_op_retty(op, *args):
+    return op_arg_types(op)[0]
 
-def op_type(op):
+op_signatures = {}
+def _request_op_type_from_cache(op):
+    return op_signatures[op]
+
+def _request_op_type_from_libvex(op):
+    res_ty = ffi.new('IRType *')
+    arg_tys = [ffi.new('IRType *') for _ in xrange(4)]
+    for arg in arg_tys:
+        arg = 0x1100
+    pvc.typeOfPrimop(get_int_from_enum(op), res_ty, *arg_tys)
+    arg_ty_vals = [a[0] for a in arg_tys]
+
     try:
-        return _op_type_cache[op]
-    except KeyError:
-        out_int = ffi.new('IRType *')
-        unused = ffi.new('IRType *')
-        pvc.typeOfPrimop(enums_to_ints[op], out_int, unused, unused, unused, unused)
-        out = ints_to_enums[out_int[0]]
-        _op_type_cache[op] = out
-        return out
+        numargs = arg_ty_vals.index(0x1100)
+    except ValueError:
+        numargs = 4
+    args_tys_list = [get_enum_from_int(arg_ty_vals[i]) for i in range(numargs)]
+
+    op_ty_sig = (get_enum_from_int(res_ty[0]), tuple(args_tys_list))
+    op_signatures[op] = op_ty_sig
+    return op_ty_sig
+
+class PyvexOpMatchException(Exception):
+    pass
+
+class PyvexTypeErrorException(Exception):
+    pass
+
+def int_type_for_size(size):
+    return 'Ity_I%d' % size
+
+def unop_signature(op):
+    m = re.match(r'Iop_(Not|Ctz|Clz)(?P<size>\d+)$', op)
+    if m is None:
+        raise PyvexOpMatchException()
+    size = int(m.group('size'))
+    size_type = int_type_for_size(size)
+    return (size_type, (size_type,))
+
+def binop_signature(op):
+    m = re.match(r'Iop_(Add|Sub|Mul|Xor|Or|And|Div(S|U))(?P<size>\d+)$', op)
+    if m is None:
+        raise PyvexOpMatchException()
+    size = int(m.group('size'))
+    size_type = int_type_for_size(size)
+    return (size_type, (size_type, size_type))
+
+def shift_signature(op):
+    m = re.match(r'Iop_(Shl|Shr|Sar)(?P<size>\d+)$', op)
+    if m is None:
+        raise PyvexOpMatchException()
+    size = int(m.group('size'))
+    if size > 255:
+        raise PyvexTypeErrorException('Cannot apply shift operation to %d size int because shift index is 8-bit' % size)
+    size_type = int_type_for_size(size)
+    return (size_type, (size_type, int_type_for_size(8)))
+
+def cmp_signature(op):
+    m = re.match(r'Iop_Cmp(EQ|NE)(?P<size>\d+)$', op)
+    m2 = re.match(r'Iop_Cmp(GT|GE|LT|LE)(?P<size>\d+)[SU]$', op)
+    if (m is None) == (m2 is None):
+        raise PyvexOpMatchException()
+    mfound = m if m is not None else m2
+    size = int(mfound.group('size'))
+    size_type = int_type_for_size(size)
+    return (int_type_for_size(1), (size_type, size_type))
+
+def mull_signature(op):
+    m = re.match(r'Iop_Mull[SU](?P<size>\d+)$', op)
+    if m is None:
+        raise PyvexOpMatchException()
+    size = int(m.group('size'))
+    size_type = int_type_for_size(size)
+    doubled_size_type = int_type_for_size(2 * size)
+    return (doubled_size_type, (size_type, size_type))
+
+def half_signature(op):
+    m = re.match(r'Iop_DivMod[SU](?P<fullsize>\d+)to(?P<halfsize>\d+)$', op)
+    if m is None:
+        raise PyvexOpMatchException()
+    fullsize = int(m.group('fullsize'))
+    halfsize = int(m.group('halfsize'))
+    if halfsize * 2 != fullsize:
+        raise PyvexTypeErrorException('Invalid Instruction %s: Type 1 must be twice the size of type 2' % op)
+    fullsize_type = int_type_for_size(fullsize)
+    halfsize_type = int_type_for_size(halfsize)
+    return (fullsize_type, (fullsize_type, halfsize_type))
+
+def cast_signature(op):
+    m = re.match(r'Iop_(?P<srcsize>\d+)(U|S|HI|HL)?to(?P<dstsize>\d+)', op)
+    if m is None:
+        raise PyvexOpMatchException()
+    src_type = int_type_for_size(int(m.group('srcsize')))
+    dst_type = int_type_for_size(int(m.group('dstsize')))
+    return (dst_type, (src_type,))
+
+polymorphic_op_processors = [ unop_signature,
+                              binop_signature,
+                              shift_signature,
+                              cmp_signature,
+                              mull_signature,
+                              half_signature,
+                              cast_signature ]
+
+def _request_polymorphic_op_type(op):
+    for polymorphic_signature in polymorphic_op_processors:
+        try:
+            op_ty_sig = polymorphic_signature(op)
+            break
+        except PyvexOpMatchException:
+            continue
+    else:
+        raise PyvexOpMatchException('Op %s not recognized' % op)
+    return op_ty_sig
+
+_request_funcs = [_request_op_type_from_cache,
+                  _request_op_type_from_libvex,
+                  _request_polymorphic_op_type]
 
 def op_arg_types(op):
-    res_ty = ffi.new('IRType *')
-    arg1_ty = ffi.new('IRType *')
-    arg2_ty = ffi.new('IRType *')
-    arg3_ty = ffi.new('IRType *')
-    arg4_ty = ffi.new('IRType *')
-    arg2_ty[0] = 0x1100
-    arg3_ty[0] = 0x1100
-    arg4_ty[0] = 0x1100
-
-    pvc.typeOfPrimop(enums_to_ints[op], res_ty, arg1_ty, arg2_ty, arg3_ty, arg4_ty)
-    if arg2_ty[0] == 0x1100:
-        return (ints_to_enums[res_ty[0]],
-                (ints_to_enums[arg1_ty[0]],))
-    elif arg3_ty[0] == 0x1100:
-        return (ints_to_enums[res_ty[0]],
-                (ints_to_enums[arg1_ty[0]],
-                 ints_to_enums[arg2_ty[0]],))
-    elif arg4_ty[0] == 0x1100:
-        return (ints_to_enums[res_ty[0]],
-                (ints_to_enums[arg1_ty[0]],
-                 ints_to_enums[arg2_ty[0]],
-                 ints_to_enums[arg3_ty[0]],))
-    else:
-        return (ints_to_enums[res_ty[0]],
-                (ints_to_enums[arg1_ty[0]],
-                 ints_to_enums[arg2_ty[0]],
-                 ints_to_enums[arg3_ty[0]],
-                 ints_to_enums[arg4_ty[0]],))
+    for _request_func in _request_funcs:
+        try:
+           return _request_func(op)
+        except KeyError:
+            continue
+    raise ValueError("Cannot find type of op %s" % op)
 
 from .const import IRConst
-from .enums import IRCallee, IRRegArray, enums_to_ints, ints_to_enums, type_sizes
 from .errors import PyVEXError
 from . import ffi, pvc
 
-tag_to_class = {
-    enums_to_ints['Iex_Binder']: Binder,
-    enums_to_ints['Iex_Get']: Get,
-    enums_to_ints['Iex_GetI']: GetI,
-    enums_to_ints['Iex_RdTmp']: RdTmp,
-    enums_to_ints['Iex_Qop']: Qop,
-    enums_to_ints['Iex_Triop']: Triop,
-    enums_to_ints['Iex_Binop']: Binop,
-    enums_to_ints['Iex_Unop']: Unop,
-    enums_to_ints['Iex_Load']: Load,
-    enums_to_ints['Iex_Const']: Const,
-    enums_to_ints['Iex_ITE']: ITE,
-    enums_to_ints['Iex_CCall']: CCall,
-    enums_to_ints['Iex_GSPTR']: GSPTR,
-    enums_to_ints['Iex_VECRET']: VECRET,
-}
-
-mkIRExprVec = [
-    pvc.mkIRExprVec_0,
-    pvc.mkIRExprVec_1,
-    pvc.mkIRExprVec_2,
-    pvc.mkIRExprVec_3,
-    pvc.mkIRExprVec_4,
-    pvc.mkIRExprVec_5,
-    pvc.mkIRExprVec_6,
-    pvc.mkIRExprVec_7,
-    pvc.mkIRExprVec_8
-]
+def tag_to_expr_class(tag):
+    m = re.match(r'Iex_(?P<classname>.*)', tag)
+    try:
+        return globals()[m.group('classname')]
+    except TypeError, KeyError:
+        raise ValueError('Cannot find expression class for type %s' % tag)

@@ -1,7 +1,7 @@
+import re
 import collections
-from . import pvc, ffi
 
-_counts = collections.Counter()
+from . import pvc, ffi
 
 class VEXObject(object):
     """
@@ -9,14 +9,6 @@ class VEXObject(object):
     """
 
     __slots__ = [ ]
-
-    # def __init__(self):
-    #   print "CREATING:",type(self)
-    #   _counts[type(self)] += 1
-
-    # def __del__(self):
-    #   print "DELETING:",type(self)
-    #   _counts[type(self)] -= 1
 
 class IRCallee(VEXObject):
     """
@@ -81,44 +73,38 @@ class IRRegArray(VEXObject):
     @staticmethod
     def _to_c(arr):
         return pvc.mkIRRegArray(arr.base,
-                                enums_to_ints[arr.elemTy],
+                                get_int_from_enum(arr.elemTy),
                                 arr.nElems)
 
-enums_to_ints = {_: getattr(pvc, _) for _ in dir(pvc) if hasattr(pvc, _) and isinstance(getattr(pvc, _), int)}
-ints_to_enums = {getattr(pvc, _): _ for _ in dir(pvc) if hasattr(pvc, _) and isinstance(getattr(pvc, _), int)}
-enum_IROp_fromstr = {_: enums_to_ints[_] for _ in enums_to_ints if _.startswith('Iop_')}
-type_sizes = {
-    'Ity_INVALID': None,
-    'Ity_I1': 1,
-    'Ity_I8': 8,
-    'Ity_I16': 16,
-    'Ity_I32': 32,
-    'Ity_I64': 64,
-    'Ity_I128': 128,
-    'Ity_F16': 16,
-    'Ity_F32': 32,
-    'Ity_F64': 64,
-    'Ity_F128': 128,
-    'Ity_D32': 32,
-    'Ity_D64': 64,
-    'Ity_D128': 128,
-    'Ity_V128': 128,
-    'Ity_V256': 256
-}
+ints_to_enums = { }
+enums_to_ints = { }
+irop_enums_to_ints = { }
+will_be_overwritten = ['Ircr_GT', 'Ircr_LT']
 
-def _get_op_type(op):
-    irsb = pvc.emptyIRSB()
-    t = pvc.newIRTemp(irsb.tyenv, pvc.Ity_I8)
-    e = pvc.IRExpr_Unop(enums_to_ints[op], pvc.IRExpr_RdTmp(t))
-    return ints_to_enums[pvc.typeOfIRExpr(irsb.tyenv, e)]
+def get_enum_from_int(i):
+    return ints_to_enums[i]
 
+def get_int_from_enum(e):
+    return enums_to_ints[e]
 
-_op_types = {_: _get_op_type(_) for _ in enums_to_ints if
-             _.startswith('Iop_') and _ != 'Iop_INVALID' and _ != 'Iop_LAST'}
+def _add_enum(s, i=None): # TODO get rid of this
+    if i is None:
+        while _add_enum.counter in ints_to_enums:
+            _add_enum.counter += 1
+        i = _add_enum.counter
+        _add_enum.counter += 1 # Update for the next iteration
+    if i in ints_to_enums:
+        if ints_to_enums[i] not in will_be_overwritten:
+            raise ValueError('Enum with intkey %d already present' % i)
+    enums_to_ints[s] = i
+    ints_to_enums[i] = s
+    if s.startswith('Iop_'):
+        irop_enums_to_ints[s] = i
+_add_enum.counter = 0
 
-def typeOfIROp(op):
-    return _op_types[op]
-
+for attr in dir(pvc):
+    if hasattr(pvc, attr) and isinstance(getattr(pvc, attr), int):
+        _add_enum(attr, getattr(pvc, attr))
 
 def vex_endness_from_string(endness_str):
     return getattr(pvc, endness_str)

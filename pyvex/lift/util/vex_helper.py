@@ -1,17 +1,30 @@
-from pyvex.const import U1, U8, U16, U32, U64
-from pyvex.expr import Const, RdTmp, Unop, Binop, Triop, Qop, Load, CCall
+from enum import Enum
+import re
+from pyvex.const import ty_to_const_class, vex_int_class, get_type_size
+from pyvex.expr import IRExpr, Const, RdTmp, Unop, Binop, Triop, Qop, Load, CCall, Get, ITE
 from pyvex.stmt import WrTmp, Put, IMark, Store, NoOp, Exit
 from pyvex.enums import IRCallee
 
+class JumpKind:
+    Boring = 'Ijk_Boring'
+    Call = 'Ijk_Call'
+    Ret = 'Ijk_Ret'
+    Segfault = 'Ijk_SigSEGV'
+    Exit = 'Ijk_Exit'
+    Syscall = 'Ijk_Sys_syscall'
+    Sysenter = 'Ijk_Sys_sysenter'
+    Invalid = 'Ijk_INVALID'
+
+class TypeMeta(type):
+    def __getattr__(self, name):
+        match = re.match(r'int_(?P<size>\d+)$', name)
+        if match:
+            width = int(match.group('size'))
+            return vex_int_class(width).type
+
 class Type:
-    bit = 'Ity_I1'
-    int_1 = 'Ity_I1'
-    byte = 'Ity_I8'
-    int_8 = 'Ity_I8'
-    int_16 = 'Ity_I16'
-    int_32 = 'Ity_I32'
-    int_64 = 'Ity_I64'
-    int_128 = 'Ity_I128'
+    __metaclass__ = TypeMeta
+
     ieee_float_16 = 'Ity_F16'
     ieee_float_32 = 'Ity_F32'
     ieee_float_64 = 'Ity_F64'
@@ -22,81 +35,88 @@ class Type:
     simd_vector_128 = 'Ity_V128'
     simd_vector_256 = 'Ity_V256'
 
-class JumpKind:
-    Boring = 'Ijk_Boring'
-    Call = 'Ijk_Call'
-    Segfault = 'Ijk_SigSEGV'
-    Exit = 'Ijk_Exit'
-    Syscall = 'Ijk_Sys_syscall'
-    Sysenter = 'Ijk_Sys_sysenter'
-    Invalid = 'Ijk_INVALID'
-def get_operand_type_descriptor(t):
-    type_to_size_map = {
-        Type.int_1: '1',
-        Type.int_8: '8',
-        Type.int_16: '16',
-        Type.int_32: '32',
-        Type.int_64: '64',
-        Type.int_128: '128',
-        Type.ieee_float_32: 'F32',
-        Type.ieee_float_64: 'F64',
-        Type.ieee_float_128: 'F128',
-    }
-    return type_to_size_map[t]
+def get_op_format_from_const_ty(ty):
+    return ty_to_const_class(ty).op_format
 
 def make_format_op_generator(fmt_string):
+    """
+    Return a function which generates an op format (just a string of the vex instruction)
+
+    Functions by formatting the fmt_string with the types of the arguments
+    """
     def gen(arg_types):
-        converted_arg_types = map(get_operand_type_descriptor, arg_types)
+        converted_arg_types = map(get_op_format_from_const_ty, arg_types)
         op = fmt_string.format(arg_t=converted_arg_types)
         return op
     return gen
 
+def mkbinop(fstring):
+    return lambda self, expr_a, expr_b: self.op_binary(make_format_op_generator(fstring))(expr_a, expr_b)
 
-def make_const(t, val):
-    supported_type_consts = {
-        Type.int_1: U1,
-        Type.int_8: U8,
-        Type.int_16: U16,
-        Type.int_32: U32,
-        Type.int_64: U64
-    }
-    if t in supported_type_consts:
-        return Const(supported_type_consts[t](val))
+def mkunop(fstring):
+    return lambda self, expr_a: self.op_unary(make_format_op_generator(fstring))(expr_a)
 
-    raise NotImplemented('There is no constant for variable type {} implemented.'.format(t))
-
+def mkcmpop(fstring_fragment, signedness=''):
+    def cmpop(self, expr_a, expr_b):
+        ty = self.get_type(expr_a)
+        fstring = 'Iop_Cmp%s{arg_t[0]}%s' % (fstring_fragment, signedness)
+        retval = mkbinop(fstring)(self, expr_a, expr_b)
+        return self.cast_to(retval, ty)
+    return cmpop
 
 class IRSBCustomizer(object):
-    def __init__(self, irsb):
+    op_add = mkbinop('Iop_Add{arg_t[0]}')
+    op_sub = mkbinop('Iop_Sub{arg_t[0]}')
+    op_umul = mkbinop('Iop_Mul{arg_t[0]}')
+    op_smul = mkbinop('Iop_MullS{arg_t[0]}')
+    op_sdiv = mkbinop('Iop_DivS{arg_t[0]}')
+    op_udiv = mkbinop('Iop_DivU{arg_t[0]}')
+
+    op_or = mkbinop('Iop_Or{arg_t[0]}')
+    op_and = mkbinop('Iop_And{arg_t[0]}')
+    op_xor = mkbinop('Iop_Xor{arg_t[0]}')
+
+    op_shr = mkbinop('Iop_Shr{arg_t[0]}')
+    op_shl = mkbinop('Iop_Shl{arg_t[0]}')
+
+    op_not = mkunop('Iop_Not{arg_t[0]}')
+
+    op_cmp_eq = mkcmpop('EQ')
+    op_cmp_ne = mkcmpop('NE')
+    op_cmp_slt = mkcmpop('LT', 'S')
+    op_cmp_sle = mkcmpop('LE', 'S')
+    op_cmp_ult = mkcmpop('LT', 'U')
+    op_cmp_ule = mkcmpop('LE', 'U')
+    op_cmp_sge = mkcmpop('GE', 'S')
+    op_cmp_uge = mkcmpop('GE', 'U')
+    op_cmp_sgt = mkcmpop('GT', 'S')
+    op_cmp_ugt = mkcmpop('GT', 'U')
+
+    def __init__(self, irsb, arch): # TODO remove arch from this constructor
+        self.arch = arch
         self.irsb = irsb
 
-    def lookup_tmp_type(self, tmp):
-        return self.irsb.tyenv.lookup(tmp)
+    def get_type(self, rdt):
+        return rdt.result_type(self.irsb.tyenv)
 
-    def add_tmp(self, t):
-        return self.irsb.tyenv.add(t)
-    ######################################
-    #    Temporary variable management   #
-    ######################################
-    def mktmp(self, expr):
-        tmp = self.irsb.tyenv.add(expr.result_type(self.irsb.tyenv))
-        self.irsb.statements += [WrTmp(tmp, expr)]
-        return tmp
-
-    def append_stmt(self, stmt):
+    # Statements (no return value)
+    def _append_stmt(self, stmt):
         self.irsb.statements += [stmt]
 
     def imark(self, int_addr, int_length, int_delta=0):
-        self.irsb.statements += [IMark(int_addr, int_length, int_delta)]
+        self._append_stmt(IMark(int_addr, int_length, int_delta))
+
+    def get_reg(self, regname): # TODO move this into the lifter
+        return self.arch.registers[regname][0]
 
     def put(self, expr_val, tuple_reg):
-        self.irsb.statements += [Put(expr_val, tuple_reg)]
+        self._append_stmt(Put(expr_val, tuple_reg))
 
-    def store(self, addr, expr, endness):
-        self.irsb.statements += [Store(addr, expr, endness)]
+    def store(self, addr, expr):
+        self._append_stmt(Store(addr, expr, self.arch.memory_endness))
 
     def noop(self):
-        self.irsb.statements += [NoOp()]
+        self._append_stmt(NoOp())
 
     def add_exit(self, guard, dst, jk, ip):
         """
@@ -105,34 +125,59 @@ class IRSBCustomizer(object):
         :param guard: An expression, the exit is taken if true
         :param dst: the destination of the exit (a Const)
         :param jk: the JumpKind of this exit (probably Ijk_Boring)
-        :param ip: FIXME (assumed to be the IP of the exit)
+        :param ip: The address of this exit's source
         """
-        self.irsb.statements += [Exit(guard, dst, jk, ip)]
+        self.irsb.statements.append(Exit(guard, dst, jk, ip))
+    # end statements
 
-    """
-    Operations
-    ---------------------------------------------------------------------------------------------------------------
-    The operation functions are wrappers for certain classes of operations in VEX with dynamic typing. The correct
-    VEX opcode is chosen based on the arguments that are passed in. Calling operation functions will not result in any
-    modifications to the underlying IRSB.
+    def goto(self, addr):
+        self.irsb.next = addr
+        self.irsb.jumpkind = JumpKind.Boring
 
-    Operation functions can easily be identified by their names starting with 'op_'
-    """
+    def ret(self, addr):
+        self.irsb.next = addr
+        self.irsb.jumpkind = JumpKind.Ret
 
-    ###########################
-    #         HELPERS         #
-    ###########################
+    def call(self, addr):
+        self.irsb.next = addr
+        self.irsb.jumpkind = JumpKind.Call
+
+    def _add_tmp(self, t):
+        return self.irsb.tyenv.add(t)
+
+    def _rdtmp(self, tmp):
+        return RdTmp(tmp)
+
+    def _settmp(self, expr):
+        ty = self.get_type(expr)
+        tmp = self._add_tmp(ty)
+        self._append_stmt(WrTmp(tmp, expr))
+        return self._rdtmp(tmp)
+
+    def rdreg(self, reg, ty):
+        return self._settmp(Get(reg, ty))
+
+    def load(self, addr, ty):
+        return self._settmp(Load(self.arch.memory_endness, ty, addr))
+
+    def op_ccall(self, retty, funcstr, args):
+        return self._settmp(CCall(retty, IRCallee(len(args), funcstr, 1234, 0xffff), args))
+
+    def ite(self, condrdt, iftruerdt, iffalserdt):
+        return self._settmp(ITE(condrdt, iffalserdt, iftruerdt))
+
+    def mkconst(self, val, ty):
+        cls = ty_to_const_class(ty)
+        return Const(cls(val))
+
+    # Operations
     def op_generic(self, Operation, op_generator):
-
-        def instance(*args):
-            # For easy use, automatically RdTmp anything that isn't already an IRExpr, contemplate if this is wanted
-            # args = [RdTmp(arg) if not isinstance(IRExpr, arg) else arg for arg in args_raw]
-            # For now not used, maybe to be brought in later
-            arg_types = [arg.result_type(self.irsb.tyenv) for arg in args]
-
+        def instance(*args): # Note: The args here are all RdTmps
+            for arg in args: assert isinstance(arg, RdTmp) or isinstance(arg, Const)
+            arg_types = [self.get_type(arg) for arg in args]
             op = Operation(op_generator(arg_types), args)
-            return op
-
+            assert op.typecheck(self.irsb.tyenv)
+            return self._settmp(op)
         return instance
 
     def op_binary(self, op_format_str):
@@ -141,145 +186,80 @@ class IRSBCustomizer(object):
     def op_unary(self, op_format_str):
         return self.op_generic(Unop, op_format_str)
 
-    def op_binary_multichain(self, op_lambda, *expr_arg_list):
-        if len(expr_arg_list) == 1:
-            return expr_arg_list[0]
+    def cast_to(self, rdt, tydest, signed=False, high=False):
+        goalwidth = get_type_size(tydest)
+        rdtwidth = self.get_rdt_width(rdt)
 
-        elif len(expr_arg_list) == 2:
-            return op_lambda(expr_arg_list[0], expr_arg_list[1])
-
+        if rdtwidth > goalwidth:
+            return self.op_narrow_int(rdt, tydest, high_half=high)
+        elif rdtwidth < goalwidth:
+            return self.op_widen_int(rdt, tydest, signed=signed)
         else:
-            extra = None
-            if len(expr_arg_list) % 2 == 1:
-                extra = expr_arg_list[-1]
-                expr_arg_list = expr_arg_list[:-1]
+            return rdt
 
-            one_step = [op_lambda(expr_arg_list[i], expr_arg_list[i + 1]) for i in range(0, len(expr_arg_list), 2)]
-            combined = self.op_binary_multichain(op_lambda, *one_step)
-            final_result = combined if extra is None else op_lambda(combined, extra)
-            return final_result
+    def op_to_one_bit(self, rdt):
+        rdtty = self.get_type(rdt)
+        if rdtty not in [Type.int_64, Type.int_32]:
+            rdt = self.op_widen_int_unsigned(rdt, Type.int_32)
+        onebit = self.op_narrow_int(rdt, Type.int_1)
+        return onebit
 
-    def op_logic_dnf(self, dnf):
-        clause = []
-
-        for conj in dnf:
-            clause.append(self.op_binary_multichain(self.op_and, *conj))
-
-        expr_result = self.op_binary_multichain(self.op_or, *clause)
-        return expr_result
-
-    def op_logic_on_bit(self, lambda_op, *expr_args, **kwargs):
-        t_wide = kwargs.pop('t_wide', Type.int_64)
-        expr_args_64 = [self.op_widen_int_unsigned(t_wide, e) for e in expr_args]
-        expr_applied = self.op_narrow_int(Type.int_1, lambda_op(*expr_args_64), high_half=False)
-        return expr_applied
-
-
-    ###########################
-    #     IMPLEMENTATIONS     #
-    ###########################
-
-    def op_cmp(self, comparison, expr_a, expr_b):
-        return self.op_binary(lambda arg_ts: 'Iop_Cmp' + comparison + get_operand_type_descriptor(arg_ts[0]))(expr_a, expr_b)
-
-    def op_cmp_eq(self, expr_a, expr_b):
-        return self.op_cmp('EQ', expr_a, expr_b)
-
-
-    def op_shift_right(self, expr_val, expr_num_bits):
-        return self.op_binary(make_format_op_generator('Iop_Shr{arg_t[0]}'))(expr_val, expr_num_bits)
-
-    def op_shift_left(self, expr_val, expr_num_bits):
-        return self.op_binary(make_format_op_generator('Iop_Shl{arg_t[0]}'))(expr_val, expr_num_bits)
-
-    def op_or(self, expr_val, expr_mask):
-        return self.op_binary(make_format_op_generator('Iop_Or{arg_t[0]}'))(expr_val, expr_mask)
-
-    def op_xor(self, expr_a, expr_b):
-        return self.op_binary(make_format_op_generator('Iop_Xor{arg_t[0]}'))(expr_a, expr_b)
-
-    def op_and(self, expr_val, expr_mask):
-        return self.op_binary(make_format_op_generator('Iop_And{arg_t[0]}'))(expr_val, expr_mask)
-
-    def op_not(self, expr_val):
-        return self.op_unary(make_format_op_generator('Iop_Not{arg_t[0]}'))(expr_val)
-
-    def op_extract_lsb(self, expr_val):
-        return self.op_unary(make_format_op_generator('Iop_{arg_t[0]}to1'))(expr_val)
-
-
-    def op_narrow_int(self, t_dest, expr_val, high_half=False):
+    def op_narrow_int(self, rdt, tydest, high_half=False):
         op_name = '{op}{high}to{dest}'.format(op='Iop_{arg_t[0]}',
                                               high='HI' if high_half else '',
-                                              dest=get_operand_type_descriptor(t_dest))
-        return self.op_unary(make_format_op_generator(op_name))(expr_val)
+                                              dest=get_op_format_from_const_ty(tydest))
+        return self.op_unary(make_format_op_generator(op_name))(rdt)
 
-    def op_widen_int(self, t_dest, expr_val, signed=False):
+    def op_widen_int(self, rdt, tydest, signed=False):
         op_name = '{op}{sign}to{dest}'.format(op='Iop_{arg_t[0]}',
                                               sign='S' if signed else 'U',
-                                              dest=get_operand_type_descriptor(t_dest))
-        return self.op_unary(make_format_op_generator(op_name))(expr_val)
+                                              dest=get_op_format_from_const_ty(tydest))
+        return self.op_unary(make_format_op_generator(op_name))(rdt)
 
-    def op_widen_int_signed(self, t_dest, expr_val):
-        return self.op_widen_int(t_dest, expr_val, signed=True)
+    def op_widen_int_signed(self, rdt, tydest):
+        return self.op_widen_int(rdt, tydest, signed=True)
 
-    def op_widen_int_unsigned(self, t_dest, expr_val):
-        return self.op_widen_int(t_dest, expr_val, signed=False)
+    def op_widen_int_unsigned(self, rdt, tydest):
+        return self.op_widen_int(rdt, tydest, signed=False)
 
+    def get_msb(self, tmp, ty):
+        width = get_type_size(ty)
+        return self.get_bit(tmp, width-1)
 
-    def op_add(self, expr_a, expr_b):
-        return self.op_binary(make_format_op_generator('Iop_Add{arg_t[0]}'))(expr_a, expr_b)
+    def get_bit(self, rdt, idx):
+        shifted = self.op_shr(rdt, idx)
+        bit = self.op_extract_lsb(shifted)
+        return bit
 
+    def op_extract_lsb(self, rdt):
+        bitmask = self.mkconst(1, self.get_type(rdt))
+        return self.op_and(bitmask, rdt)
 
-    def op_sub(self, expr_a, expr_b):
-        return self.op_binary(make_format_op_generator('Iop_Sub{arg_t[0]}'))(expr_a, expr_b)
+    def set_bit(self, rdt, idx, bval):
+        currbit = self.get_bit(rdt, idx)
+        bvalbit = self.op_extract_lsb(bval)
+        areequalextrabits = self.op_xor(bval, currbit)
+        one = self.mkconst(1, self.get_type(areequalextrabits))
+        areequal = self.op_and(areequalextrabits, one)
+        shifted = self.op_shl(areequal, idx)
+        return self.op_xor(rdt, shifted)
 
-    def op_mull(self, expr_v, expr_mul, signed=True):
-        return self.op_binary(make_format_op_generator('Iop_Mull' + ('S' if signed else 'U') + '{arg_t[0]}'))(expr_v, expr_mul)
-
-    def op_ccall(selfself, retty, funcstr, args):
-        return CCall(retty, IRCallee(len(args), funcstr, 1234, 0xffff), args)
-
-
-
-    """
-    Actions
-    ---------------------------------------------------------------------------------------------------------------
-    Action functions capsule common patterns while building custom IRSBs. Any intermediate results must be stored in
-    temporary variables. This means that calling these procedure functions WILL modify the underlying IRSB!
-    Action functions return the temporary variables from which their result can be accessed. In most cases this is a
-    single variable, however, depending on the procedure, multiple results may be returned.
-
-    While this is not necessarily efficient it only generates inefficient patterns that should be easy to eliminate
-    during post-processing and optimization.
-
-    Action functions can easily be identified by their names starting with 'act_'
-    """
-
-    def act_extract_bit(self, tmp_val, int_bit_idx):
-        tmp_shifted = self.mktmp(self.op_shift_right(RdTmp(tmp_val), make_const(Type.int_8, int_bit_idx)))
-        tmp_widened = self.mktmp(self.op_widen_int_unsigned(Type.int_64, RdTmp(tmp_shifted)))
-        tmp_extracted = self.mktmp(self.op_extract_lsb(RdTmp(tmp_widened)))
-        return tmp_extracted
-
-    # This could technically be implemented as an operation, but conceptually I like it better as a procedure
-    def act_set_bit_const(self, tmp_val, int_bit_idx, set_bit):
-        t = self.irsb.tyenv.lookup(tmp_val)
-        if set_bit:
-            tmp_result = self.mktmp(self.op_or(RdTmp(tmp_val), make_const(t, 1 << int_bit_idx)))
+    def set_bits(self, rdt, idxsandvals):
+        ty = self.get_type(rdt)
+        if all([isinstance(idx, Const) for idx, _ in idxsandvals]):
+            relevantbits = self.mkconst(sum([1 << idx.con.value for idx, _ in idxsandvals]), ty)
         else:
-            tmp_result = self.mktmp(self.op_and(RdTmp(tmp_val), make_const(t, ~(1 << int_bit_idx))))
+            relevantbits = self.mkconst(0, ty)
+            for idx, _ in idxsandvals:
+                shifted = self.op_shl(self.mkconst(1, ty), idx)
+                relevantbits = self.op_or(relevantbits, shifted)
+        setto = self.mkconst(0, ty)
+        for idx, bval in idxsandvals:
+            bvalbit = self.op_extract_lsb(bval)
+            shifted = self.op_shl(bvalbit, idx)
+            setto = self.op_or(setto, shifted)
+        shouldflip = self.op_and(self.op_xor(setto, rdt), relevantbits)
+        return self.op_xor(rdt, shouldflip)
 
-        return tmp_result
-
-    def act_set_bit_from_tmp(self, tmp_val, int_bit_idx, tmp_bit):
-        val_type = self.irsb.tyenv.lookup(tmp_val)
-
-        tmp_bit_widened = self.mktmp(self.op_widen_int_unsigned(val_type, RdTmp(tmp_bit)))
-        tmp_bitmask = self.mktmp(self.op_shift_left(RdTmp(tmp_bit_widened), make_const(Type.int_8, int_bit_idx)))
-
-        tmp_val_anded = self.mktmp(self.op_and(RdTmp(tmp_val), RdTmp(tmp_bitmask)))
-        tmp_val_ored = self.mktmp(self.op_or(RdTmp(tmp_val_anded), RdTmp(tmp_bitmask)))
-
-        return tmp_val_ored
-
+    def get_rdt_width(self, rdt):
+        return rdt.result_size(self.irsb.tyenv)

@@ -1,4 +1,7 @@
+import re
+
 from . import VEXObject
+from .enums import get_enum_from_int, get_int_from_enum
 
 import logging
 l = logging.getLogger('pyvex.stmt')
@@ -35,11 +38,11 @@ class IRStmt(VEXObject):
         if c_stmt[0] == ffi.NULL:
             return None
 
-        tag_int = c_stmt.tag
+        tag = get_enum_from_int(c_stmt.tag)
         try:
-            stmt_class = _tag_to_class[tag_int]
+            stmt_class = tag_to_stmt_class(tag)._from_c(c_stmt)
         except KeyError:
-            raise PyVEXError('Unknown/unsupported IRStmtTag %s\n' % ints_to_enums[tag_int])
+            raise PyVEXError('Unknown/unsupported IRStmtTag %s\n' % tag)
         return stmt_class._from_c(c_stmt)
 
     def typecheck(self, tyenv): # pylint: disable=unused-argument,no-self-use
@@ -252,7 +255,7 @@ class Store(IRStmt):
     def _from_c(c_stmt):
         return Store(IRExpr._from_c(c_stmt.Ist.Store.addr),
                      IRExpr._from_c(c_stmt.Ist.Store.data),
-                     ints_to_enums[c_stmt.Ist.Store.end])
+                     get_enum_from_int(c_stmt.Ist.Store.end))
 
     def typecheck(self, tyenv):
         dataty = self.data.typecheck(tyenv)
@@ -307,7 +310,7 @@ class CAS(IRStmt):
                    IRExpr._from_c(c_stmt.Ist.CAS.details.expdHi),
                    c_stmt.Ist.CAS.details.oldLo,
                    c_stmt.Ist.CAS.details.oldHi,
-                   ints_to_enums[c_stmt.Ist.CAS.details.end])
+                   get_enum_from_int(c_stmt.Ist.CAS.details.end))
 
     def typecheck(self, tyenv):
         addrty = self.addr.typecheck(tyenv)
@@ -381,7 +384,7 @@ class LLSC(IRStmt):
         return LLSC(IRExpr._from_c(c_stmt.Ist.LLSC.addr),
                     IRExpr._from_c(c_stmt.Ist.LLSC.storedata),
                     c_stmt.Ist.LLSC.result,
-                    ints_to_enums[c_stmt.Ist.LLSC.end])
+                    get_enum_from_int(c_stmt.Ist.LLSC.end))
 
     def typecheck(self, tyenv):
         addrty = self.addr.typecheck(tyenv)
@@ -423,7 +426,7 @@ class MBE(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return MBE(ints_to_enums[c_stmt.Ist.MBE.event])
+        return MBE(get_enum_from_int(c_stmt.Ist.MBE.event))
 
 class Dirty(IRStmt):
 
@@ -468,7 +471,7 @@ class Dirty(IRStmt):
                      IRExpr._from_c(c_stmt.Ist.Dirty.details.guard),
                      tuple(args),
                      c_stmt.Ist.Dirty.details.tmp,
-                     ints_to_enums[c_stmt.Ist.Dirty.details.mFx],
+                     get_enum_from_int(c_stmt.Ist.Dirty.details.mFx),
                      IRExpr._from_c(c_stmt.Ist.Dirty.details.mAddr),
                      c_stmt.Ist.Dirty.details.mSize,
                      c_stmt.Ist.Dirty.details.nFxState)
@@ -511,7 +514,7 @@ class Exit(IRStmt):
     def _from_c(c_stmt):
         return Exit(IRExpr._from_c(c_stmt.Ist.Exit.guard),
                     IRConst._from_c(c_stmt.Ist.Exit.dst),
-                    ints_to_enums[c_stmt.Ist.Exit.jk],
+                    get_enum_from_int(c_stmt.Ist.Exit.jk),
                     c_stmt.Ist.Exit.offsIP)
 
     def typecheck(self, tyenv):
@@ -546,12 +549,12 @@ class LoadG(IRStmt):
         self.cvt = cvt
         self.end = end
 
-        type_in = ffi.new('IRType *')
+        type_in = ffi.new('IRType *') # TODO separate this from the pyvex C implementation
         type_out = ffi.new('IRType *')
-        pvc.typeOfIRLoadGOp(enums_to_ints[self.cvt], type_out, type_in)
+        pvc.typeOfIRLoadGOp(get_int_from_enum(self.cvt), type_out, type_in)
         type_in = ffi.cast('int *', type_in)[0]
         type_out = ffi.cast('int *', type_out)[0]
-        self.cvt_types = (ints_to_enums[type_in], ints_to_enums[type_out])
+        self.cvt_types = (get_enum_from_int(type_in), get_enum_from_int(type_out))
 
     @property
     def endness(self):
@@ -563,8 +566,8 @@ class LoadG(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return LoadG(ints_to_enums[c_stmt.Ist.LoadG.details.end],
-                     ints_to_enums[c_stmt.Ist.LoadG.details.cvt],
+        return LoadG(get_enum_from_int(c_stmt.Ist.LoadG.details.end),
+                     get_enum_from_int(c_stmt.Ist.LoadG.details.cvt),
                      c_stmt.Ist.LoadG.details.dst,
                      IRExpr._from_c(c_stmt.Ist.LoadG.details.addr),
                      IRExpr._from_c(c_stmt.Ist.LoadG.details.alt),
@@ -625,7 +628,7 @@ class StoreG(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return StoreG(ints_to_enums[c_stmt.Ist.StoreG.details.end],
+        return StoreG(get_enum_from_int(c_stmt.Ist.StoreG.details.end),
                       IRExpr._from_c(c_stmt.Ist.StoreG.details.addr),
                       IRExpr._from_c(c_stmt.Ist.StoreG.details.data),
                       IRExpr._from_c(c_stmt.Ist.StoreG.details.guard))
@@ -654,23 +657,13 @@ class StoreG(IRStmt):
 
 from .expr import IRExpr, Get
 from .const import IRConst
-from .enums import IRRegArray, ints_to_enums, enums_to_ints, IRCallee
+from .enums import IRRegArray, IRCallee
 from .errors import PyVEXError
 from . import ffi, pvc, expr
 
-_tag_to_class = {
-    enums_to_ints['Ist_NoOp']: NoOp,
-    enums_to_ints['Ist_IMark']: IMark,
-    enums_to_ints['Ist_AbiHint']: AbiHint,
-    enums_to_ints['Ist_Put']: Put,
-    enums_to_ints['Ist_PutI']: PutI,
-    enums_to_ints['Ist_WrTmp']: WrTmp,
-    enums_to_ints['Ist_Store']: Store,
-    enums_to_ints['Ist_LoadG']: LoadG,
-    enums_to_ints['Ist_StoreG']: StoreG,
-    enums_to_ints['Ist_CAS']: CAS,
-    enums_to_ints['Ist_LLSC']: LLSC,
-    enums_to_ints['Ist_Dirty']: Dirty,
-    enums_to_ints['Ist_MBE']: MBE,
-    enums_to_ints['Ist_Exit']: Exit,
-}
+def tag_to_stmt_class(tag):
+    m = re.match(r'Ist_(?P<classname>.*)', tag)
+    try:
+        return globals()[m.group('classname')]
+    except TypeError, KeyError:
+        raise ValueError('No statement class for tag %s' % tag)

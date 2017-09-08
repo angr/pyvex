@@ -1,5 +1,9 @@
 from . import VEXObject
+from . import expr, stmt, const
 from .lift import lift
+from .enums import get_enum_from_int, get_int_from_enum
+from .const import get_type_size
+from .errors import PyVEXError
 
 import logging
 l = logging.getLogger("pyvex.block")
@@ -329,7 +333,7 @@ class IRSB(VEXObject):
         self.statements = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in xrange(c_irsb.stmts_used)]
         self.tyenv = IRTypeEnv._from_c(self.arch, c_irsb.tyenv)
         self.next = expr.IRExpr._from_c(c_irsb.next)
-        self.jumpkind = ints_to_enums[c_irsb.jumpkind]
+        self.jumpkind = get_enum_from_int(c_irsb.jumpkind)
 
 class IRTypeEnv(VEXObject):
     """
@@ -360,7 +364,7 @@ class IRTypeEnv(VEXObject):
         return self.types[tmp]
 
     def sizeof(self, tmp):
-        return type_sizes[self.lookup(tmp)]
+        return get_type_size(self.lookup(tmp))
 
     def add(self, ty):
         """
@@ -375,18 +379,18 @@ class IRTypeEnv(VEXObject):
 
     @staticmethod
     def _from_c(arch, c_tyenv):
-        return IRTypeEnv(arch, [ints_to_enums[c_tyenv.types[t]] for t in xrange(c_tyenv.types_used)])
+        return IRTypeEnv(arch, [get_enum_from_int(c_tyenv.types[t]) for t in xrange(c_tyenv.types_used)])
 
     @staticmethod
     def _to_c(tyenv):
         c_tyenv = pvc.emptyIRTypeEnv()
         for ty in tyenv.types:
-            pvc.newIRTemp(c_tyenv, enums_to_ints[ty])
+            pvc.newIRTemp(c_tyenv, get_int_from_enum(ty))
         return c_tyenv
 
     def typecheck(self):
-        return all(map(lambda t: t in type_sizes and t != 'Ity_INVALID', self.types))
-
-from . import expr, stmt, pvc
-from .enums import ints_to_enums, enums_to_ints, type_sizes
-from .errors import PyVEXError
+        for ty in self.types:
+            try:
+               get_type_size(ty)
+            except ValueError:
+                return False
