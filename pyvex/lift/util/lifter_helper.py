@@ -44,24 +44,21 @@ class GymratLifter(Lifter):
             thedata = data
         self.bitstrm = bitstring.ConstBitStream(bytes=thedata)
 
-    def lift(self, disassemble=False, dump_irsb=False):
+    def decode(self):
         try:
             count = 0
             disas = []
             if not self.max_inst:
                 self.max_inst = 1000000
-            self.irsb.jumpkind = JumpKind.Invalid
-            irsb_c = IRSBCustomizer(self.irsb, self.irsb.arch)
             addr = self.irsb._addr
-            pos = self.bitstrm.bitpos
+            bytepos = self.bitstrm.bytepos
             while (count < self.max_inst
                     and (self.bitstrm.bitpos + 7) / 8 < self.max_bytes
-                    and self.irsb.jumpkind == JumpKind.Invalid
                     and not is_empty(self.bitstrm)):
                 # Try every instruction until one works
                 for possible_instr in self.instrs:
                     try:
-                        instr = possible_instr(irsb_c, self.bitstrm, addr)
+                        instr = possible_instr(self.bitstrm, self.irsb.arch.memory_endness, addr)
                         break
                     except ParseError:
                         pass #self.logger.exception(repr(possible_instr))
@@ -72,23 +69,29 @@ class GymratLifter(Lifter):
                     self.logger.critical(errorstr)
                     self.logger.critical("Address: %#08x" % addr)
                     raise Exception(errorstr)
-                if disassemble:
-                    disas.append(instr.disassemble())
-                else:
-                    instr()
-                # WARNING: We assume 8 bit bytes here.
-                addr += (self.bitstrm.bitpos - pos) / 8
-                pos = self.bitstrm.bitpos
+                disas.append(instr)
+                addr += self.bitstrm.bytepos - bytepos
+                pos = self.bitstrm.bytepos
                 count += 1
-            if dump_irsb:
-                self.irsb.pp()
-            if disassemble:
-                return disas
-            return self.irsb
+            return disas
         except Exception, e:
             self.errors = e.message
-            self.logger.exception("Error lifting block:")
+            self.logger.exception("Error decoding block:")
             raise e
+
+    def lift(self, disassemble=False, dump_irsb=False):
+        if disassemble:
+            return [instr.disassemble() for instr in self.decode()]
+        self.irsb.jumpkind = JumpKind.Invalid
+        irsb_c = IRSBCustomizer(self.irsb)
+        instructions = self.decode()
+        for i, instr in enumerate(instructions):
+            instr(irsb_c, instructions[:i], instructions[i+1:])
+            if irsb_c.irsb.jumpkind != JumpKind.Invalid:
+                break
+        if dump_irsb:
+            self.irsb.pp()
+        return self.irsb
 
     def pp_disas(self, addr, name, args):
         args_str = ",".join(str(a) for a in args)
