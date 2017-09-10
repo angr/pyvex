@@ -62,7 +62,14 @@ class Instruction:
     data = None
     irsb_c = None
 
-    def __init__(self, bitstrm, endianness, addr):
+    self.datamap = {} # Holds keys to their data component types
+    self.data = {} # Holds keys to their data components
+
+    @classmethod
+    def from_binary(cls, strm, addr):
+
+
+    def __init__(self, strm, endianness, addr): # TODO get ride of this/make it be able to hand the two representations
         """
         Create an instance of the instruction
         :param irsb_c: The IRSBCustomizer to put VEX instructions into
@@ -71,25 +78,99 @@ class Instruction:
         """
         self.addr = addr
         self.width = len(self.bin_format)
-        self.data = self.parse(bitstrm, endianness)
+        self.data = self.parse(strm, endianness)
+
+    def from_bits(self, bitstrm, endianness): # TODO get instr_bits somehow
+        parse_data = {c : '' for c in self.bin_format if c in datamap}
+        for c, b in zip(self.bin_format, instr_bits):
+            if c in '01':
+                if b != c:
+                    raise ParseError('Mismatch between format bit %c and instruction bit %c' % (c, b))
+                elif c in datamap:
+                    parse_data[c] += b
+                else:
+                    raise ValueError('Invalid bin_format character %c' % c)
+        for k in datamap:
+            self.data[k] = datamap[k].from_binary(parse_data[k])
+
+    def
+
+#         if isinstance(bitstrm, bitstring.Bits):
+#             parse_bits(self, bitstrm, endianness)
+#         beforebits = bitstrm.bitpos
+#         numbits = len(self.bin_format)
+#         if endianness == 'Iend_LE':
+#             # Get it out little endian.  I hate this.
+#             instr_bits = bitstring.Bits(uint=bitstrm.peek("uintle:%d" % numbits), length=numbits).bin
+#         else:
+#             instr_bits = bitstrm.peek("bin:%d" % numbits)
+#         data = {c : '' for c in self.bin_format if c in string.ascii_letters}
+#         for c, b in zip(self.bin_format, instr_bits):
+#             if c in '01':
+#                 if b != c:
+#             elif c in string.ascii_letters:
+#                 data[c] += b
+#             else:
+#         # Hook here for extra matching functionality
+#         if hasattr(self, 'match_instruction'):
+#             # Should raise if it's not right
+#             self.match_instruction(data, bitstrm)
+#         # Use up the bits once we're sure it's right
+#         self.rawbits = bitstrm.read('hex:%d' % numbits)
+#         # Hook here for extra parsing functionality (e.g., trailers)
+#         if hasattr(self, '_extra_parsing'):
+#             data = self._extra_parsing(data, bitstrm)
+#         afterbits = bitstrm.bitpos
+#         self.bitwidth = afterbits - beforebits
+#         return data
+
+    def from_asm(self, asmstrm, endianness): # TODO figure out how I will work
+        parse_data = {c : '' for c in self.bin_format if c in datamap}
+        for c, b in zip(self.asm_format, instr_asm): # TODO figure out how the asm streaming is going to work (probably a lexer/regex)
+            if c not in self.datamap:
+                parse_data[c] =
+
+
+    def encode(self, bitstrm): # TODO convert
+        encoded = ''
+        for i, c in enumerate(self.bin_format):
+            if c in '01':
+                encoded += c
+            elif c in self.data:
+                encoded += data[c].pop()
+        if endianness == 'Iend_LE':
+            bitstrm.append(bitstring.pack('uintle:%d' % len(encoded), int(encoded, 2)))
+        else:
+            bitstrm.append(bitstring.pack('uintbe:%d' % len(encoded), int(encoded, 2)))
+
+    @abc.abstractmethod
+    def to_asm(self):
+        pass
+
+    @abc.abstractmethod
+    def to_binary(self):
+        pass
+
+#     def assemble(self, ins, *args):
+#         """
+#         Attempt to assemble this line's instruction. Raise a ParseError if the instruction does not match.
+#         """
+#         raise ParseError()
+
+#     def disassemble(self):
+#         """
+#         Return the disassembly of this instruction, as a string.
+#         Override this in subclasses.
+#         :return: The address (self.addr), the instruction's name, and a list of its operands, as strings
+#         """
+#         return self.addr, 'UNK', [self.rawbits]
+
+    # These methods are for converting instructions into VEX
 
     def __call__(self, irsb_c, past_instructions, future_instructions):
         self.lift(irsb_c, past_instructions, future_instructions)
 
-    def mark_instruction_start(self):
-        # TODO: WARNING: VEX assumes 8-bit bytes here.
-        bytewidth = self.bitwidth / 8
-        self.irsb_c.imark(self.addr, bytewidth, bytewidth)
-
-    def fetch_operands(self):
-        """
-        Get the operands out of memory or registers
-        Return a tuple of operands for the instruction
-        :return:
-        """
-        return []
-
-    def lift(self, irsb_c, past_instructions, future_instructions):
+    def to_vex(self, irsb_c, past_instructions, future_instructions):
         """
         THis is the main body of the "lifting" for the instruction.
         This can/should be overriden to provide the general flow of how instructions in your arch work.
@@ -110,11 +191,18 @@ class Instruction:
             self.commit_result(retval)
         self.compute_flags(*vals)
 
-    def commit_result(self, *args):
+    def mark_instruction_start(self):
+        # TODO: WARNING: VEX assumes 8-bit bytes here.
+        bytewidth = self.bitwidth / 8
+        self.irsb_c.imark(self.addr, bytewidth, bytewidth)
+
+    def fetch_operands(self):
         """
-        TODO: Write documentation
+        Get the operands out of memory or registers
+        Return a tuple of operands for the instruction
+        :return:
         """
-        pass
+        return []
 
     @abc.abstractmethod
     def compute_result(self, *args):
@@ -130,6 +218,11 @@ class Instruction:
         """
         pass
 
+    def commit_result(self, *args):
+        """
+        TODO: Write documentation
+        """
+        pass
     def compute_flags(self, *args):
         """
         Most CPU architectures have "flags" that should be computed for many instructions.
@@ -139,7 +232,7 @@ class Instruction:
         """
         pass
 
-    def match_instruction(self, data, bitstrm):
+    def match_instruction(self, data, bitstrm): # TODO Figure out where this is used
         """
         Override this to extend the parsing functionality.
         This is great for if your arch has instruction "formats" that have an opcode that has to match.
@@ -149,43 +242,7 @@ class Instruction:
         """
         return data
 
-    def parse(self, bitstrm, endianness):
-        beforebits = bitstrm.bitpos
-        numbits = len(self.bin_format)
-        if endianness == 'Iend_LE':
-            # Get it out little endian.  I hate this.
-            instr_bits = bitstring.Bits(uint=bitstrm.peek("uintle:%d" % numbits), length=numbits).bin
-        else:
-            instr_bits = bitstrm.peek("bin:%d" % numbits)
-        data = {c : '' for c in self.bin_format if c in string.ascii_letters}
-        for c, b in zip(self.bin_format, instr_bits):
-            if c in '01':
-                if b != c:
-                    raise ParseError('Mismatch between format bit %c and instruction bit %c' % (c, b))
-            elif c in string.ascii_letters:
-                data[c] += b
-            else:
-                raise ValueError('Invalid bin_format character %c' % c)
-        # Hook here for extra matching functionality
-        if hasattr(self, 'match_instruction'):
-            # Should raise if it's not right
-            self.match_instruction(data, bitstrm)
-        # Use up the bits once we're sure it's right
-        self.rawbits = bitstrm.read('hex:%d' % numbits)
-        # Hook here for extra parsing functionality (e.g., trailers)
-        if hasattr(self, '_extra_parsing'):
-            data = self._extra_parsing(data, bitstrm)
-        afterbits = bitstrm.bitpos
-        self.bitwidth = afterbits - beforebits
-        return data
 
-    def disassemble(self):
-        """
-        Return the disassembly of this instruction, as a string.
-        Override this in subclasses.
-        :return: The address (self.addr), the instruction's name, and a list of its operands, as strings
-        """
-        return self.addr, 'UNK', [self.rawbits]
 
     # These methods should be called in subclasses to do register and memory operations
 
@@ -285,3 +342,22 @@ class Instruction:
             setattr(ccall, func_obj.func_name, func_obj)
         cc = self.irsb_c.op_ccall(ret_type, func_obj.func_name, args)
         return VexValue(self.irsb_c, cc)
+
+class DataComponent(object):
+    # Obviously this may have some problems, like some data types only applying to certain instructions
+    # However...we'll figure it out then
+    @abc.abstractmethod
+    def to_asm(self):
+        pass
+
+    @abc.abstractmethod
+    def from_asm(self):
+        pass
+
+    @abc.abstractmethod
+    def to_binary(self):
+        pass
+
+    @abc.abstractmethod
+    def from_binary(self):
+        pass

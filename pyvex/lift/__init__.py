@@ -2,9 +2,10 @@ lifters = []
 postprocessors = []
 
 
-class Lifter(object):
+class Translator(object):
     """
-    A lifter is a class of methods for processing a block.
+    A translator is a class of methods for tranlslating a block between the three representations
+    of assembly, machine code, and VEX IR.
     """
     REQUIRE_DATA_C = False
     REQUIRE_DATA_PY = False
@@ -31,6 +32,36 @@ class Lifter(object):
 
     # pylint: disable=no-self-use
 
+#     @classmethod
+#     def fromMachineCode(cls):
+#         pass
+
+#     @classmethod
+#     def fromAssembly(cls):
+#         pass
+
+    @property
+    def binary(self):
+        if self.binary is not None:
+            return self.binary
+        else:
+            self.binary = self.to_binary()
+
+    @property
+    def vex(self):
+        if self.vex is not None:
+            return self.vex
+        else:
+            self.vex = self.to_vex(self
+
+    @property
+    def asm(self):
+        if self.asm is not None:
+            return self.asm
+        else:
+            self.asm = self.to_asm()
+
+    # TODO Get rid of these
     def lift(self):
         """
         Populate the fields of the empty IRSB passed in. Return whether or not successful.
