@@ -42,9 +42,13 @@ class GymratLifter(Lifter):
             thedata = "".join([chr(data[x]) for x in range(max_bytes)])
         else:
             thedata = data
-        self.bitstrm = bitstring.ConstBitStream(bytes=thedata)
+        self.thedata = thedata
+
+    def create_bitstrm(self):
+        self.bitstrm = bitstring.ConstBitStream(bytes=self.thedata)
 
     def decode(self):
+        self.create_bitstrm()
         try:
             count = 0
             disas = []
