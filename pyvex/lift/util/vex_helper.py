@@ -92,8 +92,8 @@ class IRSBCustomizer(object):
     op_cmp_sgt = mkcmpop('GT', 'S')
     op_cmp_ugt = mkcmpop('GT', 'U')
 
-    def __init__(self, irsb, arch): # TODO remove arch from this constructor
-        self.arch = arch
+    def __init__(self, irsb):
+        self.arch = irsb.arch
         self.irsb = irsb
 
     def get_type(self, rdt):

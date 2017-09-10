@@ -62,20 +62,19 @@ class Instruction:
     data = None
     irsb_c = None
 
-    def __init__(self, irsb_c, bitstrm, addr):
+    def __init__(self, bitstrm, endianness, addr):
         """
         Create an instance of the instruction
         :param irsb_c: The IRSBCustomizer to put VEX instructions into
         :param bitstrm: The bitstream to decode instructions from
         :param addr: The address of the instruction to be lifted, used only for jumps and branches
         """
-        self.irsb_c = irsb_c
         self.addr = addr
         self.width = len(self.bin_format)
-        self.data = self.parse(bitstrm)
+        self.data = self.parse(bitstrm, endianness)
 
-    def __call__(self):
-        self.lift()
+    def __call__(self, irsb_c, past_instructions, future_instructions):
+        self.lift(irsb_c, past_instructions, future_instructions)
 
     def mark_instruction_start(self):
         # TODO: WARNING: VEX assumes 8-bit bytes here.
@@ -90,7 +89,7 @@ class Instruction:
         """
         return []
 
-    def lift(self):
+    def lift(self, irsb_c, past_instructions, future_instructions):
         """
         THis is the main body of the "lifting" for the instruction.
         This can/should be overriden to provide the general flow of how instructions in your arch work.
@@ -100,14 +99,22 @@ class Instruction:
             3) Compute the flags
         :return:
         """
+        self.irsb_c = irsb_c
         # Always call this first!
         self.mark_instruction_start()
         # Then do the actual stuff.
         inputs = self.fetch_operands()
         retval = self.compute_result(*inputs)
         if retval is not None:
-            inputs = tuple(list(inputs).append(retval))
-        self.compute_flags(*inputs)
+            vals = list(inputs) + [retval]
+            self.commit_result(retval)
+        self.compute_flags(*vals)
+
+    def commit_result(self, *args):
+        """
+        TODO: Write documentation
+        """
+        pass
 
     @abc.abstractmethod
     def compute_result(self, *args):
@@ -142,10 +149,10 @@ class Instruction:
         """
         return data
 
-    def parse(self, bitstrm):
+    def parse(self, bitstrm, endianness):
         beforebits = bitstrm.bitpos
         numbits = len(self.bin_format)
-        if self.irsb_c.irsb.arch.memory_endness == 'Iend_LE':
+        if endianness == 'Iend_LE':
             # Get it out little endian.  I hate this.
             instr_bits = bitstring.Bits(uint=bitstrm.peek("uintle:%d" % numbits), length=numbits).bin
         else:
