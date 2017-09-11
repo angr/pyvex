@@ -51,12 +51,12 @@ def vvifyresults(f):
 
 
 class VexValue:
-    def __init__(self, irsb_c, rdt):
+    def __init__(self, irsb_c, rdt, signed=False):
         self.irsb_c = irsb_c
         self.ty = self.irsb_c.get_type(rdt)
         self.rdt = rdt
         self.width = pyvex.get_type_size(self.ty)
-        self.is_signed = False
+        self._is_signed = signed
 
     @property
     def value(self):
@@ -65,11 +65,9 @@ class VexValue:
         else:
             raise ValueError("Non-constant VexValue has no value property")
 
-    def toSigned(self):
-        self.is_signed = True
-
-    def toUnsigned(self):
-        self.is_signed = False
+    @property
+    def signed(self):
+        return VexValue(self.irsb_c, self.rdt, True)
 
     @vvifyresults
     def widen_unsigned(self, ty):
@@ -131,7 +129,10 @@ class VexValue:
     @checkparams
     @vvifyresults
     def __div__(self, right):
-        return self.irsb_c.op_div(self.rdt, right.rdt, self.is_signed)
+        if self._is_signed:
+            return self.irsb_c.op_sdiv(self.rdt, right.rdt)
+        else:
+            return self.irsb_c.op_udiv(self.rdt, right.rdt)
 
     @checkparams
     @vvifyresults
@@ -166,7 +167,7 @@ class VexValue:
     @checkparams
     @vvifyresults
     def __le__(self, right):
-        if self.is_signed:
+        if self._is_signed:
             return self.irsb_c.op_cmp_sle(self.rdt, right.rdt)
         else:
             return self.irsb_c.op_cmp_ule(self.rdt, right.rdt)
@@ -174,7 +175,7 @@ class VexValue:
     @checkparams
     @vvifyresults
     def __gt__(self, other):
-        if self.is_signed:
+        if self._is_signed:
             return self.irsb_c.op_cmp_sgt(self.rdt, other.rdt)
         else:
             return self.irsb_c.op_cmp_ugt(self.rdt, other.rdt)
@@ -182,7 +183,7 @@ class VexValue:
     @checkparams
     @vvifyresults
     def __ge__(self, right):
-        if self.is_signed:
+        if self._is_signed:
             return self.irsb_c.op_cmp_sge(self.rdt, right.rdt)
         else:
             return self.irsb_c.op_cmp_uge(self.rdt, right.rdt)
@@ -195,7 +196,7 @@ class VexValue:
     @checkparams
     @vvifyresults
     def __lt__(self, right):
-        if self.is_signed:
+        if self._is_signed:
             return self.irsb_c.op_cmp_slt(self.rdt, right.rdt)
         else:
             return self.irsb_c.op_cmp_ult(self.rdt, right.rdt)
@@ -208,12 +209,15 @@ class VexValue:
     @checkparams
     @vvifyresults
     def __mul__(self, right):
-        return self.irsb_c.op_mull(self.rdt, right.rdt, signed=self.is_signed)
+        if self._is_signed:
+            return self.irsb_c.op_smul(self.rdt, right.rdt)
+        else:
+            return self.irsb_c.op_umul(self.rdt, right.rdt)
 
     @checkparams
     @vvifyresults
     def __neg__(self): # Note: nonprimitive
-        if self.is_unsigned:
+        if not self._is_signed:
             raise Exception('Number is unsigned, cannot change sign!')
         else:
             return self.rdt * -1
