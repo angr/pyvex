@@ -99,6 +99,10 @@ class VexValue:
         else:
             return [getb(makeconstant(i)) for i in xrange(*idx.indices(self.width))]
 
+    def __setitem__(self, idx, bval):
+        setted = self.set_bit(idx, bval)
+        self.__init__(setted.irsb_c, setted.rdt)
+
     @checkparams
     @vvifyresults
     def set_bit(self, idx, bval):
