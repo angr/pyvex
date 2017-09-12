@@ -1,6 +1,6 @@
 from lifter_helper import ParseError
 from syntax_wrapper import VexValue
-from vex_helper import JumpKind, IRExpr
+from vex_helper import JumpKind, IRExpr, vex_int_class
 
 import abc
 import string
@@ -105,9 +105,10 @@ class Instruction:
         # Then do the actual stuff.
         inputs = self.fetch_operands()
         retval = self.compute_result(*inputs)
+        vals = list(inputs)
         if retval is not None:
-            vals = list(inputs) + [retval]
-            self.commit_result(retval)
+            vals.append(retval)
+            self.commit_result(*vals)
         self.compute_flags(*vals)
 
     def commit_result(self, *args):
@@ -213,7 +214,8 @@ class Instruction:
         :param ty: The type of the resulting VexValue
         :return: a VexValue
         """
-        assert not (isinstance(val, VexValue) or isinstance(val, IRExpr))
+        if isinstance(val, VexValue) and not isinstance(val, IRExpr):
+            raise Exception('Constant cannot be made from VexValue or IRExpr')
         rdt = self.irsb_c.mkconst(val, ty)
         return VexValue(self.irsb_c, rdt)
 
@@ -262,7 +264,9 @@ class Instruction:
         aren't normal jumps (e.g., calls, interrupts, program exits, etc etc)
         :return: None
         """
-        assert isinstance(to_addr, VexValue)
+        if not isinstance(to_addr, VexValue):
+            to_addr_ty = vex_int_class(self.irsb_c.irsb.arch.bits).type
+            to_addr = self.constant(to_addr, to_addr_ty) # TODO archinfo may be changing
         if not condition:
             # This is the default exit.
             self.irsb_c.irsb.jumpkind = jumpkind
