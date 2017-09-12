@@ -43,6 +43,7 @@ class GymratLifter(Lifter):
         else:
             thedata = data
         self.thedata = thedata
+        self.logger.debug(repr(thedata))
 
     def create_bitstrm(self):
         self.bitstrm = bitstring.ConstBitStream(bytes=self.thedata)
@@ -55,6 +56,7 @@ class GymratLifter(Lifter):
             if not self.max_inst:
                 self.max_inst = 1000000
             addr = self.irsb._addr
+            self.logger.debug("Starting block at address: " + hex(addr))
             bytepos = self.bitstrm.bytepos
             while (count < self.max_inst
                     and (self.bitstrm.bitpos + 7) / 8 < self.max_bytes
@@ -62,20 +64,24 @@ class GymratLifter(Lifter):
                 # Try every instruction until one works
                 for possible_instr in self.instrs:
                     try:
+                        #self.logger.debug("Trying " + possible_instr.name)
                         instr = possible_instr(self.bitstrm, self.irsb.arch.memory_endness, addr)
                         break
                     except ParseError:
                         pass #self.logger.exception(repr(possible_instr))
                     except Exception, e:
                         self.logger.debug(e.message)
+                        raise e
                 else:
                     errorstr = 'Unknown instruction at bit position %d' % self.bitstrm.bitpos
                     self.logger.critical(errorstr)
                     self.logger.critical("Address: %#08x" % addr)
-                    raise Exception(errorstr)
+                    #raise Exception(errorstr)
+                    break
                 disas.append(instr)
+                self.logger.debug("Matched " + instr.name)
                 addr += self.bitstrm.bytepos - bytepos
-                pos = self.bitstrm.bytepos
+                bytepos = self.bitstrm.bytepos
                 count += 1
             return disas
         except Exception, e:
@@ -83,13 +89,16 @@ class GymratLifter(Lifter):
             self.logger.exception("Error decoding block:")
             raise e
 
-    def lift(self, disassemble=False, dump_irsb=False):
+    def lift(self, disassemble=False, dump_irsb=True):
         if disassemble:
             return [instr.disassemble() for instr in self.decode()]
         self.irsb.jumpkind = JumpKind.Invalid
         irsb_c = IRSBCustomizer(self.irsb)
         instructions = self.decode()
+        self.logger.debug("Decoding complete.")
+        #self.pp_disas()
         for i, instr in enumerate(instructions):
+            self.logger.debug("Lifting instruction " + instr.name)
             instr(irsb_c, instructions[:i], instructions[i+1:])
             if irsb_c.irsb.jumpkind != JumpKind.Invalid:
                 break
@@ -97,9 +106,13 @@ class GymratLifter(Lifter):
             self.irsb.pp()
         return self.irsb
 
-    def pp_disas(self, addr, name, args):
-        args_str = ",".join(str(a) for a in args)
-        return "%0#08x:\t%s %s" % (addr, name, args_str)
+    def pp_disas(self):
+        disasstr = ""
+        insts = self.disassemble()
+        for addr, name, args in insts:
+            args_str = ",".join(str(a) for a in args)
+            disasstr += "%0#08x:\t%s %s\n" % (addr, name, args_str)
+        print disasstr
 
     def error(self):
         return self.errors

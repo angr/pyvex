@@ -127,7 +127,7 @@ class VexValue:
 
     @checkparams
     def __radd__(self, left):
-        return left + self
+        return self + left
 
     @checkparams
     @vvifyresults
@@ -136,6 +136,7 @@ class VexValue:
 
     @checkparams
     def __rsub__(self, left):
+        # TODO: FIXME
         return left - self
 
     @checkparams

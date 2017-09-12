@@ -105,13 +105,12 @@ class Instruction:
         # Then do the actual stuff.
         inputs = self.fetch_operands()
         retval = self.compute_result(*inputs)
-        vals = list(inputs)
+        vals = list(inputs) + [retval]
         if retval is not None:
-            vals.append(retval)
-            self.commit_result(*vals)
+            self.commit_result(retval)
         self.compute_flags(*vals)
 
-    def commit_result(self, *args):
+    def commit_result(self, res):
         """
         This where the result of the operation is written to a destination.
         This happens only if compute_result does not return None, and happens before compute_flags is called.
