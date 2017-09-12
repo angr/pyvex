@@ -124,9 +124,17 @@ class VexValue:
         return self.irsb_c.op_add(self.rdt, right.rdt)
 
     @checkparams
+    def __radd__(self, left):
+        return left + self
+
+    @checkparams
     @vvifyresults
-    def __sub__(self, right): # I'm not sure if we want rsub
+    def __sub__(self, right):
         return self.irsb_c.op_sub(self.rdt, right.rdt)
+
+    @checkparams
+    def __rsub__(self, left):
+        return left - self
 
     @checkparams
     @vvifyresults
@@ -134,9 +142,17 @@ class VexValue:
         return self.irsb_c.op_div(self.rdt, right.rdt, self.is_signed)
 
     @checkparams
+    def __rdiv__(self, left):
+        return left / self
+
+    @checkparams
     @vvifyresults
     def __floordiv__(self, right): # Note: nonprimitive
         return self / right
+
+    @checkparams
+    def __rfloordiv__(self, left):
+        return left // self
 
     @checkparams
     @vvifyresults
@@ -144,9 +160,17 @@ class VexValue:
         return self / right
 
     @checkparams
+    def __rtruediv__(self, left):
+        return left.__truediv__(self)
+
+    @checkparams
     @vvifyresults
     def __and__(self, right):
         return self.irsb_c.op_and(self.rdt, right.rdt)
+
+    @checkparams
+    def __rand__(self, left):
+        return left & self
 
     @checkparams
     @vvifyresults
@@ -189,7 +213,7 @@ class VexValue:
 
     @checkparams(rhstype=Type.int_8)
     @vvifyresults
-    def __lshift__(self, right):
+    def __lshift__(self, right): # TODO put better type inference in irsb_c so we can have rlshift
         return self.irsb_c.op_shl(self.rdt, right.rdt)
 
     @checkparams
@@ -206,9 +230,17 @@ class VexValue:
         return self.rdt - (self.rdt / right.rdt) * right.rdt
 
     @checkparams
+    def __rmod__(self, left):
+        return left % self
+
+    @checkparams
     @vvifyresults
     def __mul__(self, right):
         return self.irsb_c.op_mull(self.rdt, right.rdt, signed=self.is_signed)
+
+    @checkparams
+    def __rmul__(self, left):
+        return left * self
 
     @checkparams
     @vvifyresults
@@ -223,6 +255,9 @@ class VexValue:
     def __or__(self, right):
         return self.irsb_c.op_or(self.rdt, right.rdt)
 
+    def __ror__(self, left):
+        return self | left
+
     @checkparams
     @vvifyresults
     def __pos__(self):
@@ -230,13 +265,16 @@ class VexValue:
 
     @checkparams
     @vvifyresults
-    def __rshift__(self, right):
+    def __rshift__(self, right): # TODO put better type inference in irsb_c so we can have rlshift
         return self.irsb_c.op_shr(self.rdt, right.rdt)
 
     @checkparams
     @vvifyresults
     def __xor__ (self, right):
         return self.irsb_c.op_xor(self.rdt, right.rdt)
+
+    def __rxor__(self, left):
+        return self ^ left
 
     @classmethod
     def Constant(cls, irsb_c, val, ty):
