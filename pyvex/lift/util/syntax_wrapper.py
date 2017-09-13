@@ -99,7 +99,7 @@ class VexValue:
             actualindex = slice(idx).indices(self.width)[1]
             return getb(makeconstant(actualindex))
         else:
-            return [getb(makeconstant(i)) for i in xrange(*idx.indices(self.width))]
+            return [getb(makeconstant(i)) for i in range(*idx.indices(self.width))]
 
     @checkparams
     @vvifyresults

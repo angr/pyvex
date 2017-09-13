@@ -1,6 +1,3 @@
-import re
-import collections
-
 from . import pvc, ffi
 
 class VEXObject(object):
@@ -103,7 +100,7 @@ def _add_enum(s, i=None): # TODO get rid of this
 _add_enum.counter = 0
 
 for attr in dir(pvc):
-    if hasattr(pvc, attr) and isinstance(getattr(pvc, attr), int):
+    if attr[0] in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' and hasattr(pvc, attr) and isinstance(getattr(pvc, attr), int):
         _add_enum(attr, getattr(pvc, attr))
 
 def vex_endness_from_string(endness_str):
