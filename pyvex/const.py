@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 
 from . import VEXObject, ffi, pvc
@@ -17,7 +18,7 @@ class IRConst(VEXObject):
         VEXObject.__init__(self)
 
     def pp(self):
-        print self.__str__()
+        print(self.__str__())
 
     @property
     def size(self):
@@ -271,7 +272,7 @@ def is_int_tag(tag):
 def get_tag_size(tag):
     m = re.match(r'Ico_[UFV](?P<size>\d+)i?', tag)
     if m is None:
-        raise ValueError('Tag %s does not have size' % ty)
+        raise ValueError('Tag %s does not have size' % tag)
     return int(m.group('size'))
 
 def get_type_size(ty):

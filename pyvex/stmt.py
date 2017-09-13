@@ -1,9 +1,10 @@
+from __future__ import print_function
 import re
+import logging
 
 from . import VEXObject
 from .enums import get_enum_from_int, get_int_from_enum
 
-import logging
 l = logging.getLogger('pyvex.stmt')
 
 class IRStmt(VEXObject):
@@ -17,7 +18,7 @@ class IRStmt(VEXObject):
         VEXObject.__init__(self)
 
     def pp(self):
-        print self.__str__()
+        print(self.__str__())
 
     @property
     def expressions(self):
@@ -460,7 +461,7 @@ class Dirty(IRStmt):
     @staticmethod
     def _from_c(c_stmt):
         args = []
-        for i in xrange(20):
+        for i in range(20):
             a = c_stmt.Ist.Dirty.details.args[i]
             if a == ffi.NULL:
                 break
@@ -665,5 +666,5 @@ def tag_to_stmt_class(tag):
     m = re.match(r'Ist_(?P<classname>.*)', tag)
     try:
         return globals()[m.group('classname')]
-    except TypeError, KeyError:
+    except (TypeError, KeyError):
         raise ValueError('No statement class for tag %s' % tag)
