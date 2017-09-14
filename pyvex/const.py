@@ -275,11 +275,37 @@ def get_tag_size(tag):
         raise ValueError('Tag %s does not have size' % tag)
     return int(m.group('size'))
 
+
 def get_type_size(ty):
+    """
+    Returns the size, in BITS, of a VEX type specifier
+    e.g., Ity_I16 -> 16
+
+    :param ty:
+    :return:
+    """
     m = re.match(r'Ity_[IFDV](?P<size>\d+)', ty)
     if m is None:
         raise ValueError('Type %s does not have size' % ty)
     return int(m.group('size'))
+
+
+def get_type_spec_size(ty):
+    """
+    Get the width of a "type specifier"
+    like I16U
+    or F16
+    or just 16
+    (Yes, this really just takes the int out.  If we must special-case, do it here.
+    :param tyspec:
+    :return:
+    """
+    m = re.match(r'[IFDV]?(?P<size>\d+)[SU]?', ty)
+    if m is None:
+        raise ValueError('Type specifier %s does not have size' % ty)
+    return int(m.group('size'))
+
+
 
 def ty_to_const_class(ty):
     try:
