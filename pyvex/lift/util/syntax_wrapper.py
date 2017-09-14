@@ -272,7 +272,7 @@ class VexValue:
     def __pos__(self):
         return self
 
-    @checkparams
+    @checkparams(rhstype=Type.int_8)
     @vvifyresults
     def __rshift__(self, right): # TODO put better type inference in irsb_c so we can have rlshift
         return self.irsb_c.op_shr(self.rdt, right.rdt)

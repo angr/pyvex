@@ -65,7 +65,7 @@ class GymratLifter(Lifter):
                 for possible_instr in self.instrs:
                     try:
                         #self.logger.debug("Trying " + possible_instr.name)
-                        instr = possible_instr(self.bitstrm, self.irsb.arch.memory_endness, addr)
+                        instr = possible_instr(self.bitstrm, self.irsb.arch, addr)
                         break
                     except ParseError:
                         pass #self.logger.exception(repr(possible_instr))
