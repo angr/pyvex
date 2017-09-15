@@ -102,6 +102,8 @@ class GymratLifter(Lifter):
             instr(irsb_c, instructions[:i], instructions[i+1:])
             if irsb_c.irsb.jumpkind != JumpKind.Invalid:
                 break
+        else:
+            instructions[-1].jump(None, instructions[-1].addr + instructions[-1].bytewidth)
         if dump_irsb:
             self.irsb.pp()
         return self.irsb

@@ -78,7 +78,7 @@ class Instruction:
         self.lift(irsb_c, past_instructions, future_instructions)
 
     def mark_instruction_start(self):
-        self.irsb_c.imark(self.addr, self.bytewidth, self.bytewidth)
+        self.irsb_c.imark(self.addr, self.bytewidth, 0)
 
     def fetch_operands(self):
         """
