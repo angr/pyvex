@@ -78,7 +78,7 @@ def lift(irsb, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags):
         u_data = data
         if lifter.REQUIRE_DATA_C:
             if c_data is None:
-                c_data = ffi.new('unsigned char [%d]' % (len(data) + 8), data + '\0' * 8)
+                c_data = ffi.new('unsigned char [%d]' % (len(data) + 8), data + b'\0' * 8)
             u_data = c_data
         elif lifter.REQUIRE_DATA_PY:
             if py_data is None:

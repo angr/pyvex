@@ -1,5 +1,7 @@
+from __future__ import print_function
+
 from . import VEXObject
-from . import expr, stmt, const
+from . import expr, stmt
 from .lift import lift
 from .enums import get_enum_from_int, get_int_from_enum
 from .const import get_type_size
@@ -73,7 +75,7 @@ class IRSB(VEXObject):
         """
         Pretty-print the IRSB to stdout.
         """
-        print self._pp_str()
+        print(self._pp_str())
 
     def typecheck(self):
         try:
@@ -330,7 +332,7 @@ class IRSB(VEXObject):
     #
 
     def _from_c(self, c_irsb):
-        self.statements = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in xrange(c_irsb.stmts_used)]
+        self.statements = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in range(c_irsb.stmts_used)]
         self.tyenv = IRTypeEnv._from_c(self.arch, c_irsb.tyenv)
         self.next = expr.IRExpr._from_c(c_irsb.next)
         self.jumpkind = get_enum_from_int(c_irsb.jumpkind)
@@ -379,7 +381,7 @@ class IRTypeEnv(VEXObject):
 
     @staticmethod
     def _from_c(arch, c_tyenv):
-        return IRTypeEnv(arch, [get_enum_from_int(c_tyenv.types[t]) for t in xrange(c_tyenv.types_used)])
+        return IRTypeEnv(arch, [get_enum_from_int(c_tyenv.types[t]) for t in range(c_tyenv.types_used)])
 
     @staticmethod
     def _to_c(tyenv):
@@ -394,3 +396,5 @@ class IRTypeEnv(VEXObject):
                get_type_size(ty)
             except ValueError:
                 return False
+
+from . import pvc

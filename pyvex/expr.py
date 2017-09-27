@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import logging
 
@@ -18,7 +19,7 @@ class IRExpr(VEXObject):
         VEXObject.__init__(self)
 
     def pp(self):
-        print self.__str__()
+        print(self.__str__())
 
     @property
     def child_expressions(self):
@@ -426,8 +427,6 @@ class Binop(IRExpr):
         arg1ty_real = self.args[0].typecheck(tyenv)
         arg2ty_real = self.args[1].typecheck(tyenv)
 
-        retty = get_op_retty(self.op, arg1ty_real, arg2ty_real)
-
         resty, (arg1ty, arg2ty) = op_arg_types(self.op)
         if arg1ty_real is None or arg2ty_real is None:
             return None
@@ -688,7 +687,7 @@ def _request_op_type_from_cache(op):
 
 def _request_op_type_from_libvex(op):
     res_ty = ffi.new('IRType *')
-    arg_tys = [ffi.new('IRType *') for _ in xrange(4)]
+    arg_tys = [ffi.new('IRType *') for _ in range(4)]
     for arg in arg_tys:
         arg = 0x1100
     pvc.typeOfPrimop(get_int_from_enum(op), res_ty, *arg_tys)
@@ -719,10 +718,10 @@ def unop_signature(op):
         raise PyvexOpMatchException()
     size = int(m.group('size'))
     size_type = int_type_for_size(size)
-    return (size_type, (size_type,))
+    return size_type, (size_type,)
 
 def binop_signature(op):
-    m = re.match(r'Iop_(Add|Sub|Mul|Xor|Or|And|Div(S|U))(?P<size>\d+)$', op)
+    m = re.match(r'Iop_(Add|Sub|Mul|Xor|Or|And|Div[SU])(?P<size>\d+)$', op)
     if m is None:
         raise PyvexOpMatchException()
     size = int(m.group('size'))
@@ -817,5 +816,5 @@ def tag_to_expr_class(tag):
     m = re.match(r'Iex_(?P<classname>.*)', tag)
     try:
         return globals()[m.group('classname')]
-    except TypeError, KeyError:
+    except (TypeError, KeyError):
         raise ValueError('Cannot find expression class for type %s' % tag)

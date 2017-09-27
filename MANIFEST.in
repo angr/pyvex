@@ -2,3 +2,4 @@ include LICENSE
 include README.md
 include make_ffi.py
 recursive-include pyvex_c *.c *.h *.def Makefile Makefile-msvc LICENSE
+recursive-include vex *
