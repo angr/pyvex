@@ -9,6 +9,7 @@ from syntax_wrapper import VexValue
 import logging
 import bitstring
 
+l = logging.getLogger(__name__)
 
 def is_empty(bitstrm):
     try:
@@ -36,14 +37,12 @@ class GymratLifter(Lifter):
                     traceflags=None, allow_lookback=None):
         super(GymratLifter, self).__init__(irsb, data, max_inst, max_bytes,
                 bytes_offset, opt_level, traceflags, allow_lookback)
-        self.logger = logging.getLogger('lifter')
-        self.logger.setLevel(logging.DEBUG)
         if 'CData' in str(type(data)):
             thedata = "".join([chr(data[x]) for x in range(max_bytes)])
         else:
             thedata = data
         self.thedata = thedata
-        self.logger.debug(repr(thedata))
+        l.debug(repr(thedata))
 
     def create_bitstrm(self):
         self.bitstrm = bitstring.ConstBitStream(bytes=self.thedata)
@@ -56,7 +55,7 @@ class GymratLifter(Lifter):
             if not self.max_inst:
                 self.max_inst = 1000000
             addr = self.irsb._addr
-            self.logger.debug("Starting block at address: " + hex(addr))
+            l.debug("Starting block at address: " + hex(addr))
             bytepos = self.bitstrm.bytepos
             while (count < self.max_inst
                     and (self.bitstrm.bitpos + 7) / 8 < self.max_bytes
@@ -64,44 +63,47 @@ class GymratLifter(Lifter):
                 # Try every instruction until one works
                 for possible_instr in self.instrs:
                     try:
-                        #self.logger.debug("Trying " + possible_instr.name)
-                        instr = possible_instr(self.bitstrm, self.irsb.arch.memory_endness, addr)
+                        #l.debug("Trying " + possible_instr.name)
+                        instr = possible_instr(self.bitstrm, self.irsb.arch, addr)
                         break
                     except ParseError:
-                        pass #self.logger.exception(repr(possible_instr))
+                        pass #l.exception(repr(possible_instr))
                     except Exception, e:
-                        self.logger.debug(e.message)
+                        l.debug(e.message)
                         raise e
                 else:
                     errorstr = 'Unknown instruction at bit position %d' % self.bitstrm.bitpos
-                    self.logger.critical(errorstr)
-                    self.logger.critical("Address: %#08x" % addr)
+                    l.debug(errorstr)
+                    l.debug("Address: %#08x" % addr)
                     #raise Exception(errorstr)
                     break
                 disas.append(instr)
-                self.logger.debug("Matched " + instr.name)
+                l.debug("Matched " + instr.name)
                 addr += self.bitstrm.bytepos - bytepos
                 bytepos = self.bitstrm.bytepos
                 count += 1
             return disas
         except Exception, e:
             self.errors = e.message
-            self.logger.exception("Error decoding block:")
+            l.exception("Error decoding block:")
             raise e
 
-    def lift(self, disassemble=False, dump_irsb=True):
+    def lift(self, disassemble=False, dump_irsb=False):
         if disassemble:
             return [instr.disassemble() for instr in self.decode()]
         self.irsb.jumpkind = JumpKind.Invalid
         irsb_c = IRSBCustomizer(self.irsb)
         instructions = self.decode()
-        self.logger.debug("Decoding complete.")
+        l.debug("Decoding complete.")
         #self.pp_disas()
         for i, instr in enumerate(instructions):
-            self.logger.debug("Lifting instruction " + instr.name)
+            l.debug("Lifting instruction " + instr.name)
             instr(irsb_c, instructions[:i], instructions[i+1:])
             if irsb_c.irsb.jumpkind != JumpKind.Invalid:
                 break
+        else:
+            instructions[-1].jump(None, instructions[-1].addr + instructions[-1].bytewidth)
+        l.debug(self.irsb._pp_str())
         if dump_irsb:
             self.irsb.pp()
         return self.irsb
