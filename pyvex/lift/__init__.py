@@ -1,3 +1,5 @@
+from ..block import IRSB
+
 lifters = []
 postprocessors = []
 
@@ -52,33 +54,12 @@ class Lifter(object):
         """
         pass
 
-# max_bytes should always be provided
-# max_inst might be none
-def lift(irsb, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags):
-    if not max_bytes and not isinstance(data, (str, bytes)):
-        raise PyVEXError("C-backed bytes must have the length specified by max_bytes")
-    if not max_bytes:
-        max_bytes = len(data)
-
-    if max_bytes == 0:
-        raise PyVEXError("No bytes provided")
-
-    errors = []
-
-    if isinstance(data, (str, bytes)):
-        py_data = data
-        c_data = None
-        allow_lookback = False
-    else:
-        c_data = data
-        py_data = None
-        allow_lookback = True
-
+def _lift_part(irsb, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags):
     for lifter in lifters:
         u_data = data
         if lifter.REQUIRE_DATA_C:
             if c_data is None:
-                c_data = ffi.new('unsigned char [%d]' % (len(data) + 8), data + b'\0' * 8)
+                c_data = ffi.new('unsigned char [%d]' % (len(data) + 8), data + '\0' * 8)
             u_data = c_data
         elif lifter.REQUIRE_DATA_PY:
             if py_data is None:
@@ -99,6 +80,40 @@ def lift(irsb, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags):
             raise PyVEXError('No lifters for architecture %s!' % irsb.arch.name)
         raise PyVEXError('\n\n'.join(errors))
 
+
+# max_bytes should always be provided
+# max_inst might be none
+def lift(final_irsb, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags):
+    if not max_bytes and not isinstance(data, (str, bytes)):
+        raise PyVEXError("C-backed bytes must have the length specified by max_bytes")
+    if not max_bytes:
+        max_bytes = len(data)
+
+    if max_bytes == 0:
+        raise PyVEXError("No bytes provided")
+
+    errors = []
+
+    if isinstance(data, (str, bytes)):
+        py_data = data
+        c_data = None
+        allow_lookback = False
+    else:
+        c_data = data
+        py_data = None
+        allow_lookback = True
+
+    addr = final_irsb.addr
+    arch = final_irsb.arch
+    import IPython; IPython.embed()
+    while (final_irsb.jumpkind is None or final_irsb.jumpkind == 'Ijk_NoDecode') and max_bytes > 0 and (max_inst is None or max_inst > 0):
+        template = IRSB(addr, arch)
+        lift_part(template, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
+        final_irsb.extend(template)
+        addr += template.size
+        max_bytes -= template.size
+        max_inst -= template.instructions
+
     for lifter in postprocessors:
         u_data = data
         if lifter.REQUIRE_DATA_C:
@@ -109,8 +124,9 @@ def lift(irsb, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags):
             if py_data is None:
                 py_data = str(ffi.buffer(data, max_bytes))
             u_data = py_data
-        lifter_inst = lifter(irsb, u_data, max_inst, max_bytes, bytes_offset, opt_level, traceflags, allow_lookback)
+        lifter_inst = lifter(final_irsb, u_data, max_inst, max_bytes, bytes_offset, opt_level, traceflags, allow_lookback)
         lifter_inst.postprocess()
+    return final_irsb
 
 def register(lifter):
     if lifter.lift is not Lifter.lift:

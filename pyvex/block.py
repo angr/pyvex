@@ -1,4 +1,5 @@
 from __future__ import print_function
+import copy
 
 from . import VEXObject
 from . import expr, stmt
@@ -6,6 +7,8 @@ from .lift import lift
 from .enums import get_enum_from_int, get_int_from_enum
 from .const import get_type_size
 from .errors import PyVEXError
+from .stmt import WrTmp
+from .expr import RdTmp
 
 import logging
 l = logging.getLogger("pyvex.block")
@@ -34,7 +37,7 @@ class IRSB(VEXObject):
 
     __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next', '_size']
 
-    def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None, bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None):
+    def __init__(self, arch, mem_addr, statements=[], nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
         """
         :param data:            The bytes to lift. Can be either a string of bytes or a cffi buffer object.
                                 You may also pass None to initialize an empty IRSB.
@@ -55,21 +58,56 @@ class IRSB(VEXObject):
                   on MIPS as a single instruction (`max_inst=1`) will result in an empty IRSB, and subsequent
                   attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
         """
-        if max_inst is None: max_inst = num_inst
-        if max_bytes is None: max_bytes = num_bytes
         VEXObject.__init__(self)
         self._addr = mem_addr
         self.arch = arch
 
-        self.statements = []
-        self.next = None
-        self.tyenv = IRTypeEnv(arch)
-        self.jumpkind = None
-        self._direct_next = None
-        self._size = None
+        self.statements = statements
+        self.next = nxt
+        if tyenv is None:
+            self.tyenv = IRTypeEnv(arch)
+        else:
+            self.tyenv = tyenv
+        self.jumpkind = jumpkind
+        self._direct_next = direct_next
+        self._size = size
 
-        if data is not None:
-            lift(self, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
+    @classmethod
+    def liftData(cls, data, mem_addr, arch, max_inst=None, max_bytes=None, bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None):
+        irsb = cls(arch, mem_addr)
+        if max_inst is None: max_inst = num_inst
+        if max_bytes is None: max_bytes = num_bytes
+
+        irsb = lift(irsb, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
+        return irsb
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+    def extend(self, extendwith):
+        conversion_dict = { }
+        extendwith = extendwith.copy()
+
+        def convert_tmp(tmp):
+            if tmp not in conversion_dict:
+                tmp_type = extendwith.tyenv.lookup(tmp)
+                conversion_dict[tmp] = self.tyenv.add(tmp_type)
+            return conversion_dict[tmp]
+
+        def convert_expr(expr):
+            if isinstance(expr, RdTmp):
+                expr.tmp = convert_tmp(expr.tmp)
+
+        for stmt in extendwith.statements:
+            if isinstance(stmt, WrTmp):
+                stmt.tmp = convert_tmp(stmt.tmp)
+            for e in stmt.expressions:
+                print(e)
+                convert_expr(e)
+            self.statements.append(stmt)
+        convert_expr(extendwith.next)
+        self.next = extendwith.next
+        self.jumpkind = extendwith.jumpkind
 
     def pp(self):
         """

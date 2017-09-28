@@ -41,6 +41,7 @@ class LibVEXLifter(Lifter):
                     l.info(log_str)
 
             self.irsb._from_c(c_irsb)
+            self.irsb.pp()
         finally:
             _libvex_lock.release()
             # We must use a pickle value, CData objects are not pickeable so not ffi.NULL
