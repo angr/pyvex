@@ -3,7 +3,6 @@ import copy
 
 from . import VEXObject
 from . import expr, stmt
-from .lift import lift
 from .enums import get_enum_from_int, get_int_from_enum
 from .const import get_type_size
 from .errors import PyVEXError
@@ -72,15 +71,15 @@ class IRSB(VEXObject):
         self._direct_next = direct_next
         self._size = size
 
-    @classmethod
-    def liftData(cls, data, mem_addr, arch, max_inst=None, max_bytes=None, bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None):
-        irsb = cls(arch, mem_addr)
-        if max_inst is None: max_inst = num_inst
-        if max_bytes is None: max_bytes = num_bytes
-
-        irsb = lift(irsb, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
-        return irsb
-
+    #  @classmethod
+    #  def liftData(cls, data, mem_addr, arch, max_inst=None, max_bytes=None, bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None):
+    #      irsb = cls(arch, mem_addr)
+    #      if max_inst is None: max_inst = num_inst
+    #      if max_bytes is None: max_bytes = num_bytes
+    #
+    #      irsb = lift(irsb, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
+    #      return irsb
+    #
     def copy(self):
         return copy.deepcopy(self)
 

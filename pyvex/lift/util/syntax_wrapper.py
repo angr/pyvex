@@ -133,12 +133,12 @@ class VexValue:
     @vvifyresults
     def __sub__(self, right):
         return self.irsb_c.op_sub(self.rdt, right.rdt)
-    """
+
     @checkparams
     def __rsub__(self, left):
-        # TODO: FIXME
-        return left - self
-    """
+        leftvv = VexValue(self.irsb_c, left, self.ty)
+        return leftvv - self
+
     @checkparams
     @vvifyresults
     def __div__(self, right):
@@ -146,29 +146,32 @@ class VexValue:
             return self.irsb_c.op_sdiv(self.rdt, right.rdt)
         else:
             return self.irsb_c.op_udiv(self.rdt, right.rdt)
-    """
+
     @checkparams
     def __rdiv__(self, left):
-        return left / self
-    """
+        leftvv = VexValue(self.irsb_c, left, self.ty)
+        return leftvv / self
+
     @checkparams
     @vvifyresults
     def __floordiv__(self, right): # Note: nonprimitive
         return self / right
-    """
+
     @checkparams
     def __rfloordiv__(self, left):
-        return left // self
-    """
+        leftvv = VexValue(self.irsb_c, left, self.ty)
+        return leftvv // self
+
     @checkparams
     @vvifyresults
     def __truediv__(self, right): # Note: nonprimitive
         return self / right
-    """
+
     @checkparams
     def __rtruediv__(self, left):
-        return left.__truediv__(self)
-    """
+        leftvv = VexValue(self.irsb_c, left, self.ty)
+        return leftvv.__truediv__(self)
+
     @checkparams
     @vvifyresults
     def __and__(self, right):
