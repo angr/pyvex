@@ -34,9 +34,9 @@ class IRSB(VEXObject):
     :ivar int addr:         The address of this basic block, i.e. the address in the first IMark
     """
 
-    __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next', '_size']
+    __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next']
 
-    def __init__(self, arch, mem_addr, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
+    def __init__(self, arch, mem_addr, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None):
         """
         :param data:            The bytes to lift. Can be either a string of bytes or a cffi buffer object.
                                 You may also pass None to initialize an empty IRSB.
@@ -69,7 +69,6 @@ class IRSB(VEXObject):
             self.tyenv = tyenv
         self.jumpkind = jumpkind
         self._direct_next = direct_next
-        self._size = size
 
     def copy(self):
         return copy.deepcopy(self)
@@ -109,12 +108,6 @@ class IRSB(VEXObject):
         self.next = extendwith.next
         self.jumpkind = extendwith.jumpkind
         #  import IPython; IPython.embed()
-
-    def pp(self):
-        """
-        Pretty-print the IRSB to stdout.
-        """
-        print(self._pp_str())
 
     def typecheck(self):
         try:
@@ -216,9 +209,7 @@ class IRSB(VEXObject):
         """
         The size of this block, in bytes
         """
-        if self._size is None:
-            self._size = sum([s.len for s in self.statements if isinstance(s, stmt.IMark)])
-        return self._size
+        return sum([s.len for s in self.statements if isinstance(s, stmt.IMark)])
 
     @property
     def addr(self):
@@ -289,7 +280,7 @@ class IRSB(VEXObject):
     # private methods
     #
 
-    def _pp_str(self):
+    def __str__(self):
         """
         Return the pretty-printed IRSB.
 

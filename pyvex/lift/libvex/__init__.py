@@ -3,6 +3,9 @@ import sys
 import cffi
 import pkg_resources
 
+from .vex_ffi import ffi_str as _ffi_str
+ffi = cffi.FFI()
+
 def _find_c_lib():
     # Load the c library for calling into VEX
     if sys.platform in ('win32', 'cygwin'):
@@ -23,3 +26,5 @@ def _find_c_lib():
     return lib
 
 pvc = _find_c_lib()
+
+from .libvex import LibVEXLifter

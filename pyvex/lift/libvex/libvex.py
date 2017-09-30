@@ -4,7 +4,7 @@ l = logging.getLogger('pyvex.lift.libvex')
 l.setLevel(20) # Shut up
 
 from .. import stmt
-from . import Lifter, register, LiftingException
+from .. import Lifter, register, LiftingException
 from .. import pvc, ffi
 import archinfo
 

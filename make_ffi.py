@@ -123,7 +123,7 @@ def doit(vex_path):
     good = find_good_scan(ffi_lines)
     good += ['extern VexControl vex_control;']
 
-    open('pyvex/vex_ffi.py', 'w').write('ffi_str = """' + '\n'.join(good) + '"""')
+    open('pyvex/lift/libvex/vex_ffi.py', 'w').write('ffi_str = """' + '\n'.join(good) + '"""')
 
 if __name__ == '__main__':
     import sys

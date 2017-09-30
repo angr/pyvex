@@ -17,8 +17,9 @@ else:
 import platform
 
 PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
-LIB_DIR = os.path.join(PROJECT_DIR, 'pyvex', 'lib')
-INCLUDE_DIR = os.path.join(PROJECT_DIR, 'pyvex', 'include')
+LIB_DIR = os.path.join(PROJECT_DIR, 'pyvex', 'lift', 'libvex', 'lib')
+INCLUDE_DIR = os.path.join(PROJECT_DIR, 'pyvex', 'lift', 'libvex', 'include')
+PYVEX_C_DIR = os.path.join(PROJECT_DIR, 'pyvex', 'lift', 'libvex', 'pyvex_c')
 
 try:
     from setuptools import setup
@@ -110,11 +111,9 @@ def _shuffle_files():
     os.mkdir(LIB_DIR)
     os.mkdir(INCLUDE_DIR)
 
-    pyvex_c_dir = os.path.join(PROJECT_DIR, 'pyvex_c')
-
-    shutil.copy(os.path.join(pyvex_c_dir, LIBRARY_FILE), LIB_DIR)
-    shutil.copy(os.path.join(pyvex_c_dir, STATIC_LIBRARY_FILE), LIB_DIR)
-    shutil.copy(os.path.join(pyvex_c_dir, 'pyvex.h'), INCLUDE_DIR)
+    shutil.copy(os.path.join(PYVEX_C_DIR, LIBRARY_FILE), LIB_DIR)
+    shutil.copy(os.path.join(PYVEX_C_DIR, STATIC_LIBRARY_FILE), LIB_DIR)
+    shutil.copy(os.path.join(PYVEX_C_DIR, 'pyvex.h'), INCLUDE_DIR)
     for f in glob.glob(os.path.join(VEX_PATH, 'pub', '*')):
         shutil.copy(f, INCLUDE_DIR)
 

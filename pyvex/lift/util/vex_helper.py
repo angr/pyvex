@@ -5,37 +5,6 @@ from pyvex.expr import IRExpr, Const, RdTmp, Unop, Binop, Triop, Qop, Load, CCal
 from pyvex.stmt import WrTmp, Put, IMark, Store, NoOp, Exit
 from pyvex.enums import IRCallee
 
-class JumpKind:
-    Boring = 'Ijk_Boring'
-    Call = 'Ijk_Call'
-    Ret = 'Ijk_Ret'
-    Segfault = 'Ijk_SigSEGV'
-    Exit = 'Ijk_Exit'
-    Syscall = 'Ijk_Sys_syscall'
-    Sysenter = 'Ijk_Sys_sysenter'
-    Invalid = 'Ijk_INVALID'
-    NoDecode = 'Ijk_NoDecode'
-
-class TypeMeta(type):
-    def __getattr__(self, name):
-        match = re.match(r'int_(?P<size>\d+)$', name)
-        if match:
-            width = int(match.group('size'))
-            return vex_int_class(width).type
-
-class Type:
-    __metaclass__ = TypeMeta
-
-    ieee_float_16 = 'Ity_F16'
-    ieee_float_32 = 'Ity_F32'
-    ieee_float_64 = 'Ity_F64'
-    ieee_float_128 = 'Ity_F128'
-    decimal_float_32 = 'Ity_D32'
-    decimal_float_64 = 'Ity_D64'
-    decimal_float_128 = 'Ity_D128'
-    simd_vector_128 = 'Ity_V128'
-    simd_vector_256 = 'Ity_V256'
-
 def get_op_format_from_const_ty(ty):
     return ty_to_const_class(ty).op_format
 
