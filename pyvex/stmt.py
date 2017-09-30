@@ -2,23 +2,14 @@ from __future__ import print_function
 import re
 import logging
 
-from . import VEXObject
-from .enums import get_enum_from_int, get_int_from_enum
-
 l = logging.getLogger('pyvex.stmt')
 
-class IRStmt(VEXObject):
+class IRStmt(object):
     """
     IR statements in VEX represents operations with side-effects.
     """
 
     tag = None
-
-    def __init__(self):
-        VEXObject.__init__(self)
-
-    def pp(self):
-        print(self.__str__())
 
     @property
     def expressions(self):
@@ -657,7 +648,4 @@ class StoreG(IRStmt):
 
 
 from .expr import IRExpr, Get
-from .const import IRConst
-from .enums import IRRegArray, IRCallee
 from .errors import PyVEXError
-from . import ffi, pvc, expr

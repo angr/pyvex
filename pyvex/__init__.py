@@ -7,7 +7,6 @@ import logging
 logging.getLogger("pyvex").addHandler(logging.NullHandler())
 
 # pylint: disable=wildcard-import
-from .enums import *
 from . import stmt, expr, const
 from .block import *
 from .expr import get_op_retty

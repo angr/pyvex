@@ -1,10 +1,8 @@
 from __future__ import print_function
 import copy
 
-from . import VEXObject
 from . import expr, stmt
-from .enums import get_enum_from_int, get_int_from_enum
-from .const import get_type_size
+from .types import get_type_size
 from .errors import PyVEXError
 from .stmt import *
 from .expr import RdTmp
@@ -12,7 +10,7 @@ from .expr import RdTmp
 import logging
 l = logging.getLogger("pyvex.block")
 
-class IRSB(VEXObject):
+class IRSB(object):
     """
     The IRSB is the primary interface to pyvex. Constructing one of these will make a call into LibVEX to perform a
     translation.
@@ -57,7 +55,6 @@ class IRSB(VEXObject):
                   on MIPS as a single instruction (`max_inst=1`) will result in an empty IRSB, and subsequent
                   attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
         """
-        VEXObject.__init__(self)
         self._addr = mem_addr
         self.arch = arch
 
@@ -367,7 +364,7 @@ class IRSB(VEXObject):
         self.next = expr.IRExpr._from_c(c_irsb.next)
         self.jumpkind = get_enum_from_int(c_irsb.jumpkind)
 
-class IRTypeEnv(VEXObject):
+class IRTypeEnv(object):
     """
     An IR type environment.
 
@@ -379,7 +376,6 @@ class IRTypeEnv(VEXObject):
     __slots__ = ['types', 'wordty']
 
     def __init__(self, arch, types=None):
-        VEXObject.__init__(self)
         self.types = [] if types is None else types
         self.wordty = 'Ity_I%d' % arch.bits
 
@@ -427,4 +423,3 @@ class IRTypeEnv(VEXObject):
             except ValueError:
                 return False
 
-from . import pvc

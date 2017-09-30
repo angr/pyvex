@@ -10,7 +10,6 @@ class IRCallee(object):
     __slots__ = ['regparms', 'name', 'mcx_mask', 'addr']
 
     def __init__(self, regparms, name, addr, mcx_mask):
-        VEXObject.__init__(self)
         self.regparms = regparms
         self.name = name
         self.addr = addr
@@ -48,7 +47,6 @@ class IRRegArray(object):
     __slots__ = ['base', 'elemTy', 'nElems']
 
     def __init__(self, base, elemTy, nElems):
-        VEXObject.__init__(self)
         self.base = base
         self.elemTy = elemTy
         self.nElems = nElems

@@ -2,24 +2,14 @@ from __future__ import print_function
 import re
 import logging
 
-from . import VEXObject
-from .enums import IRCallee, IRRegArray, get_int_from_enum, get_enum_from_int
-from .const import get_type_size
-
 l = logging.getLogger("pyvex.expr")
 
-class IRExpr(VEXObject):
+class IRExpr(object):
     """
     IR expressions in VEX represent operations without side effects.
     """
 
     tag = None
-
-    def __init__(self):
-        VEXObject.__init__(self)
-
-    def pp(self):
-        print(self.__str__())
 
     @property
     def child_expressions(self):
@@ -808,6 +798,5 @@ def op_arg_types(op):
             continue
     raise ValueError("Cannot find type of op %s" % op)
 
-from .const import IRConst
+from .types import IRConst
 from .errors import PyVEXError
-from . import ffi, pvc

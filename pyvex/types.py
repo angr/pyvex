@@ -1,24 +1,16 @@
 from __future__ import print_function
 import re
 
-from . import VEXObject, ffi, pvc
-from .enums import get_enum_from_int
 from .errors import PyVEXError
 
 # IRConst hierarchy
-class IRConst(VEXObject):
+class IRConst(object):
 
     __slots__ = ['value']
 
     type = None
     tag = None
     c_constructor = None
-
-    def __init__(self):
-        VEXObject.__init__(self)
-
-    def pp(self):
-        print(self.__str__())
 
     @property
     def size(self):
