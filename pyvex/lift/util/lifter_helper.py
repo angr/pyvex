@@ -40,14 +40,10 @@ class GymratLifter(Lifter):
         try:
             count = 0
             disas = []
-            if not self.max_inst:
-                self.max_inst = 1000000
             addr = self.irsb._addr
             l.debug("Starting block at address: " + hex(addr))
             bytepos = self.bitstrm.bytepos
-            while (count < self.max_inst
-                    and (self.bitstrm.bitpos + 7) / 8 < self.max_bytes
-                    and not is_empty(self.bitstrm)):
+            while (not is_empty(self.bitstrm)):
                 # Try every instruction until one works
                 for possible_instr in self.instrs:
                     try:

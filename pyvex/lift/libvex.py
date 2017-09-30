@@ -11,6 +11,9 @@ _libvex_lock = threading.Lock()
 
 SUPPORTED = {'X86', 'AMD64', 'MIPS32', 'MIPS64', 'ARM', 'ARMEL', 'ARMHF', 'AARCH64', 'PPC32', 'PPC64'}
 
+VEX_MAX_INSTRUCTIONS = 99
+VEX_MAX_BYTES = 400
+
 class LibVEXLifter(Lifter):
     REQUIRE_DATA_C = True
 
@@ -28,10 +31,8 @@ class LibVEXLifter(Lifter):
             pvc.log_level = l.getEffectiveLevel()
             vex_arch = getattr(pvc, self.irsb.arch.vex_arch)
 
-            if self.max_inst is None: self.max_inst = 99
-            if self.max_bytes is None: self.max_bytes = 5000
             if self.bytes_offset is None: self.bytes_offset = 0
-            c_irsb = pvc.vex_lift(vex_arch, self.irsb.arch.vex_archinfo, self.data + self.bytes_offset, self.irsb._addr, self.max_inst, self.max_bytes, self.opt_level, self.traceflags, self.allow_lookback)
+            c_irsb = pvc.vex_lift(vex_arch, self.irsb.arch.vex_archinfo, self.data + self.bytes_offset, self.irsb._addr, VEX_MAX_INSTRUCTIONS, VEX_MAX_BYTES, self.opt_level, self.traceflags, self.allow_lookback)
 
             log_str = str(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)) if pvc.msg_buffer != ffi.NULL else None
 

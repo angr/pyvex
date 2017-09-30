@@ -19,8 +19,6 @@ class Lifter(object):
 
     def _lift(self,
              data,
-             max_bytes=None,
-             max_inst=None,
              bytes_offset=None,
              opt_level=1,
              traceflags=None,
@@ -33,8 +31,6 @@ class Lifter(object):
         """
         irsb = IRSB(self.arch, self.addr)
         self.data = data
-        self.max_bytes = max_bytes
-        self.max_inst = max_inst
         self.bytes_offset = bytes_offset
         self.opt_level = opt_level
         self.traceflags = traceflags
@@ -56,15 +52,7 @@ class Postprocessor(object):
         """
         pass
 
-def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt_level=1, traceflags=False, allow_lookback=False):
-    if not max_bytes and not isinstance(data, (str, bytes)):
-        raise PyVEXError("C-backed bytes must have the length specified by max_bytes")
-    if not max_bytes:
-        max_bytes = len(data)
-
-    if max_bytes == 0:
-        raise PyVEXError("No bytes provided")
-
+def lift(arch, addr, data, bytes_offset=None, opt_level=1, traceflags=False, allow_lookback=False):
     final_irsb = IRSB(arch, addr)
     if isinstance(data, (str, bytes)):
         py_data = data
@@ -84,9 +72,9 @@ def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt
                 u_data = c_data
             elif lifter.REQUIRE_DATA_PY:
                 if py_data is None:
-                    py_data = str(ffi.buffer(data, max_bytes))
+                    py_data = str(ffi.buffer(data, len(data)))
                 u_data = py_data
-            next_irsb_part = lifter(arch, addr)._lift(u_data, max_bytes, max_inst, bytes_offset, opt_level, traceflags, allow_lookback)
+            next_irsb_part = lifter(arch, addr)._lift(u_data, bytes_offset, opt_level, traceflags, allow_lookback)
             final_irsb.extend(next_irsb_part)
             break
         except LiftingException:
@@ -97,11 +85,10 @@ def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt
     if final_irsb.jumpkind == 'Ijk_NoDecode':
         addr += next_irsb_part.size
         data_left = data[next_irsb_part.size:]
-        max_bytes -= next_irsb_part.size
         if max_inst is not None:
             max_inst -= next_irsb_part.instructions
-        if max_bytes > 0 and len(data_left) > 0 and (max_inst is None or max_inst > 0):
-            more_irsb = lift(arch, addr, data_left, max_bytes, max_inst, bytes_offset, opt_level, traceflags, allow_lookback)
+        if len(data_left) > 0:
+            more_irsb = lift(arch, addr, data_left, bytes_offset, opt_level, traceflags, allow_lookback)
             final_irsb.extend(more_irsb)
 
     for postprocessor in postprocessors:
