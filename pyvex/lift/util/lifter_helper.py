@@ -3,7 +3,7 @@ import archinfo
 import pyvex
 from functools import wraps
 from pyvex.expr import *
-from pyvex.lift import Lifter, register
+from pyvex.lift import Lifter, register, LiftingException
 from .vex_helper import *
 from syntax_wrapper import VexValue
 import logging
@@ -33,22 +33,10 @@ class GymratLifter(Lifter):
     pyvex, when lifting a block of code for this architecture, will call the method "lift", which will produce the IRSB
     of the lifted code.
     """
-    def __init__(self, irsb, data, max_inst, max_bytes, bytes_offset, opt_level=None,
-                    traceflags=None, allow_lookback=None):
-        super(GymratLifter, self).__init__(irsb, data, max_inst, max_bytes,
-                bytes_offset, opt_level, traceflags, allow_lookback)
-        if 'CData' in str(type(data)):
-            thedata = "".join([chr(data[x]) for x in range(max_bytes)])
-        else:
-            thedata = data
-        self.thedata = thedata
-        l.debug(repr(thedata))
-
     def create_bitstrm(self):
         self.bitstrm = bitstring.ConstBitStream(bytes=self.thedata)
 
     def decode(self):
-        self.create_bitstrm()
         try:
             count = 0
             disas = []
@@ -75,7 +63,6 @@ class GymratLifter(Lifter):
                     errorstr = 'Unknown instruction at bit position %d' % self.bitstrm.bitpos
                     l.debug(errorstr)
                     l.debug("Address: %#08x" % addr)
-                    #raise Exception(errorstr)
                     break
                 disas.append(instr)
                 l.debug("Matched " + instr.name)
@@ -89,20 +76,25 @@ class GymratLifter(Lifter):
             raise e
 
     def lift(self, disassemble=False, dump_irsb=False):
+        self.thedata = self.data
+        l.debug(repr(self.thedata))
+        self.create_bitstrm()
+
         if disassemble:
             return [instr.disassemble() for instr in self.decode()]
         self.irsb.jumpkind = JumpKind.Invalid
         irsb_c = IRSBCustomizer(self.irsb)
         instructions = self.decode()
         l.debug("Decoding complete.")
-        #self.pp_disas()
         for i, instr in enumerate(instructions):
             l.debug("Lifting instruction " + instr.name)
             instr(irsb_c, instructions[:i], instructions[i+1:])
             if irsb_c.irsb.jumpkind != JumpKind.Invalid:
                 break
         else:
-            instructions[-1].jump(None, instructions[-1].addr + instructions[-1].bytewidth)
+            if len(irsb_c.irsb.statements) == 0:
+                raise LiftingException('Could not decode any instructions')
+            irsb_c.irsb.jumpkind = JumpKind.NoDecode
         l.debug(self.irsb._pp_str())
         if dump_irsb:
             self.irsb.pp()

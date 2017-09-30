@@ -36,7 +36,7 @@ class IRSB(VEXObject):
 
     __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next', '_size']
 
-    def __init__(self, arch, mem_addr, statements=[], nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
+    def __init__(self, arch, mem_addr, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
         """
         :param data:            The bytes to lift. Can be either a string of bytes or a cffi buffer object.
                                 You may also pass None to initialize an empty IRSB.
@@ -61,7 +61,7 @@ class IRSB(VEXObject):
         self._addr = mem_addr
         self.arch = arch
 
-        self.statements = statements
+        self.statements = statements if statements is not None else []
         self.next = nxt
         if tyenv is None:
             self.tyenv = IRTypeEnv(arch)
@@ -71,15 +71,6 @@ class IRSB(VEXObject):
         self._direct_next = direct_next
         self._size = size
 
-    #  @classmethod
-    #  def liftData(cls, data, mem_addr, arch, max_inst=None, max_bytes=None, bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None):
-    #      irsb = cls(arch, mem_addr)
-    #      if max_inst is None: max_inst = num_inst
-    #      if max_bytes is None: max_bytes = num_bytes
-    #
-    #      irsb = lift(irsb, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
-    #      return irsb
-    #
     def copy(self):
         return copy.deepcopy(self)
 
