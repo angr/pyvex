@@ -661,10 +661,3 @@ from .const import IRConst
 from .enums import IRRegArray, IRCallee
 from .errors import PyVEXError
 from . import ffi, pvc, expr
-
-def tag_to_stmt_class(tag):
-    m = re.match(r'Ist_(?P<classname>.*)', tag)
-    try:
-        return globals()[m.group('classname')]
-    except (TypeError, KeyError):
-        raise ValueError('No statement class for tag %s' % tag)

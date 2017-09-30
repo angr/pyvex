@@ -811,10 +811,3 @@ def op_arg_types(op):
 from .const import IRConst
 from .errors import PyVEXError
 from . import ffi, pvc
-
-def tag_to_expr_class(tag):
-    m = re.match(r'Iex_(?P<classname>.*)', tag)
-    try:
-        return globals()[m.group('classname')]
-    except (TypeError, KeyError):
-        raise ValueError('Cannot find expression class for type %s' % tag)

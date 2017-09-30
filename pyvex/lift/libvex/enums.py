@@ -1,13 +1,8 @@
+from bidict import bidict, ValueDuplicationError
+
 from . import pvc, ffi
 
-class VEXObject(object):
-    """
-    The base class for Vex types.
-    """
-
-    __slots__ = [ ]
-
-class IRCallee(VEXObject):
+class IRCallee(object):
     """
     Describes a helper function to call.
     """
@@ -40,7 +35,7 @@ class IRCallee(VEXObject):
         return c_callee
 
 
-class IRRegArray(VEXObject):
+class IRRegArray(object):
     """
     A section of the guest state that we want te be able to index at run time, so as to be able to describe indexed or
     rotating register files on the guest.
@@ -72,36 +67,25 @@ class IRRegArray(VEXObject):
         return pvc.mkIRRegArray(arr.base,
                                 get_int_from_enum(arr.elemTy),
                                 arr.nElems)
-
-ints_to_enums = { }
-enums_to_ints = { }
-irop_enums_to_ints = { }
-will_be_overwritten = ['Ircr_GT', 'Ircr_LT']
-
 def get_enum_from_int(i):
     return ints_to_enums[i]
 
 def get_int_from_enum(e):
     return enums_to_ints[e]
 
-def _add_enum(s, i=None): # TODO get rid of this
-    if i is None:
-        while _add_enum.counter in ints_to_enums:
-            _add_enum.counter += 1
-        i = _add_enum.counter
-        _add_enum.counter += 1 # Update for the next iteration
-    if i in ints_to_enums:
-        if ints_to_enums[i] not in will_be_overwritten:
-            raise ValueError('Enum with intkey %d already present' % i)
-    enums_to_ints[s] = i
-    ints_to_enums[i] = s
-    if s.startswith('Iop_'):
-        irop_enums_to_ints[s] = i
-_add_enum.counter = 0
+enums_to_ints = bidict()
 
+will_be_overwritten = ['Ircr_GT', 'Ircr_LT']
 for attr in dir(pvc):
     if attr[0] in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' and hasattr(pvc, attr) and isinstance(getattr(pvc, attr), int):
-        _add_enum(attr, getattr(pvc, attr))
+        enum_int = getattr(pvc, attr)
+        try:
+            enums_to_ints[attr] = enum_int
+        except ValueDuplicationError:
+            if attr in will_be_overwritten:
+                to_overwite = enums_to_ints.inv[enum_int]
+                l.warning('Overwriting enum %s with enum %s. This is expected.' % (to_overwite, attr))
+                enum_int.force_put(attr, enum_int)
 
 def vex_endness_from_string(endness_str):
     return getattr(pvc, endness_str)
