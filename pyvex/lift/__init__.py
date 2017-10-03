@@ -1,4 +1,7 @@
 from ..block import IRSB
+import logging
+
+l = logging.getLogger('pyvex.lift')
 
 lifters = []
 postprocessors = []
@@ -63,7 +66,9 @@ def lift(arch, addr, data, bytes_offset=None, opt_level=1, traceflags=False, all
         py_data = None
         allow_lookback = True
 
-    for lifter in lifters:
+    for lifter, registered_arch in lifters:
+        if isinstance(registered_arch):
+            continue
         try:
             u_data = data
             if lifter.REQUIRE_DATA_C:
@@ -75,6 +80,8 @@ def lift(arch, addr, data, bytes_offset=None, opt_level=1, traceflags=False, all
                     py_data = str(ffi.buffer(data, len(data)))
                 u_data = py_data
             next_irsb_part = lifter(arch, addr)._lift(u_data, bytes_offset, opt_level, traceflags, allow_lookback)
+            l.debug("Lifted IRSB: ")
+            l.debug(next_irsb_part._pp_str())
             final_irsb.extend(next_irsb_part)
             break
         except LiftingException:
@@ -85,25 +92,22 @@ def lift(arch, addr, data, bytes_offset=None, opt_level=1, traceflags=False, all
     if final_irsb.jumpkind == 'Ijk_NoDecode':
         addr += next_irsb_part.size
         data_left = data[next_irsb_part.size:]
-        if max_inst is not None:
-            max_inst -= next_irsb_part.instructions
         if len(data_left) > 0:
             more_irsb = lift(arch, addr, data_left, bytes_offset, opt_level, traceflags, allow_lookback)
             final_irsb.extend(more_irsb)
 
-    for postprocessor in postprocessors:
+    for postprocessor in postprocessors[type(arch)]:
         postprocessor(final_irsb).postprocess()
     return final_irsb
 
-def register(lifter):
+def register(lifter, arch):
     if issubclass(lifter, Lifter):
-        lifters.append(lifter)
+        lifters.append((lifter, arch))
     if issubclass(lifter, Postprocessor):
-        postprocessors.append(lifter)
+        postprocessors.append((lifter, arch))
 
 from .. import ffi
 from ..errors import PyVEXError
 
 from .libvex import LibVEXLifter
 from .fixes import FixesPostProcessor
-from .spotter import LifterSpotter

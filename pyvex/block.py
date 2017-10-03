@@ -6,7 +6,7 @@ from . import expr, stmt
 from .enums import get_enum_from_int, get_int_from_enum
 from .const import get_type_size
 from .errors import PyVEXError
-from .stmt import WrTmp
+from .stmt import *
 from .expr import RdTmp
 
 import logging
@@ -91,13 +91,24 @@ class IRSB(VEXObject):
         for stmt in extendwith.statements:
             if isinstance(stmt, WrTmp):
                 stmt.tmp = convert_tmp(stmt.tmp)
+            elif isinstance(stmt, LoadG):
+                stmt.dst = convert_tmp(stmt.dst)
+            elif isinstance(stmt, LLSC):
+                stmt.result = convert_tmp(stmt.result)
+            elif isinstance(stmt, Dirty):
+                stmt.tmp = convert_tmp(stmt.tmp)
+            elif isinstance(stmt, CAS):
+                stmt.oldLo = convert_tmp(stmt.oldLo)
+                stmt.oldHi = convert_tmp(stmt.oldHi)
+            elif isinstance(stmt, LLSC):
+                stmt.result = convert_tmp(stmt.result)
             for e in stmt.expressions:
-                print(e)
                 convert_expr(e)
             self.statements.append(stmt)
         convert_expr(extendwith.next)
         self.next = extendwith.next
         self.jumpkind = extendwith.jumpkind
+        #  import IPython; IPython.embed()
 
     def pp(self):
         """

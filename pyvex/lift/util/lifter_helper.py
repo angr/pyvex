@@ -47,7 +47,7 @@ class GymratLifter(Lifter):
                 # Try every instruction until one works
                 for possible_instr in self.instrs:
                     try:
-                        #l.debug("Trying " + possible_instr.name)
+                        l.info("Trying " + possible_instr.name)
                         instr = possible_instr(self.bitstrm, self.irsb.arch, addr)
                         break
                     except ParseError:

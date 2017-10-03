@@ -41,6 +41,7 @@ from . import stmt, expr, const
 from .block import *
 from .expr import get_op_retty
 from .const import tag_to_const_class
+from .lift import lift
 
 # aliases....
 IRStmt = stmt

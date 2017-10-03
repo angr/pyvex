@@ -6,10 +6,21 @@ l.setLevel(20) # Shut up
 from .. import stmt
 from . import Lifter, register, LiftingException
 from .. import pvc, ffi
+import archinfo
 
 _libvex_lock = threading.Lock()
 
-SUPPORTED = {'X86', 'AMD64', 'MIPS32', 'MIPS64', 'ARM', 'ARMEL', 'ARMHF', 'AARCH64', 'PPC32', 'PPC64'}
+import IPython; IPython.embed()
+SUPPORTED = [archinfo.ArchX86,
+             archinfo.ArchAMD64,
+             archinfo.ArchMIPS32,
+             archinfo.ArchMIPS64,
+             archinfo.ArchARM,
+             archinfo.ArchARMEL,
+             archinfo.ArchARMHF,
+             archinfo.ArchAMD64,
+             archinfo.ArchPPC32,
+             archinfo.ArchPPC64]
 
 VEX_MAX_INSTRUCTIONS = 99
 VEX_MAX_BYTES = 400
@@ -18,9 +29,6 @@ class LibVEXLifter(Lifter):
     REQUIRE_DATA_C = True
 
     def lift(self):
-        if self.irsb.arch.name not in SUPPORTED:
-            return False
-
         if self.traceflags != 0 and l.getEffectiveLevel() > 20:
             l.setLevel(20)
 
@@ -43,9 +51,11 @@ class LibVEXLifter(Lifter):
                     l.info(log_str)
 
             self.irsb._from_c(c_irsb)
-            last_statement = self.irsb.statements[-1]
-            if isinstance(last_statement, stmt.IMark) and last_statement.len == 0:
-                self.irsb.statements = self.irsb.statements[:-1]
+            for i in range(len(self.irsb.statements))[::-1]:
+                s = self.irsb.statements[i]
+                if isinstance(s, stmt.IMark) and s.len == 0:
+                    self.irsb.statements = self.irsb.statements[:i]
+                    break
             if self.irsb.size == 0:
                 raise LiftingException("libvex: could not decode any instructions")
         finally:
@@ -53,4 +63,5 @@ class LibVEXLifter(Lifter):
             # We must use a pickle value, CData objects are not pickeable so not ffi.NULL
             self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = None
 
-register(LibVEXLifter)
+for a in SUPPORTED:
+    register(LibVEXLifter, a)
