@@ -22,7 +22,7 @@ class IRCallee(VEXObject):
         self.mcx_mask = mcx_mask
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     @staticmethod
     def _from_c(c_callee):
