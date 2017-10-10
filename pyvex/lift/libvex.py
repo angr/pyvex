@@ -6,11 +6,11 @@ l.setLevel(20) # Shut up
 from .. import stmt
 from . import Lifter, register, LiftingException
 from .. import pvc, ffi
+from ..enums import default_vex_archinfo, vex_endness_from_string
 import archinfo
 
 _libvex_lock = threading.Lock()
 
-import IPython; IPython.embed()
 SUPPORTED = [archinfo.ArchX86,
              archinfo.ArchAMD64,
              archinfo.ArchMIPS32,
@@ -28,19 +28,31 @@ VEX_MAX_BYTES = 400
 class LibVEXLifter(Lifter):
     REQUIRE_DATA_C = True
 
+    def _construct_c_arch(self):
+        c_arch = default_vex_archinfo()
+        if self.arch.endness == 'Iend_BE':
+            c_arch['endness'] = vex_endness_from_string('VexEndnessBE')
+        if isinstance(self.arch, archinfo.ArchX86):
+            c_arch['x86_cr0'] = 0xFFFFFFFF
+        c_arch['hwcache_info']['caches'] = ffi.NULL
+        return c_arch
+
     def lift(self):
         if self.traceflags != 0 and l.getEffectiveLevel() > 20:
             l.setLevel(20)
 
         try:
             _libvex_lock.acquire()
-            self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
 
             pvc.log_level = l.getEffectiveLevel()
             vex_arch = getattr(pvc, self.irsb.arch.vex_arch)
 
-            if self.bytes_offset is None: self.bytes_offset = 0
-            c_irsb = pvc.vex_lift(vex_arch, self.irsb.arch.vex_archinfo, self.data + self.bytes_offset, self.irsb._addr, VEX_MAX_INSTRUCTIONS, VEX_MAX_BYTES, self.opt_level, self.traceflags, self.allow_lookback)
+            if self.bytes_offset is None:
+                self.bytes_offset = 0
+
+            c_arch = self._construct_c_arch()
+
+            c_irsb = pvc.vex_lift(vex_arch, c_arch, self.data + self.bytes_offset, self.irsb._addr, VEX_MAX_INSTRUCTIONS, VEX_MAX_BYTES, self.opt_level, self.traceflags, self.allow_lookback)
 
             log_str = str(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)) if pvc.msg_buffer != ffi.NULL else None
 
@@ -60,8 +72,6 @@ class LibVEXLifter(Lifter):
                 raise LiftingException("libvex: could not decode any instructions")
         finally:
             _libvex_lock.release()
-            # We must use a pickle value, CData objects are not pickeable so not ffi.NULL
-            self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = None
 
 for a in SUPPORTED:
     register(LibVEXLifter, a)

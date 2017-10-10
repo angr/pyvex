@@ -67,7 +67,7 @@ def lift(arch, addr, data, bytes_offset=None, opt_level=1, traceflags=False, all
         allow_lookback = True
 
     for lifter, registered_arch in lifters:
-        if isinstance(registered_arch):
+        if not isinstance(arch, registered_arch):
             continue
         try:
             u_data = data
@@ -96,7 +96,9 @@ def lift(arch, addr, data, bytes_offset=None, opt_level=1, traceflags=False, all
             more_irsb = lift(arch, addr, data_left, bytes_offset, opt_level, traceflags, allow_lookback)
             final_irsb.extend(more_irsb)
 
-    for postprocessor in postprocessors[type(arch)]:
+    for postprocessor, registered_arch in postprocessors:
+        if not isinstance(arch, registered_arch):
+            continue
         postprocessor(final_irsb).postprocess()
     return final_irsb
 
