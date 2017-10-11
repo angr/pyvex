@@ -32,9 +32,9 @@ class LibVEXLifter(Lifter):
         c_arch = default_vex_archinfo()
         if self.arch.endness == 'Iend_BE':
             c_arch['endness'] = vex_endness_from_string('VexEndnessBE')
-        if isinstance(self.arch, archinfo.ArchX86):
-            c_arch['x86_cr0'] = 0xFFFFFFFF
         c_arch['hwcache_info']['caches'] = ffi.NULL
+        if hasattr(c_arch, 'x86_cr0'):
+            c_arch['x86_cr0'] = c_arch.x86_cr0
         return c_arch
 
     def lift(self):
