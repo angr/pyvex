@@ -276,6 +276,9 @@ def get_tag_size(tag):
     return int(m.group('size'))
 
 
+type_str_re = re.compile(r'Ity_[IFDV](?P<size>\d+)')
+type_tag_str_re = re.compile(r'[IFDV]?(?P<size>\d+)[SU]?')
+
 def get_type_size(ty):
     """
     Returns the size, in BITS, of a VEX type specifier
@@ -284,7 +287,7 @@ def get_type_size(ty):
     :param ty:
     :return:
     """
-    m = re.match(r'Ity_[IFDV](?P<size>\d+)', ty)
+    m = type_str_re.match(ty)
     if m is None:
         raise ValueError('Type %s does not have size' % ty)
     return int(m.group('size'))
@@ -300,7 +303,7 @@ def get_type_spec_size(ty):
     :param tyspec:
     :return:
     """
-    m = re.match(r'[IFDV]?(?P<size>\d+)[SU]?', ty)
+    m = type_tag_str_re.match(ty)
     if m is None:
         raise ValueError('Type specifier %s does not have size' % ty)
     return int(m.group('size'))
