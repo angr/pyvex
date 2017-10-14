@@ -1,4 +1,3 @@
-from ..block import IRSB
 import logging
 
 l = logging.getLogger('pyvex.lift')
@@ -23,6 +22,8 @@ class Lifter(object):
     def _lift(self,
              data,
              bytes_offset=None,
+             max_bytes=None,
+             max_inst=None,
              opt_level=1,
              traceflags=None,
              allow_lookback=None):
@@ -32,12 +33,13 @@ class Lifter(object):
         All of the lifters will be used in the order that they are registered
         whenever an instruction cannot be decoded until one is able to decode it
         """
-        irsb = IRSB(self.arch, self.addr)
+        irsb = IRSB.emptyBlock(self.arch, self.addr)
         self.data = data
         self.bytes_offset = bytes_offset
         self.opt_level = opt_level
         self.traceflags = traceflags
         self.allow_lookback = allow_lookback
+        self.max_bytes = max_bytes
         self.irsb = irsb
         self.lift()
         return self.irsb
@@ -55,15 +57,15 @@ class Postprocessor(object):
         """
         pass
 
-def lift(arch, addr, data, bytes_offset=None, opt_level=1, traceflags=False, allow_lookback=False):
-    final_irsb = IRSB(arch, addr)
+def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt_level=1, traceflags=False):
+    final_irsb = IRSB.emptyBlock(arch, addr)
     if isinstance(data, (str, bytes)):
         py_data = data
-        c_data = None
         allow_lookback = False
     else:
-        c_data = data
-        py_data = None
+        if max_bytes is None:
+            raise Exception('Cannot pass c buffer without length')
+        py_data = ffi.string(data, max_bytes)
         allow_lookback = True
 
     for lifter, registered_arch in lifters:
@@ -72,17 +74,14 @@ def lift(arch, addr, data, bytes_offset=None, opt_level=1, traceflags=False, all
         try:
             u_data = data
             if lifter.REQUIRE_DATA_C:
-                if c_data is None:
-                    c_data = ffi.new('unsigned char [%d]' % (len(data) + 8), data + '\0' * 8)
-                u_data = c_data
+                u_data = ffi.new('unsigned char [%d]' % (len(py_data) + 8), py_data + '\0' * 8)
             elif lifter.REQUIRE_DATA_PY:
-                if py_data is None:
-                    py_data = str(ffi.buffer(data, len(data)))
                 u_data = py_data
-            next_irsb_part = lifter(arch, addr)._lift(u_data, bytes_offset, opt_level, traceflags, allow_lookback)
+            next_irsb_part = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags, allow_lookback)
             l.debug("Lifted IRSB: ")
             l.debug(next_irsb_part._pp_str())
             final_irsb.extend(next_irsb_part)
+            print '[+] Lifted using lifter %s' % str(lifter)
             break
         except LiftingException:
             continue
@@ -91,16 +90,18 @@ def lift(arch, addr, data, bytes_offset=None, opt_level=1, traceflags=False, all
 
     if final_irsb.jumpkind == 'Ijk_NoDecode':
         addr += next_irsb_part.size
-        data_left = data[next_irsb_part.size:]
-        if len(data_left) > 0:
-            more_irsb = lift(arch, addr, data_left, bytes_offset, opt_level, traceflags, allow_lookback)
+        data_left = py_data[next_irsb_part.size:]
+        if max_inst is not None:
+            max_inst -= next_irsb_part.instructions
+        if len(data_left) > 0 and max_inst > 0:
+            more_irsb = lift(arch, addr, data_left, len(data_left), max_inst, bytes_offset, opt_level, traceflags, allow_lookback)
             final_irsb.extend(more_irsb)
 
     for postprocessor, registered_arch in postprocessors:
         if not isinstance(arch, registered_arch):
             continue
         postprocessor(final_irsb).postprocess()
-    return final_irsb
+    irsb._from_py(final_irsb)
 
 def register(lifter, arch):
     if issubclass(lifter, Lifter):
@@ -113,3 +114,4 @@ from ..errors import PyVEXError
 
 from .libvex import LibVEXLifter
 from .fixes import FixesPostProcessor
+from ..block import IRSB
