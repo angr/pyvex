@@ -36,7 +36,7 @@ class IRSB(VEXObject):
 
     __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next', '_size']
 
-    def __init__(self, arch, mem_addr, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
+    def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None, bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None):
         """
         :param data:            The bytes to lift. Can be either a string of bytes or a cffi buffer object.
                                 You may also pass None to initialize an empty IRSB.
@@ -57,19 +57,27 @@ class IRSB(VEXObject):
                   on MIPS as a single instruction (`max_inst=1`) will result in an empty IRSB, and subsequent
                   attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
         """
+        if max_inst is None: max_inst = num_inst
+        if max_bytes is None: max_bytes = num_bytes
         VEXObject.__init__(self)
         self._addr = mem_addr
         self.arch = arch
 
-        self.statements = statements if statements is not None else []
-        self.next = nxt
-        if tyenv is None:
-            self.tyenv = IRTypeEnv(arch)
-        else:
-            self.tyenv = tyenv
-        self.jumpkind = jumpkind
-        self._direct_next = direct_next
-        self._size = size
+        self.statements = []
+        self.next = None
+        self.tyenv = IRTypeEnv(arch)
+        self.jumpkind = None
+        self._direct_next = None
+        self._size = None
+
+        if data is not None:
+            lift(self, arch, mem_addr, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
+
+    @staticmethod
+    def emptyBlock(arch, addr, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
+        block = IRSB(None, addr, arch)
+        block._set_attributes(statements, nxt, tyenv, jumpkind, direct_next)
+        return block
 
     def copy(self):
         return copy.deepcopy(self)
@@ -95,7 +103,7 @@ class IRSB(VEXObject):
                 stmt.dst = convert_tmp(stmt.dst)
             elif isinstance(stmt, LLSC):
                 stmt.result = convert_tmp(stmt.result)
-            elif isinstance(stmt, Dirty):
+            elif isinstance(stmt, Dirty) and stmt.tmp not in (0xffffffff, -1):
                 stmt.tmp = convert_tmp(stmt.tmp)
             elif isinstance(stmt, CAS):
                 stmt.oldLo = convert_tmp(stmt.oldLo)
@@ -108,7 +116,6 @@ class IRSB(VEXObject):
         convert_expr(extendwith.next)
         self.next = extendwith.next
         self.jumpkind = extendwith.jumpkind
-        #  import IPython; IPython.embed()
 
     def pp(self):
         """
@@ -376,6 +383,17 @@ class IRSB(VEXObject):
         self.next = expr.IRExpr._from_c(c_irsb.next)
         self.jumpkind = get_enum_from_int(c_irsb.jumpkind)
 
+    def _set_attributes(self, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
+        self.statements = statements if statements is not None else []
+        self.next = nxt
+        if tyenv is not None:
+            self.tyenv = tyenv
+        self.jumpkind = jumpkind
+        self._direct_next = direct_next
+        self._size = size
+
+    def _from_py(self, irsb):
+        self._set_attributes(irsb.statements, irsb.next, irsb.tyenv, irsb.jumpkind, irsb.direct_next, irsb.size)
 class IRTypeEnv(VEXObject):
     """
     An IR type environment.
@@ -437,3 +455,4 @@ class IRTypeEnv(VEXObject):
                 return False
 
 from . import pvc
+from .lift import lift
