@@ -186,7 +186,7 @@ class Instruction:
     def bytewidth(self):
         if self.bitwidth % self.arch.byte_width != 0:
             raise ValueError("Instruction is not a multiple of bytes wide!")
-        return self.bitwidth / self.arch.byte_width
+        return self.bitwidth // self.arch.byte_width
 
     def disassemble(self):
         """
