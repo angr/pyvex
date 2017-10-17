@@ -17,6 +17,8 @@ def checkparams(rhstype=None):
                 if isinstance(arg, int):
                     thetype = rhstype if rhstype else self.ty
                     args[args.index(arg)] = VexValue.Constant(self.irsb_c, arg, thetype)
+                elif not isinstance(arg, VexValue):
+                    raise Exception('Cannot convert param %s' % str(arg))
             args = tuple(args)
             return fn(self, *args, **kwargs)
         return inner_decorator
@@ -31,7 +33,7 @@ def vvifyresults(f):
     return decor
 
 
-class VexValue:
+class VexValue(object):
     def __init__(self, irsb_c, rdt, signed=False):
         self.irsb_c = irsb_c
         self.ty = self.irsb_c.get_type(rdt)

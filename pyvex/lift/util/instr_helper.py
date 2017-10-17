@@ -12,7 +12,7 @@ l = logging.getLogger("instr")
 l.setLevel(logging.DEBUG)
 
 
-class Instruction:
+class Instruction(object):
     """
     Base class for an Instruction.
     You should make a subclass of this for each instruction you want to lift.

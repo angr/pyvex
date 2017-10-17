@@ -5,7 +5,7 @@ from pyvex.expr import IRExpr, Const, RdTmp, Unop, Binop, Triop, Qop, Load, CCal
 from pyvex.stmt import WrTmp, Put, IMark, Store, NoOp, Exit
 from pyvex.enums import IRCallee
 
-class JumpKind:
+class JumpKind(object):
     Boring = 'Ijk_Boring'
     Call = 'Ijk_Call'
     Ret = 'Ijk_Ret'
@@ -22,7 +22,7 @@ class TypeMeta(type):
             width = int(match.group('size'))
             return vex_int_class(width).type
 
-class Type:
+class Type(object):
     __metaclass__ = TypeMeta
 
     ieee_float_16 = 'Ity_F16'
