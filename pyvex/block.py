@@ -85,6 +85,7 @@ class IRSB(VEXObject):
     def extend(self, extendwith):
         conversion_dict = { }
         extendwith = extendwith.copy()
+        invalid_vals = (0xffffffff, -1)
 
         def convert_tmp(tmp):
             if tmp not in conversion_dict:
@@ -103,11 +104,11 @@ class IRSB(VEXObject):
                 stmt.dst = convert_tmp(stmt.dst)
             elif isinstance(stmt, LLSC):
                 stmt.result = convert_tmp(stmt.result)
-            elif isinstance(stmt, Dirty) and stmt.tmp not in (0xffffffff, -1):
+            elif isinstance(stmt, Dirty) and stmt.tmp not in invalid_vals:
                 stmt.tmp = convert_tmp(stmt.tmp)
             elif isinstance(stmt, CAS):
-                stmt.oldLo = convert_tmp(stmt.oldLo)
-                stmt.oldHi = convert_tmp(stmt.oldHi)
+                if stmt.oldLo not in invalid_vals: stmt.oldLo = convert_tmp(stmt.oldLo)
+                if stmt.oldHi not in invalid_vals: stmt.oldHi = convert_tmp(stmt.oldHi)
             elif isinstance(stmt, LLSC):
                 stmt.result = convert_tmp(stmt.result)
             for e in stmt.expressions:

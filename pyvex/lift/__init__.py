@@ -1,6 +1,7 @@
 import logging
 
 l = logging.getLogger('pyvex.lift')
+l.setLevel(logging.DEBUG)
 
 lifters = []
 postprocessors = []
