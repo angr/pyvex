@@ -5,41 +5,24 @@ from .vex_helper import IRSBCustomizer, Type, JumpKind
 import pyvex
 from pyvex.expr import IRExpr, Const, RdTmp, Unop, Binop, Triop, Qop, Load, CCall, Get
 
-
-def checkparams(*fn, **options):
-    rhstype = options.pop('rhstype', None)
-    if options:
-        raise TypeError("unsupported keyword arguments: %s" %
-                        ",".join(options.keys()))
-
-    if fn:
-        def wrapper(self, *args, **kwargs):
-            irsb_cs = {a.irsb_c for a in list(args) + [self] if isinstance(a, VexValue)}  # pylint: disable=no-member
+def checkparams(rhstype=None):
+    def decorator(fn):
+        @functools.wraps(fn)
+        def inner_decorator(self, *args, **kwargs):
+            irsb_cs = {a.irsb_c for a in list(args) + [self] if
+                       isinstance(a, VexValue)}  # pylint: disable=no-member
             assert len(irsb_cs) == 1, 'All VexValues must belong to the same irsb_c'
             args = list(args)
             for arg in args:
                 if isinstance(arg, int):
                     thetype = rhstype if rhstype else self.ty
                     args[args.index(arg)] = VexValue.Constant(self.irsb_c, arg, thetype)
+                elif not isinstance(arg, VexValue):
+                    raise Exception('Cannot convert param %s' % str(arg))
             args = tuple(args)
-            return fn[0](self, *args, **kwargs)
-        return functools.update_wrapper(wrapper, fn[0])
-    else:
-        def decorator(fn):
-            def wrapper(self, *args, **kwargs):
-                irsb_cs = {a.irsb_c for a in list(args) + [self] if
-                           isinstance(a, VexValue)}  # pylint: disable=no-member
-                assert len(irsb_cs) == 1, 'All VexValues must belong to the same irsb_c'
-                args = list(args)
-                for arg in args:
-                    if isinstance(arg, int):
-                        thetype = rhstype if rhstype else self.ty
-                        args[args.index(arg)] = VexValue.Constant(self.irsb_c, arg, thetype)
-                args = tuple(args)
-                return fn(self, *args, **kwargs)
-            return functools.update_wrapper(wrapper, fn)
-        return decorator
-
+            return fn(self, *args, **kwargs)
+        return inner_decorator
+    return decorator
 
 def vvifyresults(f):
     @functools.wraps(f)
@@ -50,13 +33,13 @@ def vvifyresults(f):
     return decor
 
 
-class VexValue:
-    def __init__(self, irsb_c, rdt):
+class VexValue(object):
+    def __init__(self, irsb_c, rdt, signed=False):
         self.irsb_c = irsb_c
         self.ty = self.irsb_c.get_type(rdt)
         self.rdt = rdt
         self.width = pyvex.get_type_size(self.ty)
-        self.is_signed = False
+        self._is_signed = signed
 
     @property
     def value(self):
@@ -65,11 +48,9 @@ class VexValue:
         else:
             raise ValueError("Non-constant VexValue has no value property")
 
-    def toSigned(self):
-        self.is_signed = True
-
-    def toUnsigned(self):
-        self.is_signed = False
+    @property
+    def signed(self):
+        return VexValue(self.irsb_c, self.rdt, True)
 
     @vvifyresults
     def widen_unsigned(self, ty):
@@ -101,142 +82,195 @@ class VexValue:
         else:
             return [getb(makeconstant(i)) for i in range(*idx.indices(self.width))]
 
-    @checkparams
+    def __setitem__(self, idx, bval):
+        setted = self.set_bit(idx, bval)
+        self.__init__(setted.irsb_c, setted.rdt)
+
+    @checkparams()
     @vvifyresults
     def set_bit(self, idx, bval):
         typedidx = idx.cast_to(Type.int_8)
         return self.irsb_c.set_bit(self.rdt, idx.rdt, bval.rdt)
 
-    @checkparams
+    @checkparams()
     @vvifyresults
     def set_bits(self, idxsandvals):
         return self.irsb_c.set_bits(self.rdt, [(i.cast_to(Type.int_8).rdt, b.rdt) for i, b in idxsandvals])
 
-    @checkparams
+    @checkparams()
     @vvifyresults
     def ite(self, iftrue, iffalse):
         onebitcond = self.cast_to(Type.int_1)
         return self.irsb_c.ite(onebitcond.rdt, iftrue.rdt, iffalse.rdt)
 
-    @checkparams
+    @checkparams()
     @vvifyresults
     def __add__(self, right):
         return self.irsb_c.op_add(self.rdt, right.rdt)
 
-    @checkparams
+    @checkparams()
+    def __radd__(self, left):
+        return self + left
+
+    @checkparams()
     @vvifyresults
-    def __sub__(self, right): # I'm not sure if we want rsub
+    def __sub__(self, right):
         return self.irsb_c.op_sub(self.rdt, right.rdt)
 
-    @checkparams
+    @checkparams()
+    def __rsub__(self, left):
+        return left - self
+
+    @checkparams()
     @vvifyresults
     def __div__(self, right):
-        return self.irsb_c.op_div(self.rdt, right.rdt, self.is_signed)
+        if self._is_signed:
+            return self.irsb_c.op_sdiv(self.rdt, right.rdt)
+        else:
+            return self.irsb_c.op_udiv(self.rdt, right.rdt)
 
-    @checkparams
-    @vvifyresults
+    @checkparams()
+    def __rdiv__(self, left):
+        return left / self
+
+    @checkparams()
     def __floordiv__(self, right): # Note: nonprimitive
         return self / right
 
-    @checkparams
-    @vvifyresults
+    @checkparams()
+    def __rfloordiv__(self, left):
+        return left // self
+
+    @checkparams()
     def __truediv__(self, right): # Note: nonprimitive
         return self / right
 
-    @checkparams
+    @checkparams()
+    def __rtruediv__(self, left):
+        return left.__truediv__(self)
+
+    @checkparams()
     @vvifyresults
     def __and__(self, right):
         return self.irsb_c.op_and(self.rdt, right.rdt)
 
-    @checkparams
+    @checkparams()
+    def __rand__(self, left):
+        return left & self
+
+    @checkparams()
     @vvifyresults
     def __eq__(self, right):
         return self.irsb_c.op_cmp_eq(self.rdt, right.rdt)
 
-    @checkparams
+    @checkparams()
     @vvifyresults
     def __ne__(self, other):
         return self.irsb_c.op_cmp_ne(self.rdt, other.rdt)
 
-    @checkparams
+    @checkparams()
     @vvifyresults
     def __invert__(self):
         return self.irsb_c.op_not(self.rdt)
 
-    @checkparams
+    @checkparams()
     @vvifyresults
     def __le__(self, right):
-        if self.is_signed:
+        if self._is_signed:
             return self.irsb_c.op_cmp_sle(self.rdt, right.rdt)
         else:
             return self.irsb_c.op_cmp_ule(self.rdt, right.rdt)
 
-    @checkparams
+    @checkparams()
     @vvifyresults
     def __gt__(self, other):
-        if self.is_signed:
+        if self._is_signed:
             return self.irsb_c.op_cmp_sgt(self.rdt, other.rdt)
         else:
             return self.irsb_c.op_cmp_ugt(self.rdt, other.rdt)
 
-    @checkparams
+    @checkparams()
     @vvifyresults
     def __ge__(self, right):
-        if self.is_signed:
+        if self._is_signed:
             return self.irsb_c.op_cmp_sge(self.rdt, right.rdt)
         else:
             return self.irsb_c.op_cmp_uge(self.rdt, right.rdt)
 
     @checkparams(rhstype=Type.int_8)
     @vvifyresults
-    def __lshift__(self, right):
+    def __lshift__(self, right): # TODO put better type inference in irsb_c so we can have rlshift
         return self.irsb_c.op_shl(self.rdt, right.rdt)
 
-    @checkparams
+    @checkparams()
     @vvifyresults
     def __lt__(self, right):
-        if self.is_signed:
+        if self._is_signed:
             return self.irsb_c.op_cmp_slt(self.rdt, right.rdt)
         else:
             return self.irsb_c.op_cmp_ult(self.rdt, right.rdt)
 
-    @checkparams
-    @vvifyresults
+    @checkparams()
     def __mod__(self, right): # Note: nonprimitive
-        return self.rdt - (self.rdt / right.rdt) * right.rdt
+        return self - (self / right) * right
 
-    @checkparams
+    @checkparams()
+    def __rmod__(self, left):
+        return left % self
+
+    @checkparams()
     @vvifyresults
     def __mul__(self, right):
-        return self.irsb_c.op_mull(self.rdt, right.rdt, signed=self.is_signed)
+        if self._is_signed:
+            return self.irsb_c.op_smul(self.rdt, right.rdt)
+        else:
+            return self.irsb_c.op_umul(self.rdt, right.rdt)
 
-    @checkparams
+    @checkparams()
+    def __rmul__(self, left):
+        return left * self
+
+    @checkparams()
     @vvifyresults
     def __neg__(self): # Note: nonprimitive
-        if self.is_unsigned:
+        if not self._is_signed:
             raise Exception('Number is unsigned, cannot change sign!')
         else:
             return self.rdt * -1
 
-    @checkparams
+    @checkparams()
     @vvifyresults
     def __or__(self, right):
         return self.irsb_c.op_or(self.rdt, right.rdt)
 
-    @checkparams
+    def __ror__(self, left):
+        return self | left
+
+    @checkparams()
     @vvifyresults
     def __pos__(self):
         return self
 
-    @checkparams
+    @checkparams(rhstype=Type.int_8)
     @vvifyresults
     def __rshift__(self, right):
         return self.irsb_c.op_shr(self.rdt, right.rdt)
 
-    @checkparams
+    @checkparams()
+    def __rlshift__(self, left):
+        return left << self
+
+    @checkparams()
+    def __rrshift__(self, left):
+        return left >> self
+
+    @checkparams()
     @vvifyresults
     def __xor__ (self, right):
         return self.irsb_c.op_xor(self.rdt, right.rdt)
+
+    def __rxor__(self, left):
+        return self ^ left
 
     @classmethod
     def Constant(cls, irsb_c, val, ty):

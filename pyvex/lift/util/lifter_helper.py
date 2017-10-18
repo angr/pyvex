@@ -9,6 +9,7 @@ from syntax_wrapper import VexValue
 import logging
 import bitstring
 
+l = logging.getLogger(__name__)
 
 def is_empty(bitstrm):
     try:
@@ -36,63 +37,84 @@ class GymratLifter(Lifter):
                     traceflags=None, allow_lookback=None):
         super(GymratLifter, self).__init__(irsb, data, max_inst, max_bytes,
                 bytes_offset, opt_level, traceflags, allow_lookback)
-        self.logger = logging.getLogger('lifter')
-        self.logger.setLevel(logging.DEBUG)
         if 'CData' in str(type(data)):
             thedata = "".join([chr(data[x]) for x in range(max_bytes)])
         else:
             thedata = data
-        self.bitstrm = bitstring.ConstBitStream(bytes=thedata)
+        self.thedata = thedata
+        l.debug(repr(thedata))
 
-    def lift(self, disassemble=False, dump_irsb=False):
+    def create_bitstrm(self):
+        self.bitstrm = bitstring.ConstBitStream(bytes=self.thedata)
+
+    def decode(self):
+        self.create_bitstrm()
         try:
             count = 0
             disas = []
             if not self.max_inst:
                 self.max_inst = 1000000
-            self.irsb.jumpkind = JumpKind.Invalid
-            irsb_c = IRSBCustomizer(self.irsb, self.irsb.arch)
             addr = self.irsb._addr
-            pos = self.bitstrm.bitpos
+            l.debug("Starting block at address: " + hex(addr))
+            bytepos = self.bitstrm.bytepos
             while (count < self.max_inst
                     and (self.bitstrm.bitpos + 7) / 8 < self.max_bytes
-                    and self.irsb.jumpkind == JumpKind.Invalid
                     and not is_empty(self.bitstrm)):
                 # Try every instruction until one works
                 for possible_instr in self.instrs:
                     try:
-                        instr = possible_instr(irsb_c, self.bitstrm, addr)
+                        #l.debug("Trying " + possible_instr.name)
+                        instr = possible_instr(self.bitstrm, self.irsb.arch, addr)
                         break
                     except ParseError:
-                        pass #self.logger.exception(repr(possible_instr))
+                        pass #l.exception(repr(possible_instr))
                     except Exception, e:
-                        self.logger.debug(e.message)
+                        l.debug(e.message)
+                        raise e
                 else:
                     errorstr = 'Unknown instruction at bit position %d' % self.bitstrm.bitpos
-                    self.logger.critical(errorstr)
-                    self.logger.critical("Address: %#08x" % addr)
-                    raise Exception(errorstr)
-                if disassemble:
-                    disas.append(instr.disassemble())
-                else:
-                    instr()
-                # WARNING: We assume 8 bit bytes here.
-                addr += (self.bitstrm.bitpos - pos) / 8
-                pos = self.bitstrm.bitpos
+                    l.debug(errorstr)
+                    l.debug("Address: %#08x" % addr)
+                    #raise Exception(errorstr)
+                    break
+                disas.append(instr)
+                l.debug("Matched " + instr.name)
+                addr += self.bitstrm.bytepos - bytepos
+                bytepos = self.bitstrm.bytepos
                 count += 1
-            if dump_irsb:
-                self.irsb.pp()
-            if disassemble:
-                return disas
-            return self.irsb
+            return disas
         except Exception, e:
             self.errors = e.message
-            self.logger.exception("Error lifting block:")
+            l.exception("Error decoding block:")
             raise e
 
-    def pp_disas(self, addr, name, args):
-        args_str = ",".join(str(a) for a in args)
-        return "%0#08x:\t%s %s" % (addr, name, args_str)
+    def lift(self, disassemble=False, dump_irsb=False):
+        if disassemble:
+            return [instr.disassemble() for instr in self.decode()]
+        self.irsb.jumpkind = JumpKind.Invalid
+        irsb_c = IRSBCustomizer(self.irsb)
+        instructions = self.decode()
+        l.debug("Decoding complete.")
+        #self.pp_disas()
+        for i, instr in enumerate(instructions):
+            l.debug("Lifting instruction " + instr.name)
+            instr(irsb_c, instructions[:i], instructions[i+1:])
+            if irsb_c.irsb.jumpkind != JumpKind.Invalid:
+                break
+        else:
+            instructions[-1].jump(None, instructions[-1].addr + instructions[-1].bytewidth)
+        l.debug(self.irsb._pp_str())
+        if dump_irsb:
+            self.irsb.pp()
+        return self.irsb
+
+    def pp_disas(self):
+        disasstr = ""
+        insts = self.disassemble()
+        for addr, name, args in insts:
+            args_str = ",".join(str(a) for a in args)
+            disasstr += "%0#08x:\t%s %s\n" % (addr, name, args_str)
+        print disasstr
 
     def error(self):
         return self.errors

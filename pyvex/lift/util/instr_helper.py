@@ -1,6 +1,6 @@
 from lifter_helper import ParseError
 from syntax_wrapper import VexValue
-from vex_helper import JumpKind, IRExpr
+from vex_helper import JumpKind, IRExpr, vex_int_class
 
 import abc
 import string
@@ -12,7 +12,7 @@ l = logging.getLogger("instr")
 l.setLevel(logging.DEBUG)
 
 
-class Instruction:
+class Instruction(object):
     """
     Base class for an Instruction.
     You should make a subclass of this for each instruction you want to lift.
@@ -62,25 +62,23 @@ class Instruction:
     data = None
     irsb_c = None
 
-    def __init__(self, irsb_c, bitstrm, addr):
+    def __init__(self, bitstrm, arch, addr):
         """
         Create an instance of the instruction
         :param irsb_c: The IRSBCustomizer to put VEX instructions into
         :param bitstrm: The bitstream to decode instructions from
         :param addr: The address of the instruction to be lifted, used only for jumps and branches
         """
-        self.irsb_c = irsb_c
         self.addr = addr
-        self.width = len(self.bin_format)
+        self.arch = arch
+        self.bitwidth = len(self.bin_format)
         self.data = self.parse(bitstrm)
 
-    def __call__(self):
-        self.lift()
+    def __call__(self, irsb_c, past_instructions, future_instructions):
+        self.lift(irsb_c, past_instructions, future_instructions)
 
     def mark_instruction_start(self):
-        # TODO: WARNING: VEX assumes 8-bit bytes here.
-        bytewidth = self.bitwidth / 8
-        self.irsb_c.imark(self.addr, bytewidth, bytewidth)
+        self.irsb_c.imark(self.addr, self.bytewidth, 0)
 
     def fetch_operands(self):
         """
@@ -90,7 +88,7 @@ class Instruction:
         """
         return []
 
-    def lift(self):
+    def lift(self, irsb_c, past_instructions, future_instructions):
         """
         THis is the main body of the "lifting" for the instruction.
         This can/should be overriden to provide the general flow of how instructions in your arch work.
@@ -100,14 +98,29 @@ class Instruction:
             3) Compute the flags
         :return:
         """
+        self.irsb_c = irsb_c
         # Always call this first!
         self.mark_instruction_start()
         # Then do the actual stuff.
         inputs = self.fetch_operands()
         retval = self.compute_result(*inputs)
+        vals = list(inputs) + [retval]
         if retval is not None:
-            inputs = tuple(list(inputs).append(retval))
-        self.compute_flags(*inputs)
+            self.commit_result(retval)
+        self.compute_flags(*vals)
+
+    def commit_result(self, res):
+        """
+        This where the result of the operation is written to a destination.
+        This happens only if compute_result does not return None, and happens before compute_flags is called.
+        Override this to specify how to write out the result.
+        The results of fetch_operands can be used to resolve various addressing modes for the write outward.
+        A common pattern is to return a function from fetch_operands which will be called here to perform the write.
+
+        :param args: A tuple of the results of fetch_operands and compute_result
+        :return n/a
+        """
+        pass
 
     @abc.abstractmethod
     def compute_result(self, *args):
@@ -143,9 +156,8 @@ class Instruction:
         return data
 
     def parse(self, bitstrm):
-        beforebits = bitstrm.bitpos
         numbits = len(self.bin_format)
-        if self.irsb_c.irsb.arch.memory_endness == 'Iend_LE':
+        if self.arch.memory_endness == 'Iend_LE':
             # Get it out little endian.  I hate this.
             instr_bits = bitstring.Bits(uint=bitstrm.peek("uintle:%d" % numbits), length=numbits).bin
         else:
@@ -168,9 +180,13 @@ class Instruction:
         # Hook here for extra parsing functionality (e.g., trailers)
         if hasattr(self, '_extra_parsing'):
             data = self._extra_parsing(data, bitstrm)
-        afterbits = bitstrm.bitpos
-        self.bitwidth = afterbits - beforebits
         return data
+
+    @property
+    def bytewidth(self):
+        if self.bitwidth % self.arch.byte_width != 0:
+            raise ValueError("Instruction is not a multiple of bytes wide!")
+        return self.bitwidth // self.arch.byte_width
 
     def disassemble(self):
         """
@@ -199,22 +215,30 @@ class Instruction:
         :param ty: The type of the resulting VexValue
         :return: a VexValue
         """
-        assert not (isinstance(val, VexValue) or isinstance(val, IRExpr))
+        if isinstance(val, VexValue) and not isinstance(val, IRExpr):
+            raise Exception('Constant cannot be made from VexValue or IRExpr')
         rdt = self.irsb_c.mkconst(val, ty)
         return VexValue(self.irsb_c, rdt)
 
-    def get(self, reg_num, ty):
+    def lookup_register(self, arch, reg):
+        if isinstance(reg, int):
+            reg = arch.register_index[reg]
+        return arch.get_register_offset(reg)
+
+    def get(self, reg, ty):
         """
         Load a value from a machine register into a VEX temporary register.
         All values must be loaded out of registers before they can be used with operations, etc
         and stored back into them when the instruction is over.  See Put().
 
-        :param reg_num: Register number as an integer to get from
+        :param reg: Register number as an integer, or register string name
         :param ty: The Type to use.
         :return: A VexValue of the gotten value.
         """
-        # TODO: Resolve strings like 'sr' or 'pc' into the right numbers using archinfo
-        rdt = self.irsb_c.rdreg(reg_num, ty)
+        offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
+        if offset == self.irsb_c.irsb.arch.ip_offset:
+            return self.constant(self.addr, ty)
+        rdt = self.irsb_c.rdreg(offset, ty)
         return VexValue(self.irsb_c, rdt)
 
     def put(self, val, reg):
@@ -222,11 +246,11 @@ class Instruction:
         Puts a value from a VEX temporary register into a machine register.
         This is how the results of operations done to registers get committed to the machine's state.
         :param val: The VexValue to store (Want to store a constant? See Constant() first)
-        :param reg: The integer register number to store into.
+        :param reg: The integer register number to store into, or register name
         :return: None
         """
-        # TODO: Resolve strings like 'sr' or 'pc' into the right numbers using archinfo
-        self.irsb_c.put(val.rdt, reg)
+        offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
+        self.irsb_c.put(val.rdt, offset)
 
     def store(self, val, addr):
         """
@@ -235,7 +259,6 @@ class Instruction:
         :param addr: The VexValue of the address to store into
         :return: None
         """
-        # TODO: Resolve strings like 'sr' or 'pc' into the right numbers using archinfo
         self.irsb_c.store(addr.rdt, val.rdt)
 
     def jump(self, condition, to_addr, jumpkind=JumpKind.Boring):
@@ -248,7 +271,9 @@ class Instruction:
         aren't normal jumps (e.g., calls, interrupts, program exits, etc etc)
         :return: None
         """
-        assert isinstance(to_addr, VexValue)
+        if not isinstance(to_addr, VexValue):
+            to_addr_ty = vex_int_class(self.irsb_c.irsb.arch.bits).type
+            to_addr = self.constant(to_addr, to_addr_ty) # TODO archinfo may be changing
         if not condition:
             # This is the default exit.
             self.irsb_c.irsb.jumpkind = jumpkind
