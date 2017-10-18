@@ -1,6 +1,7 @@
 import logging
 
 l = logging.getLogger('pyvex.lift')
+l.setLevel(logging.DEBUG)
 
 lifters = []
 postprocessors = []
@@ -39,6 +40,7 @@ class Lifter(object):
         self.opt_level = opt_level
         self.traceflags = traceflags
         self.allow_lookback = allow_lookback
+        self.max_inst = max_inst
         self.max_bytes = max_bytes
         self.irsb = irsb
         self.lift()
@@ -86,6 +88,7 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
         except LiftingException:
             continue
     else:
+        import ipdb; ipdb.set_trace()
         raise Exception('Cannot find lifter for arch %s' % arch)
 
     if final_irsb.jumpkind == 'Ijk_NoDecode':
