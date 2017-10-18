@@ -52,6 +52,18 @@ class LibVEXLifter(Lifter):
 
             c_arch = self._construct_c_arch()
 
+            if self.max_bytes is None or self.max_bytes > VEX_MAX_BYTES:
+                max_bytes = VEX_MAX_BYTES
+            else:
+                max_bytes = self.max_bytes
+
+           if self.max_inst is None or self.max_inst > VEX_MAX_INSTRUCTIONS:
+                max_inst = VEX_MAX_INSTRUCTIONS
+            else:
+                max_inst = self.max_inst
+
+            c_irsb = pvc.vex_lift(vex_arch, c_arch, self.data + self.bytes_offset, self.irsb._addr, max_inst, max_bytes, self.opt_level, self.traceflags, self.allow_lookback)
+
             c_irsb = pvc.vex_lift(vex_arch, c_arch, self.data + self.bytes_offset, self.irsb._addr, VEX_MAX_INSTRUCTIONS, VEX_MAX_BYTES, self.opt_level, self.traceflags, self.allow_lookback)
 
             log_str = str(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)) if pvc.msg_buffer != ffi.NULL else None
