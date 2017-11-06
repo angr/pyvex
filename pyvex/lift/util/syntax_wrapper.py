@@ -212,7 +212,7 @@ class VexValue(object):
 
     @checkparams()
     def __mod__(self, right): # Note: nonprimitive
-        return self - (self / right) * right
+        return self.irsb_c.op_mod(self.rdt, right.rdt)
 
     @checkparams()
     def __rmod__(self, left):

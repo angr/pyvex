@@ -721,7 +721,7 @@ def unop_signature(op):
     return size_type, (size_type,)
 
 def binop_signature(op):
-    m = re.match(r'Iop_(Add|Sub|Mul|Xor|Or|And|Div[SU])(?P<size>\d+)$', op)
+    m = re.match(r'Iop_(Add|Sub|Mul|Xor|Or|And|Div[SU]|Mod)(?P<size>\d+)$', op)
     if m is None:
         raise PyvexOpMatchException()
     size = int(m.group('size'))
