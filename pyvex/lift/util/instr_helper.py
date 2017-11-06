@@ -263,7 +263,7 @@ class Instruction(object):
         """
         self.irsb_c.store(addr.rdt, val.rdt)
 
-    def jump(self, condition, to_addr, jumpkind=JumpKind.Boring):
+    def jump(self, condition, to_addr, jumpkind=JumpKind.Boring, ip_offset=None):
         """
         Jump to a specified destination, under the specified condition.
         Used for branches, jumps, calls, returns, etc.
@@ -282,7 +282,8 @@ class Instruction(object):
             self.irsb_c.irsb.next = to_addr.rdt
         else:
             # add another exit
-            self.irsb_c.add_exit(condition.rdt, to_addr.rdt.con, jumpkind, self.addr)
+            assert ip_offset is not None
+            self.irsb_c.add_exit(condition.rdt, to_addr.rdt.con, jumpkind, ip_offset)
             # and then set the default
             self.irsb_c.irsb.jumpkind = jumpkind
             self.irsb_c.irsb.next = self.constant(self.addr + (self.bitwidth / 8), to_addr.ty).rdt
