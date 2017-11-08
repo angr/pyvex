@@ -157,8 +157,10 @@ class Instruction(object):
 
     def parse(self, bitstrm):
         numbits = len(self.bin_format)
-        if self.arch.memory_endness == 'Iend_LE':
-            # Get it out little endian.  I hate this.
+        if self.arch.instruction_endness == 'Iend_LE':
+            # This arch stores its instructions in memory endian-flipped compared to the ISA.
+            # To enable natural lifter-writing, we let the user write them like in the manual, and correct for
+            # endness here.
             instr_bits = bitstring.Bits(uint=bitstrm.peek("uintle:%d" % numbits), length=numbits).bin
         else:
             instr_bits = bitstrm.peek("bin:%d" % numbits)
