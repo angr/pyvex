@@ -57,24 +57,59 @@ class LibVEXLifter(Lifter):
             else:
                 max_bytes = self.max_bytes
 
-           if self.max_inst is None or self.max_inst > VEX_MAX_INSTRUCTIONS:
+            if self.max_inst is None or self.max_inst > VEX_MAX_INSTRUCTIONS:
                 max_inst = VEX_MAX_INSTRUCTIONS
             else:
                 max_inst = self.max_inst
 
-            c_irsb = pvc.vex_lift(vex_arch, c_arch, self.data + self.bytes_offset, self.irsb._addr, max_inst, max_bytes, self.opt_level, self.traceflags, self.allow_lookback)
+            def create_irsb(inst_cutoff, bytes_cutoff):
+                c_irsb = pvc.vex_lift(vex_arch,
+                                        c_arch,
+                                        self.data + self.bytes_offset,
+                                        self.irsb._addr,
+                                        max_inst - inst_cutoff,
+                                        max_bytes - bytes_cutoff,
+                                        self.opt_level,
+                                        self.traceflags,
+                                        self.allow_lookback)
+                log_str = str(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)) if pvc.msg_buffer != ffi.NULL else None
+                if c_irsb == ffi.NULL:
+                    #  import ipdb; ipdb.set_trace()
+                    raise LiftingException("libvex: unkown error" if log_str is None else log_str)
+                else:
+                    if log_str is not None:
+                        l.info(log_str)
+                return c_irsb
 
-            c_irsb = pvc.vex_lift(vex_arch, c_arch, self.data + self.bytes_offset, self.irsb._addr, VEX_MAX_INSTRUCTIONS, VEX_MAX_BYTES, self.opt_level, self.traceflags, self.allow_lookback)
+            def create_from_c(c_irsb):
+                newEmpty = self.irsb.emptyBlock(self.irsb.arch, self.irsb.addr)
+                newEmpty._from_c(c_irsb)
+                return newEmpty
 
-            log_str = str(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)) if pvc.msg_buffer != ffi.NULL else None
+            shouldExtendBytes = (VEX_MAX_BYTES == max_bytes)
+            shouldExtendInsts = (VEX_MAX_INSTRUCTIONS == max_inst)
 
-            if c_irsb == ffi.NULL:
-                raise LiftingException("libvex: unkown error" if log_str is None else log_str)
+            if shouldExtendBytes or shouldExtendInsts:
+                bytes_shortage = 1 if shouldExtendBytes else 0
+                insts_shortage = 1 if shouldExtendInsts else 0
+                extended_c_irsb = create_irsb(0, 0)
+                extended_irsb = create_from_c(extended_c_irsb)
+
+                if extended_irsb.instructions < 2:
+                    c_irsb = extended_c_irsb
+                    self.irsb._from_c(c_irsb)
+                else:
+                    shortened_c_irsb = create_irsb(insts_shortage, bytes_shortage)
+
+                    self.irsb._from_c(shortened_c_irsb)
+                    c_irsb = shortened_c_irsb
+                    if self.irsb.size != extended_irsb.size:
+                        self.irsb.jumpkind = 'Ijk_NoDecode'
+                        self.irsb.next = 0
             else:
-                if log_str is not None:
-                    l.info(log_str)
+                c_irsb = create_irsb(0, 0)
+                self.irsb._from_c(c_irsb)
 
-            self.irsb._from_c(c_irsb)
             for i in range(len(self.irsb.statements))[::-1]:
                 s = self.irsb.statements[i]
                 if isinstance(s, stmt.IMark) and s.len == 0:

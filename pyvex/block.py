@@ -84,7 +84,6 @@ class IRSB(VEXObject):
 
     def extend(self, extendwith):
         conversion_dict = { }
-        extendwith = extendwith.copy()
         invalid_vals = (0xffffffff, -1)
 
         def convert_tmp(tmp):
@@ -224,8 +223,7 @@ class IRSB(VEXObject):
         """
         The size of this block, in bytes
         """
-        if self._size is None:
-            self._size = sum([s.len for s in self.statements if isinstance(s, stmt.IMark)])
+        self._size = sum([s.len for s in self.statements if isinstance(s, stmt.IMark)])
         return self._size
 
     @property

@@ -77,6 +77,8 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
             u_data = data
             if lifter.REQUIRE_DATA_C:
                 u_data = ffi.new('unsigned char [%d]' % (len(py_data) + 8), py_data + '\0' * 8)
+                if not max_bytes:
+                    max_bytes = len(py_data)
             elif lifter.REQUIRE_DATA_PY:
                 u_data = py_data
             next_irsb_part = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags, allow_lookback)
@@ -85,19 +87,22 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
             final_irsb.extend(next_irsb_part)
             print '[+] Lifted using lifter %s' % str(lifter)
             break
-        except LiftingException:
+        except LiftingException as e:
+            l.debug('Lifting Exception: %s' % e.message)
             continue
     else:
         import ipdb; ipdb.set_trace()
-        raise Exception('Cannot find lifter for arch %s' % arch)
+        #  final_irsb.jumpkind = 'Ijk_NoDecode'
+        #  raise Exception('Cannot find lifter for arch %s' % arch)
 
     if final_irsb.jumpkind == 'Ijk_NoDecode':
         addr += next_irsb_part.size
         data_left = py_data[next_irsb_part.size:]
         if max_inst is not None:
             max_inst -= next_irsb_part.instructions
-        if len(data_left) > 0 and max_inst > 0:
-            more_irsb = lift(arch, addr, data_left, len(data_left), max_inst, bytes_offset, opt_level, traceflags, allow_lookback)
+        if len(data_left) > 0 and (max_inst is None or max_inst > 0):
+            more_irsb = final_irsb.emptyBlock(final_irsb.arch, final_irsb.addr)
+            lift(more_irsb, arch, addr, data_left, len(data_left), max_inst, bytes_offset, opt_level, traceflags)
             final_irsb.extend(more_irsb)
 
     for postprocessor, registered_arch in postprocessors:
