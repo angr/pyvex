@@ -1,4 +1,6 @@
 import logging
+from .. import const
+from ..expr import Const
 
 l = logging.getLogger('pyvex.lift')
 l.setLevel(logging.DEBUG)
@@ -67,33 +69,29 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
     else:
         if max_bytes is None:
             raise Exception('Cannot pass c buffer without length')
-        py_data = ffi.string(data, max_bytes)
+        py_data = ffi.buffer(data, max_bytes)[:]
         allow_lookback = True
 
-    for lifter, registered_arch in lifters:
-        if not isinstance(arch, registered_arch):
-            continue
+    for lifter in lifters:
         try:
             u_data = data
             if lifter.REQUIRE_DATA_C:
-                u_data = ffi.new('unsigned char [%d]' % (len(py_data) + 8), py_data + '\0' * 8)
+                u_data = ffi.new('unsigned char [%d]' % (len(py_data) + 8), py_data + b'\0' * 8)
                 if not max_bytes:
                     max_bytes = len(py_data)
             elif lifter.REQUIRE_DATA_PY:
                 u_data = py_data
             next_irsb_part = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags, allow_lookback)
-            l.debug("Lifted IRSB: ")
-            l.debug(next_irsb_part._pp_str())
             final_irsb.extend(next_irsb_part)
-            print '[+] Lifted using lifter %s' % str(lifter)
             break
         except LiftingException as e:
             l.debug('Lifting Exception: %s' % e.message)
             continue
     else:
-        import ipdb; ipdb.set_trace()
-        #  final_irsb.jumpkind = 'Ijk_NoDecode'
-        #  raise Exception('Cannot find lifter for arch %s' % arch)
+        final_irsb.jumpkind = 'Ijk_NoDecode'
+        final_irsb.next = Const(const.vex_int_class(final_irsb.arch.bits)(final_irsb._addr))
+        irsb._from_py(final_irsb)
+        return
 
     if final_irsb.jumpkind == 'Ijk_NoDecode':
         addr += next_irsb_part.size
@@ -111,11 +109,11 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
         postprocessor(final_irsb).postprocess()
     irsb._from_py(final_irsb)
 
-def register(lifter, arch):
+def register(lifter):
     if issubclass(lifter, Lifter):
-        lifters.append((lifter, arch))
+        lifters.append(lifter)
     if issubclass(lifter, Postprocessor):
-        postprocessors.append((lifter, arch))
+        postprocessors.append(arch)
 
 from .. import ffi
 from ..errors import PyVEXError

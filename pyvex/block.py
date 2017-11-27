@@ -103,8 +103,11 @@ class IRSB(VEXObject):
                 stmt.dst = convert_tmp(stmt.dst)
             elif isinstance(stmt, LLSC):
                 stmt.result = convert_tmp(stmt.result)
-            elif isinstance(stmt, Dirty) and stmt.tmp not in invalid_vals:
-                stmt.tmp = convert_tmp(stmt.tmp)
+            elif isinstance(stmt, Dirty):
+                if stmt.tmp not in invalid_vals:
+                    stmt.tmp = convert_tmp(stmt.tmp)
+                for e in stmt.args:
+                    convert_expr(e)
             elif isinstance(stmt, CAS):
                 if stmt.oldLo not in invalid_vals: stmt.oldLo = convert_tmp(stmt.oldLo)
                 if stmt.oldHi not in invalid_vals: stmt.oldHi = convert_tmp(stmt.oldHi)
@@ -122,6 +125,9 @@ class IRSB(VEXObject):
         Pretty-print the IRSB to stdout.
         """
         print(self._pp_str())
+
+    def __str__(self):
+        return self._pp_str()
 
     def typecheck(self):
         try:
