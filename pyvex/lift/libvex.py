@@ -73,7 +73,7 @@ class LibVEXLifter(Lifter):
             shouldExtendBytes = (VEX_MAX_BYTES == max_bytes)
             shouldExtendInsts = (VEX_MAX_INSTRUCTIONS == max_inst)
 
-            if (shouldExtendBytes or shouldExtendInsts) and False:
+            if (shouldExtendBytes or shouldExtendInsts):
                 bytes_shortage = 1 if shouldExtendBytes else 0
                 insts_shortage = 1 if shouldExtendInsts else 0
                 extended_c_irsb = create_irsb(0, 0)
