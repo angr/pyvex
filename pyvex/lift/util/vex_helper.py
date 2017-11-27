@@ -5,7 +5,7 @@ from pyvex.expr import IRExpr, Const, RdTmp, Unop, Binop, Triop, Qop, Load, CCal
 from pyvex.stmt import WrTmp, Put, IMark, Store, NoOp, Exit
 from pyvex.enums import IRCallee
 
-class JumpKind:
+class JumpKind(object):
     Boring = 'Ijk_Boring'
     Call = 'Ijk_Call'
     Ret = 'Ijk_Ret'
@@ -23,7 +23,7 @@ class TypeMeta(type):
             width = int(match.group('size'))
             return vex_int_class(width).type
 
-class Type:
+class Type(object):
     __metaclass__ = TypeMeta
 
     ieee_float_16 = 'Ity_F16'
@@ -72,6 +72,9 @@ class IRSBCustomizer(object):
     op_smul = mkbinop('Iop_MullS{arg_t[0]}')
     op_sdiv = mkbinop('Iop_DivS{arg_t[0]}')
     op_udiv = mkbinop('Iop_DivU{arg_t[0]}')
+
+    # Custom operation that does not exist in libVEX
+    op_mod = mkbinop('Iop_Mod{arg_t[0]}')
 
     op_or = mkbinop('Iop_Or{arg_t[0]}')
     op_and = mkbinop('Iop_And{arg_t[0]}')

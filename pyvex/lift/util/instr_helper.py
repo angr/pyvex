@@ -12,7 +12,7 @@ l = logging.getLogger("instr")
 l.setLevel(logging.DEBUG)
 
 
-class Instruction:
+class Instruction(object):
     """
     Base class for an Instruction.
     You should make a subclass of this for each instruction you want to lift.
@@ -157,8 +157,10 @@ class Instruction:
 
     def parse(self, bitstrm):
         numbits = len(self.bin_format)
-        if self.arch.memory_endness == 'Iend_LE':
-            # Get it out little endian.  I hate this.
+        if self.arch.instruction_endness == 'Iend_LE':
+            # This arch stores its instructions in memory endian-flipped compared to the ISA.
+            # To enable natural lifter-writing, we let the user write them like in the manual, and correct for
+            # endness here.
             instr_bits = bitstring.Bits(uint=bitstrm.peek("uintle:%d" % numbits), length=numbits).bin
         else:
             instr_bits = bitstrm.peek("bin:%d" % numbits)
@@ -186,7 +188,7 @@ class Instruction:
     def bytewidth(self):
         if self.bitwidth % self.arch.byte_width != 0:
             raise ValueError("Instruction is not a multiple of bytes wide!")
-        return self.bitwidth / self.arch.byte_width
+        return self.bitwidth // self.arch.byte_width
 
     def disassemble(self):
         """

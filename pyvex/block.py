@@ -335,7 +335,7 @@ class IRSB(VEXObject):
             return self.next.con.value
 
         if not isinstance(self.next, expr.RdTmp):
-            raise PyVEXError("unexpected self.next type: %s", self.next.__class__.__name__)
+            raise PyVEXError("unexpected self.next type: %s" % self.next.__class__.__name__)
 
         tmp_next = self.next.tmp
         reg_next = None
