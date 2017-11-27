@@ -34,9 +34,6 @@ class LibVEXLifter(Lifter):
             if self.bytes_offset is None:
                 self.bytes_offset = 0
 
-            c_arch = self.arch.vex_archinfo
-            c_arch['hwcache_info']['caches'] = ffi.NULL
-
             if self.max_bytes is None or self.max_bytes > VEX_MAX_BYTES:
                 max_bytes = VEX_MAX_BYTES
             else:
@@ -48,8 +45,9 @@ class LibVEXLifter(Lifter):
                 max_inst = self.max_inst
 
             def create_irsb(inst_cutoff, bytes_cutoff):
+                self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
                 c_irsb = pvc.vex_lift(vex_arch,
-                                        c_arch,
+                                        self.irsb.arch.vex_archinfo,
                                         self.data + self.bytes_offset,
                                         self.irsb._addr,
                                         max_inst - inst_cutoff,
@@ -107,6 +105,7 @@ class LibVEXLifter(Lifter):
                 raise LiftingException("libvex: could not decode any instructions")
         finally:
             _libvex_lock.release()
+            self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = None
 
 register(LibVEXLifter)
 
