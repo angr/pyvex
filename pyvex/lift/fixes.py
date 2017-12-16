@@ -1,6 +1,7 @@
-from . import Postprocessor, register
+from . import Postprocessor, register, LiftingException
 
 class FixesPostProcessor(Postprocessor):
+
     def postprocess(self):
         self.irsb.statements = [x for x in self.irsb.statements if x.tag != 'Ist_NoOp']
 
@@ -161,6 +162,6 @@ class FixesPostProcessor(Postprocessor):
                     else:
                         break
 
-# register(FixesPostProcessor)
+register(FixesPostProcessor)
 
 from .. import stmt, expr

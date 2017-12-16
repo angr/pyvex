@@ -118,17 +118,18 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
             lift(more_irsb, arch, addr, data_left, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
             final_irsb.extend(more_irsb)
 
-    for postprocessor, registered_arch in postprocessors:
-        if not isinstance(arch, registered_arch):
+    for postprocessor in postprocessors:
+        try:
+            postprocessor(final_irsb).postprocess()
+        except LiftingException:
             continue
-        postprocessor(final_irsb).postprocess()
     irsb._from_py(final_irsb)
 
 def register(lifter):
     if issubclass(lifter, Lifter):
         lifters.append(lifter)
     if issubclass(lifter, Postprocessor):
-        postprocessors.append(arch)
+        postprocessors.append(lifter)
 
 from .. import ffi
 from ..errors import PyVEXError

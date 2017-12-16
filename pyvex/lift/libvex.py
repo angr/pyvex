@@ -78,6 +78,7 @@ class LibVEXLifter(Lifter):
                 l.debug('Lifting extended block')
                 extended_irsb = create_from_c(extended_c_irsb)
                 if extended_irsb.instructions < 2:
+                    l.debug("Block very short")
                     c_irsb = extended_c_irsb
                     self.irsb._from_c(c_irsb)
                 else:
