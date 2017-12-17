@@ -1,4 +1,4 @@
 pycparser
 cffi>=1.0.3
-archinfo>=7.7.9.14
+archinfo>=7.7.12.16
 bitstring
