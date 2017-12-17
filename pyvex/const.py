@@ -236,9 +236,16 @@ class V128(IRConst):
     def __str__(self):
         return "%x" % self.value
 
+    # vex doesn't store a full 128 bit constant, instead it stores 1 bit per 8 bits of data
+    # and duplicates each bit 8 times
     @staticmethod
     def _from_c(c_const):
-        return V128(c_const.Ico.V128)
+        base_const = c_const.Ico.V128
+        real_const = 0
+        for i in xrange(16):
+            if (base_const >> i) & 1 == 1:
+                real_const |= 0xff << (8 * i)
+        return V128(real_const)
 
 class V256(IRConst):
     type = 'Ity_V256'
@@ -253,9 +260,15 @@ class V256(IRConst):
     def __str__(self):
         return "%x" % self.value
 
+    # see above
     @staticmethod
     def _from_c(c_const):
-        return V256(c_const.Ico.V256)
+        base_const = c_const.Ico.V256
+        real_const = 0
+        for i in xrange(32):
+            if (base_const >> i) & 1 == 1:
+                real_const |= 0xff << (8 * i)
+        return V256(real_const)
 
 predefined_types = [ U1, U8, U16, U32, U64, F32, F32i, F64, F64i, V128, V256 ]
 predefined_types_map = { c.type : c for c in predefined_types }
