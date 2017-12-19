@@ -3,7 +3,6 @@ from .. import const
 from ..expr import Const
 
 l = logging.getLogger('pyvex.lift')
-l.setLevel(logging.DEBUG)
 
 lifters = []
 postprocessors = []

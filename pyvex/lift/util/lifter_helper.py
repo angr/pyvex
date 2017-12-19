@@ -40,6 +40,7 @@ class GymratLifter(Lifter):
 
     def decode(self):
         try:
+            self.create_bitstrm()
             count = 0
             disas = []
             addr = self.irsb._addr
@@ -76,20 +77,22 @@ class GymratLifter(Lifter):
     def lift(self, disassemble=False, dump_irsb=False):
         if self.ARCHES is not None and self.arch.name not in self.ARCHES:
             raise LiftingException('Unsupported architecture %s' % self.arch.name)
-        self.thedata = self.data
+        self.thedata = self.data[:self.max_bytes]
         l.debug(repr(self.thedata))
-        self.create_bitstrm()
+        instructions = self.decode()
 
         if disassemble:
-            return [instr.disassemble() for instr in self.decode()]
+            return [instr.disassemble() for instr in instructions]
         self.irsb.jumpkind = JumpKind.Invalid
         irsb_c = IRSBCustomizer(self.irsb)
-        instructions = self.decode()
         l.debug("Decoding complete.")
-        for i, instr in enumerate(instructions):
+        for i, instr in enumerate(instructions[:self.max_inst]):
             l.debug("Lifting instruction " + instr.name)
             instr(irsb_c, instructions[:i], instructions[i+1:])
             if irsb_c.irsb.jumpkind != JumpKind.Invalid:
+                break
+            elif (i+1) == self.max_inst: # if we are on our last iteration
+                instr.jump(None, irsb_c.irsb.addr + irsb_c.irsb.size)
                 break
         else:
             if len(irsb_c.irsb.statements) == 0:
