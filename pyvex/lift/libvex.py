@@ -13,7 +13,7 @@ _libvex_lock = threading.Lock()
 SUPPORTED = {'X86', 'AMD64', 'MIPS32', 'MIPS64', 'ARM', 'ARMEL', 'ARMHF', 'AARCH64', 'PPC32', 'PPC64'}
 
 VEX_MAX_INSTRUCTIONS = 99
-VEX_MAX_BYTES = 400
+VEX_MAX_BYTES = 5000
 
 class LibVEXLifter(Lifter):
     REQUIRE_DATA_C = True
@@ -64,7 +64,7 @@ class LibVEXLifter(Lifter):
                 return c_irsb
 
             def create_from_c(c_irsb):
-                newEmpty = self.irsb.emptyBlock(self.irsb.arch, self.irsb.addr)
+                newEmpty = self.irsb.empty_block(self.irsb.arch, self.irsb.addr)
                 newEmpty._from_c(c_irsb)
                 return newEmpty
 

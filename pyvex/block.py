@@ -74,7 +74,7 @@ class IRSB(VEXObject):
             lift(self, arch, mem_addr, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
 
     @staticmethod
-    def emptyBlock(arch, addr, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
+    def empty_block(arch, addr, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
         block = IRSB(None, addr, arch)
         block._set_attributes(statements, nxt, tyenv, jumpkind, direct_next)
         return block
@@ -125,6 +125,9 @@ class IRSB(VEXObject):
         Pretty-print the IRSB to stdout.
         """
         print(self._pp_str())
+
+    def __repr__(self):
+        return 'IRSB <0x%x bytes, %d ins., %s> at 0x%x' % (self.size, self.instructions, str(self.arch), self.addr)
 
     def __str__(self):
         return self._pp_str()

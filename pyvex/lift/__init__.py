@@ -35,7 +35,7 @@ class Lifter(object):
         All of the lifters will be used in the order that they are registered
         whenever an instruction cannot be decoded until one is able to decode it
         """
-        irsb = IRSB.emptyBlock(self.arch, self.addr)
+        irsb = IRSB.empty_block(self.arch, self.addr)
         self.data = data
         self.bytes_offset = bytes_offset
         self.opt_level = opt_level
@@ -61,7 +61,7 @@ class Postprocessor(object):
         pass
 
 def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt_level=1, traceflags=False):
-    final_irsb = IRSB.emptyBlock(arch, addr)
+    final_irsb = IRSB.empty_block(arch, addr)
     if isinstance(data, (str, bytes)):
         py_data = data
         c_data = None
@@ -113,7 +113,7 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
         if max_inst is not None:
             max_inst -= next_irsb_part.instructions
         if max_bytes > 0 and (max_inst is None or max_inst > 0):
-            more_irsb = final_irsb.emptyBlock(final_irsb.arch, final_irsb.addr)
+            more_irsb = final_irsb.empty_block(final_irsb.arch, final_irsb.addr)
             lift(more_irsb, arch, addr, data_left, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
             final_irsb.extend(more_irsb)
 
