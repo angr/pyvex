@@ -13,6 +13,17 @@ class LiftingException(Exception):
 class Lifter(object):
     """
     A lifter is a class of methods for processing a block.
+
+    :ivar data:            The bytes to lift as either a python string of bytes or a cffi buffer object.
+    :ivar bytes_offset:    The offset into `data` to start lifting at.
+    :ivar max_bytes:       The maximum number of bytes to lift. If set to None, no byte limit is used.
+    :ivar max_inst:        The maximum number of instructions to lift. If set to None, no instruction limit is used.
+    :ivar opt_level:       The level of optimization to apply to the IR, 0-2. Most likely will be ignored in any lifter
+                           other then LibVEX.
+    :ivar traceflags:      The libVEX traceflags, controlling VEX debug prints. Most likely will be ignored in any lifter
+                           other than LibVEX.
+    :ivar allow_lookback:  Should the LibVEX arm-thumb lifter be allowed to look before the current instruction pointer.
+                           Most likely will be ignored in any lifter other than LibVEX.
     """
     REQUIRE_DATA_C = False
     REQUIRE_DATA_PY = False
@@ -30,10 +41,18 @@ class Lifter(object):
              traceflags=None,
              allow_lookback=None):
         """
-        Create an irsb from data
+        Wrapper around the `lift` method on Lifters. Should not be overridden in child classes.
 
-        All of the lifters will be used in the order that they are registered
-        whenever an instruction cannot be decoded until one is able to decode it
+        :param data:            The bytes to lift as either a python string of bytes or a cffi buffer object.
+        :param bytes_offset:    The offset into `data` to start lifting at.
+        :param max_bytes:       The maximum number of bytes to lift. If set to None, no byte limit is used.
+        :param max_inst:        The maximum number of instructions to lift. If set to None, no instruction limit is used.
+        :param opt_level:       The level of optimization to apply to the IR, 0-2. Most likely will be ignored in any lifter
+                                other then LibVEX.
+        :param traceflags:      The libVEX traceflags, controlling VEX debug prints. Most likely will be ignored in any
+                                lifter other than LibVEX.
+        :param allow_lookback:  Should the LibVEX arm-thumb lifter be allowed to look before the current instruction pointer.
+                                Most likely will be ignored in any lifter other than LibVEX.
         """
         irsb = IRSB.empty_block(self.arch, self.addr)
         self.data = data
@@ -47,8 +66,20 @@ class Lifter(object):
         self.lift()
         return self.irsb
 
-class Postprocessor(object):
+    def lift(self):
+        """
+        Lifts the data using the information passed into _lift. Should be overridden in child classes.
 
+        Should set the lifted IRSB to self.irsb.
+        If a lifter raises a LiftingException on the data, this signals that the lifter cannot lift this data and arch
+        and the lifter is skipped.
+        If a lifter can lift any amount of data, it should lift it and return the lifted block with a jumpkind of
+        Ijk_NoDecode, signalling to pyvex that other lifters should be used on the undecodable data.
+
+        """
+        raise NotImplementedError
+
+class Postprocessor(object):
     def __init__(self, irsb):
         self.irsb = irsb
 
@@ -61,7 +92,38 @@ class Postprocessor(object):
         pass
 
 def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt_level=1, traceflags=False):
+    """
+    Recursively lifts blocks using the registered lifters and postprocessors. Tries each lifter in the order in
+    which they are registered on the data to lift.
+
+    If a lifter raises a LiftingException on the data, it is skipped.
+    If it succeeds and returns a block with a jumpkind of Ijk_NoDecode, all of the lifters are tried on the rest
+    of the data and if they work, their output is appended to the first block.
+
+    :param irsb:            The IRSB to set to the lifted block (overriden by the lifted block)
+    :type irsb:             :class:`IRSB`
+    :param arch:            The arch to lift the data as.
+    :type arch:             :class:`archinfo.Arch`
+    :param addr:            The starting address of the block. Effects the IMarks.
+    :param data:            The bytes to lift as either a python string of bytes or a cffi buffer object.
+    :param max_bytes:       The maximum number of bytes to lift. If set to None, no byte limit is used.
+    :param max_inst:        The maximum number of instructions to lift. If set to None, no instruction limit is used.
+    :param bytes_offset:    The offset into `data` to start lifting at.
+    :param opt_level:       The level of optimization to apply to the IR, 0-2. 2 is maximum optimization, 0 is no optimization.
+    :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
+
+    .. note:: Explicitly specifying the number of instructions to lift (`max_inst`) may not always work
+              exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
+              instruction without its delay slot. VEX attempts to Do The Right Thing by possibly decoding
+              fewer instructions than requested. Specifically, this means that lifting a branch or jump
+              on MIPS as a single instruction (`max_inst=1`) will result in an empty IRSB, and subsequent
+              attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
+
+    .. note:: If no instruction and byte limit is used, pyvex will continue lifting the block until the block
+              ends properly or until it runs out of data to lift.
+    """
     final_irsb = IRSB.empty_block(arch, addr)
+
     if isinstance(data, (str, bytes)):
         py_data = data
         c_data = None
@@ -70,6 +132,7 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
         c_data = data
         py_data = None
         allow_lookback = True
+
 
     for lifter in lifters:
         try:
@@ -125,6 +188,13 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
     irsb._from_py(final_irsb)
 
 def register(lifter):
+    """
+    Registers a Lifter or Postprocessor to be used by pyvex. Lifters are are given priority based on the order
+    in which they are registered. Postprocessors will be run in registration order.
+
+    :param lifter:       The Lifter or Postprocessor to register
+    :vartype lifter:     :class:`Lifter` or :class:`Postprocessor`
+    """
     if issubclass(lifter, Lifter):
         lifters.append(lifter)
     if issubclass(lifter, Postprocessor):

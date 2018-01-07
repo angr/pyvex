@@ -44,11 +44,13 @@ class IRSB(VEXObject):
         :param int mem_addr:    The address to lift the data at.
         :param arch:            The architecture to lift the data as.
         :type arch:             :class:`archinfo.Arch`
-        :param max_inst:        The maximum number of instructions to lift. Max 99. (See note below)
-        :param max_bytes:       The maximum number of bytes to use. Max 5000.
+        :param max_inst:        The maximum number of instructions to lift. (See note below)
+        :param max_bytes:       The maximum number of bytes to use.
+        :param num_inst:        Replaces max_inst if max_inst is None. If set to None as well, no instruction limit is used.
+        :param num_bytes:       Replaces max_bytes if max_bytes is None. If set to None as well, no  byte limit is used.
         :param bytes_offset:    The offset into `data` to start lifting at.
         :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
-        :param opt_level:       The level of optimization to apply to the IR, 0-2.
+        :param opt_level:       The level of optimization to apply to the IR, 0-2. 2 is highest, 0 is no optimization.
 
         .. note:: Explicitly specifying the number of instructions to lift (`max_inst`) may not always work
                   exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
@@ -56,6 +58,9 @@ class IRSB(VEXObject):
                   fewer instructions than requested. Specifically, this means that lifting a branch or jump
                   on MIPS as a single instruction (`max_inst=1`) will result in an empty IRSB, and subsequent
                   attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
+
+        .. note:: If no instruction and byte limit is used, pyvex will continue lifting the block until the block
+                  ends properly or until it runs out of data to lift.
         """
         if max_inst is None: max_inst = num_inst
         if max_bytes is None: max_bytes = num_bytes
@@ -83,16 +88,36 @@ class IRSB(VEXObject):
         return copy.deepcopy(self)
 
     def extend(self, extendwith):
+        """
+        Appends an irsb to the current irsb. The irsb that is appended is invalidated. The appended irsb's jumpkind and
+        default exit are used.
+
+        :param extendwith:     The IRSB to append to this IRSB
+        :vartype extendwith:   :class:`IRSB`
+        """
         conversion_dict = { }
         invalid_vals = (0xffffffff, -1)
 
         def convert_tmp(tmp):
+            """
+            Converts a tmp from the appended-block into one in the appended-to-block. Creates a new tmp if it does not
+            already exist. Prevents collisions in tmp numbers between the two blocks.
+
+            :param tmp:       The tmp number to convert
+            """
             if tmp not in conversion_dict:
                 tmp_type = extendwith.tyenv.lookup(tmp)
                 conversion_dict[tmp] = self.tyenv.add(tmp_type)
             return conversion_dict[tmp]
 
         def convert_expr(expr):
+            """
+            Converts a VEX expression to use tmps in the appended-block instead of the appended-to-block. Used to prevent
+            collisions in tmp numbers between the two blocks.
+
+            :param tmp:       The VEX expression to convert
+            :vartype expr:    :class:`IRExpr`
+            """
             if isinstance(expr, RdTmp):
                 expr.tmp = convert_tmp(expr.tmp)
 
@@ -402,6 +427,7 @@ class IRSB(VEXObject):
 
     def _from_py(self, irsb):
         self._set_attributes(irsb.statements, irsb.next, irsb.tyenv, irsb.jumpkind, irsb.direct_next, irsb.size)
+
 class IRTypeEnv(VEXObject):
     """
     An IR type environment.
