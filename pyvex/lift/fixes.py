@@ -1,6 +1,7 @@
-from . import Lifter, register
+from . import Postprocessor, register, LiftingException
 
-class FixesPostProcessor(Lifter):
+class FixesPostProcessor(Postprocessor):
+
     def postprocess(self):
         self.irsb.statements = [x for x in self.irsb.statements if x.tag != 'Ist_NoOp']
 

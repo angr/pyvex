@@ -14,6 +14,7 @@ class JumpKind(object):
     Syscall = 'Ijk_Sys_syscall'
     Sysenter = 'Ijk_Sys_sysenter'
     Invalid = 'Ijk_INVALID'
+    NoDecode = 'Ijk_NoDecode'
 
 class TypeMeta(type):
     def __getattr__(self, name):

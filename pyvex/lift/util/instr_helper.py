@@ -9,7 +9,6 @@ import logging
 from angr.engines.vex import ccall
 
 l = logging.getLogger("instr")
-l.setLevel(logging.DEBUG)
 
 
 class Instruction(object):

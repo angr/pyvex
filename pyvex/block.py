@@ -1,11 +1,13 @@
 from __future__ import print_function
+import copy
 
 from . import VEXObject
 from . import expr, stmt
-from .lift import lift
 from .enums import get_enum_from_int, get_int_from_enum
 from .const import get_type_size
 from .errors import PyVEXError
+from .stmt import *
+from .expr import RdTmp
 
 import logging
 l = logging.getLogger("pyvex.block")
@@ -42,11 +44,13 @@ class IRSB(VEXObject):
         :param int mem_addr:    The address to lift the data at.
         :param arch:            The architecture to lift the data as.
         :type arch:             :class:`archinfo.Arch`
-        :param max_inst:        The maximum number of instructions to lift. Max 99. (See note below)
-        :param max_bytes:       The maximum number of bytes to use. Max 5000.
+        :param max_inst:        The maximum number of instructions to lift. (See note below)
+        :param max_bytes:       The maximum number of bytes to use.
+        :param num_inst:        Replaces max_inst if max_inst is None. If set to None as well, no instruction limit is used.
+        :param num_bytes:       Replaces max_bytes if max_bytes is None. If set to None as well, no  byte limit is used.
         :param bytes_offset:    The offset into `data` to start lifting at.
         :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
-        :param opt_level:       The level of optimization to apply to the IR, 0-2.
+        :param opt_level:       The level of optimization to apply to the IR, 0-2. 2 is highest, 0 is no optimization.
 
         .. note:: Explicitly specifying the number of instructions to lift (`max_inst`) may not always work
                   exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
@@ -54,6 +58,9 @@ class IRSB(VEXObject):
                   fewer instructions than requested. Specifically, this means that lifting a branch or jump
                   on MIPS as a single instruction (`max_inst=1`) will result in an empty IRSB, and subsequent
                   attempts to run this block will raise `SimIRSBError('Empty IRSB passed to SimIRSB.')`.
+
+        .. note:: If no instruction and byte limit is used, pyvex will continue lifting the block until the block
+                  ends properly or until it runs out of data to lift.
         """
         if max_inst is None: max_inst = num_inst
         if max_bytes is None: max_bytes = num_bytes
@@ -69,13 +76,86 @@ class IRSB(VEXObject):
         self._size = None
 
         if data is not None:
-            lift(self, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
+            lift(self, arch, mem_addr, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
+
+    @staticmethod
+    def empty_block(arch, addr, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
+        block = IRSB(None, addr, arch)
+        block._set_attributes(statements, nxt, tyenv, jumpkind, direct_next)
+        return block
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+    def extend(self, extendwith):
+        """
+        Appends an irsb to the current irsb. The irsb that is appended is invalidated. The appended irsb's jumpkind and
+        default exit are used.
+
+        :param extendwith:     The IRSB to append to this IRSB
+        :vartype extendwith:   :class:`IRSB`
+        """
+        conversion_dict = { }
+        invalid_vals = (0xffffffff, -1)
+
+        def convert_tmp(tmp):
+            """
+            Converts a tmp from the appended-block into one in the appended-to-block. Creates a new tmp if it does not
+            already exist. Prevents collisions in tmp numbers between the two blocks.
+
+            :param tmp:       The tmp number to convert
+            """
+            if tmp not in conversion_dict:
+                tmp_type = extendwith.tyenv.lookup(tmp)
+                conversion_dict[tmp] = self.tyenv.add(tmp_type)
+            return conversion_dict[tmp]
+
+        def convert_expr(expr):
+            """
+            Converts a VEX expression to use tmps in the appended-block instead of the appended-to-block. Used to prevent
+            collisions in tmp numbers between the two blocks.
+
+            :param tmp:       The VEX expression to convert
+            :vartype expr:    :class:`IRExpr`
+            """
+            if isinstance(expr, RdTmp):
+                expr.tmp = convert_tmp(expr.tmp)
+
+        for stmt in extendwith.statements:
+            if isinstance(stmt, WrTmp):
+                stmt.tmp = convert_tmp(stmt.tmp)
+            elif isinstance(stmt, LoadG):
+                stmt.dst = convert_tmp(stmt.dst)
+            elif isinstance(stmt, LLSC):
+                stmt.result = convert_tmp(stmt.result)
+            elif isinstance(stmt, Dirty):
+                if stmt.tmp not in invalid_vals:
+                    stmt.tmp = convert_tmp(stmt.tmp)
+                for e in stmt.args:
+                    convert_expr(e)
+            elif isinstance(stmt, CAS):
+                if stmt.oldLo not in invalid_vals: stmt.oldLo = convert_tmp(stmt.oldLo)
+                if stmt.oldHi not in invalid_vals: stmt.oldHi = convert_tmp(stmt.oldHi)
+            elif isinstance(stmt, LLSC):
+                stmt.result = convert_tmp(stmt.result)
+            for e in stmt.expressions:
+                convert_expr(e)
+            self.statements.append(stmt)
+        convert_expr(extendwith.next)
+        self.next = extendwith.next
+        self.jumpkind = extendwith.jumpkind
 
     def pp(self):
         """
         Pretty-print the IRSB to stdout.
         """
         print(self._pp_str())
+
+    def __repr__(self):
+        return 'IRSB <0x%x bytes, %d ins., %s> at 0x%x' % (self.size, self.instructions, str(self.arch), self.addr)
+
+    def __str__(self):
+        return self._pp_str()
 
     def typecheck(self):
         try:
@@ -177,8 +257,7 @@ class IRSB(VEXObject):
         """
         The size of this block, in bytes
         """
-        if self._size is None:
-            self._size = sum([s.len for s in self.statements if isinstance(s, stmt.IMark)])
+        self._size = sum([s.len for s in self.statements if isinstance(s, stmt.IMark)])
         return self._size
 
     @property
@@ -337,6 +416,18 @@ class IRSB(VEXObject):
         self.next = expr.IRExpr._from_c(c_irsb.next)
         self.jumpkind = get_enum_from_int(c_irsb.jumpkind)
 
+    def _set_attributes(self, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
+        self.statements = statements if statements is not None else []
+        self.next = nxt
+        if tyenv is not None:
+            self.tyenv = tyenv
+        self.jumpkind = jumpkind
+        self._direct_next = direct_next
+        self._size = size
+
+    def _from_py(self, irsb):
+        self._set_attributes(irsb.statements, irsb.next, irsb.tyenv, irsb.jumpkind, irsb.direct_next, irsb.size)
+
 class IRTypeEnv(VEXObject):
     """
     An IR type environment.
@@ -398,3 +489,4 @@ class IRTypeEnv(VEXObject):
                 return False
 
 from . import pvc
+from .lift import lift

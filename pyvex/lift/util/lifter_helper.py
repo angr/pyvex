@@ -3,7 +3,7 @@ import archinfo
 import pyvex
 from functools import wraps
 from pyvex.expr import *
-from pyvex.lift import Lifter, register
+from pyvex.lift import Lifter, register, LiftingException
 from .vex_helper import *
 from syntax_wrapper import VexValue
 import logging
@@ -33,37 +33,24 @@ class GymratLifter(Lifter):
     pyvex, when lifting a block of code for this architecture, will call the method "lift", which will produce the IRSB
     of the lifted code.
     """
-    def __init__(self, irsb, data, max_inst, max_bytes, bytes_offset, opt_level=None,
-                    traceflags=None, allow_lookback=None):
-        super(GymratLifter, self).__init__(irsb, data, max_inst, max_bytes,
-                bytes_offset, opt_level, traceflags, allow_lookback)
-        if 'CData' in str(type(data)):
-            thedata = "".join([chr(data[x]) for x in range(max_bytes)])
-        else:
-            thedata = data
-        self.thedata = thedata
-        l.debug(repr(thedata))
-
+    REQUIRE_DATA_PY = True
+    ARCHES = None
     def create_bitstrm(self):
         self.bitstrm = bitstring.ConstBitStream(bytes=self.thedata)
 
     def decode(self):
-        self.create_bitstrm()
         try:
+            self.create_bitstrm()
             count = 0
             disas = []
-            if not self.max_inst:
-                self.max_inst = 1000000
             addr = self.irsb._addr
             l.debug("Starting block at address: " + hex(addr))
             bytepos = self.bitstrm.bytepos
-            while (count < self.max_inst
-                    and (self.bitstrm.bitpos + 7) / 8 < self.max_bytes
-                    and not is_empty(self.bitstrm)):
+            while (not is_empty(self.bitstrm)):
                 # Try every instruction until one works
                 for possible_instr in self.instrs:
                     try:
-                        #l.debug("Trying " + possible_instr.name)
+                        l.info("Trying " + possible_instr.name)
                         instr = possible_instr(self.bitstrm, self.irsb.arch, addr)
                         break
                     except ParseError:
@@ -75,7 +62,6 @@ class GymratLifter(Lifter):
                     errorstr = 'Unknown instruction at bit position %d' % self.bitstrm.bitpos
                     l.debug(errorstr)
                     l.debug("Address: %#08x" % addr)
-                    #raise Exception(errorstr)
                     break
                 disas.append(instr)
                 l.debug("Matched " + instr.name)
@@ -89,20 +75,29 @@ class GymratLifter(Lifter):
             raise e
 
     def lift(self, disassemble=False, dump_irsb=False):
+        if self.ARCHES is not None and self.arch.name not in self.ARCHES:
+            raise LiftingException('Unsupported architecture %s' % self.arch.name)
+        self.thedata = self.data[:self.max_bytes]
+        l.debug(repr(self.thedata))
+        instructions = self.decode()
+
         if disassemble:
-            return [instr.disassemble() for instr in self.decode()]
+            return [instr.disassemble() for instr in instructions]
         self.irsb.jumpkind = JumpKind.Invalid
         irsb_c = IRSBCustomizer(self.irsb)
-        instructions = self.decode()
         l.debug("Decoding complete.")
-        #self.pp_disas()
-        for i, instr in enumerate(instructions):
+        for i, instr in enumerate(instructions[:self.max_inst]):
             l.debug("Lifting instruction " + instr.name)
             instr(irsb_c, instructions[:i], instructions[i+1:])
             if irsb_c.irsb.jumpkind != JumpKind.Invalid:
                 break
+            elif (i+1) == self.max_inst: # if we are on our last iteration
+                instr.jump(None, irsb_c.irsb.addr + irsb_c.irsb.size)
+                break
         else:
-            instructions[-1].jump(None, instructions[-1].addr + instructions[-1].bytewidth)
+            if len(irsb_c.irsb.statements) == 0:
+                raise LiftingException('Could not decode any instructions')
+            irsb_c.irsb.jumpkind = JumpKind.NoDecode
         l.debug(self.irsb._pp_str())
         if dump_irsb:
             self.irsb.pp()
@@ -121,6 +116,7 @@ class GymratLifter(Lifter):
 
     def disassemble(self):
         return self.lift(disassemble=True)
+
 
 if __name__ == '__main__':
     pass
