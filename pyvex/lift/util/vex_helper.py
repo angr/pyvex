@@ -16,6 +16,12 @@ class JumpKind(object):
     Invalid = 'Ijk_INVALID'
     NoDecode = 'Ijk_NoDecode'
 
+class RoundingMode(object):
+    to_nearest = 0
+    to_neg_inf = 1
+    to_pos_inf = 2
+    to_zero = 3
+
 class TypeMeta(type):
     def __getattr__(self, name):
         match = re.match(r'int_(?P<size>\d+)$', name)
@@ -51,6 +57,9 @@ def make_format_op_generator(fmt_string):
         return op
     return gen
 
+def mktriop(fstring):
+    return lambda self, expr_a, expr_b, expr_c: self.op_ternary(make_format_op_generator(fstring))(expr_a, expr_b, expr_c)
+
 def mkbinop(fstring):
     return lambda self, expr_a, expr_b: self.op_binary(make_format_op_generator(fstring))(expr_a, expr_b)
 
@@ -72,6 +81,12 @@ class IRSBCustomizer(object):
     op_smul = mkbinop('Iop_MullS{arg_t[0]}')
     op_sdiv = mkbinop('Iop_DivS{arg_t[0]}')
     op_udiv = mkbinop('Iop_DivU{arg_t[0]}')
+    op_cmp = mkbinop('Iop_Cmp{arg_t[0]}')
+
+    op_f_add = mktriop('Iop_Add{arg_t[1]}')
+    op_f_sub = mktriop('Iop_Sub{arg_t[1]}')
+    op_f_mul = mktriop('Iop_Mul{arg_t[1]}')
+    op_f_div = mktriop('Iop_Div{arg_t[1]}')
 
     # Custom operation that does not exist in libVEX
     op_mod = mkbinop('Iop_Mod{arg_t[0]}')
@@ -84,6 +99,10 @@ class IRSBCustomizer(object):
     op_shl = mkbinop('Iop_Shl{arg_t[0]}')
 
     op_not = mkunop('Iop_Not{arg_t[0]}')
+    op_neg = mkunop('Iop_Neg{arg_t[0]}')
+    op_abs = mkunop('Iop_Abs{arg_t[0]}')
+
+    op_sqrt = mkbinop('Iop_Sqrt{arg_t[1]}')
 
     op_cmp_eq = mkcmpop('EQ')
     op_cmp_ne = mkcmpop('NE')
@@ -177,12 +196,17 @@ class IRSBCustomizer(object):
     # Operations
     def op_generic(self, Operation, op_generator):
         def instance(*args): # Note: The args here are all RdTmps
-            for arg in args: assert isinstance(arg, RdTmp) or isinstance(arg, Const)
+            for arg in args:
+                if not (isinstance(arg, RdTmp) or isinstance(arg, Const)):
+                    raise ValueError('VEX ops can only operator on RdTmp and Const, not %s' % type(arg))
             arg_types = [self.get_type(arg) for arg in args]
             op = Operation(op_generator(arg_types), args)
             assert op.typecheck(self.irsb.tyenv)
             return self._settmp(op)
         return instance
+
+    def op_ternary(self, op_format_str):
+        return self.op_generic(Triop, op_format_str)
 
     def op_binary(self, op_format_str):
         return self.op_generic(Binop, op_format_str)

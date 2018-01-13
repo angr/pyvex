@@ -270,12 +270,24 @@ class V256(IRConst):
                 real_const |= 0xff << (8 * i)
         return V256(real_const)
 
-predefined_types = [ U1, U8, U16, U32, U64, F32, F32i, F64, F64i, V128, V256 ]
+predefined_types = [ U1, U8, U16, U32, U64, F32, F64, V128, V256 ]
 predefined_types_map = { c.type : c for c in predefined_types }
 predefined_classes_map = { c.tag : c for c in predefined_types }
 
 def is_int_ty(ty):
     m = re.match(r'Ity_I\d+', ty)
+    return m is not None
+
+def is_float_ty(ty):
+    m = re.match(r'Ity_F\d+', ty)
+    return m is not None
+
+def is_decimal_float_ty(ty):
+    m = re.match(r'Ity_D\d+', ty)
+    return m is not None
+
+def is_simd_ty(ty):
+    m = re.match(r'Ity_V\d+', ty)
     return m is not None
 
 def is_int_tag(tag):
