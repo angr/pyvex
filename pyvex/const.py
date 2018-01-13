@@ -273,6 +273,8 @@ class V256(IRConst):
 predefined_types = [ U1, U8, U16, U32, U64, F32, F64, V128, V256 ]
 predefined_types_map = { c.type : c for c in predefined_types }
 predefined_classes_map = { c.tag : c for c in predefined_types }
+predefined_classes_map[F32i.tag] = F32i
+predefined_classes_map[F64i.tag] = F64i
 
 def is_int_ty(ty):
     m = re.match(r'Ity_I\d+', ty)
