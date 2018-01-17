@@ -34,7 +34,6 @@ class GymratLifter(Lifter):
     of the lifted code.
     """
     REQUIRE_DATA_PY = True
-    ARCHES = None
     def create_bitstrm(self):
         self.bitstrm = bitstring.ConstBitStream(bytes=self.thedata)
 
@@ -75,8 +74,6 @@ class GymratLifter(Lifter):
             raise e
 
     def lift(self, disassemble=False, dump_irsb=False):
-        if self.ARCHES is not None and self.arch.name not in self.ARCHES:
-            raise LiftingException('Unsupported architecture %s' % self.arch.name)
         self.thedata = self.data[:self.max_bytes]
         l.debug(repr(self.thedata))
         instructions = self.decode()

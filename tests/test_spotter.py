@@ -18,10 +18,9 @@ class Instruction_IMAGINARY(Instruction):
         a + b
 
 class ImaginarySpotter(GymratLifter):
-    ARCHES=['ARMEL']
     instrs = [Instruction_IMAGINARY]
 
-register(ImaginarySpotter)
+register(ImaginarySpotter, 'ARMEL')
 
 basic_goal = """
 IRSB {
@@ -74,10 +73,9 @@ class Instruction_CPSIEF(Instruction):
         c = a + b
 
 class CortexSpotter(GymratLifter):
-    ARCHES = ['ARMEL']
     instrs = [Instruction_MSR, Instruction_CPSIEI, Instruction_CPSIEF]
 
-register(CortexSpotter)
+register(CortexSpotter, 'ARMEL')
 
 def test_full_binary():
     p = angr.Project(os.path.join(test_location, 'armel', 'RTOSDemo.axf.issue_685'))

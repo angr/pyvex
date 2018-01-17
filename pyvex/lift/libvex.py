@@ -22,9 +22,6 @@ class LibVEXLifter(Lifter):
         if self.traceflags != 0 and l.getEffectiveLevel() > 20:
             l.setLevel(20)
 
-        if self.arch.name not in SUPPORTED:
-            raise LiftingException('Cannot lift arch %s' % self.arch.name)
-
         try:
             _libvex_lock.acquire()
 
@@ -108,5 +105,5 @@ class LibVEXLifter(Lifter):
             _libvex_lock.release()
             self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = None
 
-register(LibVEXLifter)
-
+for arch_name in SUPPORTED:
+    register(LibVEXLifter, arch_name)
