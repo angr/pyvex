@@ -1,11 +1,12 @@
+from collections import defaultdict
 import logging
 from .. import const
 from ..expr import Const
 
 l = logging.getLogger('pyvex.lift')
 
-lifters = []
-postprocessors = []
+lifters = defaultdict(list)
+postprocessors = defaultdict(list)
 
 class LiftingException(Exception):
     pass
@@ -134,7 +135,7 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
         allow_lookback = True
 
 
-    for lifter in lifters:
+    for lifter in lifters[arch.name]:
         try:
             u_data = data
             if lifter.REQUIRE_DATA_C:
@@ -180,14 +181,14 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
             lift(more_irsb, arch, addr, data_left, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
             final_irsb.extend(more_irsb)
 
-    for postprocessor in postprocessors:
+    for postprocessor in postprocessors[arch.name]:
         try:
             postprocessor(final_irsb).postprocess()
         except LiftingException:
             continue
     irsb._from_py(final_irsb)
 
-def register(lifter):
+def register(lifter, arch_name):
     """
     Registers a Lifter or Postprocessor to be used by pyvex. Lifters are are given priority based on the order
     in which they are registered. Postprocessors will be run in registration order.
@@ -196,9 +197,11 @@ def register(lifter):
     :vartype lifter:     :class:`Lifter` or :class:`Postprocessor`
     """
     if issubclass(lifter, Lifter):
-        lifters.append(lifter)
+        lifters[arch_name].append(lifter)
+        print 'Lifters', lifters
     if issubclass(lifter, Postprocessor):
-        postprocessors.append(lifter)
+        postprocessors[arch_name].append(lifter)
+        print 'Postprocessors', postprocessors
 
 from .. import ffi
 from ..errors import PyVEXError

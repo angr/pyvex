@@ -1,4 +1,5 @@
 from . import Postprocessor, register, LiftingException
+import libvex
 
 class FixesPostProcessor(Postprocessor):
 
@@ -162,6 +163,7 @@ class FixesPostProcessor(Postprocessor):
                     else:
                         break
 
-register(FixesPostProcessor)
+for arch_name in libvex.SUPPORTED:
+    register(FixesPostProcessor, arch_name)
 
 from .. import stmt, expr
