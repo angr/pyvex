@@ -197,14 +197,14 @@ def register(lifter, arch_name):
     :vartype lifter:     :class:`Lifter` or :class:`Postprocessor`
     """
     if issubclass(lifter, Lifter):
+        l.debug("Registering lifter %s for architecture %s.", lifter.__name__, arch_name)
         lifters[arch_name].append(lifter)
-        print 'Lifters', lifters
     if issubclass(lifter, Postprocessor):
+        l.debug("Registering postprocessor %s for architecture %s.", lifter.__name__, arch_name)
         postprocessors[arch_name].append(lifter)
-        print 'Postprocessors', postprocessors
+
 
 from .. import ffi
-from ..errors import PyVEXError
 
 from .libvex import LibVEXLifter
 from .fixes import FixesPostProcessor
