@@ -203,7 +203,6 @@ def register(lifter, arch_name):
         l.debug("Registering postprocessor %s for architecture %s.", lifter.__name__, arch_name)
         postprocessors[arch_name].append(lifter)
 
-
 from .. import ffi
 
 from .libvex import LibVEXLifter

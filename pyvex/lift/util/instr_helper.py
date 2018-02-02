@@ -223,7 +223,7 @@ class Instruction(object):
 
     def lookup_register(self, arch, reg):
         if isinstance(reg, int):
-            reg = arch.register_names[reg]
+            reg = arch.register_index[reg]
         return arch.get_register_offset(reg)
 
     def get(self, reg, ty):
