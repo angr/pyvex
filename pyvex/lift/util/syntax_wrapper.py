@@ -13,10 +13,10 @@ def checkparams(rhstype=None):
                        isinstance(a, VexValue)}  # pylint: disable=no-member
             assert len(irsb_cs) == 1, 'All VexValues must belong to the same irsb_c'
             args = list(args)
-            for arg in args:
+            for idx, arg in enumerate(args):
                 if isinstance(arg, int):
                     thetype = rhstype if rhstype else self.ty
-                    args[args.index(arg)] = VexValue.Constant(self.irsb_c, arg, thetype)
+                    args[idx] = VexValue.Constant(self.irsb_c, arg, thetype)
                 elif not isinstance(arg, VexValue):
                     raise Exception('Cannot convert param %s' % str(arg))
             args = tuple(args)
@@ -89,8 +89,6 @@ class VexValue(object):
     @checkparams()
     @vvifyresults
     def set_bit(self, idx, bval):
-        if isinstance(bval, int):
-            bval = VexValue.Constant(self.irsb_c, bval, Type.int_8)
         typedidx = idx.cast_to(Type.int_8)
         return self.irsb_c.set_bit(self.rdt, idx.rdt, bval.rdt)
 
