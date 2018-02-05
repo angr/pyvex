@@ -89,6 +89,8 @@ class VexValue(object):
     @checkparams()
     @vvifyresults
     def set_bit(self, idx, bval):
+        if isinstance(bval, int):
+            bval = VexValue.Constant(self.irsb_c, bval, Type.int_8)
         typedidx = idx.cast_to(Type.int_8)
         return self.irsb_c.set_bit(self.rdt, idx.rdt, bval.rdt)
 
