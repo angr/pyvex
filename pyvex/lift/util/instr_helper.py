@@ -89,7 +89,7 @@ class Instruction(object):
 
     def lift(self, irsb_c, past_instructions, future_instructions):
         """
-        THis is the main body of the "lifting" for the instruction.
+        This is the main body of the "lifting" for the instruction.
         This can/should be overriden to provide the general flow of how instructions in your arch work.
         For example, in MSP430, this is:
             1) Figure out what your operands are by parsing the addressing, and load them into temporary registers
