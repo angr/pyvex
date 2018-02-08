@@ -211,6 +211,7 @@ class VexValue(object):
             return self.irsb_c.op_cmp_ult(self.rdt, right.rdt)
 
     @checkparams()
+    @vvifyresults
     def __mod__(self, right): # Note: nonprimitive
         return self.irsb_c.op_mod(self.rdt, right.rdt)
 
