@@ -1,10 +1,9 @@
-
 import abc
 import string
 import bitstring
 import logging
 
-from .lifter_helper import ParseError
+from .lifter_helper import ParseError, RequireContextError
 from .syntax_wrapper import VexValue
 from ...expr import IRExpr
 from .vex_helper import JumpKind, vex_int_class
@@ -12,6 +11,34 @@ from .vex_helper import JumpKind, vex_int_class
 
 l = logging.getLogger("instr")
 
+class ContextInstructions(object):
+    """Sequence of lookahead/lookback instruction context.
+
+    This sequence is list-like, but out-of-bounds raise a `RequireContextError`.
+    """
+    def __init__(self, available, past):
+        self._available = available
+        self._past = past
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            if key.start < 0:
+                raise ValueError("instructions context does not support negative index (slice start)")
+            if key.stop < 0:
+                raise ValueError("instructions context does not support negative index (slice stop)")
+
+            return (self._get(idx) for idx in xrange(key.start, key.stop, key.step or 1))
+        return self._get(key)
+
+    def _get(self, idx):
+        if idx < 0:
+            raise ValueError("instructions context does not support negative index")
+
+        if idx >= len(self._available):
+            bound = -idx if self._past else idx
+            raise RequireContextError(bound)
+
+        return self._available[idx]
 
 class Instruction(object):
     """
@@ -81,7 +108,20 @@ class Instruction(object):
         self.data = self.parse(bitstrm)
 
     def __call__(self, irsb_c, past_instructions, future_instructions):
-        self.lift(irsb_c, past_instructions, future_instructions)
+        past_context = ContextInstructions(past_instructions, True)
+        future_context = ContextInstructions(future_instructions, False)
+        self.apply_context(past_context, future_context)
+        self.lift(irsb_c)
+
+    def apply_context(self, past_instructions, future_instructions):
+        """
+        Look at surrounding instructions to extract information necessary to interpret this instruction.
+
+        This can be used to implement instructions that require context, like "skip next instruction" which
+        requires the size of the next instruction. If at all possible, you should avoid large amounts of context
+        when possible.
+        """
+        pass
 
     def mark_instruction_start(self):
         self.irsb_c.imark(self.addr, self.bytewidth, 0)
@@ -93,7 +133,7 @@ class Instruction(object):
         """
         return []
 
-    def lift(self, irsb_c, past_instructions, future_instructions):
+    def lift(self, irsb_c):
         """
         This is the main body of the "lifting" for the instruction.
         This can/should be overriden to provide the general flow of how instructions in your arch work.

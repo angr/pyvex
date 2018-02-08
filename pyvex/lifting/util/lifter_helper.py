@@ -16,8 +16,25 @@ def is_empty(bitstrm):
 
 
 class ParseError(Exception):
+    """This exception is used by the instruction's parse method to signal that the tried instruction does not
+    match at the current position.
+    """
     pass
 
+
+class RequireContextError(Exception):
+    """This exception indicates the the instruction requires a larger number of surrounding instruction context
+    than provided to compute its sematics. For example, some architectures have instructions to "skip the next"
+    instruction. If you such an instruction appears at the end of a block to lift, this exception can be raised.
+
+    It is important that no modifications have been applied to the IRSB before this exception is raised, as
+    these cannot be rolled back.
+
+    :ivar int amount: At least this many future (if positive) or past (if negative) are requied to interpret the instruction. This is a lower bound, the actual number may be higher.
+    """
+
+    def __init__(self, amount=0):
+        self.amount = amount
 
 class GymratLifter(Lifter):
     """
@@ -91,7 +108,12 @@ class GymratLifter(Lifter):
         l.debug("Decoding complete.")
         for i, instr in enumerate(instructions[:self.max_inst]):
             l.debug("Lifting instruction " + instr.name)
-            instr(irsb_c, instructions[:i], instructions[i+1:])
+            try:
+                instr(irsb_c, instructions[:i], instructions[i+1:])
+            # if the instruction requires more context, we stop
+            # decoding here and just return the block we have so far
+            except RequireContextError:
+                instr.jump(None, irsb_c.irsb.addr + irsb_c.irsb.size)
             if irsb_c.irsb.jumpkind != JumpKind.Invalid:
                 break
             elif (i+1) == self.max_inst: # if we are on our last iteration
