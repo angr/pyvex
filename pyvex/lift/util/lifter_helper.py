@@ -37,6 +37,27 @@ class GymratLifter(Lifter):
     def create_bitstrm(self):
         self.bitstrm = bitstring.ConstBitStream(bytes=self.thedata)
 
+    def _decode_next_instruction(self, addr):
+        # Try every instruction until one works
+        for possible_instr in self.instrs:
+            try:
+                l.info("Trying " + possible_instr.name)
+                return possible_instr(self.bitstrm, self.irsb.arch, addr)
+            # a ParserError signals that this instruction did not match
+            # we need to try other instructions, so we ignore this error
+            except ParseError:
+                pass #l.exception(repr(possible_instr))
+            # if we are out of input, ignore.
+            # there may be other, shorter instructions that still match,
+            # so we continue with the loop
+            except bitstring.ReadError:
+                pass
+
+        # If no instruction matches, log an error
+        errorstr = 'Unknown instruction at bit position %d' % self.bitstrm.bitpos
+        l.debug(errorstr)
+        l.debug("Address: %#08x" % addr)
+
     def decode(self):
         try:
             self.create_bitstrm()
@@ -45,23 +66,11 @@ class GymratLifter(Lifter):
             addr = self.irsb._addr
             l.debug("Starting block at address: " + hex(addr))
             bytepos = self.bitstrm.bytepos
+
+
             while (not is_empty(self.bitstrm)):
-                # Try every instruction until one works
-                for possible_instr in self.instrs:
-                    try:
-                        l.info("Trying " + possible_instr.name)
-                        instr = possible_instr(self.bitstrm, self.irsb.arch, addr)
-                        break
-                    except ParseError:
-                        pass #l.exception(repr(possible_instr))
-                    except Exception, e:
-                        l.debug(e.message)
-                        raise e
-                else:
-                    errorstr = 'Unknown instruction at bit position %d' % self.bitstrm.bitpos
-                    l.debug(errorstr)
-                    l.debug("Address: %#08x" % addr)
-                    break
+                instr = self._decode_next_instruction(addr)
+                if not instr: break
                 disas.append(instr)
                 l.debug("Matched " + instr.name)
                 addr += self.bitstrm.bytepos - bytepos
@@ -70,7 +79,7 @@ class GymratLifter(Lifter):
             return disas
         except Exception, e:
             self.errors = e.message
-            l.exception("Error decoding block:")
+            l.exception("Error decoding block at offset {:#x} (address {:#x}):".format(bytepos, addr))
             raise e
 
     def lift(self, disassemble=False, dump_irsb=False):

@@ -180,7 +180,8 @@ class IRSBCustomizer(object):
             for arg in args: assert isinstance(arg, RdTmp) or isinstance(arg, Const)
             arg_types = [self.get_type(arg) for arg in args]
             op = Operation(op_generator(arg_types), args)
-            assert op.typecheck(self.irsb.tyenv)
+            msg = "operation needs to be well typed: " + str(op)
+            assert op.typecheck(self.irsb.tyenv), msg + "\ntypes: " + str(self.irsb.tyenv)
             return self._settmp(op)
         return instance
 
