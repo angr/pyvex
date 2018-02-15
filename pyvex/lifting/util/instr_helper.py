@@ -108,20 +108,9 @@ class Instruction(object):
         self.data = self.parse(bitstrm)
 
     def __call__(self, irsb_c, past_instructions, future_instructions):
-        past_context = ContextInstructions(past_instructions, True)
-        future_context = ContextInstructions(future_instructions, False)
-        self.apply_context(past_context, future_context)
-        self.lift(irsb_c)
-
-    def apply_context(self, past_instructions, future_instructions):
-        """
-        Look at surrounding instructions to extract information necessary to interpret this instruction.
-
-        This can be used to implement instructions that require context, like "skip next instruction" which
-        requires the size of the next instruction. If at all possible, you should avoid large amounts of context
-        when possible.
-        """
-        pass
+        past  = ContextInstructions(past_instructions, True)
+        future = ContextInstructions(future_instructions, False)
+        self.lift(irsb_c, past, future)
 
     def mark_instruction_start(self):
         self.irsb_c.imark(self.addr, self.bytewidth, 0)
@@ -133,7 +122,17 @@ class Instruction(object):
         """
         return []
 
-    def lift(self, irsb_c):
+    def apply_context(self, past_instructions, future_instructions):
+        """
+        Look at surrounding instructions to extract information necessary to interpret this instruction.
+
+        This can be used to implement instructions that require context, like "skip next instruction" which
+        requires the size of the next instruction. If at all possible, you should avoid requiring large amounts
+        of context.
+        """
+        pass
+
+    def lift(self, irsb_c, past_instructions, future_instructions):
         """
         This is the main body of the "lifting" for the instruction.
         This can/should be overriden to provide the general flow of how instructions in your arch work.
@@ -147,6 +146,7 @@ class Instruction(object):
         # Always call this first!
         self.mark_instruction_start()
         # Then do the actual stuff.
+        self.apply_context(past_instructions, future_instructions)
         inputs = self.fetch_operands()
         retval = self.compute_result(*inputs)
         vals = list(inputs) + [retval]

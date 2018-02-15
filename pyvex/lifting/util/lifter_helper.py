@@ -103,26 +103,35 @@ class GymratLifter(Lifter):
 
         if disassemble:
             return [instr.disassemble() for instr in instructions]
-        self.irsb.jumpkind = JumpKind.Invalid
-        irsb_c = IRSBCustomizer(self.irsb)
+
         l.debug("Decoding complete.")
+        self.irsb.jumpkind = None
         for i, instr in enumerate(instructions[:self.max_inst]):
+            # first, create a scratch IRSB so we can throw the changes away if lifting fails
+            next_irsb_part = pyvex.IRSB.empty_block(self.irsb.arch, self.irsb.addr)
+            irsb_c = IRSBCustomizer(next_irsb_part)
+
+            # try to do the lifting
+            # if the instruction requires more context, we stop
+            # decoding here and just return the block we have so far
             l.debug("Lifting instruction " + instr.name)
             try:
                 instr(irsb_c, instructions[:i], instructions[i+1:])
-            # if the instruction requires more context, we stop
-            # decoding here and just return the block we have so far
             except RequireContextError:
-                instr.jump(None, irsb_c.irsb.addr + irsb_c.irsb.size)
-            if irsb_c.irsb.jumpkind != JumpKind.Invalid:
                 break
-            elif (i+1) == self.max_inst: # if we are on our last iteration
-                instr.jump(None, irsb_c.irsb.addr + irsb_c.irsb.size)
+
+            # lifting was successful so add the part to the full IRSB
+            self.irsb.extend(next_irsb_part)
+            if self.irsb.jumpkind is not None:
                 break
-        else:
-            if len(irsb_c.irsb.statements) == 0:
-                raise LiftingException('Could not decode any instructions')
-            irsb_c.irsb.jumpkind = JumpKind.NoDecode
+
+        if len(self.irsb.statements) == 0:
+            raise LiftingException('Could not lift any instructions')
+
+        if self.irsb.jumpkind is None:
+            self.irsb.next = Const(vex_int_class(self.irsb.arch.bits)(self.irsb.addr + self.irsb.size))
+            self.irsb.jumpkind = JumpKind.Boring if len(instructions) >= self.max_inst else JumpKind.NoDecode
+
         l.debug(self.irsb._pp_str())
         if dump_irsb:
             self.irsb.pp()
