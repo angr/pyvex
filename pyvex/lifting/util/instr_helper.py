@@ -14,7 +14,7 @@ l = logging.getLogger("instr")
 class ContextInstructions(object):
     """Sequence of lookahead/lookback instruction context.
 
-    This sequence is list-like, but out-of-bounds raise a `RequireContextError`.
+    This sequence is list-like, but out-of-bounds accesses raise a `RequireContextError`.
     """
     def __init__(self, available, past):
         self._available = available
