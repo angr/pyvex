@@ -1,5 +1,6 @@
 from enum import Enum
 import re
+import copy
 from pyvex.const import ty_to_const_class, vex_int_class, get_type_size
 from pyvex.expr import IRExpr, Const, RdTmp, Unop, Binop, Triop, Qop, Load, CCall, Get, ITE
 from pyvex.stmt import WrTmp, Put, IMark, Store, NoOp, Exit
@@ -179,6 +180,8 @@ class IRSBCustomizer(object):
         def instance(*args): # Note: The args here are all RdTmps
             for arg in args: assert isinstance(arg, RdTmp) or isinstance(arg, Const)
             arg_types = [self.get_type(arg) for arg in args]
+            # two operations should never share the same argument instances, copy them here to ensure that
+            args = [copy.copy(a) for a in args]
             op = Operation(op_generator(arg_types), args)
             msg = "operation needs to be well typed: " + str(op)
             assert op.typecheck(self.irsb.tyenv), msg + "\ntypes: " + str(self.irsb.tyenv)
