@@ -104,6 +104,7 @@ class IRSBCustomizer(object):
     def __init__(self, irsb):
         self.arch = irsb.arch
         self.irsb = irsb
+        self.has_conditional_exit = False
 
     def get_type(self, rdt):
         return rdt.result_type(self.irsb.tyenv)
@@ -137,6 +138,7 @@ class IRSBCustomizer(object):
         :param ip: The address of this exit's source
         """
         self.irsb.statements.append(Exit(guard, dst, jk, ip))
+        self.has_conditional_exit = True
     # end statements
 
     def goto(self, addr):

@@ -122,6 +122,15 @@ class GymratLifter(Lifter):
 
             # lifting was successful so add the part to the full IRSB
             self.irsb.extend(next_irsb_part)
+
+            # if the irsb has a conditional exit, end the block here
+            # angr doesn't like blocks that have conditional jumps in the middle (not at the end)
+            if irsb_c.has_conditional_exit:
+                self.irsb.next = Const(vex_int_class(self.irsb.arch.bits)(self.irsb.addr + self.irsb.size))
+                self.irsb.jumpkind = JumpKind.Boring
+                break
+
+            # if the block has a jumpkind, this is a full block so we can exit 
             if self.irsb.jumpkind is not None:
                 break
 
@@ -129,8 +138,11 @@ class GymratLifter(Lifter):
             raise LiftingException('Could not lift any instructions')
 
         if self.irsb.jumpkind is None:
-            self.irsb.next = Const(vex_int_class(self.irsb.arch.bits)(self.irsb.addr + self.irsb.size))
-            self.irsb.jumpkind = JumpKind.Boring if len(instructions) >= self.max_inst else JumpKind.NoDecode
+            if len(instructions) >= self.max_inst and self.max_inst is not None:
+                self.irsb.next = Const(vex_int_class(self.irsb.arch.bits)(self.irsb.addr + self.irsb.size))
+                self.irsb.jumpkind = JumpKind.Boring
+            else:
+                self.irsb.jumpkind = JumpKind.NoDecode
 
         l.debug(self.irsb._pp_str())
         if dump_irsb:
