@@ -78,7 +78,7 @@ static void log_bytes(const HChar* bytes, SizeT nbytes) {
 	msg_current_size += nbytes;
 }
 
-static void clear_log() {
+void clear_log() {
 	if (msg_buffer != NULL) {
 			free(msg_buffer);
 			msg_buffer = NULL;

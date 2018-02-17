@@ -4,12 +4,17 @@ import random
 import resource
 import gc
 import copy
+import logging
 
 from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
+from pyvex.lift import LibVEXLifter
 
 def test_memory():
     arches = [ ArchX86(), ArchPPC32(endness=Endness.BE), ArchAMD64(), ArchARM() ]
     # we're not including ArchMIPS32 cause it segfaults sometimes
+
+    # disable logging, as that may fill up log buffers somewhere
+    logging.disable(logging.ERROR)
 
     for i in xrange(10000):
         try:
@@ -21,7 +26,7 @@ def test_memory():
 
     kb_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
-    for i in xrange(40000):
+    for i in xrange(20000):
         try:
             s = hex(random.randint(2**100,2**100*16))[2:]
             a = random.choice(arches)
@@ -31,10 +36,16 @@ def test_memory():
     del p
     gc.collect()
 
+    logging.disable(logging.NOTSET)
+
     kb_end = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
-    # allow a 2mb leeway
-    nose.tools.assert_less(kb_end - kb_start, 2000)
+    pyvex.pvc.clear_log()
+    pyvex.pvc.LibVEX_ShowAllocStats()
+    print LibVEXLifter.get_vex_log()
+
+    # allow a 5mb leeway
+    nose.tools.assert_less(kb_end - kb_start, 5000)
 
 ################
 ### IRCallee ###

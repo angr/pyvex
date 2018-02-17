@@ -18,6 +18,10 @@ VEX_MAX_BYTES = 5000
 class LibVEXLifter(Lifter):
     REQUIRE_DATA_C = True
 
+    @staticmethod
+    def get_vex_log():
+        return str(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)) if pvc.msg_buffer != ffi.NULL else None
+
     def lift(self):
         if self.traceflags != 0 and l.getEffectiveLevel() > 20:
             l.setLevel(20)
@@ -52,7 +56,7 @@ class LibVEXLifter(Lifter):
                                         self.opt_level,
                                         self.traceflags,
                                         self.allow_lookback)
-                log_str = str(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)) if pvc.msg_buffer != ffi.NULL else None
+                log_str = self.get_vex_log()
                 if c_irsb == ffi.NULL:
                     raise LiftingException("libvex: unkown error" if log_str is None else log_str)
                 else:

@@ -11,6 +11,7 @@ extern VexTranslateArgs    vta;
 
 extern char *msg_buffer;
 extern size_t msg_current_size;
+void clear_log(void);
 
 //
 // Initializes VEX. This function must be called before vex_lift
