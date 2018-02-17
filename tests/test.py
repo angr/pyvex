@@ -3,26 +3,29 @@ import nose
 import random
 import resource
 import gc
+import copy
+
+from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
 
 def test_memory():
-    arches = [ 'VexArchX86', 'VexArchPPC32', 'VexArchAMD64', 'VexArchARM' ]
-    # we're not including VexArchMIPS32 cause it segfaults sometimes
+    arches = [ ArchX86(), ArchPPC32(endness=Endness.BE), ArchAMD64(), ArchARM() ]
+    # we're not including ArchMIPS32 cause it segfaults sometimes
 
     for i in xrange(10000):
         try:
             s = hex(random.randint(2**100,2**100*16))[2:]
             a = random.choice(arches)
-            p = pyvex.IRSB(bytes=s, arch=a)
+            p = pyvex.IRSB(data=s, mem_addr=0, arch=a)
         except pyvex.PyVEXError:
             pass
 
     kb_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
-    for i in xrange(20000):
+    for i in xrange(40000):
         try:
             s = hex(random.randint(2**100,2**100*16))[2:]
             a = random.choice(arches)
-            p = pyvex.IRSB(bytes=s, arch=a)
+            p = pyvex.IRSB(data=s, mem_addr=0, arch=a)
         except pyvex.PyVEXError:
             pass
     del p
@@ -49,15 +52,15 @@ def test_ircallee():
 ############
 
 def test_irsb_empty():
-    nose.tools.assert_raises(pyvex.PyVEXError, pyvex.IRSB)
-    nose.tools.assert_raises(pyvex.PyVEXError, pyvex.IRSB, bytes='')
+    nose.tools.assert_raises(Exception, pyvex.IRSB)
+    nose.tools.assert_raises(Exception, pyvex.IRSB, data='', arch=ArchAMD64(), mem_addr=0)
 
 def test_irsb_arm():
-    irsb = pyvex.IRSB(bytes='\x33\xff\x2f\xe1', arch="VexArchARM")
+    irsb = pyvex.IRSB(data='\x33\xff\x2f\xe1', mem_addr=0, arch=ArchARM())
     nose.tools.assert_equal(sum([ 1 for i in irsb.statements if type(i) == pyvex.IRStmt.IMark ]), 1)
 
 def test_irsb_popret():
-    irsb = pyvex.IRSB(bytes='\x5d\xc3')
+    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
     irsb.pp()
 
@@ -67,14 +70,14 @@ def test_irsb_popret():
 
     cursize = len(irsb.tyenv.types)
     nose.tools.assert_greater(cursize, 0)
-    print irsb.statements[16].data
-    print irsb.statements[16].data.tmp
-    print irsb.tyenv.types[irsb.statements[16].data]
-    nose.tools.assert_equal(irsb.tyenv.typeOf(irsb.statements[16].data), 'Ity_I64')
+    print irsb.statements[10].data
+    print irsb.statements[10].data.tmp
+    print irsb.tyenv.types[irsb.statements[10].data.tmp]
+    nose.tools.assert_equal(irsb.tyenv.lookup(irsb.statements[10].data.tmp), 'Ity_I64')
 
 def test_two_irsb():
-    irsb1 = pyvex.IRSB(bytes='\x5d\xc3')
-    irsb2 = pyvex.IRSB(bytes='\x5d\x5d\x5d\x5d')
+    irsb1 = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb2 = pyvex.IRSB(data='\x5d\x5d\x5d\x5d', mem_addr=0, arch=ArchAMD64())
 
     stmts1 = irsb1.statements
     stmts2 = irsb2.statements
@@ -82,51 +85,47 @@ def test_two_irsb():
     nose.tools.assert_not_equal(len(stmts1), len(stmts2))
 
 def test_irsb_deepCopy():
-    irsb = pyvex.IRSB(bytes='\x5d\xc3')
+    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
 
-    irsb2 = irsb.deepCopy()
+    irsb2 = copy.deepcopy(irsb)
     stmts2 = irsb2.statements
     nose.tools.assert_equal(len(stmts), len(stmts2))
 
 def test_irsb_addStmt():
-    irsb = pyvex.IRSB(bytes='\x5d\xc3')
+    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
 
-    irsb2 = irsb.deepCopyExceptStmts()
+    irsb2 = copy.deepcopy(irsb)
+    irsb2.statements = []
     nose.tools.assert_equal(len(irsb2.statements), 0)
 
     for n, i in enumerate(stmts):
         nose.tools.assert_equal(len(irsb2.statements), n)
-        irsb2.addStatement(i.deepCopy())
+        irsb2.statements.append(copy.deepcopy(i))
 
     irsb2.pp()
 
 def test_irsb_tyenv():
-    irsb = pyvex.IRSB(bytes='\x5d\xc3')
+    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     print irsb.tyenv
     print "Orig"
     print irsb.tyenv
-    print "Copy"
-    print irsb.tyenv.deepCopy()
 
     print "Empty"
-    irsb2 = pyvex.IRSB()
+    irsb2 = pyvex.IRSB.empty_block(arch=ArchAMD64(), addr=0)
     print irsb2.tyenv
 
     print "Unwrapped"
-    irsb2.tyenv = irsb.tyenv.deepCopy()
+    irsb2.tyenv = copy.deepcopy(irsb.tyenv)
     print irsb2.tyenv
 
 ##################
 ### Statements ###
 ##################
 
-def test_empty_irstmt_fail():
-    nose.tools.assert_raises(pyvex.PyVEXError, pyvex.IRStmt, ())
-
 def test_irstmt_pp():
-    irsb = pyvex.IRSB(bytes='\x5d\xc3')
+    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
     for i in stmts:
         print "STMT: ",
@@ -134,16 +133,6 @@ def test_irstmt_pp():
 
 def test_irstmt_flat():
     print "TODO"
-
-def test_irstmt_noop():
-    irsb = pyvex.IRSB(bytes='\x90\x5d\xc3')
-    irnop = irsb.statements[0]
-    irnop2 = pyvex.IRStmt.NoOp()
-    irnop3 = irnop2.deepCopy()
-
-    nose.tools.assert_equal(irnop.tag, "Ist_NoOp")
-    nose.tools.assert_equal(type(irnop), type(irnop2))
-    nose.tools.assert_equal(type(irnop), type(irnop3))
 
 def test_irstmt_imark():
     m = pyvex.IRStmt.IMark(1,2,3)
@@ -160,7 +149,6 @@ def test_irstmt_imark():
     nose.tools.assert_equal(m.delta, 5)
 
     nose.tools.assert_raises(Exception, pyvex.IRStmt.IMark, ())
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
 
 def test_irstmt_abihint():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.AbiHint, ())
@@ -172,29 +160,27 @@ def test_irstmt_abihint():
     nose.tools.assert_equal(m.base.tmp, 123)
     nose.tools.assert_equal(m.len, 10)
     nose.tools.assert_equal(m.nia.tmp, 456)
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
 
 def test_irstmt_put():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.Put, ())
 
     a = pyvex.IRExpr.RdTmp(123)
-    m = pyvex.IRStmt.Put(10, a)
+    m = pyvex.IRStmt.Put(a, 10)
     print "Put stmt:",
     print m
     print ""
     nose.tools.assert_equal(m.data.tmp, 123)
     nose.tools.assert_equal(m.offset, 10)
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
 
 def test_irexpr_puti():
     r = pyvex.IRRegArray(10, "Ity_I64", 20)
     i = pyvex.IRExpr.RdTmp(5)
     d = pyvex.IRExpr.RdTmp(30)
-    m = pyvex.IRStmt.PutI(r, i, 2, d)
-    nose.tools.assert_equal(m.deepCopy().description.base, 10)
-    nose.tools.assert_equal(m.index.tmp, 5)
+    m = pyvex.IRStmt.PutI(r, i, d, 2)
+    nose.tools.assert_equal(m.descr.base, 10)
+    nose.tools.assert_equal(m.ix.tmp, 5)
     nose.tools.assert_equal(m.bias, 2)
-    nose.tools.assert_equal(m.deepCopy().data.deepCopy().tmp, d.tmp)
+    nose.tools.assert_equal(m.data.tmp, d.tmp)
 
     nose.tools.assert_raises(Exception, pyvex.IRStmt.PutI, ())
 
@@ -206,22 +192,17 @@ def test_irstmt_wrtmp():
     nose.tools.assert_equal(m.tag, "Ist_WrTmp")
     nose.tools.assert_equal(m.tmp, 10)
     nose.tools.assert_equal(m.data.tmp, 123)
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
 
 def test_irstmt_store():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.Store, ())
 
     a = pyvex.IRExpr.RdTmp(123)
     d = pyvex.IRExpr.RdTmp(456)
-    m = pyvex.IRStmt.Store("Iend_LE", a, d)
+    m = pyvex.IRStmt.Store(a, d, "Iend_LE")
     nose.tools.assert_equal(m.tag, "Ist_Store")
     nose.tools.assert_equal(m.endness, "Iend_LE")
     nose.tools.assert_equal(m.addr.tmp, a.tmp)
     nose.tools.assert_equal(m.data.tmp, d.tmp)
-
-    m.endness = "Iend_BE"
-    nose.tools.assert_equal(m.endness, "Iend_BE")
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
 
 def test_irstmt_cas():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.CAS, ())
@@ -232,7 +213,7 @@ def test_irstmt_cas():
     dh = pyvex.IRExpr.RdTmp(21)
     dl = pyvex.IRExpr.RdTmp(22)
 
-    args = { "oldHi": 1, "oldLo": 2, "endness": "Iend_LE", "addr": a,
+    args = { "oldHi": 1, "oldLo": 2, "end": "Iend_LE", "addr": a,
                  "expdHi": eh, "expdLo": el, "dataHi": dh, "dataLo": dl }
 
     m = pyvex.IRStmt.CAS(**args)
@@ -245,10 +226,6 @@ def test_irstmt_cas():
     nose.tools.assert_equal(m.expdLo.tmp, el.tmp)
     nose.tools.assert_equal(m.dataHi.tmp, dh.tmp)
     nose.tools.assert_equal(m.dataLo.tmp, dl.tmp)
-
-    m.endness = "Iend_BE"
-    nose.tools.assert_equal(m.endness, "Iend_BE")
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
 
 def test_irstmt_loadg():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.LoadG, ())
@@ -269,13 +246,7 @@ def test_irstmt_loadg():
     nose.tools.assert_equal(m.alt.tmp, alt.tmp)
     nose.tools.assert_equal(m.guard.tmp, guard.tmp)
 
-    nose.tools.assert_equal(m.cvt_types(), ("Ity_I32", "Ity_I32"))
-    m.cvt = "ILGop_8Sto32"
-    nose.tools.assert_equal(m.cvt_types(), ("Ity_I8", "Ity_I32"))
-
-    m.end = "Iend_BE"
-    nose.tools.assert_equal(m.end, "Iend_BE")
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
+    nose.tools.assert_equal(m.cvt_types, ("Ity_I32", "Ity_I32"))
 
 def test_irstmt_storeg():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.LoadG, ())
@@ -293,62 +264,48 @@ def test_irstmt_storeg():
     nose.tools.assert_equal(m.data.tmp, data.tmp)
     nose.tools.assert_equal(m.guard.tmp, guard.tmp)
 
-    m.end = "Iend_BE"
-    nose.tools.assert_equal(m.end, "Iend_BE")
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
-
 def test_irstmt_llsc():
-    nose.tools.assert_raises(Exception, pyvex.IRStmt.LLSC, ())
+    nose.tools.assert_raises(Exception, pyvex.IRStmt.LLSC)
 
     a = pyvex.IRExpr.RdTmp(123)
     d = pyvex.IRExpr.RdTmp(456)
-    m = pyvex.IRStmt.LLSC("Iend_LE", 1, a, d)
+    m = pyvex.IRStmt.LLSC(a, d, 1, "Iend_LE")
     nose.tools.assert_equal(m.tag, "Ist_LLSC")
     nose.tools.assert_equal(m.endness, "Iend_LE")
     nose.tools.assert_equal(m.result, 1)
     nose.tools.assert_equal(m.addr.tmp, a.tmp)
     nose.tools.assert_equal(m.storedata.tmp, d.tmp)
 
-    m.endness = "Iend_BE"
-    nose.tools.assert_equal(m.endness, "Iend_BE")
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
-
 def test_irstmt_mbe():
     m = pyvex.IRStmt.MBE("Imbe_CancelReservation")
-    nose.tools.assert_equal(m.deepCopy().event, "Imbe_CancelReservation")
+    nose.tools.assert_equal(m.event, "Imbe_CancelReservation")
     m.event = "Imbe_Fence"
     nose.tools.assert_equal(m.event, "Imbe_Fence")
 
 def test_irstmt_dirty():
     args = [ pyvex.IRExpr.RdTmp(i) for i in range(10) ]
-    m = pyvex.IRStmt.Dirty(3, "test_dirty", 1234, args, tmp=15)
-    nose.tools.assert_equal(m.cee.name, "test_dirty")
-    nose.tools.assert_equals(type(m.guard), pyvex.IRExpr.Const)
+    m = pyvex.IRStmt.Dirty("test_dirty", pyvex.IRConst.U8(1), args, 15, "Ifx_None", 0, 1, 0)
+    nose.tools.assert_equal(m.cee, "test_dirty")
+    nose.tools.assert_equals(type(m.guard), pyvex.IRConst.U8)
     nose.tools.assert_equals(m.tmp, 15)
     nose.tools.assert_equals(m.mFx, "Ifx_None")
     nose.tools.assert_equals(m.nFxState, 0)
 
-    for n,a in enumerate(m.args()):
+    for n,a in enumerate(m.args):
         nose.tools.assert_equals(a.tmp, args[n].tmp)
 
-    nose.tools.assert_equals(len(m.fxState()), 0)
-
 def test_irstmt_exit():
-    nose.tools.assert_raises(Exception, pyvex.IRStmt.Exit, ())
+    nose.tools.assert_raises(Exception, pyvex.IRStmt.Exit)
 
     g = pyvex.IRExpr.RdTmp(123)
     d = pyvex.IRConst.U32(456)
 
-    m = pyvex.IRStmt.Exit(g, "Ijk_Ret", d, 10)
+    m = pyvex.IRStmt.Exit(g, d, "Ijk_Ret", 10)
     nose.tools.assert_equal(m.tag, "Ist_Exit")
     nose.tools.assert_equal(m.jumpkind, "Ijk_Ret")
     nose.tools.assert_equal(m.offsIP, 10)
     nose.tools.assert_equal(m.guard.tmp, g.tmp)
     nose.tools.assert_equal(m.dst.value, d.value)
-
-    m.jumpkind = "Ijk_SigSEGV"
-    nose.tools.assert_equal(m.jumpkind, "Ijk_SigSEGV")
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
 
 ##################
 ### IRRegArray ###
@@ -356,13 +313,9 @@ def test_irstmt_exit():
 
 def test_irregarray():
     m = pyvex.IRRegArray(10, "Ity_I64", 20)
-    n = pyvex.IRRegArray(20, "Ity_I32", 30)
-    nose.tools.assert_true(m.equals(m))
-    nose.tools.assert_false(m.equals(n))
-    nose.tools.assert_false(n.equals(m))
 
-    nose.tools.assert_equals(m.num_elements, 20)
-    nose.tools.assert_equals(m.element_type, "Ity_I64")
+    nose.tools.assert_equals(m.nElems, 20)
+    nose.tools.assert_equals(m.elemTy, "Ity_I64")
     nose.tools.assert_equals(m.base, 10)
 
 ################
@@ -371,7 +324,7 @@ def test_irregarray():
 
 def helper_const_subtype(subtype, tag, value):
     print "Testing %s" % tag
-    nose.tools.assert_raises(Exception, subtype, ())
+    nose.tools.assert_raises(Exception, subtype)
 
     c = subtype(value)
     nose.tools.assert_equals(c.tag, tag)
@@ -379,11 +332,11 @@ def helper_const_subtype(subtype, tag, value):
 
     d = subtype(value - 1)
     e = subtype(value)
-    nose.tools.assert_true(c.equals(e))
-    nose.tools.assert_true(e.equals(c))
-    nose.tools.assert_false(c.equals(d))
-    nose.tools.assert_false(d.equals(c))
-    nose.tools.assert_false(c.equals("test"))
+    nose.tools.assert_equals(c.value, e.value)
+    nose.tools.assert_equals(e.value, c.value)
+    nose.tools.assert_not_equals(c.value, d.value)
+    nose.tools.assert_not_equals(d.value, c.value)
+    nose.tools.assert_not_equals(c.value, "test")
 
     # TODO: actually check value
     nose.tools.assert_equals(c.type, d.type)
@@ -411,42 +364,35 @@ def test_irexpr_binder():
     return
     m = pyvex.IRExpr.Binder(1534252)
     nose.tools.assert_equal(m.binder, 1534252)
-    nose.tools.assert_raises(Exception, m.deepCopy, ())
 
 def test_irexpr_geti():
     r = pyvex.IRRegArray(10, "Ity_I64", 20)
     i = pyvex.IRExpr.RdTmp(5)
     m = pyvex.IRExpr.GetI(r, i, 2)
-    nose.tools.assert_equal(m.deepCopy().description.base, 10)
+    nose.tools.assert_equal(m.description.base, 10)
     nose.tools.assert_equal(m.index.tmp, 5)
     nose.tools.assert_equal(m.bias, 2)
 
-    nose.tools.assert_raises(Exception, pyvex.IRExpr.GetI, ())
+    nose.tools.assert_raises(Exception, pyvex.IRExpr.GetI)
 
 def test_irexpr_rdtmp():
     m = pyvex.IRExpr.RdTmp(123)
     nose.tools.assert_equal(m.tag, "Iex_RdTmp")
-    nose.tools.assert_equal(m.tmp, m.deepCopy().tmp)
     nose.tools.assert_equal(m.tmp, 123)
 
     m.tmp = 1337
     nose.tools.assert_equal(m.tmp, 1337)
-    nose.tools.assert_raises(Exception, pyvex.IRExpr.RdTmp, ())
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
+    nose.tools.assert_raises(Exception, pyvex.IRExpr.RdTmp)
 
-    print "FUCK"
-    irsb = pyvex.IRSB(bytes='\x90\x5d\xc3')
+    irsb = pyvex.IRSB('\x90\x5d\xc3', mem_addr=0x0, arch=ArchAMD64())
     print "TMP:",irsb.next.tmp
-    nose.tools.assert_equal(irsb.next.tmp, irsb.next.deepCopy().tmp)
 
 
 def test_irexpr_get():
     m = pyvex.IRExpr.Get(0, "Ity_I64")
     nose.tools.assert_equal(m.type, "Ity_I64")
-    nose.tools.assert_equal(m.type, m.deepCopy().type)
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
 
-    nose.tools.assert_raises(Exception, pyvex.IRExpr.Get, ())
+    nose.tools.assert_raises(Exception, pyvex.IRExpr.Get)
 
 def test_irexpr_qop():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
@@ -455,15 +401,13 @@ def test_irexpr_qop():
     d = pyvex.IRExpr.RdTmp(2)
     op = "Iop_QAdd32S"
 
-    m = pyvex.IRExpr.Qop(op, a, b, c, d)
+    m = pyvex.IRExpr.Qop(op, [a, b, c, d])
 
     nose.tools.assert_equal(m.op, op)
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
-    nose.tools.assert_equal(m.arg1.type, m.deepCopy().arg1.type)
-    nose.tools.assert_equal(m.arg2.type, b.type)
+    nose.tools.assert_equal(m.args[1].type, b.type)
 
-    nose.tools.assert_equal(len(m.args()), 4)
-    nose.tools.assert_equal(m.args()[2].tmp, c.tmp)
+    nose.tools.assert_equal(len(m.args), 4)
+    nose.tools.assert_equal(m.args[2].tmp, c.tmp)
 
 def test_irexpr_triop():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
@@ -471,42 +415,36 @@ def test_irexpr_triop():
     c = pyvex.IRExpr.RdTmp(1)
     op = "Iop_MAddF64"
 
-    m = pyvex.IRExpr.Triop(op, a, b, c)
+    m = pyvex.IRExpr.Triop(op, [a, b, c])
 
     nose.tools.assert_equal(m.op, op)
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
-    nose.tools.assert_equal(m.arg1.type, m.deepCopy().arg1.type)
-    nose.tools.assert_equal(m.arg2.type, b.type)
+    nose.tools.assert_equal(m.args[1].type, b.type)
 
-    nose.tools.assert_equal(len(m.args()), 3)
-    nose.tools.assert_equal(m.args()[2].tmp, c.tmp)
+    nose.tools.assert_equal(len(m.args), 3)
+    nose.tools.assert_equal(m.args[2].tmp, c.tmp)
 
 def test_irexpr_binop():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
     c = pyvex.IRExpr.RdTmp(1)
     op = "Iop_Add64"
 
-    m = pyvex.IRExpr.Binop(op, a, c)
+    m = pyvex.IRExpr.Binop(op, [a, c])
 
     nose.tools.assert_equal(m.op, op)
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
-    nose.tools.assert_equal(m.arg1.type, m.deepCopy().arg1.type)
-    nose.tools.assert_equal(m.arg2.tmp, c.tmp)
+    nose.tools.assert_equal(m.args[1].tmp, c.tmp)
 
-    nose.tools.assert_equal(len(m.args()), 2)
-    nose.tools.assert_equal(m.args()[1].tmp, c.tmp)
+    nose.tools.assert_equal(len(m.args), 2)
+    nose.tools.assert_equal(m.args[1].tmp, c.tmp)
 
 def test_irexpr_unop():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
     op = "Iop_Add64"
 
-    m = pyvex.IRExpr.Unop(op, a)
+    m = pyvex.IRExpr.Unop(op, [a])
 
     nose.tools.assert_equal(m.op, op)
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
-    nose.tools.assert_equal(m.arg1.type, m.deepCopy().arg1.type)
-    nose.tools.assert_equal(len(m.args()), 1)
-    nose.tools.assert_equal(m.args()[0].offset, a.offset)
+    nose.tools.assert_equal(len(m.args), 1)
+    nose.tools.assert_equal(m.args[0].offset, a.offset)
 
 def test_irexpr_load():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
@@ -516,8 +454,6 @@ def test_irexpr_load():
     m = pyvex.IRExpr.Load(e, t, a)
 
     nose.tools.assert_equal(m.endness, e)
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
-    nose.tools.assert_equal(m.addr.type, m.deepCopy().addr.type)
     nose.tools.assert_equal(m.type, t)
 
 def test_irexpr_const():
@@ -529,38 +465,31 @@ def test_irexpr_const():
 
     nose.tools.assert_equal(ue.con.value, u1.value)
     nose.tools.assert_not_equal(ue.con.value, f64.value)
-    nose.tools.assert_equal(type(ue), type(fe.deepCopy()))
-    nose.tools.assert_equal(fe.con.value, fe.deepCopy().con.value)
 
 def test_irexpr_ite():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
-    b = pyvex.IRExpr.Const(pyvex.IRConst.U8(200))
-    c = pyvex.IRExpr.RdTmp(1)
+    iffalse = pyvex.IRExpr.RdTmp(1)
+    iftrue = pyvex.IRExpr.Const(pyvex.IRConst.U8(200))
 
-    m = pyvex.IRExpr.ITE(a, b, c)
+    m = pyvex.IRExpr.ITE(a, iffalse, iftrue)
 
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
-    nose.tools.assert_equal(m.cond.type, m.deepCopy().cond.type)
-    nose.tools.assert_equal(m.iftrue.con.value, b.con.value)
-    nose.tools.assert_equal(m.iffalse.tmp, m.deepCopy().iffalse.tmp)
+    nose.tools.assert_equal(m.iftrue.con.value, iftrue.con.value)
 
 def test_irexpr_ccall():
     callee = pyvex.IRCallee(3, "test_name", 1234, 0xFFFFFF)
     args = [ pyvex.IRExpr.RdTmp(i) for i in range(10) ]
 
-    m = pyvex.IRExpr.CCall(callee, "Ity_I64", args)
+    m = pyvex.IRExpr.CCall("Ity_I64", callee, args)
 
-    nose.tools.assert_equal(type(m), type(m.deepCopy()))
-    nose.tools.assert_equal(len(m.args()), len(args))
+    nose.tools.assert_equal(len(m.args), len(args))
     nose.tools.assert_equal(m.ret_type, "Ity_I64")
     nose.tools.assert_equal(m.callee.addr, 1234)
-    nose.tools.assert_equal(m.deepCopy().callee.regparms, 3)
 
-    for n,a in enumerate(m.args()):
+    for n,a in enumerate(m.args):
         nose.tools.assert_equals(a.tmp, args[n].tmp)
 
     m = pyvex.IRExpr.CCall(callee, "Ity_I64", ())
-    nose.tools.assert_equals(len(m.args()), 0)
+    nose.tools.assert_equals(len(m.args), 0)
 
 if __name__ == '__main__':
     test_memory()
