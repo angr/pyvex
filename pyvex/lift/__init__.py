@@ -2,6 +2,7 @@ from collections import defaultdict
 import logging
 from .. import const
 from ..expr import Const
+from ..errors import PyVEXError
 
 l = logging.getLogger('pyvex.lift')
 
@@ -123,6 +124,12 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
     .. note:: If no instruction and byte limit is used, pyvex will continue lifting the block until the block
               ends properly or until it runs out of data to lift.
     """
+    if max_bytes is not None and max_bytes <= 0:
+        raise PyVEXError("cannot lift block with no data (max_bytes <= 0)")
+
+    if not data:
+        raise PyVEXError("cannot lift block with no data (data is empty)")
+
     final_irsb = IRSB.empty_block(arch, addr)
 
     if isinstance(data, (str, bytes)):

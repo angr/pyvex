@@ -46,6 +46,7 @@ EXPORTS
   typeOfIRExpr
   typeOfIRLoadGOp
   typeOfPrimop
+  clear_log
   vex_lift
   vex_init
   sizeofIRType
