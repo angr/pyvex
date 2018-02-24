@@ -662,8 +662,11 @@ from .enums import IRRegArray, IRCallee
 from .errors import PyVEXError
 from . import ffi, pvc, expr
 
+tag_to_stmt_class_re = re.compile(r'Ist_(?P<classname>.*)')
+
+
 def tag_to_stmt_class(tag):
-    m = re.match(r'Ist_(?P<classname>.*)', tag)
+    m = tag_to_stmt_class_re.match(tag)
     try:
         return globals()[m.group('classname')]
     except (TypeError, KeyError):

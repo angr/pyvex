@@ -160,12 +160,12 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
                 else:
                     u_data = py_data
             next_irsb_part = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags, allow_lookback)
-            l.debug('block lifted by %s' % str(lifter))
-            l.debug(str(next_irsb_part))
+            #l.debug('block lifted by %s' % str(lifter))
+            #l.debug(str(next_irsb_part))
             final_irsb.extend(next_irsb_part)
             break
-        except LiftingException as e:
-            l.debug('Lifting Exception: %s' % e.message)
+        except LiftingException as ex:
+            l.debug('Lifting Exception: %s', ex.message)
             continue
     else:
         final_irsb.jumpkind = 'Ijk_NoDecode'
