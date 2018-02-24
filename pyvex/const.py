@@ -274,16 +274,22 @@ predefined_types = [ U1, U8, U16, U32, U64, F32, F32i, F64, F64i, V128, V256 ]
 predefined_types_map = { c.type : c for c in predefined_types }
 predefined_classes_map = { c.tag : c for c in predefined_types }
 
+# precompiled regexes
+int_ty_re = re.compile(r'Ity_I\d+')
+int_tag_re = re.compile(r'Ico_U\d+')
+tag_size_re = re.compile(r'Ico_[UFV](?P<size>\d+)i?')
+
+
 def is_int_ty(ty):
-    m = re.match(r'Ity_I\d+', ty)
+    m = int_ty_re.match(ty)
     return m is not None
 
 def is_int_tag(tag):
-    m = re.match(r'Ico_U\d+', tag)
+    m = int_tag_re.match(tag)
     return m is not None
 
 def get_tag_size(tag):
-    m = re.match(r'Ico_[UFV](?P<size>\d+)i?', tag)
+    m = tag_size_re.match(tag)
     if m is None:
         raise ValueError('Tag %s does not have size' % tag)
     return int(m.group('size'))

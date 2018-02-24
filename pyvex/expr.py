@@ -712,8 +712,19 @@ class PyvexTypeErrorException(Exception):
 def int_type_for_size(size):
     return 'Ity_I%d' % size
 
+# precompiled regexes
+unop_signature_re = re.compile(r'Iop_(Not|Ctz|Clz)(?P<size>\d+)$')
+binop_signature_re = re.compile(r'Iop_(Add|Sub|Mul|Xor|Or|And|Div[SU]|Mod)(?P<size>\d+)$')
+shift_signature_re = re.compile(r'Iop_(Shl|Shr|Sar)(?P<size>\d+)$')
+cmp_signature_re_1 = re.compile(r'Iop_Cmp(EQ|NE)(?P<size>\d+)$')
+cmp_signature_re_2 = re.compile(r'Iop_Cmp(GT|GE|LT|LE)(?P<size>\d+)[SU]$')
+mull_signature_re = re.compile(r'Iop_Mull[SU](?P<size>\d+)$')
+half_signature_re = re.compile(r'Iop_DivMod[SU](?P<fullsize>\d+)to(?P<halfsize>\d+)$')
+cast_signature_re = re.compile(r'Iop_(?P<srcsize>\d+)(U|S|HI|HL)?to(?P<dstsize>\d+)')
+
+
 def unop_signature(op):
-    m = re.match(r'Iop_(Not|Ctz|Clz)(?P<size>\d+)$', op)
+    m = unop_signature_re.match(op)
     if m is None:
         raise PyvexOpMatchException()
     size = int(m.group('size'))
@@ -721,7 +732,7 @@ def unop_signature(op):
     return size_type, (size_type,)
 
 def binop_signature(op):
-    m = re.match(r'Iop_(Add|Sub|Mul|Xor|Or|And|Div[SU]|Mod)(?P<size>\d+)$', op)
+    m = binop_signature_re.match(op)
     if m is None:
         raise PyvexOpMatchException()
     size = int(m.group('size'))
@@ -729,7 +740,7 @@ def binop_signature(op):
     return (size_type, (size_type, size_type))
 
 def shift_signature(op):
-    m = re.match(r'Iop_(Shl|Shr|Sar)(?P<size>\d+)$', op)
+    m = shift_signature_re.match(op)
     if m is None:
         raise PyvexOpMatchException()
     size = int(m.group('size'))
@@ -739,8 +750,8 @@ def shift_signature(op):
     return (size_type, (size_type, int_type_for_size(8)))
 
 def cmp_signature(op):
-    m = re.match(r'Iop_Cmp(EQ|NE)(?P<size>\d+)$', op)
-    m2 = re.match(r'Iop_Cmp(GT|GE|LT|LE)(?P<size>\d+)[SU]$', op)
+    m = cmp_signature_re_1.match(op)
+    m2 = cmp_signature_re_2.match(op)
     if (m is None) == (m2 is None):
         raise PyvexOpMatchException()
     mfound = m if m is not None else m2
@@ -749,7 +760,7 @@ def cmp_signature(op):
     return (int_type_for_size(1), (size_type, size_type))
 
 def mull_signature(op):
-    m = re.match(r'Iop_Mull[SU](?P<size>\d+)$', op)
+    m = mull_signature_re.match(op)
     if m is None:
         raise PyvexOpMatchException()
     size = int(m.group('size'))
@@ -758,7 +769,7 @@ def mull_signature(op):
     return (doubled_size_type, (size_type, size_type))
 
 def half_signature(op):
-    m = re.match(r'Iop_DivMod[SU](?P<fullsize>\d+)to(?P<halfsize>\d+)$', op)
+    m = half_signature_re.match(op)
     if m is None:
         raise PyvexOpMatchException()
     fullsize = int(m.group('fullsize'))
@@ -770,7 +781,7 @@ def half_signature(op):
     return (fullsize_type, (fullsize_type, halfsize_type))
 
 def cast_signature(op):
-    m = re.match(r'Iop_(?P<srcsize>\d+)(U|S|HI|HL)?to(?P<dstsize>\d+)', op)
+    m = cast_signature_re.match(op)
     if m is None:
         raise PyvexOpMatchException()
     src_type = int_type_for_size(int(m.group('srcsize')))
@@ -812,8 +823,11 @@ from .const import IRConst
 from .errors import PyVEXError
 from . import ffi, pvc
 
+
+tag_to_expr_re = re.compile(r'Iex_(?P<classname>.*)')
+
 def tag_to_expr_class(tag):
-    m = re.match(r'Iex_(?P<classname>.*)', tag)
+    m = tag_to_expr_re.match(tag)
     try:
         return globals()[m.group('classname')]
     except (TypeError, KeyError):

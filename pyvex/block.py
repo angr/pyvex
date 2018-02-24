@@ -118,29 +118,48 @@ class IRSB(VEXObject):
             :param tmp:       The VEX expression to convert
             :vartype expr:    :class:`IRExpr`
             """
-            if isinstance(expr, RdTmp):
+            if type(expr) is RdTmp:
                 expr.tmp = convert_tmp(expr.tmp)
 
-        for stmt in extendwith.statements:
-            if isinstance(stmt, WrTmp):
+        #
+        # Mini handlers
+        #
+
+        def _handle_WrTmp(stmt): stmt.tmp = convert_tmp(stmt.tmp)
+        def _handle_LoadG(stmt): stmt.dst = convert_tmp(stmt.dst)
+        def _handle_LLSC(stmt): stmt.result = convert_tmp(stmt.result)
+        def _handle_Dirty(stmt):
+            if stmt.tmp not in invalid_vals:
                 stmt.tmp = convert_tmp(stmt.tmp)
-            elif isinstance(stmt, LoadG):
-                stmt.dst = convert_tmp(stmt.dst)
-            elif isinstance(stmt, LLSC):
-                stmt.result = convert_tmp(stmt.result)
-            elif isinstance(stmt, Dirty):
-                if stmt.tmp not in invalid_vals:
-                    stmt.tmp = convert_tmp(stmt.tmp)
-                for e in stmt.args:
-                    convert_expr(e)
-            elif isinstance(stmt, CAS):
-                if stmt.oldLo not in invalid_vals: stmt.oldLo = convert_tmp(stmt.oldLo)
-                if stmt.oldHi not in invalid_vals: stmt.oldHi = convert_tmp(stmt.oldHi)
-            elif isinstance(stmt, LLSC):
-                stmt.result = convert_tmp(stmt.result)
+            for e in stmt.args:
+                convert_expr(e)
+        def _handle_CAS(stmt):
+            if stmt.oldLo not in invalid_vals: stmt.oldLo = convert_tmp(stmt.oldLo)
+            if stmt.oldHi not in invalid_vals: stmt.oldHi = convert_tmp(stmt.oldHi)
+
+        _mapping = {
+            LoadG: _handle_LoadG,
+            LLSC: _handle_LLSC,
+            Dirty: _handle_Dirty,
+            CAS: _handle_CAS,
+        }
+
+        for stmt in extendwith.statements:
+
+            # special processing
+            if type(stmt) is WrTmp:
+                # This is the most frequent case
+                _handle_WrTmp(stmt)
+            else:
+                handler = _mapping.get(type(stmt), None)
+                if handler:
+                    handler(stmt)
+
+            # process all statements
             for e in stmt.expressions:
                 convert_expr(e)
             self.statements.append(stmt)
+
         convert_expr(extendwith.next)
         self.next = extendwith.next
         self.jumpkind = extendwith.jumpkind
