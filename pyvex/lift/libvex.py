@@ -69,33 +69,19 @@ class LibVEXLifter(Lifter):
                 newEmpty._from_c(c_irsb)
                 return newEmpty
 
-            shouldExtendBytes = (VEX_MAX_BYTES == max_bytes)
-            shouldExtendInsts = (VEX_MAX_INSTRUCTIONS == max_inst)
+            shouldExtendBytes = (VEX_MAX_BYTES >= max_bytes)
+            shouldExtendInsts = (VEX_MAX_INSTRUCTIONS >= max_inst)
 
-            if (shouldExtendBytes or shouldExtendInsts):
-                bytes_shortage = 1 if shouldExtendBytes else 0
-                insts_shortage = 1 if shouldExtendInsts else 0
-                extended_c_irsb = create_irsb(0, 0)
-                l.debug('Lifting extended block')
-                extended_irsb = create_from_c(extended_c_irsb)
-                if extended_irsb.instructions < 2:
-                    l.debug("Block very short")
-                    c_irsb = extended_c_irsb
-                    self.irsb._from_c(c_irsb)
-                else:
-                    l.debug('Lifting shortened block for insts_shortage %d and bytes_shortage %d'
-                                                                        % (insts_shortage, bytes_shortage))
-                    shortened_c_irsb = create_irsb(insts_shortage, bytes_shortage)
-
-                    self.irsb._from_c(shortened_c_irsb)
-                    c_irsb = shortened_c_irsb
-                    if self.irsb.size != extended_irsb.size:
-                        self.irsb.jumpkind = 'Ijk_NoDecode'
-                        self.irsb.next = 0
+            trial_irsb = create_from_c(create_irsb(1, 1))
+            might_be_byte_cutoff = (trial_irsb.size == max_bytes - 1)
+            might_be_inst_cutoff = (trial_irsb.instructions == max_inst - 1)
+            if (might_be_byte_cutoff or might_be_inst_cutoff):
+                self.irsb = create_from_c(create_irsb(0, 0))
+                if (self.irsb.size != trial_irsb.size):
+                    self.irsb.jumpkind = 'Ijk_NoDecode'
+                    self.irsb.next = 0
             else:
-                l.debug('Lifting standard block')
-                c_irsb = create_irsb(0, 0)
-                self.irsb._from_c(c_irsb)
+                self.irsb = trial_irsb
 
             for i in range(len(self.irsb.statements))[::-1]:
                 s = self.irsb.statements[i]
