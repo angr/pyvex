@@ -36,11 +36,6 @@ def test_basic():
     b = pyvex.block.IRSB('\x45\xe1', 1, archinfo.ArchARMEL())
     nose.tools.assert_equal(str(b).strip(), basic_goal.strip())
 
-embedded_goal = """
-   77 | ------ IMark(0x7, 2, 0) ------
-   78 | t146 = Add27((0xa :: Ity_I27),(0x14 :: Ity_I27))
-"""
-
 def test_embedded():
     b = pyvex.block.IRSB('\x07\x21' * 3 + '\x45\xe1' + '\x07\x21' * 6, 1, archinfo.ArchARMEL())
     for i, stmt in enumerate(b.statements):
