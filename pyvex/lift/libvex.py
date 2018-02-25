@@ -45,63 +45,24 @@ class LibVEXLifter(Lifter):
             else:
                 max_inst = self.max_inst
 
-            def create_irsb(inst_cutoff, bytes_cutoff):
-                self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
-                c_irsb = pvc.vex_lift(vex_arch,
-                                        self.irsb.arch.vex_archinfo,
-                                        self.data + self.bytes_offset,
-                                        self.irsb._addr,
-                                        max_inst - inst_cutoff,
-                                        max_bytes - bytes_cutoff,
-                                        self.opt_level,
-                                        self.traceflags,
-                                        self.allow_lookback)
-                log_str = self.get_vex_log()
-                if c_irsb == ffi.NULL:
-                    raise LiftingException("libvex: unkown error" if log_str is None else log_str)
-                else:
-                    if log_str is not None:
-                        l.info(log_str)
-                return c_irsb
-
-            def create_from_c(c_irsb):
-                newEmpty = self.irsb.empty_block(self.irsb.arch, self.irsb.addr)
-                newEmpty._from_c(c_irsb)
-                return newEmpty
-
-            shouldExtendBytes = (VEX_MAX_BYTES == max_bytes)
-            shouldExtendInsts = (VEX_MAX_INSTRUCTIONS == max_inst)
-
-            if (shouldExtendBytes or shouldExtendInsts):
-                bytes_shortage = 1 if shouldExtendBytes else 0
-                insts_shortage = 1 if shouldExtendInsts else 0
-                extended_c_irsb = create_irsb(0, 0)
-                l.debug('Lifting extended block')
-                extended_irsb = create_from_c(extended_c_irsb)
-                if extended_irsb.instructions < 2:
-                    l.debug("Block very short")
-                    c_irsb = extended_c_irsb
-                    self.irsb._from_c(c_irsb)
-                else:
-                    l.debug('Lifting shortened block for insts_shortage %d and bytes_shortage %d'
-                                                                        % (insts_shortage, bytes_shortage))
-                    shortened_c_irsb = create_irsb(insts_shortage, bytes_shortage)
-
-                    self.irsb._from_c(shortened_c_irsb)
-                    c_irsb = shortened_c_irsb
-                    if self.irsb.size != extended_irsb.size:
-                        self.irsb.jumpkind = 'Ijk_NoDecode'
-                        self.irsb.next = 0
+            self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
+            c_irsb = pvc.vex_lift(vex_arch,
+                                    self.irsb.arch.vex_archinfo,
+                                    self.data + self.bytes_offset,
+                                    self.irsb._addr,
+                                    max_inst,
+                                    max_bytes,
+                                    self.opt_level,
+                                    self.traceflags,
+                                    self.allow_lookback)
+            log_str = self.get_vex_log()
+            if c_irsb == ffi.NULL:
+                raise LiftingException("libvex: unkown error" if log_str is None else log_str)
             else:
-                l.debug('Lifting standard block')
-                c_irsb = create_irsb(0, 0)
-                self.irsb._from_c(c_irsb)
+                if log_str is not None:
+                    l.info(log_str)
 
-            for i in range(len(self.irsb.statements))[::-1]:
-                s = self.irsb.statements[i]
-                if isinstance(s, stmt.IMark) and s.len == 0:
-                    self.irsb.statements = self.irsb.statements[:i]
-                    break
+            self.irsb._from_c(c_irsb)
             if self.irsb.size == 0:
                 l.debug('raising lifting exception')
                 raise LiftingException("libvex: could not decode any instructions")
