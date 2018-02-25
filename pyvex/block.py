@@ -91,10 +91,13 @@ class IRSB(VEXObject):
         """
         Appends an irsb to the current irsb. The irsb that is appended is invalidated. The appended irsb's jumpkind and
         default exit are used.
-
         :param extendwith:     The IRSB to append to this IRSB
         :vartype extendwith:   :class:`IRSB`
         """
+        if self.stmts_used == 0:
+            self._from_py(extendwith)
+            return
+
         conversion_dict = { }
         invalid_vals = (0xffffffff, -1)
 
@@ -102,7 +105,6 @@ class IRSB(VEXObject):
             """
             Converts a tmp from the appended-block into one in the appended-to-block. Creates a new tmp if it does not
             already exist. Prevents collisions in tmp numbers between the two blocks.
-
             :param tmp:       The tmp number to convert
             """
             if tmp not in conversion_dict:
@@ -114,52 +116,31 @@ class IRSB(VEXObject):
             """
             Converts a VEX expression to use tmps in the appended-block instead of the appended-to-block. Used to prevent
             collisions in tmp numbers between the two blocks.
-
             :param tmp:       The VEX expression to convert
             :vartype expr:    :class:`IRExpr`
             """
             if type(expr) is RdTmp:
                 expr.tmp = convert_tmp(expr.tmp)
 
-        #
-        # Mini handlers
-        #
-
-        def _handle_WrTmp(stmt): stmt.tmp = convert_tmp(stmt.tmp)
-        def _handle_LoadG(stmt): stmt.dst = convert_tmp(stmt.dst)
-        def _handle_LLSC(stmt): stmt.result = convert_tmp(stmt.result)
-        def _handle_Dirty(stmt):
-            if stmt.tmp not in invalid_vals:
-                stmt.tmp = convert_tmp(stmt.tmp)
-            for e in stmt.args:
-                convert_expr(e)
-        def _handle_CAS(stmt):
-            if stmt.oldLo not in invalid_vals: stmt.oldLo = convert_tmp(stmt.oldLo)
-            if stmt.oldHi not in invalid_vals: stmt.oldHi = convert_tmp(stmt.oldHi)
-
-        _mapping = {
-            LoadG: _handle_LoadG,
-            LLSC: _handle_LLSC,
-            Dirty: _handle_Dirty,
-            CAS: _handle_CAS,
-        }
-
         for stmt in extendwith.statements:
-
-            # special processing
-            if type(stmt) is WrTmp:
-                # This is the most frequent case
-                _handle_WrTmp(stmt)
-            else:
-                handler = _mapping.get(type(stmt), None)
-                if handler:
-                    handler(stmt)
-
-            # process all statements
+            stmttype = type(stmt)
+            if stmttype is WrTmp:
+                stmt.tmp = convert_tmp(stmt.tmp)
+            elif stmttype is LoadG:
+                stmt.dst = convert_tmp(stmt.dst)
+            elif stmttype is LLSC:
+                stmt.result = convert_tmp(stmt.result)
+            elif stmttype is Dirty:
+                if stmt.tmp not in invalid_vals:
+                    stmt.tmp = convert_tmp(stmt.tmp)
+                for e in stmt.args:
+                    convert_expr(e)
+            elif stmttype is CAS:
+                if stmt.oldLo not in invalid_vals: stmt.oldLo = convert_tmp(stmt.oldLo)
+                if stmt.oldHi not in invalid_vals: stmt.oldHi = convert_tmp(stmt.oldHi)
             for e in stmt.expressions:
                 convert_expr(e)
             self.statements.append(stmt)
-
         convert_expr(extendwith.next)
         self.next = extendwith.next
         self.jumpkind = extendwith.jumpkind
@@ -269,14 +250,14 @@ class IRSB(VEXObject):
         """
         The number of instructions in this block
         """
-        return len([s for s in self.statements if isinstance(s, stmt.IMark)])
+        return len([s for s in self.statements if type(s) is stmt.IMark])
 
     @property
     def size(self):
         """
         The size of this block, in bytes
         """
-        self._size = sum([s.len for s in self.statements if isinstance(s, stmt.IMark)])
+        self._size = sum([s.len for s in self.statements if type(s) is stmt.IMark])
         return self._size
 
     @property
@@ -310,7 +291,7 @@ class IRSB(VEXObject):
         The constants (excluding updates of the program counter) in the IRSB as :class:`pyvex.const.IRConst`.
         """
         return sum(
-            (s.constants for s in self.statements if not (isinstance(s, stmt.Put) and s.offset == self.offsIP)), [])
+            (s.constants for s in self.statements if not (type(s) is stmt.Put and s.offset == self.offsIP)), [])
 
     @property
     def constant_jump_targets(self):

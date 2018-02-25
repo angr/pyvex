@@ -38,12 +38,25 @@ def test_basic():
 
 embedded_goal = """
    77 | ------ IMark(0x7, 2, 0) ------
-   78 | t68 = Add27((0xa :: Ity_I27),(0x14 :: Ity_I27))
+   78 | t146 = Add27((0xa :: Ity_I27),(0x14 :: Ity_I27))
 """
 
 def test_embedded():
     b = pyvex.block.IRSB('\x07\x21' * 3 + '\x45\xe1' + '\x07\x21' * 6, 1, archinfo.ArchARMEL())
-    nose.tools.assert_in(embedded_goal, str(b))
+    for i, stmt in enumerate(b.statements):
+        if type(stmt) is pyvex.stmt.IMark and stmt.addr == 0x7 and stmt.len == 2 and stmt.delta == 0:
+            imaginary_trans_stmt = b.statements[i+1]
+            nose.tools.assert_is(type(imaginary_trans_stmt), pyvex.stmt.WrTmp)
+            addexpr = imaginary_trans_stmt.data
+            nose.tools.assert_is(type(addexpr), pyvex.expr.Binop)
+            nose.tools.assert_equal(addexpr.op, 'Iop_Add27')
+            arg1, arg2 = addexpr.args
+            nose.tools.assert_is(type(arg1), pyvex.expr.Const)
+            nose.tools.assert_equal(arg1.con.value, 10)
+            nose.tools.assert_is(type(arg2), pyvex.expr.Const)
+            nose.tools.assert_equal(arg2.con.value, 20)
+            return
+    nose.tools.assert_false(True, msg='Could not find matching IMark')
 
 class Instruction_MSR(Instruction):
     bin_format = bin(0x80f30888)[2:].zfill(32)
@@ -86,12 +99,7 @@ def test_full_binary():
     nose.tools.assert_equal(b.jumpkind, 'Ijk_Sys_syscall')
     nose.tools.assert_equal(simgr.active[0].addr, 0x13fb)
 
-def test_long_block():
-    b = pyvex.block.IRSB('\x50' * 6000, 0, archinfo.ArchX86())
-    nose.tools.assert_equal(b.size, 6000)
-
 if __name__ == '__main__':
     test_basic()
     test_embedded()
     test_full_binary()
-    test_long_block()
