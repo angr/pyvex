@@ -14,9 +14,6 @@ class IRStmt(VEXObject):
 
     tag = None
 
-    def __init__(self):
-        VEXObject.__init__(self)
-
     def pp(self):
         print(self.__str__())
 
@@ -39,11 +36,10 @@ class IRStmt(VEXObject):
         if c_stmt[0] == ffi.NULL:
             return None
 
-        tag = get_enum_from_int(c_stmt.tag)
         try:
-            stmt_class = tag_to_stmt_class(tag)._from_c(c_stmt)
+            stmt_class = enum_to_stmt_class(c_stmt.tag)._from_c(c_stmt)
         except KeyError:
-            raise PyVEXError('Unknown/unsupported IRStmtTag %s\n' % tag)
+            raise PyVEXError('Unknown/unsupported IRStmtTag %s.\n' % get_enum_from_int(c_stmt.tag))
         return stmt_class._from_c(c_stmt)
 
     def typecheck(self, tyenv): # pylint: disable=unused-argument,no-self-use
@@ -59,9 +55,6 @@ class NoOp(IRStmt):
     """
 
     tag = 'Ist_NoOp'
-
-    def __init__(self):  # pylint:disable=unused-argument
-        IRStmt.__init__(self)
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "IR-NoOp"
@@ -82,7 +75,6 @@ class IMark(IRStmt):
     tag = 'Ist_IMark'
 
     def __init__(self, addr, length, delta):
-        IRStmt.__init__(self)
         self.addr = addr
         self.len = length
         self.delta = delta
@@ -107,7 +99,6 @@ class AbiHint(IRStmt):
     tag = 'Ist_AbiHint'
 
     def __init__(self, base, length, nia):
-        IRStmt.__init__(self)
         self.base = base
         self.len = length
         self.nia = nia
@@ -131,7 +122,6 @@ class Put(IRStmt):
     tag = 'Ist_Put'
 
     def __init__(self, data, offset):
-        IRStmt.__init__(self)
         self.data = data
         self.offset = offset
 
@@ -163,7 +153,6 @@ class PutI(IRStmt):
     tag = 'Ist_PutI'
 
     def __init__(self, descr, ix, data, bias):
-        IRStmt.__init__(self)
         self.descr = descr
         self.ix = ix
         self.data = data
@@ -199,8 +188,6 @@ class WrTmp(IRStmt):
     tag = 'Ist_WrTmp'
 
     def __init__(self, tmp, data):
-        IRStmt.__init__(self)
-
         self.tmp = tmp
         self.data = data
 
@@ -239,8 +226,6 @@ class Store(IRStmt):
     tag = 'Ist_Store'
 
     def __init__(self, addr, data, end):
-        IRStmt.__init__(self)
-
         self.addr = addr
         self.data = data
         self.end = end
@@ -283,8 +268,6 @@ class CAS(IRStmt):
     tag = 'Ist_CAS'
 
     def __init__(self, addr, dataLo, dataHi, expdLo, expdHi, oldLo, oldHi, end):
-        IRStmt.__init__(self)
-
         self.addr = addr
         self.dataLo = dataLo
         self.dataHi = dataHi
@@ -363,8 +346,6 @@ class LLSC(IRStmt):
     tag = 'Ist_LLSC'
 
     def __init__(self, addr, storedata, result, end):
-        IRStmt.__init__(self)
-
         self.addr = addr
         self.storedata = storedata
         self.result = result
@@ -419,7 +400,6 @@ class MBE(IRStmt):
     tag = 'Ist_MBE'
 
     def __init__(self, event):
-        IRStmt.__init__(self)
         self.event = event
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
@@ -436,7 +416,6 @@ class Dirty(IRStmt):
     tag = 'Ist_Dirty'
 
     def __init__(self, cee, guard, args, tmp, mFx, mAddr, mSize, nFxState):
-        IRStmt.__init__(self)
         self.cee = cee
         self.guard = guard
         self.args = tuple(args)
@@ -487,7 +466,6 @@ class Exit(IRStmt):
     tag = 'Ist_Exit'
 
     def __init__(self, guard, dst, jk, offsIP):
-        IRStmt.__init__(self)
         self.guard = guard
         self.dst = dst
         self.offsIP = offsIP
@@ -541,8 +519,6 @@ class LoadG(IRStmt):
     tag = 'Ist_LoadG'
 
     def __init__(self, end, cvt, dst, addr, alt, guard):
-        IRStmt.__init__(self)
-
         self.addr = addr
         self.alt = alt
         self.guard = guard
@@ -613,8 +589,6 @@ class StoreG(IRStmt):
     tag = 'Ist_StoreG'
 
     def __init__(self, end, addr, data, guard):
-        IRStmt.__init__(self)
-
         self.addr = addr
         self.data = data
         self.guard = guard
@@ -656,18 +630,34 @@ class StoreG(IRStmt):
         return True
 
 
+_globals = globals().copy()
+#
+# Mapping from tag strings/enums to IRStmt classes
+#
+tag_to_stmt_mapping = { }
+enum_to_stmt_mapping = { }
+for cls in _globals.values():
+    if hasattr(cls, 'tag') and cls.tag is not None:
+        tag_to_stmt_mapping[cls.tag] = cls
+        enum_to_stmt_mapping[get_int_from_enum(cls.tag)] = cls
+
+
+def tag_to_stmt_class(tag):
+    try:
+        return tag_to_stmt_mapping[tag]
+    except KeyError:
+        raise KeyError('No statement class for tag %s.' % tag)
+
+
+def enum_to_stmt_class(tag_enum):
+    try:
+        return enum_to_stmt_mapping[tag_enum]
+    except KeyError:
+        raise KeyError('No statement class for tag %s.' % get_enum_from_int((tag_enum)))
+
+
 from .expr import IRExpr, Get
 from .const import IRConst
 from .enums import IRRegArray, IRCallee
 from .errors import PyVEXError
 from . import ffi, pvc, expr
-
-tag_to_stmt_class_re = re.compile(r'Ist_(?P<classname>.*)')
-
-
-def tag_to_stmt_class(tag):
-    m = tag_to_stmt_class_re.match(tag)
-    try:
-        return globals()[m.group('classname')]
-    except (TypeError, KeyError):
-        raise ValueError('No statement class for tag %s' % tag)

@@ -1,11 +1,13 @@
 from . import pvc, ffi
 
+
 class VEXObject(object):
     """
     The base class for Vex types.
     """
 
     __slots__ = [ ]
+
 
 class IRCallee(VEXObject):
     """
