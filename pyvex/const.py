@@ -14,9 +14,6 @@ class IRConst(VEXObject):
     tag = None
     c_constructor = None
 
-    def __init__(self):
-        VEXObject.__init__(self)
-
     def pp(self):
         print(self.__str__())
 
@@ -55,7 +52,6 @@ class U1(IRConst):
     c_constructor = pvc.IRConst_U1
 
     def __init__(self, value):
-        IRConst.__init__(self)
         self.value = value
 
     def __str__(self):
@@ -72,7 +68,6 @@ class U8(IRConst):
     c_constructor = pvc.IRConst_U8
 
     def __init__(self, value):
-        IRConst.__init__(self)
         self.value = value
 
     def __str__(self):
@@ -89,7 +84,6 @@ class U16(IRConst):
     c_constructor = pvc.IRConst_U16
 
     def __init__(self, value):
-        IRConst.__init__(self)
         self.value = value
 
     def __str__(self):
@@ -106,7 +100,6 @@ class U32(IRConst):
     c_constructor = pvc.IRConst_U32
 
     def __init__(self, value):
-        IRConst.__init__(self)
         self.value = value
 
     def __str__(self):
@@ -123,7 +116,6 @@ class U64(IRConst):
     c_constructor = pvc.IRConst_U64
 
     def __init__(self, value):
-        IRConst.__init__(self)
         self.value = value
 
     def __str__(self):
@@ -162,7 +154,6 @@ class F32(IRConst):
     c_constructor = pvc.IRConst_F32
 
     def __init__(self, value):
-        IRConst.__init__(self)
         self.value = value
 
     def __str__(self):
@@ -179,7 +170,6 @@ class F32i(IRConst):
     c_constructor = pvc.IRConst_F32i
 
     def __init__(self, value):
-        IRConst.__init__(self)
         self.value = value
 
     def __str__(self):
@@ -196,7 +186,6 @@ class F64(IRConst):
     c_constructor = pvc.IRConst_F64
 
     def __init__(self, value):
-        IRConst.__init__(self)
         self.value = value
 
     def __str__(self):
@@ -213,7 +202,6 @@ class F64i(IRConst):
     c_constructor = pvc.IRConst_F64i
 
     def __init__(self, value):
-        IRConst.__init__(self)
         self.value = value
 
     def __str__(self):
@@ -230,7 +218,6 @@ class V128(IRConst):
     c_constructor = pvc.IRConst_V128
 
     def __init__(self, value):
-        IRConst.__init__(self)
         self.value = value
 
     def __str__(self):
@@ -254,7 +241,6 @@ class V256(IRConst):
     c_constructor = pvc.IRConst_V256
 
     def __init__(self, value):
-        IRConst.__init__(self)
         self.value = value
 
     def __str__(self):
@@ -328,7 +314,6 @@ def get_type_spec_size(ty):
     return int(m.group('size'))
 
 
-
 def ty_to_const_class(ty):
     try:
         return predefined_types_map[ty]
@@ -338,6 +323,7 @@ def ty_to_const_class(ty):
             return vex_int_class(size)
         else:
             raise ValueError('Type %s does not exist' % ty)
+
 
 def tag_to_const_class(tag):
     try:

@@ -8,15 +8,13 @@ from .const import get_type_size
 
 l = logging.getLogger("pyvex.expr")
 
+
 class IRExpr(VEXObject):
     """
     IR expressions in VEX represent operations without side effects.
     """
 
     tag = None
-
-    def __init__(self):
-        VEXObject.__init__(self)
 
     def pp(self):
         print(self.__str__())
@@ -59,12 +57,10 @@ class IRExpr(VEXObject):
         if c_expr == ffi.NULL or c_expr[0] == ffi.NULL:
             return None
 
-        tag = get_enum_from_int(c_expr.tag)
-
         try:
-            return tag_to_expr_class(tag)._from_c(c_expr)
+            return enum_to_expr_class(c_expr.tag)._from_c(c_expr)
         except KeyError:
-            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % tag)
+            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % get_enum_from_int(c_expr.tag))
     _translate = _from_c
 
     @staticmethod
@@ -88,7 +84,6 @@ class Binder(IRExpr):
     tag = 'Iex_Binder'
 
     def __init__(self, binder):
-        IRExpr.__init__(self)
         self.binder = binder
 
     def __str__(self):
@@ -109,9 +104,6 @@ class VECRET(IRExpr):
 
     tag = 'Iex_VECRET'
 
-    def __init__(self):
-        IRExpr.__init__(self)
-
     def __str__(self):
         return "VECRET"
 
@@ -130,9 +122,6 @@ class VECRET(IRExpr):
 class GSPTR(IRExpr):
 
     tag = 'Iex_GSPTR'
-
-    def __init__(self):
-        IRExpr.__init__(self)
 
     def __str__(self):
         return "GSPTR"
@@ -159,7 +148,6 @@ class GetI(IRExpr):
     tag = 'Iex_GetI'
 
     def __init__(self, descr, ix, bias):
-        IRExpr.__init__(self)
         self.descr = descr
         self.ix = ix
         self.bias = bias
@@ -202,7 +190,6 @@ class RdTmp(IRExpr):
     tag = 'Iex_RdTmp'
 
     def __init__(self, tmp):
-        IRExpr.__init__(self)
         self.tmp = tmp
 
     def __str__(self):
@@ -230,7 +217,6 @@ class Get(IRExpr):
     tag = 'Iex_Get'
 
     def __init__(self, offset, ty):
-        IRExpr.__init__(self)
         self.offset = offset
         self.ty = ty
 
@@ -268,7 +254,6 @@ class Qop(IRExpr):
     tag = 'Iex_Qop'
 
     def __init__(self, op, args):
-        IRExpr.__init__(self)
         self.op = op
         self.args = args
 
@@ -333,7 +318,6 @@ class Triop(IRExpr):
     tag = 'Iex_Triop'
 
     def __init__(self, op, args):
-        IRExpr.__init__(self)
         self.op = op
         self.args = args
 
@@ -389,17 +373,23 @@ class Binop(IRExpr):
     A binary operation (2 arguments).
     """
 
-    __slots__ = ['op', 'args']
+    __slots__ = ['_op', 'op_int', 'args']
 
     tag = 'Iex_Binop'
 
-    def __init__(self, op, args):
-        IRExpr.__init__(self)
-        self.op = op
+    def __init__(self, op, args, op_int=None):
+        self.op_int = op_int
         self.args = args
+        self._op = op if op is not None else None
 
     def __str__(self):
         return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
+
+    @property
+    def op(self):
+        if self._op is None:
+            self._op = get_enum_from_int(self.op_int)
+        return self._op
 
     @property
     def child_expressions(self):
@@ -409,10 +399,11 @@ class Binop(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return Binop(get_enum_from_int(c_expr.Iex.Binop.op),
+        return Binop(None,
                      [IRExpr._from_c(arg)
                       for arg in [c_expr.Iex.Binop.arg1,
-                                  c_expr.Iex.Binop.arg2]])
+                                  c_expr.Iex.Binop.arg2]],
+                     op_int=c_expr.Iex.Binop.op)
 
     @staticmethod
     def _to_c(expr):
@@ -451,7 +442,6 @@ class Unop(IRExpr):
     tag = 'Iex_Unop'
 
     def __init__(self, op, args):
-        IRExpr.__init__(self)
         self.op = op
         self.args = args
 
@@ -500,7 +490,6 @@ class Load(IRExpr):
     tag = 'Iex_Load'
 
     def __init__(self, end, ty, addr):
-        IRExpr.__init__(self)
         self.end = end
         self.ty = ty
         self.addr = addr
@@ -551,7 +540,6 @@ class Const(IRExpr):
     tag = 'Iex_Const'
 
     def __init__(self, con):
-        IRExpr.__init__(self)
         self.con = con
 
     def __str__(self):
@@ -579,7 +567,6 @@ class ITE(IRExpr):
     tag = 'Iex_ITE'
 
     def __init__(self, cond, iffalse, iftrue):
-        IRExpr.__init__(self)
         self.cond = cond
         self.iffalse = iffalse
         self.iftrue = iftrue
@@ -630,7 +617,6 @@ class CCall(IRExpr):
     tag = 'Iex_CCall'
 
     def __init__(self, retty, cee, args):
-        IRExpr.__init__(self)
         self.retty = retty
         self.cee = cee
         self.args = tuple(args)
@@ -819,16 +805,49 @@ def op_arg_types(op):
             continue
     raise ValueError("Cannot find type of op %s" % op)
 
+
+_globals = globals().copy()
+#
+# Mapping from tag strings/enums to IRExpr classes
+#
+tag_to_expr_mapping = { }
+enum_to_expr_mapping = { }
+for cls in _globals.values():
+    if hasattr(cls, 'tag') and cls.tag is not None:
+        tag_to_expr_mapping[cls.tag] = cls
+        enum_to_expr_mapping[get_int_from_enum(cls.tag)] = cls
+
+
+def tag_to_expr_class(tag):
+    """
+    Convert a tag string to the corresponding IRExpr class type.
+
+    :param str tag: The tag string.
+    :return:        A class.
+    :rtype:         type
+    """
+
+    try:
+        return tag_to_expr_mapping[tag]
+    except KeyError:
+        raise KeyError('Cannot find expression class for type %s.' % tag)
+
+
+def enum_to_expr_class(tag_enum):
+    """
+    Convert a tag enum to the corresponding IRExpr class.
+
+    :param int tag_enum: The tag enum.
+    :return:             A class.
+    :rtype:              type
+    """
+
+    try:
+        return enum_to_expr_mapping[tag_enum]
+    except KeyError:
+        raise KeyError("Cannot find expression class for type %s." % get_enum_from_int(tag_enum))
+
+
 from .const import IRConst
 from .errors import PyVEXError
 from . import ffi, pvc
-
-
-tag_to_expr_re = re.compile(r'Iex_(?P<classname>.*)')
-
-def tag_to_expr_class(tag):
-    m = tag_to_expr_re.match(tag)
-    try:
-        return globals()[m.group('classname')]
-    except (TypeError, KeyError):
-        raise ValueError('Cannot find expression class for type %s' % tag)
