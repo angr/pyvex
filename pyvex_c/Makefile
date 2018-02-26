@@ -9,6 +9,11 @@ ifeq ($(UNAME), Linux)
 	STATIC_LIBRARY_FILE=libpyvex.a
 	LDFLAGS=-Wl,-soname,$(LIBRARY_FILE)
 endif
+ifeq ($(UNAME), NetBSD)
+	LIBRARY_FILE=libpyvex.so
+	STATIC_LIBRARY_FILE=libpyvex.a
+	LDFLAGS=-Wl,-soname,$(LIBRARY_FILE)
+endif
 ifeq ($(findstring MINGW,$(UNAME)), MINGW)
 	LIBRARY_FILE=pyvex.dll
 	STATIC_LIBRARY_FILE=libpyvex.a
