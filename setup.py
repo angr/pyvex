@@ -78,7 +78,8 @@ def _build_vex():
 
     cmd1 = ['nmake', '/f', 'Makefile-msvc', 'all']
     cmd2 = ['make', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
-    for cmd in (cmd1, cmd2):
+    cmd3 = ['gmake', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
+    for cmd in (cmd1, cmd2, cmd3):
         try:
             if subprocess.call(cmd, cwd=VEX_PATH, env=e) == 0:
                 break
@@ -95,7 +96,8 @@ def _build_pyvex():
 
     cmd1 = ['nmake', '/f', 'Makefile-msvc']
     cmd2 = ['make', '-j', str(multiprocessing.cpu_count())]
-    for cmd in (cmd1, cmd2):
+    cmd3 = ['gmake', '-j', str(multiprocessing.cpu_count())]
+    for cmd in (cmd1, cmd2, cmd3):
         try:
             if subprocess.call(cmd, cwd='pyvex_c', env=e) == 0:
                 break
