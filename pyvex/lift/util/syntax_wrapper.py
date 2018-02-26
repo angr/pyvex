@@ -1,6 +1,5 @@
 
 import functools
-import copy
 
 from .vex_helper import IRSBCustomizer, Type, JumpKind
 import pyvex
@@ -38,13 +37,9 @@ class VexValue(object):
     def __init__(self, irsb_c, rdt, signed=False):
         self.irsb_c = irsb_c
         self.ty = self.irsb_c.get_type(rdt)
-        self._rdt = rdt
+        self.rdt = rdt
         self.width = pyvex.get_type_size(self.ty)
         self._is_signed = signed
-
-    @property
-    def rdt(self):
-        return copy.copy(self._rdt)
 
     @property
     def value(self):
