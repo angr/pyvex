@@ -28,14 +28,15 @@ class Instruction(object):
     member of the class as a dictionary.
     So, in our example, the bits 0010110101101001, applied to format string 0010rrrrddddffmm
     will result in the following in self.data:
-    {'r': '1101',
-     'd': '0110',
-     'f': '10',
-     'm': '01'}
+
+        {'r': '1101',
+         'd': '0110',
+         'f': '10',
+         'm': '01'}
 
     Implement compute_result to provide the "meat" of what your instruction does.
-     You can also implement it in your arch-specific subclass of Instruction, to handle things common to all
-     instructions, and provide instruction implementations elsewhere..
+    You can also implement it in your arch-specific subclass of Instruction, to handle things common to all
+    instructions, and provide instruction implementations elsewhere..
 
     We provide the VexValue syntax wrapper to make expressing instruction semantics easy.
     You first convert the bitstring arguments into VexValues using the provided convenience methods (self.get/put/load)
@@ -44,9 +45,12 @@ class Instruction(object):
     For example, if you have the register in 'r', as above, you can make a VexValue like this:
     r_vv = self.get(int(self.data['r'], 2), Type.int_32)
     If you then had an instruction to increment r, you could simply:
-    return r_vv += 1
+
+        return r_vv += 1
+
     You could then write it back to the register like this:
-    self.put(r_vv, int(self.data['r', 2))
+
+        self.put(r_vv, int(self.data['r', 2))
 
     Note that most architectures have special flags that get set differently for each instruction, make sure to
     implement those as well. (override set_flags() )
@@ -64,6 +68,7 @@ class Instruction(object):
     def __init__(self, bitstrm, arch, addr):
         """
         Create an instance of the instruction
+
         :param irsb_c: The IRSBCustomizer to put VEX instructions into
         :param bitstrm: The bitstream to decode instructions from
         :param addr: The address of the instruction to be lifted, used only for jumps and branches
@@ -83,7 +88,6 @@ class Instruction(object):
         """
         Get the operands out of memory or registers
         Return a tuple of operands for the instruction
-        :return:
         """
         return []
 
@@ -92,10 +96,10 @@ class Instruction(object):
         This is the main body of the "lifting" for the instruction.
         This can/should be overriden to provide the general flow of how instructions in your arch work.
         For example, in MSP430, this is:
-            1) Figure out what your operands are by parsing the addressing, and load them into temporary registers
-            2) Do the actual operation, and commit the result, if needed.
-            3) Compute the flags
-        :return:
+
+        - Figure out what your operands are by parsing the addressing, and load them into temporary registers
+        - Do the actual operation, and commit the result, if needed.
+        - Compute the flags
         """
         self.irsb_c = irsb_c
         # Always call this first!
@@ -117,7 +121,6 @@ class Instruction(object):
         A common pattern is to return a function from fetch_operands which will be called here to perform the write.
 
         :param args: A tuple of the results of fetch_operands and compute_result
-        :return n/a
         """
         pass
 
@@ -128,6 +131,7 @@ class Instruction(object):
         performed.  Return the VexValue of the "result" of the instruction, which may
         be used to calculate the flags later.
         For example, for a simple add, with arguments src and dst, you can simply write:
+
             return src + dst:
 
         :param args:
@@ -140,7 +144,6 @@ class Instruction(object):
         Most CPU architectures have "flags" that should be computed for many instructions.
         Override this to specify how that happens.  One common pattern is to define this method to call specifi methods
         to update each flag, which can then be overriden in the actual classes for each instruction.
-        :return: n/a
         """
         pass
 
@@ -193,6 +196,7 @@ class Instruction(object):
         """
         Return the disassembly of this instruction, as a string.
         Override this in subclasses.
+
         :return: The address (self.addr), the instruction's name, and a list of its operands, as strings
         """
         return self.addr, 'UNK', [self.rawbits]
@@ -202,6 +206,7 @@ class Instruction(object):
     def load(self, addr, ty):
         """
         Load a value from memory into a VEX temporary register.
+
         :param addr: The VexValue containing the addr to load from.
         :param ty: The Type of the resulting data
         :return: a VexValue
@@ -212,6 +217,7 @@ class Instruction(object):
     def constant(self, val, ty):
         """
         Creates a constant as a VexValue
+
         :param val: The value, as an integer
         :param ty: The type of the resulting VexValue
         :return: a VexValue
@@ -246,6 +252,7 @@ class Instruction(object):
         """
         Puts a value from a VEX temporary register into a machine register.
         This is how the results of operations done to registers get committed to the machine's state.
+
         :param val: The VexValue to store (Want to store a constant? See Constant() first)
         :param reg: The integer register number to store into, or register name
         :return: None
@@ -256,6 +263,7 @@ class Instruction(object):
     def store(self, val, addr):
         """
         Store a VexValue in memory at the specified loaction.
+
         :param val: The VexValue of the value to store
         :param addr: The VexValue of the address to store into
         :return: None
@@ -266,10 +274,11 @@ class Instruction(object):
         """
         Jump to a specified destination, under the specified condition.
         Used for branches, jumps, calls, returns, etc.
+
         :param condition: The VexValue representing the expression for the guard, or None for an unconditional jump
         :param to_addr: The address to jump to.
         :param jumpkind: The JumpKind to use.  See the VEX docs for what these are; you only need them for things
-        aren't normal jumps (e.g., calls, interrupts, program exits, etc etc)
+            aren't normal jumps (e.g., calls, interrupts, program exits, etc etc)
         :return: None
         """
         if not isinstance(to_addr, VexValue):
@@ -298,6 +307,7 @@ class Instruction(object):
         We caution you to avoid using them when at all possible though.
 
         For an example of how to write and use a CCall, see gymrat/bf/lift_bf.py
+
         :param ret_type: The return type of the CCall
         :param func_obj: The function object to eventually call.
         :param args: List of arguments to the function
