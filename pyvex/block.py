@@ -144,6 +144,8 @@ class IRSB(VEXObject):
         convert_expr(extendwith.next)
         self.next = extendwith.next
         self.jumpkind = extendwith.jumpkind
+        self._size = None
+        self._instructions = None
 
     def pp(self):
         """
@@ -250,7 +252,9 @@ class IRSB(VEXObject):
         """
         The number of instructions in this block
         """
-        return len([s for s in self.statements if type(s) is stmt.IMark])
+        if self._instructions is None:
+            self._instructions = len([s for s in self.statements if type(s) is stmt.IMark])
+        return self._instructions
 
     @property
     def size(self):
