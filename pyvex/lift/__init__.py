@@ -170,6 +170,7 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
     else:
         final_irsb.jumpkind = 'Ijk_NoDecode'
         final_irsb.next = Const(const.vex_int_class(final_irsb.arch.bits)(final_irsb._addr))
+        final_irsb.invalidate_direct_next()
         irsb._from_py(final_irsb)
         return
 
