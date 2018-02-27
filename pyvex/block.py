@@ -34,7 +34,7 @@ class IRSB(VEXObject):
     :ivar int addr:         The address of this basic block, i.e. the address in the first IMark
     """
 
-    __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next', '_size']
+    __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next', '_size', '_instructions']
 
     def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None, bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None):
         """
@@ -74,6 +74,7 @@ class IRSB(VEXObject):
         self.jumpkind = None
         self._direct_next = None
         self._size = None
+        self._instructions = None
 
         if data is not None:
             lift(self, arch, mem_addr, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
@@ -146,6 +147,7 @@ class IRSB(VEXObject):
         self.jumpkind = extendwith.jumpkind
         self._size = None
         self._instructions = None
+        self._direct_next = None
 
     def pp(self):
         """
