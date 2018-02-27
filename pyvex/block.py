@@ -102,6 +102,9 @@ class IRSB(VEXObject):
         conversion_dict = { }
         invalid_vals = (0xffffffff, -1)
 
+        new_size = self.size + extendwith.size
+        new_instructions = self.instructions + extendwith.instructions
+        new_direct_next = extendwith.direct_next
         def convert_tmp(tmp):
             """
             Converts a tmp from the appended-block into one in the appended-to-block. Creates a new tmp if it does not
@@ -145,8 +148,11 @@ class IRSB(VEXObject):
         convert_expr(extendwith.next)
         self.next = extendwith.next
         self.jumpkind = extendwith.jumpkind
-        self._size = None
-        self._instructions = None
+        self._size = new_size
+        self._instructions = new_instructions
+        self._direct_next = new_direct_next
+
+    def invalidate_direct_next(self):
         self._direct_next = None
 
     def pp(self):
@@ -423,7 +429,7 @@ class IRSB(VEXObject):
         self.next = expr.IRExpr._from_c(c_irsb.next)
         self.jumpkind = get_enum_from_int(c_irsb.jumpkind)
 
-    def _set_attributes(self, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
+    def _set_attributes(self, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None, instructions=None):
         self.statements = statements if statements is not None else []
         self.next = nxt
         if tyenv is not None:
@@ -431,9 +437,10 @@ class IRSB(VEXObject):
         self.jumpkind = jumpkind
         self._direct_next = direct_next
         self._size = size
+        self._instructions = instructions
 
     def _from_py(self, irsb):
-        self._set_attributes(irsb.statements, irsb.next, irsb.tyenv, irsb.jumpkind, irsb.direct_next, irsb.size)
+        self._set_attributes(irsb.statements, irsb.next, irsb.tyenv, irsb.jumpkind, irsb.direct_next, irsb.size, irsb.instructions)
 
 class IRTypeEnv(VEXObject):
     """
