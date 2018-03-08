@@ -119,10 +119,10 @@ class IRSBCustomizer(object):
         return self.arch.registers[regname][0]
 
     def put(self, expr_val, tuple_reg):
-        self._append_stmt(Put(expr_val, tuple_reg))
+        self._append_stmt(Put(copy.copy(expr_val), tuple_reg))
 
     def store(self, addr, expr):
-        self._append_stmt(Store(addr, expr, self.arch.memory_endness))
+        self._append_stmt(Store(copy.copy(addr), copy.copy(expr), self.arch.memory_endness))
 
     def noop(self):
         self._append_stmt(NoOp())
@@ -167,13 +167,13 @@ class IRSBCustomizer(object):
         return self._settmp(Get(reg, ty))
 
     def load(self, addr, ty):
-        return self._settmp(Load(self.arch.memory_endness, ty, addr))
+        return self._settmp(Load(self.arch.memory_endness, ty, copy.copy(addr)))
 
     def op_ccall(self, retty, funcstr, args):
         return self._settmp(CCall(retty, IRCallee(len(args), funcstr, 1234, 0xffff), args))
 
     def ite(self, condrdt, iftruerdt, iffalserdt):
-        return self._settmp(ITE(condrdt, iffalserdt, iftruerdt))
+        return self._settmp(ITE(copy.copy(condrdt), copy.copy(iffalserdt), copy.copy(iftruerdt)))
 
     def mkconst(self, val, ty):
         cls = ty_to_const_class(ty)
