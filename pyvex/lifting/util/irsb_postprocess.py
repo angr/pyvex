@@ -1,8 +1,8 @@
-from pyvex import IRSB
-from pyvex.stmt import WrTmp, Put, IMark, Store, NoOp
-from pyvex.expr import Const, RdTmp, Unop, Binop, Triop, Qop, Get
 
-from vex_helper import IRSBCustomizer
+from ...block import IRSB
+from ...stmt import WrTmp, Put, IMark, Store, NoOp
+from ...expr import Const, RdTmp, Unop, Binop, Triop, Qop, Get
+from .vex_helper import IRSBCustomizer
 
 
 def _flatten_and_get_expr(irsb_old, irsb_c, old_to_new_tmp, expr):

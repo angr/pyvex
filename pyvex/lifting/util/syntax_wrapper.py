@@ -1,9 +1,10 @@
 
 import functools
 
-from .vex_helper import IRSBCustomizer, Type, JumpKind
-import pyvex
-from pyvex.expr import IRExpr, Const, RdTmp, Unop, Binop, Triop, Qop, Load, CCall, Get
+from .vex_helper import Type
+from ...expr import IRExpr, Const, RdTmp
+from ... import get_type_size
+
 
 def checkparams(rhstype=None):
     def decorator(fn):
@@ -24,6 +25,7 @@ def checkparams(rhstype=None):
         return inner_decorator
     return decorator
 
+
 def vvifyresults(f):
     @functools.wraps(f)
     def decor(self, *args, **kwargs):
@@ -38,7 +40,7 @@ class VexValue(object):
         self.irsb_c = irsb_c
         self.ty = self.irsb_c.get_type(rdt)
         self.rdt = rdt
-        self.width = pyvex.get_type_size(self.ty)
+        self.width = get_type_size(self.ty)
         self._is_signed = signed
 
     @property

@@ -1,13 +1,9 @@
-import struct
-import archinfo
-import pyvex
-from functools import wraps
-from pyvex.expr import *
-from pyvex.lift import Lifter, register, LiftingException
-from .vex_helper import *
-from syntax_wrapper import VexValue
+
 import logging
 import bitstring
+
+from .vex_helper import *
+from ..lifter import Lifter
 
 l = logging.getLogger(__name__)
 
@@ -34,6 +30,7 @@ class GymratLifter(Lifter):
     of the lifted code.
     """
     REQUIRE_DATA_PY = True
+
     def create_bitstrm(self):
         self.bitstrm = bitstring.ConstBitStream(bytes=self.thedata)
 
@@ -124,5 +121,5 @@ class GymratLifter(Lifter):
         return self.lift(disassemble=True)
 
 
-if __name__ == '__main__':
-    pass
+from ...expr import *
+from .. import LiftingException

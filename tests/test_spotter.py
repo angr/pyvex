@@ -2,8 +2,8 @@ import os
 import angr
 import pyvex
 import archinfo
-from pyvex.lift import register
-from pyvex.lift.util import *
+from pyvex.lifting import register
+from pyvex.lifting.util import *
 import nose
 
 test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../binaries/tests'))

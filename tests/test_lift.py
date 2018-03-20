@@ -1,6 +1,6 @@
 import nose
 import archinfo
-from pyvex.lift.util import *
+from pyvex.lifting.util import *
 
 def test_partial_lift():
     """This tests that gymrat correctly handles the case where an

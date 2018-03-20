@@ -1,6 +1,6 @@
 import threading
 import logging
-l = logging.getLogger('pyvex.lift.libvex')
+l = logging.getLogger('pyvex.lifting.libvex')
 l.setLevel(20) # Shut up
 
 from .. import stmt
