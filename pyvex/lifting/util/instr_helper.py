@@ -1,12 +1,14 @@
-from lifter_helper import ParseError
-from syntax_wrapper import VexValue
-from vex_helper import JumpKind, IRExpr, vex_int_class
 
 import abc
 import string
 import bitstring
 import logging
-from angr.engines.vex import ccall
+
+from .lifter_helper import ParseError
+from .syntax_wrapper import VexValue
+from ...expr import IRExpr
+from .vex_helper import JumpKind, vex_int_class
+
 
 l = logging.getLogger("instr")
 
@@ -314,6 +316,9 @@ class Instruction(object):
         :return: A VexValue of the result.
         """
         # HACK: FIXME: If you're reading this, I'm sorry. It's truly a crime against Python...
+
+        from angr.engines.vex import ccall
+
         if not hasattr(ccall, func_obj.func_name):
             setattr(ccall, func_obj.func_name, func_obj)
         cc = self.irsb_c.op_ccall(ret_type, func_obj.func_name, args)
