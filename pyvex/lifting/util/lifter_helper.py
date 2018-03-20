@@ -3,7 +3,7 @@ import archinfo
 import pyvex
 from functools import wraps
 from pyvex.expr import *
-from pyvex.lift import Lifter, register, LiftingException
+from pyvex.lifting import Lifter, register, LiftingException
 from .vex_helper import *
 from syntax_wrapper import VexValue
 import logging

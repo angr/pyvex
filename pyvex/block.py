@@ -503,4 +503,4 @@ class IRTypeEnv(VEXObject):
                 return False
 
 from . import pvc
-from .lift import lift
+from .lifting import lift

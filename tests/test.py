@@ -7,7 +7,7 @@ import copy
 import logging
 
 from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
-from pyvex.lift import LibVEXLifter
+from pyvex.lifting import LibVEXLifter
 
 def test_memory():
     arches = [ ArchX86(), ArchPPC32(endness=Endness.BE), ArchAMD64(), ArchARM() ]
