@@ -1,13 +1,13 @@
-import logging
-import bitstring
-from .instr_helper import Instruction
-from .vex_helper import *
+
+from ..util.lifter_helper import GymratLifter
+from ..util.instr_helper import Instruction
+from .. import register
 from ...expr import *
-from .. import LiftingException
 
 l = logging.getLogger(__name__)
 
 class Instruction_MRCMCR(Instruction):
+    name = "MRC/MCR"
     bin_format = 'cccc110PUNWLnnnnddddppppOOOOOOOO'
     # c = cond
     # d = CPd
@@ -21,7 +21,9 @@ class Instruction_MRCMCR(Instruction):
         l.warning("Ignoring MRC/MCR instruction at %#08x" % self.addr)
 
 class Instruction_CDP(Instruction):
-    bin_format = 'cccc1110oooonnnnddddppppPPPxmmmm'
+    name = "CDP"
+    # bin_format = 'cccc1110oooonnnnddddppppPPPxmmmm'
+    bin_format = "fff0ggggddddeeeebbbbccccaaaa1110"
     # c = cond
     # d = CPd
     # O = Offset
@@ -31,7 +33,7 @@ class Instruction_CDP(Instruction):
         # TODO At least look at the conditionals
         # TODO Clobber the dest reg of LDC
         # TODO Maybe clobber the dst reg of CDP, if we're really adventurous
-        l.warning("Ignoring CP op instruction at %#08x" % self.addr)
+        l.warning("Ignoring CDP op instruction at %#08x" % self.addr)
 
 
 
