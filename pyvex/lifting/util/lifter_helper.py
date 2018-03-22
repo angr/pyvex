@@ -4,6 +4,7 @@ import bitstring
 
 from .vex_helper import *
 from ..lifter import Lifter
+from ...block import IRSB
 
 l = logging.getLogger(__name__)
 
@@ -108,7 +109,7 @@ class GymratLifter(Lifter):
         self.irsb.jumpkind = None
         for i, instr in enumerate(instructions[:self.max_inst]):
             # first, create a scratch IRSB so we can throw the changes away if lifting fails
-            next_irsb_part = pyvex.IRSB.empty_block(self.irsb.arch, self.irsb.addr)
+            next_irsb_part = IRSB.empty_block(self.irsb.arch, self.irsb.addr)
             irsb_c = IRSBCustomizer(next_irsb_part)
 
             # try to do the lifting
