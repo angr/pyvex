@@ -55,7 +55,7 @@ class GymratLifter(Lifter):
         # Try every instruction until one works
         for possible_instr in self.instrs:
             try:
-                l.info("Trying " + possible_instr.name)
+                l.info("Trying %s", possible_instr.name)
                 return possible_instr(self.bitstrm, self.irsb.arch, addr)
             # a ParserError signals that this instruction did not match
             # we need to try other instructions, so we ignore this error
@@ -70,7 +70,7 @@ class GymratLifter(Lifter):
         # If no instruction matches, log an error
         errorstr = 'Unknown instruction at bit position %d' % self.bitstrm.bitpos
         l.debug(errorstr)
-        l.debug("Address: %#08x" % addr)
+        l.debug("Address: %#08x", addr)
 
     def decode(self):
         try:
@@ -78,7 +78,7 @@ class GymratLifter(Lifter):
             count = 0
             disas = []
             addr = self.irsb._addr
-            l.debug("Starting block at address: " + hex(addr))
+            l.debug("Starting block at address: %#08x", addr)
             bytepos = self.bitstrm.bytepos
 
 
@@ -86,7 +86,7 @@ class GymratLifter(Lifter):
                 instr = self._decode_next_instruction(addr)
                 if not instr: break
                 disas.append(instr)
-                l.debug("Matched " + instr.name)
+                l.debug("Matched %s", instr.name)
                 addr += self.bitstrm.bytepos - bytepos
                 bytepos = self.bitstrm.bytepos
                 count += 1
@@ -114,7 +114,7 @@ class GymratLifter(Lifter):
             # try to do the lifting
             # if the instruction requires more context, we stop
             # decoding here and just return the block we have so far
-            l.debug("Lifting instruction " + instr.name)
+            l.debug("Lifting instruction %s", instr.name)
             try:
                 instr(irsb_c, instructions[:i], instructions[i+1:])
             except RequireContextError:
@@ -130,15 +130,15 @@ class GymratLifter(Lifter):
                 self.irsb.jumpkind = JumpKind.Boring
                 break
 
-            # if the block has a jumpkind, this is a full block so we can exit 
+            # if the block has a jumpkind, this is a full block so we can exit
             if self.irsb.jumpkind is not None:
                 break
 
-        if len(self.irsb.statements) == 0:
+        if not self.irsb.statements:
             raise LiftingException('Could not lift any instructions')
 
         if self.irsb.jumpkind is None:
-            if len(instructions) >= self.max_inst and self.max_inst is not None:
+            if self.max_inst is not None and len(instructions) >= self.max_inst:
                 self.irsb.next = Const(vex_int_class(self.irsb.arch.bits)(self.irsb.addr + self.irsb.size))
                 self.irsb.jumpkind = JumpKind.Boring
             else:

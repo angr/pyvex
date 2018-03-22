@@ -108,7 +108,7 @@ class Instruction(object):
         self.data = self.parse(bitstrm)
 
     def __call__(self, irsb_c, past_instructions, future_instructions):
-        past  = ContextInstructions(past_instructions, True)
+        past = ContextInstructions(past_instructions, True)
         future = ContextInstructions(future_instructions, False)
         self.lift(irsb_c, past, future)
 
