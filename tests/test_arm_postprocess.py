@@ -1,3 +1,4 @@
+from past.builtins import xrange
 import pyvex
 import archinfo
 import nose

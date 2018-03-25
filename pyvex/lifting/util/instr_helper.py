@@ -299,7 +299,7 @@ class Instruction(object):
             self.irsb_c.add_exit(condition.rdt, to_addr.rdt.con, jumpkind, ip_offset)
             # and then set the default
             self.irsb_c.irsb.jumpkind = jumpkind
-            self.irsb_c.irsb.next = self.constant(self.addr + (self.bitwidth / 8), to_addr.ty).rdt
+            self.irsb_c.irsb.next = self.constant(self.addr + (self.bitwidth // 8), to_addr.ty).rdt
 
     def ccall(self, ret_type, func_obj, args):
         """
@@ -319,7 +319,7 @@ class Instruction(object):
 
         from angr.engines.vex import ccall
 
-        if not hasattr(ccall, func_obj.func_name):
-            setattr(ccall, func_obj.func_name, func_obj)
-        cc = self.irsb_c.op_ccall(ret_type, func_obj.func_name, args)
+        if not hasattr(ccall, func_obj.__name__):
+            setattr(ccall, func_obj.__name__, func_obj)
+        cc = self.irsb_c.op_ccall(ret_type, func_obj.__name__, args)
         return VexValue(self.irsb_c, cc)
