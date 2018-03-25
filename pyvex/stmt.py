@@ -128,7 +128,7 @@ class Put(IRStmt):
     ## TODO: Check if result_size and arch are available before looking of arch register name
     def __str__(self, reg_name=None, arch=None, tyenv=None):
         if arch is not None and tyenv is not None:
-            reg_name = arch.translate_register_name(self.offset, self.data.result_size(tyenv) / 8)
+            reg_name = arch.translate_register_name(self.offset, self.data.result_size(tyenv) // 8)
 
         if reg_name is not None:
             return "PUT(%s) = %s" % (reg_name, self.data)
@@ -195,7 +195,7 @@ class WrTmp(IRStmt):
         # Support for named register in string representation of expr.Get
 
         if arch is not None and tyenv is not None and isinstance(self.data, Get):
-            reg_name = arch.translate_register_name(self.data.offset, self.data.result_size(tyenv) / 8)
+            reg_name = arch.translate_register_name(self.data.offset, self.data.result_size(tyenv) // 8)
 
         if reg_name is not None and isinstance(self.data, expr.Get):
             return "t%d = %s" % (self.tmp, self.data.__str__(reg_name=reg_name))
@@ -478,7 +478,7 @@ class Exit(IRStmt):
     def __str__(self, reg_name=None, arch=None, tyenv=None):
 
         if arch is not None and tyenv is not None:
-            reg_name = arch.translate_register_name(self.offsIP, arch.bits / 8)
+            reg_name = arch.translate_register_name(self.offsIP, arch.bits // 8)
 
         if reg_name is None:
             return "if (%s) { PUT(offset=%d) = %#x; %s }" % (self.guard, self.offsIP, self.dst.value, self.jumpkind)

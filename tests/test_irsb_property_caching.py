@@ -1,3 +1,4 @@
+from future.utils import iteritems
 import pyvex
 import archinfo
 from pyvex.block import IRSB
@@ -19,7 +20,7 @@ def test_cache_invalidation_on_extend():
 
 def run_all():
     g = globals()
-    for k, v in g.iteritems():
+    for k, v in iteritems(g):
         if k.startswith('test_') and hasattr(v, '__call__'):
             v()
 

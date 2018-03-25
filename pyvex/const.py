@@ -1,4 +1,5 @@
 from __future__ import print_function
+from past.builtins import xrange
 import re
 
 from . import VEXObject, ffi, pvc

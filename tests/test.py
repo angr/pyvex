@@ -1,3 +1,5 @@
+from __future__ import print_function
+from past.builtins import xrange
 import pyvex
 import nose
 import random
@@ -42,7 +44,7 @@ def test_memory():
 
     pyvex.pvc.clear_log()
     pyvex.pvc.LibVEX_ShowAllocStats()
-    print LibVEXLifter.get_vex_log()
+    print(LibVEXLifter.get_vex_log())
 
     # allow a 5mb leeway
     nose.tools.assert_less(kb_end - kb_start, 5000)
@@ -81,9 +83,9 @@ def test_irsb_popret():
 
     cursize = len(irsb.tyenv.types)
     nose.tools.assert_greater(cursize, 0)
-    print irsb.statements[10].data
-    print irsb.statements[10].data.tmp
-    print irsb.tyenv.types[irsb.statements[10].data.tmp]
+    print(irsb.statements[10].data)
+    print(irsb.statements[10].data.tmp)
+    print(irsb.tyenv.types[irsb.statements[10].data.tmp])
     nose.tools.assert_equal(irsb.tyenv.lookup(irsb.statements[10].data.tmp), 'Ity_I64')
 
 def test_two_irsb():
@@ -119,17 +121,17 @@ def test_irsb_addStmt():
 
 def test_irsb_tyenv():
     irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
-    print irsb.tyenv
-    print "Orig"
-    print irsb.tyenv
+    print(irsb.tyenv)
+    print("Orig")
+    print(irsb.tyenv)
 
-    print "Empty"
+    print("Empty")
     irsb2 = pyvex.IRSB.empty_block(arch=ArchAMD64(), addr=0)
-    print irsb2.tyenv
+    print(irsb2.tyenv)
 
-    print "Unwrapped"
+    print("Unwrapped")
     irsb2.tyenv = copy.deepcopy(irsb.tyenv)
-    print irsb2.tyenv
+    print(irsb2.tyenv)
 
 ##################
 ### Statements ###
@@ -139,11 +141,11 @@ def test_irstmt_pp():
     irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
     for i in stmts:
-        print "STMT: ",
-        print i
+        print("STMT: ", end=' ')
+        print(i)
 
 def test_irstmt_flat():
-    print "TODO"
+    print("TODO")
 
 def test_irstmt_imark():
     m = pyvex.IRStmt.IMark(1,2,3)
@@ -177,9 +179,9 @@ def test_irstmt_put():
 
     a = pyvex.IRExpr.RdTmp(123)
     m = pyvex.IRStmt.Put(a, 10)
-    print "Put stmt:",
-    print m
-    print ""
+    print("Put stmt:", end=' ')
+    print(m)
+    print("")
     nose.tools.assert_equal(m.data.tmp, 123)
     nose.tools.assert_equal(m.offset, 10)
 
@@ -334,7 +336,7 @@ def test_irregarray():
 ################
 
 def helper_const_subtype(subtype, tag, value):
-    print "Testing %s" % tag
+    print("Testing %s" % tag)
     nose.tools.assert_raises(Exception, subtype)
 
     c = subtype(value)
@@ -396,7 +398,7 @@ def test_irexpr_rdtmp():
     nose.tools.assert_raises(Exception, pyvex.IRExpr.RdTmp)
 
     irsb = pyvex.IRSB('\x90\x5d\xc3', mem_addr=0x0, arch=ArchAMD64())
-    print "TMP:",irsb.next.tmp
+    print("TMP:",irsb.next.tmp)
 
 
 def test_irexpr_get():
