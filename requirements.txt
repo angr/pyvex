@@ -2,3 +2,4 @@ pycparser
 cffi>=1.0.3
 archinfo>=7.8.2.21
 bitstring
+future
