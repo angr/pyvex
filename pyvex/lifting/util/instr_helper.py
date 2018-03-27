@@ -283,23 +283,40 @@ class Instruction(object):
             aren't normal jumps (e.g., calls, interrupts, program exits, etc etc)
         :return: None
         """
-        if not isinstance(to_addr, VexValue):
+        to_addr_ty = None
+        if isinstance(to_addr, VexValue):
+            # Unpack a VV
+            to_addr_rdt = to_addr.rdt
+            to_addr_ty = to_addr.ty
+        elif isinstance(to_addr, int):
+            # Direct jump to an int, make an RdT and Ty
             to_addr_ty = vex_int_class(self.irsb_c.irsb.arch.bits).type
             to_addr = self.constant(to_addr, to_addr_ty) # TODO archinfo may be changing
+            to_addr_rdt = to_addr.rdt
+        elif isInstance(to_addr, RdTmp):
+            # An RdT; just get the Ty of the arch's pointer type
+            to_addr_ty = vex_int_class(self.irsb_c.irsb.arch.bits).type
+            to_addr_rdt = to_addr
+        else:
+            raise ValueError("Jump destination has unknown type: " + repr(type(to_addr)))
         if not condition:
             # This is the default exit.
             self.irsb_c.irsb.jumpkind = jumpkind
-            self.irsb_c.irsb.next = to_addr.rdt
+            self.irsb_c.irsb.next = to_addr_rdt
         else:
             # add another exit
             # EDG says: We should make sure folks set ArchXYZ.ip_offset like they're supposed to
             if ip_offset is None:
                 ip_offset = self.arch.ip_offset
             assert ip_offset is not None
-            self.irsb_c.add_exit(condition.rdt, to_addr.rdt.con, jumpkind, ip_offset)
+
+            self.irsb_c.add_exit(condition.rdt, to_addr_rdt, jumpkind, ip_offset)
             # and then set the default
             self.irsb_c.irsb.jumpkind = jumpkind
-            self.irsb_c.irsb.next = self.constant(self.addr + (self.bitwidth / 8), to_addr.ty).rdt
+            self.irsb_c.irsb.next = self.constant(self.addr + (self.bitwidth / 8), to_addr_ty).rdt
+
+    def ite(self, cond, t, f):
+        self.irsb_c.ite(cond.rdt, t.rdt, f.rdt)
 
     def ccall(self, ret_type, func_obj, args):
         """
