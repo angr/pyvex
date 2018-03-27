@@ -77,7 +77,7 @@ class GymratLifter(Lifter):
         except Exception, e:
             self.errors = e.message
             l.exception("Error decoding block at offset {:#x} (address {:#x}):".format(bytepos, addr))
-            raise e
+            raise
 
     def lift(self, disassemble=False, dump_irsb=False):
         self.thedata = self.data[:self.max_bytes]
