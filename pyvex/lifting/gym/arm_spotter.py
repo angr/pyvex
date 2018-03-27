@@ -1,6 +1,6 @@
 
 from ..util.lifter_helper import GymratLifter
-from ..util.instr_helper import Instruction
+from ..util.instr_helper import Instruction, ParseError
 from ..util import JumpKind, Type
 from .. import register
 from ...expr import *
@@ -15,6 +15,13 @@ class ARMInstruction(Instruction):
 
     # NOTE 2: Something is goofy w/r/t archinfo and VEX; cc_op3 is used in ccalls, but there's
     # no cc_op3 in archinfo, angr itself uses cc_depn instead.  We do the same.
+
+    def match_instruction(self, data, bitstrm):
+        """
+        ARM Instructions are pretty dense, so let's do what we can to weed them out
+        """
+        if data['c'] == '1111':
+            raise ParseError("Invalid ARM Instruction")
 
     def get_N(self):
         cc_op = self.get("cc_op", Type.int_32)
