@@ -7,9 +7,92 @@ from ...expr import *
 
 l = logging.getLogger(__name__)
 
-class Instruction_MRCMCR(Instruction):
-    name = "MRC/MCR"
-    bin_format = 'cccc110PUNWLnnnnddddppppOOOOOOOO'
+
+class ARMInstruction(Instruction):
+
+    # NOTE: WARNING: There is no CPSR in VEX's ARM implementation
+    # You must use straight nasty hacks instead.
+
+    # NOTE 2: Something is goofy w/r/t archinfo and VEX; cc_op3 is used in ccalls, but there's
+    # no cc_op3 in archinfo, angr itself uses cc_depn instead.  We do the same.
+
+    def get_N(self):
+        cc_op = self.get("cc_op", Type.int_32)
+        cc_dep1 = self.get("cc_dep1", Type.int_32)
+        cc_dep2 = self.get("cc_dep2", Type.int_32)
+        cc_depn = self.get("cc_ndep", Type.int_32)
+        return self.ccall(Type.int_32, "armg_calculate_flag_n", [cc_op, cc_dep1, cc_dep2, cc_depn])
+
+    def get_C(self):
+        cc_op = self.get("cc_op", Type.int_32)
+        cc_dep1 = self.get("cc_dep1", Type.int_32)
+        cc_dep2 = self.get("cc_dep2", Type.int_32)
+        cc_depn = self.get("cc_ndep", Type.int_32)
+        return self.ccall(Type.int_32, "armg_calculate_flag_c", [cc_op, cc_dep1, cc_dep2, cc_depn])
+
+    def get_V(self):
+        cc_op = self.get("cc_op", Type.int_32)
+        cc_dep1 = self.get("cc_dep1", Type.int_32)
+        cc_dep2 = self.get("cc_dep2", Type.int_32)
+        cc_depn = self.get("cc_ndep", Type.int_32)
+        return self.ccall(Type.int_32, "armg_calculate_flag_v", [cc_op, cc_dep1, cc_dep2, cc_depn])
+
+    def get_Z(self):
+        cc_op = self.get("cc_op", Type.int_32)
+        cc_dep1 = self.get("cc_dep1", Type.int_32)
+        cc_dep2 = self.get("cc_dep2", Type.int_32)
+        cc_depn = self.get("cc_ndep", Type.int_32)
+        return self.ccall(Type.int_32, "armg_calculate_flag_z", [cc_op, cc_dep1, cc_dep2, cc_depn])
+
+    def evaluate_condition(self):
+        # condition codes should be in 'c'
+        cond = self.data['c']
+        if cond == '0000':
+            # equal, z set
+            return self.get_Z() == 1
+        elif cond == '0001':
+            # not equal, Z clear
+            return self.get_Z() == 0
+        elif cond == '0010':
+            # Carry, C set
+            return self.get_C() == 1
+        elif cond == '0011':
+            # Carry Clear, C clear
+            return self.get_C() == 0
+        elif cond == '0100':
+            # MI / neagative / N set
+            return self.get_N() == 1
+        elif cond == '0101':
+            # PL / plus / positive / N clear
+            return self.get_N() == 0
+        elif cond == '0110':
+            # VS / V set / Overflow
+            return self.get_V() == 1
+        elif cond == '0111':
+            # VC / V Clear / no overflow
+            return self.get_V() == 0
+        elif cond == '1000':
+            # Hi / unsigned higher / C set, Z clear
+            return (self.get_C() == 1) & (self.get_Z() == 0)
+        elif cond == '1001':
+            # LS / C clear, Z set
+            return (self.get_C() == 0) & (self.get_Z() == 1)
+        elif cond == '1011':
+            # LT / Less than / N != V
+            return self.get_N() != self.get_V()
+        elif cond == '1100':
+            # GT / greater than / Z clear and (n == v)
+            return (self.get_Z() == 1) & (self.get_N() != self.get_V())
+        elif cond == '1101':
+            # LE / less than or equal to / Z set OR (N != V)
+            return (self.get_Z() == 1) | (self.get_N() != self.get_V())
+        else:
+            # No condition
+            return None
+
+class Instruction_MRC(ARMInstruction):
+    name = "MRC"
+    bin_format = 'cccc110PUNW0nnnnddddppppOOOOOOOO'
     # c = cond
     # d = CPd
     # O = Offset
@@ -19,57 +102,111 @@ class Instruction_MRCMCR(Instruction):
         # TODO at least look at the conditionals
         # TODO Clobber the dst reg of MCR
         # TODO maybe treat coproc regs as simple storage (even though they are very much not)
-        l.debug("Ignoring MRC/MCR instruction at %#x.", self.addr)
+        l.debug("Ignoring MRC instruction at %#x.", self.addr)
+
+class Instruction_MCR(ARMInstruction):
+    name = "MCR"
+    bin_format = 'cccc110PUNW1nnnnddddppppOOOOOOOO'
+    # c = cond
+    # d = CPd
+    # O = Offset
+    # p = CP#
+
+    def compute_result(self):
+        # TODO at least look at the conditionals
+        # TODO Clobber the dst reg of MCR
+        # TODO maybe treat coproc regs as simple storage (even though they are very much not)
+        l.debug("Ignoring MCR instruction at %#x.", self.addr)
 
 
-class Instruction_MSR(Instruction):
+class Instruction_MSR(ARMInstruction):
     name = "MSR"
     bin_format = 'cccc00i10d10xxxj1111ssssssssssss'
     #             11100011001000011111000010010001
     #             11100001011011111111000000000001
 
     def compute_result(self):
-        l.debug("Ignoring MSR instruction at %#x.", self.addr)
+        l.debug("Ignoring MSR instruction at %#x. VEX cannot support this instruction. See pyvex/lifting/gym/arm_spotter.py", self.addr)
 
 
-class Instruction_MRS(Instruction):
+class Instruction_MRS(ARMInstruction):
     name = "MRS"
     bin_format = "cccc00010s001111dddd000000000000"
 
     def compute_result(self):
-        l.debug("Ignoring MRS instruction at %#x.", self.addr)
+        l.warning("Ignoring MRS instruction at %#x. VEX cannot support this instruction. See pyvex/lifting/gym/arm_spotter.py", self.addr)
 
 
-class Instruction_STM(Instruction):
+class Instruction_STM(ARMInstruction):
     name = "STM"
     bin_format = 'cccc100pusw0bbbbrrrrrrrrrrrrrrrr'
 
     def compute_result(self):
-        l.debug("Ignoring STMxx instruction at %#x.", self.addr)
+        l.warning("Ignoring STMxx instruction at %#x. This mode is not implemented by VEX! See pyvex/lifting/gym/arm_spotter.py", self.addr)
 
 
-class Instruction_LDM(Instruction):
-    name = "STM"
-    bin_format = 'cccc100pusw1bbbbrrrrrrrrrrrrrrrr'
-
-    def parse(self, bitstrm):
-        data = super(Instruction_LDM, self).parse(bitstrm)
-        self.reg_list = int(data['r'], 2)
+class Instruction_LDM(ARMInstruction):
+    name = "LDM"
+    bin_format = 'cccc100PUSW1bbbbrrrrrrrrrrrrrrrr'
 
     def compute_result(self):
         # test if PC will be set. If so, the jumpkind of this block should be Ijk_Ret
-        if (self.reg_list >> 15) == 1:
-            self.jump(0, self.constant(0, Type.int_32),
-                      JumpKind.Ret
-                      )
+        l.warning("Spotting an LDM instruction at %#x.  This is not fully tested.  Prepare for errors.")
+        l.warning(repr(self.rawbits))
+        l.warning(repr(self.data))
+        """
+        src_n = int(self.data['b'], 2)
+        src = self.get(src_n, Type.int_32)
+    
+        for reg_num, bit in enumerate(self.data['r']):
+            reg_num = 15 - reg_num
+            if bit == '1':
+                if self.data['P'] == '1':
+                    if self.data['U'] == 0:
+                        src += 4
+                    else:
+                        src -= 4
+                val = self.load(src, Type.int_32)
+                self.put(val, reg_num)
+                if self.data['P'] == 0:
+                    if self.data['U'] == 0:
+                        src += 4
+                    else:
+                        src -= 4
+                # If we touch PC, we're doing a RET!
+                if reg_num == 15 and bit == '1':
+                    cond = self.evaluate_condition()
+                    if cond is not None:
+                        self.jump(cond, val, JumpKind.Ret)
+                    else:
+                        self.jump(None, val, JumpKind.Ret)
+        # Write-back
+        if self.data['W'] == '1':
+            self.put(src, src_n)
+        """
 
-        l.debug("Ignoring LDMxx instruction at %#x.", self.addr)
+class Instruction_STC(ARMInstruction):
+    name = 'STC'
+    bin_format = 'cccc110PUNW0nnnnddddppppOOOOOOOO'
+
+    def compute_result(self):
+        # TODO At least look at the conditionals
+        l.warning("Ignoring STC instruction at %#x.", self.addr)
 
 
+class Instruction_LDC(ARMInstruction):
+    name = 'STC'
+    bin_format = 'cccc110PUNW1nnnnddddppppOOOOOOOO'
+
+    def compute_result(self):
+        # TODO At least look at the conditionals
+        # TODO Clobber the dest reg of LDC
+        # TODO Maybe clobber the dst reg of CDP, if we're really adventurous
+        l.warning("Ignoring LDC instruction at %#x.", self.addr)
 
 class Instruction_CDP(Instruction):
     name = "CDP"
-    bin_format = 'cccc1110oooonnnnddddppppPPPxmmmm'
+    bin_format = 'cccc1110oooonnnnddddppppPPP0mmmm'
     # c = cond
     # d = CPd
     # O = Offset
@@ -77,18 +214,20 @@ class Instruction_CDP(Instruction):
 
     def compute_result(self):
         # TODO At least look at the conditionals
-        # TODO Clobber the dest reg of LDC
         # TODO Maybe clobber the dst reg of CDP, if we're really adventurous
-        l.debug("Ignoring CDP op instruction at %#x.", self.addr)
+        l.warning("Ignoring CDP instruction at %#x.", self.addr)
 
 
 class ARMSpotter(GymratLifter):
     instrs = [
-        Instruction_MRCMCR,
+        Instruction_MRC,
+        Instruction_MCR,
         Instruction_MSR,
         Instruction_MRS,
-        Instruction_STM,
-        Instruction_LDM,
+        #Instruction_STM,
+        # Instruction_LDM,
+        Instruction_STC,
+        Instruction_LDC,
         Instruction_CDP
     ]
 
