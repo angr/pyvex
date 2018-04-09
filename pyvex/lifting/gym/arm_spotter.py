@@ -97,10 +97,13 @@ class ARMInstruction(Instruction):
             # No condition
             return None
 
+
 class Instruction_MRC(ARMInstruction):
     name = "MRC"
-    bin_format = 'cccc110PUNW0nnnnddddppppOOOOOOOO'
+    bin_format = 'cccc1110CCC1nnnnddddppppOOOOOOOO'
+                 #11101110000100010001111100010000
     # c = cond
+    # C = Coprocessor operation mode
     # d = CPd
     # O = Offset
     # p = CP#
@@ -111,10 +114,13 @@ class Instruction_MRC(ARMInstruction):
         # TODO maybe treat coproc regs as simple storage (even though they are very much not)
         l.debug("Ignoring MRC instruction at %#x.", self.addr)
 
+
 class Instruction_MCR(ARMInstruction):
     name = "MCR"
-    bin_format = 'cccc110PUNW1nnnnddddppppOOOOOOOO'
+    bin_format = 'cccc1110CCC0nnnnddddppppOOOOOOOO'
+                 #11101110000000010000111100010000
     # c = cond
+    # C = Coprocessor operation mode
     # d = CPd
     # O = Offset
     # p = CP#
