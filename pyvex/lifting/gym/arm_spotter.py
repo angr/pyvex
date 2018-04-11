@@ -147,7 +147,7 @@ class Instruction_MRS(ARMInstruction):
     bin_format = "cccc00010s001111dddd000000000000"
 
     def compute_result(self):
-        l.warning("Ignoring MRS instruction at %#x. VEX cannot support this instruction. See pyvex/lifting/gym/arm_spotter.py", self.addr)
+        l.debug("Ignoring MRS instruction at %#x. VEX cannot support this instruction. See pyvex/lifting/gym/arm_spotter.py", self.addr)
 
 
 class Instruction_STM(ARMInstruction):
@@ -204,7 +204,7 @@ class Instruction_STC(ARMInstruction):
 
     def compute_result(self):
         # TODO At least look at the conditionals
-        l.warning("Ignoring STC instruction at %#x.", self.addr)
+        l.debug("Ignoring STC instruction at %#x.", self.addr)
 
 
 class Instruction_LDC(ARMInstruction):
@@ -215,7 +215,7 @@ class Instruction_LDC(ARMInstruction):
         # TODO At least look at the conditionals
         # TODO Clobber the dest reg of LDC
         # TODO Maybe clobber the dst reg of CDP, if we're really adventurous
-        l.warning("Ignoring LDC instruction at %#x.", self.addr)
+        l.debug("Ignoring LDC instruction at %#x.", self.addr)
 
 class Instruction_CDP(Instruction):
     name = "CDP"
@@ -228,7 +228,7 @@ class Instruction_CDP(Instruction):
     def compute_result(self):
         # TODO At least look at the conditionals
         # TODO Maybe clobber the dst reg of CDP, if we're really adventurous
-        l.warning("Ignoring CDP instruction at %#x.", self.addr)
+        l.debug("Ignoring CDP instruction at %#x.", self.addr)
 
 
 class ARMSpotter(GymratLifter):
