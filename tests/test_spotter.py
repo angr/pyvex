@@ -1,15 +1,16 @@
 import os
-import angr
 import pyvex
+import angr
 import archinfo
 from pyvex.lifting import register
 from pyvex.lifting.util import *
 import nose
+import pyvex.lifting
 
 test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../binaries/tests'))
 
 class Instruction_IMAGINARY(Instruction):
-    bin_format = bin(0x45e1)[2:].zfill(16)
+    bin_format = bin(0x0f0b)[2:].zfill(16)
     name = 'IMAGINARY'
 
     def compute_result(self):
@@ -20,7 +21,7 @@ class Instruction_IMAGINARY(Instruction):
 class ImaginarySpotter(GymratLifter):
     instrs = [Instruction_IMAGINARY]
 
-register(ImaginarySpotter, 'ARMEL')
+register(ImaginarySpotter, 'X86')
 
 basic_goal = """
 IRSB {
@@ -28,18 +29,18 @@ IRSB {
 
    00 | ------ IMark(0x1, 2, 0) ------
    01 | t0 = Add27((0xa :: Ity_I27),(0x14 :: Ity_I27))
-   NEXT: PUT(pc) = None; Ijk_NoDecode
+   NEXT: PUT(eip) = None; Ijk_NoDecode
 }
 """
 
 def test_basic():
-    b = pyvex.block.IRSB('\x45\xe1', 1, archinfo.ArchARMEL())
+    b = pyvex.block.IRSB('\x0f\x0b', 1, archinfo.ArchX86())
     nose.tools.assert_equal(str(b).strip(), basic_goal.strip())
 
 def test_embedded():
-    b = pyvex.block.IRSB('\x07\x21' * 3 + '\x45\xe1' + '\x07\x21' * 6, 1, archinfo.ArchARMEL())
+    b = pyvex.block.IRSB('\x50' * 3 + '\x0f\x0b' + '\x50' * 6, 1, archinfo.ArchX86())
     for i, stmt in enumerate(b.statements):
-        if type(stmt) is pyvex.stmt.IMark and stmt.addr == 0x7 and stmt.len == 2 and stmt.delta == 0:
+        if type(stmt) is pyvex.stmt.IMark and stmt.addr == 0x4 and stmt.len == 2 and stmt.delta == 0:
             imaginary_trans_stmt = b.statements[i+1]
             nose.tools.assert_is(type(imaginary_trans_stmt), pyvex.stmt.WrTmp)
             addexpr = imaginary_trans_stmt.data
