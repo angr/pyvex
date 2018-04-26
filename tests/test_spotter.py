@@ -55,7 +55,7 @@ def test_embedded():
     nose.tools.assert_false(True, msg='Could not find matching IMark')
 
 class Instruction_MSR(Instruction):
-    bin_format = bin(0x80f30888)[2:].zfill(32)
+    bin_format = bin(0x8808f380)[2:].zfill(32)
     name = 'MSR.W'
 
     def compute_result(self):
@@ -64,7 +64,7 @@ class Instruction_MSR(Instruction):
         c = a + b
 
 class Instruction_CPSIEI(Instruction):
-    bin_format = bin(0x62b6)[2:].zfill(16)
+    bin_format = bin(0xb662)[2:].zfill(16)
     name = 'CPSIE I'
 
     def compute_result(self):
@@ -73,7 +73,7 @@ class Instruction_CPSIEI(Instruction):
         c = a + b
 
 class Instruction_CPSIEF(Instruction):
-    bin_format = bin(0x61b6)[2:].zfill(16)
+    bin_format = bin(0xb661)[2:].zfill(16)
     name = 'CPSIE F'
 
     def compute_result(self):
