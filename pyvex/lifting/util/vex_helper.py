@@ -5,6 +5,7 @@ from ...const import ty_to_const_class, vex_int_class, get_type_size
 from ...expr import Const, RdTmp, Unop, Binop, Load, CCall, Get, ITE
 from ...stmt import WrTmp, Put, IMark, Store, NoOp, Exit
 from ...enums import IRCallee
+from future.utils import with_metaclass
 
 class JumpKind(object):
     Boring = 'Ijk_Boring'
@@ -28,7 +29,7 @@ class TypeMeta(type):
             width = int(match.group('size'))
             return vex_int_class(width).type
 
-class Type(object):
+class Type(with_metaclass(TypeMeta, object)):
     __metaclass__ = TypeMeta
 
     ieee_float_16 = 'Ity_F16'
@@ -51,7 +52,7 @@ def make_format_op_generator(fmt_string):
     Functions by formatting the fmt_string with the types of the arguments
     """
     def gen(arg_types):
-        converted_arg_types = map(get_op_format_from_const_ty, arg_types)
+        converted_arg_types = list(map(get_op_format_from_const_ty, arg_types))
         op = fmt_string.format(arg_t=converted_arg_types)
         return op
     return gen

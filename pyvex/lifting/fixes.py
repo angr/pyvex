@@ -1,5 +1,6 @@
 from . import Postprocessor, register, LiftingException
-import libvex
+from . import libvex
+from functools import reduce
 
 class FixesPostProcessor(Postprocessor):
 

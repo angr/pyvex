@@ -74,13 +74,13 @@ class GymratLifter(Lifter):
                 bytepos = self.bitstrm.bytepos
                 count += 1
             return disas
-        except Exception, e:
-            self.errors = e.message
+        except Exception as e:
+            self.errors = str(e)
             l.exception("Error decoding block at offset {:#x} (address {:#x}):".format(bytepos, addr))
             raise
 
     def lift(self, disassemble=False, dump_irsb=False):
-        self.thedata = self.data[:self.max_bytes]
+        self.thedata = self.data[:self.max_bytes] if isinstance(self.data, bytes) else self.data[:self.max_bytes].encode()
         l.debug(repr(self.thedata))
         instructions = self.decode()
 
@@ -112,7 +112,7 @@ class GymratLifter(Lifter):
         for addr, name, args in insts:
             args_str = ",".join(str(a) for a in args)
             disasstr += "%0#08x:\t%s %s\n" % (addr, name, args_str)
-        print disasstr
+        print(disasstr)
 
     def error(self):
         return self.errors

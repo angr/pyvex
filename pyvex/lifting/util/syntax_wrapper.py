@@ -133,11 +133,11 @@ class VexValue(object):
 
     @checkparams()
     def __rdiv__(self, left):
-        return left / self
+        return left // self
 
     @checkparams()
     def __floordiv__(self, right): # Note: nonprimitive
-        return self / right
+        return self // right
 
     @checkparams()
     def __rfloordiv__(self, left):

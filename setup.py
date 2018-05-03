@@ -203,6 +203,7 @@ setup(
         'cffi>=1.0.3',
         'archinfo>=7.8.2.21',
         'bitstring',
+        'future',
     ],
     setup_requires=[ 'pycparser', 'cffi>=1.0.3' ],
     include_package_data=True,
