@@ -236,7 +236,10 @@ class Instruction_CDP(Instruction):
 ##
 
 class ThumbInstruction(Instruction):
-    pass
+
+    def mark_instruction_start(self):
+        self.irsb_c.imark(self.addr, self.bytewidth, 1)
+
 
 
 class Instruction_tCPSID(ThumbInstruction):
