@@ -238,7 +238,7 @@ class Instruction_CDP(Instruction):
 class ThumbInstruction(Instruction):
 
     def mark_instruction_start(self):
-        self.irsb_c.imark(self.addr, self.bytewidth, 1)
+        self.irsb_c.imark(self.addr-1, self.bytewidth, 1)
 
 
 
