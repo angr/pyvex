@@ -20,7 +20,7 @@ class ARMInstruction(Instruction):
         """
         ARM Instructions are pretty dense, so let's do what we can to weed them out
         """
-        if data['c'] == '1111':
+        if 'c' not in data or data['c'] == '1111':
             raise ParseError("Invalid ARM Instruction")
 
     def get_N(self):
@@ -231,8 +231,32 @@ class Instruction_CDP(Instruction):
         l.debug("Ignoring CDP instruction at %#x.", self.addr)
 
 
+##
+## Thumb! (ugh)
+##
+
+class ThumbInstruction(Instruction):
+    pass
+
+
+class Instruction_tCPSID(ThumbInstruction):
+    name = 'CPSID'
+    bin_format = '101101x0011x0010'
+    def compute_result(self):
+        # TODO haha lol yeah right
+        l.debug("[thumb] Ignoring CPS instruction at %#x.", self.addr)
+
+class Instruction_tMSR(ThumbInstruction):
+    name = 'MSR'
+    bin_format = '10x0mmmmxxxxxxxx11110011100Rrrrr'
+
+    def compute_result(self):
+        # TODO haha lol yeah right
+        l.debug("[thumb] Ignoring MSR instruction at %#x.", self.addr)
+
+
 class ARMSpotter(GymratLifter):
-    instrs = [
+    arm_instrs = [
         Instruction_MRC,
         Instruction_MCR,
         Instruction_MSR,
@@ -243,7 +267,17 @@ class ARMSpotter(GymratLifter):
         Instruction_LDC,
         Instruction_CDP
     ]
+    thumb_instrs = [Instruction_tCPSID,
+                    Instruction_tMSR]
+    instrs = None
 
+    def lift(self, disassemble=False, dump_irsb=False):
+        if self.irsb._addr & 1:
+            # Thumb!
+            self.instrs = self.thumb_instrs
+        else:
+            self.instrs = self.arm_instrs
+        super(ARMSpotter, self).lift(disassemble, dump_irsb)
 
 register(ARMSpotter, "ARM")
 register(ARMSpotter, "ARMEL")
