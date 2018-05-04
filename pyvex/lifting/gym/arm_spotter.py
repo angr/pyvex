@@ -245,6 +245,7 @@ class ThumbInstruction(Instruction):
 class Instruction_tCPSID(ThumbInstruction):
     name = 'CPSID'
     bin_format = '101101x0011x0010'
+
     def compute_result(self):
         # TODO haha lol yeah right
         l.debug("[thumb] Ignoring CPS instruction at %#x.", self.addr)
@@ -258,6 +259,15 @@ class Instruction_tMSR(ThumbInstruction):
         l.debug("[thumb] Ignoring MSR instruction at %#x.", self.addr)
 
 
+class Instruction_WFI(ThumbInstruction):
+    name = "WFI"
+    bin_format = "10111111001a0000"
+                 #1011111100110000
+
+    def compute_result(self):
+        l.debug("[thumb] Ignoring WFI instruction at %#x.", self.addr)
+
+
 class ARMSpotter(GymratLifter):
     arm_instrs = [
         Instruction_MRC,
@@ -268,10 +278,12 @@ class ARMSpotter(GymratLifter):
         # Instruction_LDM,
         Instruction_STC,
         Instruction_LDC,
-        Instruction_CDP
+        Instruction_CDP,
     ]
     thumb_instrs = [Instruction_tCPSID,
-                    Instruction_tMSR]
+                    Instruction_tMSR,
+                    Instruction_WFI,
+                    ]
     instrs = None
 
     def lift(self, disassemble=False, dump_irsb=False):
