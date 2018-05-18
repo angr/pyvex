@@ -43,12 +43,13 @@ class ZeroDivisionPostProcessor(Postprocessor):
             if s.tag == 'Ist_IMark':
                 last_ip = s.addr
             if s.tag == 'Ist_WrTmp' and s.data.tag == 'Iex_Binop' and ('Div' in s.data.op or 'Mod' in s.data.op):
+                arg_size = s.data.args[1].result_size(self.irsb.tyenv)
                 cmp_args = [
                     s.data.args[1],
-                    expr.Const(const.vex_int_class(s.data.args[1].result_size(self.irsb.tyenv))(0))
+                    expr.Const(const.vex_int_class(arg_size)(0))
                 ]
                 cmp_tmp = self.irsb.tyenv.add("Ity_I1")
-                insertions.append((i, stmt.WrTmp(cmp_tmp, expr.Binop('Iop_CmpEQ', cmp_args))))
+                insertions.append((i, stmt.WrTmp(cmp_tmp, expr.Binop('Iop_CmpEQ%d' % arg_size, cmp_args))))
                 insertions.append((i, stmt.Exit(
                     expr.RdTmp(cmp_tmp),
                     const.vex_int_class(self.irsb.arch.bits)(last_ip),
