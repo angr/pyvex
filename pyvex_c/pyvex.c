@@ -119,15 +119,6 @@ void vex_init() {
 	LibVEX_default_VexArchInfo(&vai_host);
 	LibVEX_default_VexAbiInfo(&vbi);
 
-	vc.iropt_verbosity              = 0;
-	vc.iropt_level                  = 0;    // No optimization by default
-	//vc.iropt_precise_memory_exns    = False;
-	vc.iropt_unroll_thresh          = 0;
-	vc.guest_max_insns              = 1;    // By default, we vex 1 instruction at a time
-	vc.guest_chase_thresh           = 0;
-	vc.arm64_allow_reordered_writeback = 0;
-	vc.x86_optimize_callpop_idiom = 0;
-
 	pyvex_debug("Calling LibVEX_Init()....\n");
 	// the 0 is the debug level
 	LibVEX_Init(&failure_exit, &log_bytes, 0, &vc);
@@ -289,7 +280,8 @@ IRSB *vex_lift(
 		unsigned int max_bytes,
 		int opt_level,
 		int traceflags,
-		int allow_lookback) {
+		int allow_lookback,
+		int strict_block_end) {
 	VexRegisterUpdates pxControl;
 
 	vex_prepare_vai(guest, &archinfo);
@@ -310,6 +302,7 @@ IRSB *vex_lift(
 	vc.guest_max_insns     = max_insns;
 	vc.iropt_level         = opt_level;
 	vc.arm_allow_optimizing_lookback = allow_lookback;
+        vc.arm_strict_block_end = strict_block_end;
 
 	clear_log();
 

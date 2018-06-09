@@ -6,16 +6,17 @@ class Lifter(object):
     """
     A lifter is a class of methods for processing a block.
 
-    :ivar data:            The bytes to lift as either a python string of bytes or a cffi buffer object.
-    :ivar bytes_offset:    The offset into `data` to start lifting at.
-    :ivar max_bytes:       The maximum number of bytes to lift. If set to None, no byte limit is used.
-    :ivar max_inst:        The maximum number of instructions to lift. If set to None, no instruction limit is used.
-    :ivar opt_level:       The level of optimization to apply to the IR, 0-2. Most likely will be ignored in any lifter
-                           other then LibVEX.
-    :ivar traceflags:      The libVEX traceflags, controlling VEX debug prints. Most likely will be ignored in any lifter
-                           other than LibVEX.
-    :ivar allow_lookback:  Should the LibVEX arm-thumb lifter be allowed to look before the current instruction pointer.
-                           Most likely will be ignored in any lifter other than LibVEX.
+    :ivar data:             The bytes to lift as either a python string of bytes or a cffi buffer object.
+    :ivar bytes_offset:     The offset into `data` to start lifting at.
+    :ivar max_bytes:        The maximum number of bytes to lift. If set to None, no byte limit is used.
+    :ivar max_inst:         The maximum number of instructions to lift. If set to None, no instruction limit is used.
+    :ivar opt_level:        The level of optimization to apply to the IR, 0-2. Most likely will be ignored in any lifter
+                            other then LibVEX.
+    :ivar traceflags:       The libVEX traceflags, controlling VEX debug prints. Most likely will be ignored in any lifter
+                            other than LibVEX.
+    :ivar allow_lookback:   Should the LibVEX arm-thumb lifter be allowed to look before the current instruction pointer.
+                            Most likely will be ignored in any lifter other than LibVEX.
+    :ivar strict_block_end: Should the LibVEX arm-thumb split block at some instructions, for example CB{N}Z.
     """
     REQUIRE_DATA_C = False
     REQUIRE_DATA_PY = False
@@ -31,20 +32,22 @@ class Lifter(object):
              max_inst=None,
              opt_level=1,
              traceflags=None,
-             allow_lookback=None):
+             allow_lookback=None,
+             strict_block_end=None):
         """
         Wrapper around the `lift` method on Lifters. Should not be overridden in child classes.
 
-        :param data:            The bytes to lift as either a python string of bytes or a cffi buffer object.
-        :param bytes_offset:    The offset into `data` to start lifting at.
-        :param max_bytes:       The maximum number of bytes to lift. If set to None, no byte limit is used.
-        :param max_inst:        The maximum number of instructions to lift. If set to None, no instruction limit is used.
-        :param opt_level:       The level of optimization to apply to the IR, 0-2. Most likely will be ignored in any lifter
-                                other then LibVEX.
-        :param traceflags:      The libVEX traceflags, controlling VEX debug prints. Most likely will be ignored in any
-                                lifter other than LibVEX.
-        :param allow_lookback:  Should the LibVEX arm-thumb lifter be allowed to look before the current instruction pointer.
-                                Most likely will be ignored in any lifter other than LibVEX.
+        :param data:                The bytes to lift as either a python string of bytes or a cffi buffer object.
+        :param bytes_offset:        The offset into `data` to start lifting at.
+        :param max_bytes:           The maximum number of bytes to lift. If set to None, no byte limit is used.
+        :param max_inst:            The maximum number of instructions to lift. If set to None, no instruction limit is used.
+        :param opt_level:           The level of optimization to apply to the IR, 0-2. Most likely will be ignored in any lifter
+                                    other then LibVEX.
+        :param traceflags:          The libVEX traceflags, controlling VEX debug prints. Most likely will be ignored in any
+                                    lifter other than LibVEX.
+        :param allow_lookback:      Should the LibVEX arm-thumb lifter be allowed to look before the current instruction pointer.
+                                    Most likely will be ignored in any lifter other than LibVEX.
+        :param strict_block_end:    Should the LibVEX arm-thumb split block at some instructions, for example CB{N}Z.
         """
         irsb = IRSB.empty_block(self.arch, self.addr)
         self.data = data
@@ -52,6 +55,7 @@ class Lifter(object):
         self.opt_level = opt_level
         self.traceflags = traceflags
         self.allow_lookback = allow_lookback
+        self.strict_block_end = strict_block_end
         self.max_inst = max_inst
         self.max_bytes = max_bytes
         self.irsb = irsb
