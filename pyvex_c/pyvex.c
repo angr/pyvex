@@ -119,6 +119,16 @@ void vex_init() {
 	LibVEX_default_VexArchInfo(&vai_host);
 	LibVEX_default_VexAbiInfo(&vbi);
 
+	vc.iropt_verbosity              = 0;
+	vc.iropt_level                  = 0;    // No optimization by default
+	//vc.iropt_precise_memory_exns    = False;
+	vc.iropt_unroll_thresh          = 0;
+	vc.guest_max_insns              = 1;    // By default, we vex 1 instruction at a time
+	vc.guest_chase_thresh           = 0;
+	vc.arm64_allow_reordered_writeback = 0;
+	vc.x86_optimize_callpop_idiom = 0;
+	vc.arm_strict_block_end = 0;
+
 	pyvex_debug("Calling LibVEX_Init()....\n");
 	// the 0 is the debug level
 	LibVEX_Init(&failure_exit, &log_bytes, 0, &vc);
@@ -211,8 +221,8 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai) {
 			break;
 		case VexArchARM:
 			vai->hwcaps = VEX_ARM_ARCHLEVEL(7) |
-                                      		VEX_HWCAPS_ARM_NEON |
-                                      		VEX_HWCAPS_ARM_VFP3;
+							VEX_HWCAPS_ARM_NEON |
+							VEX_HWCAPS_ARM_VFP3;
 			break;
 		case VexArchARM64:
 			vai->hwcaps = 0;
@@ -302,13 +312,13 @@ IRSB *vex_lift(
 	vc.guest_max_insns     = max_insns;
 	vc.iropt_level         = opt_level;
 	vc.arm_allow_optimizing_lookback = allow_lookback;
-        vc.arm_strict_block_end = strict_block_end;
+	vc.arm_strict_block_end = strict_block_end;
 
 	clear_log();
 
 	// Do the actual translation
 	if (setjmp(jumpout) == 0) {
-        LibVEX_Update_Control(&vc);
+		LibVEX_Update_Control(&vc);
 		return LibVEX_Lift(&vta, &vtr, &pxControl);
 	} else {
 		return NULL;
