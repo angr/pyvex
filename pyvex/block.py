@@ -37,7 +37,7 @@ class IRSB(VEXObject):
     __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next', '_size', '_instructions']
 
     def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None,
-                 bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None, strict_block_end=True):
+                 bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None, strict_block_end=False):
         """
         :param data:                The bytes to lift. Can be either a string of bytes or a cffi buffer object.
                                     You may also pass None to initialize an empty IRSB.
