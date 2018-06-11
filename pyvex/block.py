@@ -52,7 +52,7 @@ class IRSB(VEXObject):
         :param bytes_offset:        The offset into `data` to start lifting at.
         :param traceflags:          The libVEX traceflags, controlling VEX debug prints.
         :param opt_level:           The level of optimization to apply to the IR, 0-2. 2 is highest, 0 is no optimization.
-        :param strict_block_end:    The level of optimization to apply to the IR, 0-2. 2 is highest, 0 is no optimization.
+        :param strict_block_end:    Should the LibVEX arm-thumb split block at some instructions, for example CB{N}Z.
 
         .. note:: Explicitly specifying the number of instructions to lift (`max_inst`) may not always work
                   exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
