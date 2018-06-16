@@ -123,7 +123,22 @@ def doit(vex_path):
     good = find_good_scan(ffi_lines)
     good += ['extern VexControl vex_control;']
 
-    open('pyvex/vex_ffi.py', 'w').write('ffi_str = """' + '\n'.join(good) + '"""')
+    with open('pyvex/vex_ffi.py', 'w') as fp:
+        fp.write('ffi_str = """' + '\n'.join(good) + '"""\n')
+        fp.write('guest_offsets = ' + repr(get_guest_offsets(vex_path)) + '\n')
+
+def get_guest_offsets(vex_path):
+    fname = os.path.join(vex_path, 'libvex_guest_offsets.h')
+    out = {}
+    with open(fname) as fp:
+        for line in fp:
+            if line.startswith('#define'):
+                _, names, val = line.split()
+                val = int(val, 0)
+                assert names.startswith('OFFSET_')
+                _, arch, reg = names.split('_', 2)
+                out[(arch, reg.lower())] = val
+    return out
 
 if __name__ == '__main__':
     import sys
