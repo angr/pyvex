@@ -14,7 +14,7 @@ class LiftingException(Exception):
     pass
 
 
-def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt_level=1, traceflags=False):
+def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt_level=1, traceflags=False, strict_block_end=True):
     """
     Recursively lifts blocks using the registered lifters and postprocessors. Tries each lifter in the order in
     which they are registered on the data to lift.
@@ -79,7 +79,7 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
                     u_data = ffi.buffer(c_data, max_bytes)[:]
                 else:
                     u_data = py_data
-            next_irsb_part = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags, allow_lookback)
+            next_irsb_part = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags, allow_lookback, strict_block_end)
             #l.debug('block lifted by %s' % str(lifter))
             #l.debug(str(next_irsb_part))
             final_irsb.extend(next_irsb_part)
@@ -138,4 +138,5 @@ from .lifter import Lifter
 from .post_processor import Postprocessor
 from .libvex import LibVEXLifter
 from .fixes import FixesPostProcessor
+from .zerodivision import ZeroDivisionPostProcessor
 from ..block import IRSB

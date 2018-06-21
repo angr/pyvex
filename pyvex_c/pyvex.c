@@ -127,6 +127,7 @@ void vex_init() {
 	vc.guest_chase_thresh           = 0;
 	vc.arm64_allow_reordered_writeback = 0;
 	vc.x86_optimize_callpop_idiom = 0;
+	vc.arm_strict_block_end = 0;
 
 	pyvex_debug("Calling LibVEX_Init()....\n");
 	// the 0 is the debug level
@@ -220,8 +221,8 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai) {
 			break;
 		case VexArchARM:
 			vai->hwcaps = VEX_ARM_ARCHLEVEL(7) |
-                                      		VEX_HWCAPS_ARM_NEON |
-                                      		VEX_HWCAPS_ARM_VFP3;
+							VEX_HWCAPS_ARM_NEON |
+							VEX_HWCAPS_ARM_VFP3;
 			break;
 		case VexArchARM64:
 			vai->hwcaps = 0;
@@ -289,7 +290,8 @@ IRSB *vex_lift(
 		unsigned int max_bytes,
 		int opt_level,
 		int traceflags,
-		int allow_lookback) {
+		int allow_lookback,
+		int strict_block_end) {
 	VexRegisterUpdates pxControl;
 
 	vex_prepare_vai(guest, &archinfo);
@@ -310,12 +312,13 @@ IRSB *vex_lift(
 	vc.guest_max_insns     = max_insns;
 	vc.iropt_level         = opt_level;
 	vc.arm_allow_optimizing_lookback = allow_lookback;
+	vc.arm_strict_block_end = strict_block_end;
 
 	clear_log();
 
 	// Do the actual translation
 	if (setjmp(jumpout) == 0) {
-        LibVEX_Update_Control(&vc);
+		LibVEX_Update_Control(&vc);
 		return LibVEX_Lift(&vta, &vtr, &pxControl);
 	} else {
 		return NULL;

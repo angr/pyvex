@@ -28,6 +28,7 @@ IRSB *vex_lift(
 		unsigned int max_bytes,
 		int opt_level,
 		int traceflags,
-		int allow_lookback);
+		int allow_lookback,
+		int strict_block_end);
 
 #endif

@@ -50,7 +50,7 @@ class IRExpr(VEXObject):
         return get_type_size(self.result_type(tyenv))
 
     def result_type(self, tyenv):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @staticmethod
     def _from_c(c_expr):

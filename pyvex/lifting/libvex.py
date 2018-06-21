@@ -45,6 +45,9 @@ class LibVEXLifter(Lifter):
             else:
                 max_inst = self.max_inst
 
+            if self.strict_block_end is None:
+                strict_block_end = True
+
             self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
             c_irsb = pvc.vex_lift(vex_arch,
                                   self.irsb.arch.vex_archinfo,
@@ -54,7 +57,8 @@ class LibVEXLifter(Lifter):
                                   max_bytes,
                                   self.opt_level,
                                   self.traceflags,
-                                  self.allow_lookback)
+                                  self.allow_lookback,
+                                  self.strict_block_end)
             log_str = self.get_vex_log()
             if c_irsb == ffi.NULL:
                 raise LiftingException("libvex: unkown error" if log_str is None else log_str)

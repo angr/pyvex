@@ -36,21 +36,23 @@ class IRSB(VEXObject):
 
     __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next', '_size', '_instructions']
 
-    def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None, bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None):
+    def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None,
+                 bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None, strict_block_end=False):
         """
-        :param data:            The bytes to lift. Can be either a string of bytes or a cffi buffer object.
-                                You may also pass None to initialize an empty IRSB.
-        :type data:             str or bytes or cffi.FFI.CData or None
-        :param int mem_addr:    The address to lift the data at.
-        :param arch:            The architecture to lift the data as.
-        :type arch:             :class:`archinfo.Arch`
-        :param max_inst:        The maximum number of instructions to lift. (See note below)
-        :param max_bytes:       The maximum number of bytes to use.
-        :param num_inst:        Replaces max_inst if max_inst is None. If set to None as well, no instruction limit is used.
-        :param num_bytes:       Replaces max_bytes if max_bytes is None. If set to None as well, no  byte limit is used.
-        :param bytes_offset:    The offset into `data` to start lifting at.
-        :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
-        :param opt_level:       The level of optimization to apply to the IR, 0-2. 2 is highest, 0 is no optimization.
+        :param data:                The bytes to lift. Can be either a string of bytes or a cffi buffer object.
+                                    You may also pass None to initialize an empty IRSB.
+        :type data:                 str or bytes or cffi.FFI.CData or None
+        :param int mem_addr:        The address to lift the data at.
+        :param arch:                The architecture to lift the data as.
+        :type arch:                 :class:`archinfo.Arch`
+        :param max_inst:            The maximum number of instructions to lift. (See note below)
+        :param max_bytes:           The maximum number of bytes to use.
+        :param num_inst:            Replaces max_inst if max_inst is None. If set to None as well, no instruction limit is used.
+        :param num_bytes:           Replaces max_bytes if max_bytes is None. If set to None as well, no  byte limit is used.
+        :param bytes_offset:        The offset into `data` to start lifting at.
+        :param traceflags:          The libVEX traceflags, controlling VEX debug prints.
+        :param opt_level:           The level of optimization to apply to the IR, 0-2. 2 is highest, 0 is no optimization.
+        :param strict_block_end:    Should the LibVEX arm-thumb split block at some instructions, for example CB{N}Z.
 
         .. note:: Explicitly specifying the number of instructions to lift (`max_inst`) may not always work
                   exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
@@ -77,7 +79,7 @@ class IRSB(VEXObject):
         self._instructions = None
 
         if data is not None:
-            lift(self, arch, mem_addr, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
+            lift(self, arch, mem_addr, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags, strict_block_end)
 
     @staticmethod
     def empty_block(arch, addr, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
