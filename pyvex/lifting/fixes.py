@@ -31,35 +31,70 @@ class FixesPostProcessor(Postprocessor):
             #   t2 = ITE(cond, t0, t1)
             #   PUT(lr) = t2
 
-            pc_holders = {}
-            lr_store_pc = False
+            # We also handle another case
+            # If [BP-4] is moved to PC, then this should be an Ijk_Ret
+            #
+            # Example:
+            # [ bytes: e91ba810, ARMBE ]
+            # ldmdb   fp, {r4, fp, sp, pc}
+            #
+            # VEX:
+            #    00 | ------ IMark(0x35ce68, 4, 0) ------
+            #    01 | t0 = GET:I32(bp)
+            #    02 | t3 = Sub32(t0,0x00000004)
+            #    03 | t2 = LDbe:I32(t3)
+            #    04 | PUT(ip) = t2
+            #    05 | t5 = Sub32(t0,0x00000008)
+            #    06 | t4 = LDbe:I32(t5)
+            #    07 | PUT(r13) = t4
+            #    08 | t7 = Sub32(t0,0x00000010)
+            #    09 | t6 = LDbe:I32(t7)
+            #    10 | PUT(v1) = t6
+            #    11 | t9 = Sub32(t0,0x0000000c)
+            #    12 | t8 = LDbe:I32(t9)
+            #    13 | PUT(bp) = t8
+            #    NEXT: PUT(pc) = t2; Ijk_Boring
+
+            # Emulated CPU context
+            tmps = {}
+            regs = {
+                self.irsb.arch.registers['bp'][0]: 0xf000,  # r11 is bp. 0xf000 is the virtual stack base
+            }
+            mem = {
+                0xf000 - 4: 'stored_pc',
+            }
+
+            lr_store_pc, pc_from_bp_sub_4 = False, False
             inst_ctr = 0
             next_irsb_addr = self.irsb.statements[0].addr + self.irsb.size
+            _lr_offset, _pc_offset = self.irsb.arch.registers['lr'][0], self.irsb.arch.registers['ip'][0]
+
             for stt in self.irsb.statements:
                 if type(stt) == stmt.Put:
-                    # LR is modified just before the last instruction of the
-                    # block...
-                    if stt.offset == self.irsb.arch.registers['lr'][0] \
-                       and inst_ctr == self.irsb.instructions - 1:
-                        # ... by a constant, so test whether it is the address
-                        # of the next IRSB
+                    # LR is modified just before the last instruction of the block...
+                    if stt.offset == _lr_offset and inst_ctr == self.irsb.instructions - 1:
+                        # ... by a constant, so test whether it is the address of the next IRSB
                         if type(stt.data) == expr.Const:
                             if stt.data.con.value == next_irsb_addr:
                                 lr_store_pc = True
-                        # ... by a temporary variable, so test whether it holds
-                        # the address of the next IRSB
+                        # ... by a temporary variable, so test whether it holds the address of the next IRSB
                         elif type(stt.data) == expr.RdTmp:
-                            if next_irsb_addr == pc_holders.get(stt.data.tmp):
+                            if next_irsb_addr == tmps.get(stt.data.tmp):
                                 lr_store_pc = True
                         break
+                    elif stt.offset == _pc_offset:
+                        if type(stt.data) == expr.RdTmp:
+                            if stt.data.tmp in tmps and tmps[stt.data.tmp] == 'stored_pc':
+                                pc_from_bp_sub_4 = True
+                                break
                     else:
-                        reg_name = self.irsb.arch.translate_register_name(stt.offset)
+                        reg_offset = stt.offset
                         if type(stt.data) == expr.Const:
-                            pc_holders[reg_name] = stt.data.con.value
-                        elif type(stt.data) == expr.RdTmp and pc_holders.get(stt.data.tmp) is not None:
-                            pc_holders[reg_name] = pc_holders[stt.data.tmp]
-                        elif type(stt.data) == expr.Get and pc_holders.get(stt.data.offset) is not None:
-                            pc_holders[reg_name] = pc_holders[stt.data.offset]
+                            regs[reg_offset] = stt.data.con.value
+                        elif type(stt.data) == expr.RdTmp and tmps.get(stt.data.tmp) is not None:
+                            regs[reg_offset] = tmps[stt.data.tmp]
+                        elif type(stt.data) == expr.Get and regs.get(stt.data.offset) is not None:
+                            regs[reg_offset] = regs[stt.data.offset]
                 elif type(stt) == stmt.WrTmp:
                     # the PC value may propagate through the block, and since
                     # LR is modified at the end of the block, the PC value have
@@ -72,43 +107,54 @@ class FixesPostProcessor(Postprocessor):
                     #   may be some tricky and twisted ways to increment PC)
                     if type(stt.data) in (expr.Unop, expr.Binop, expr.Triop, expr.Qop):
                         if all(type(a) == expr.Const
-                               or (type(a) == expr.RdTmp and pc_holders.get(a.tmp) is not None)
+                               or (type(a) == expr.RdTmp and tmps.get(a.tmp) is not None)
                                     for a in stt.data.args):
                             op = stt.data.op
-                            vals = [a.con.value if type(a) == expr.Const else pc_holders[a.tmp] \
+                            vals = [a.con.value if type(a) == expr.Const else tmps[a.tmp] \
                                     for a in stt.data.args]
                             if 'Iop_Add' in op:
-                                pc_holders[stt.tmp] = sum(vals)
+                                tmps[stt.tmp] = sum(vals)
+                            elif 'Iop_Sub' in op:
+                                tmps[stt.tmp] = reduce(lambda a, b: a - b, vals)
                             elif 'Iop_And' in op:
-                                pc_holders[stt.tmp] = reduce(lambda a, b: a & b, vals)
+                                tmps[stt.tmp] = reduce(lambda a, b: a & b, vals)
                             elif 'Iop_Or' in op:
-                                pc_holders[stt.tmp] = reduce(lambda a, b: a | b, vals)
+                                tmps[stt.tmp] = reduce(lambda a, b: a | b, vals)
                             elif 'Iop_Xor' in op:
-                                pc_holders[stt.tmp] = reduce(lambda a, b: a ^ b, vals)
+                                tmps[stt.tmp] = reduce(lambda a, b: a ^ b, vals)
                             elif 'Iop_Shl' in op:
-                                pc_holders[stt.tmp] = vals[0] << vals[1]
+                                tmps[stt.tmp] = vals[0] << vals[1]
                             elif any(o in op for o in ('Iop_Shr', 'Iop_Sar')):
-                                pc_holders[stt.tmp] = vals[0] >> vals[1]
+                                tmps[stt.tmp] = vals[0] >> vals[1]
                     elif type(stt.data) == expr.Get:
-                        reg_name = self.irsb.arch.translate_register_name(stt.data.offset)
-                        if pc_holders.get(reg_name) is not None:
-                            pc_holders[stt.tmp] = pc_holders[reg_name]
+                        reg_offset = stt.data.offset
+                        if regs.get(reg_offset) is not None:
+                            tmps[stt.tmp] = regs[reg_offset]
                     elif type(stt.data) == expr.ITE:
                         for d in (stt.data.iffalse, stt.data.iftrue):
                             if type(d) == expr.Const:
-                                pc_holders[stt.tmp] = d.con.value
-                            elif type(d) == expr.RdTmp and pc_holders.get(d.tmp) is not None:
-                                pc_holders[stt.tmp] = pc_holders[d.tmp]
-                    elif type(stt.data) == expr.RdTmp and pc_holders.get(stt.data.tmp) is not None:
-                        pc_holders[stt.tmp] = pc_holders[stt.data.tmp]
+                                tmps[stt.tmp] = d.con.value
+                            elif type(d) == expr.RdTmp and tmps.get(d.tmp) is not None:
+                                tmps[stt.tmp] = tmps[d.tmp]
+                    elif type(stt.data) == expr.RdTmp and tmps.get(stt.data.tmp) is not None:
+                        tmps[stt.tmp] = tmps[stt.data.tmp]
                     elif type(stt.data) == expr.Const:
-                        pc_holders[stt.tmp] = stt.data.con.value
+                        tmps[stt.tmp] = stt.data.con.value
+                    elif type(stt.data) == expr.Load:
+                        if type(stt.data.addr) is expr.RdTmp:
+                            # the address is coming from a tmp
+                            if stt.data.addr.tmp in tmps:
+                                addr = tmps[stt.data.addr.tmp]
+                                if addr in mem:
+                                    tmps[stt.tmp] = mem[addr]
 
                 elif type(stt) == stmt.IMark:
                     inst_ctr += 1
 
             if lr_store_pc:
                 self.irsb.jumpkind = 'Ijk_Call'
+            elif pc_from_bp_sub_4:
+                self.irsb.jumpkind = 'Ijk_Ret'
 
     _post_process_ARMEL = _post_process_ARM
     _post_process_ARMHF = _post_process_ARM
