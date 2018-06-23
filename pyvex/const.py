@@ -46,7 +46,10 @@ class IRConst(VEXObject):
         except KeyError:
             raise PyVEXError('Unknown/unsupported IRConstTag %s]n' % const.tag)
 
+
 class U1(IRConst):
+    __slots__ = [ ]
+
     type = 'Ity_I1'
     tag = 'Ico_U1'
     op_format = '1'
@@ -62,7 +65,10 @@ class U1(IRConst):
     def _from_c(c_const):
         return U1(c_const.Ico.U1)
 
+
 class U8(IRConst):
+    __slots__ = [ ]
+
     type = 'Ity_I8'
     tag = 'Ico_U8'
     op_format = '8'
@@ -78,7 +84,10 @@ class U8(IRConst):
     def _from_c(c_const):
         return U8(c_const.Ico.U8)
 
+
 class U16(IRConst):
+    __slots__ = [ ]
+
     type = 'Ity_I16'
     tag = 'Ico_U16'
     op_format = '16'
@@ -94,7 +103,10 @@ class U16(IRConst):
     def _from_c(c_const):
         return U16(c_const.Ico.U16)
 
+
 class U32(IRConst):
+    __slots__ = [ ]
+
     type = 'Ity_I32'
     tag = 'Ico_U32'
     op_format = '32'
@@ -110,7 +122,10 @@ class U32(IRConst):
     def _from_c(c_const):
         return U32(c_const.Ico.U32)
 
+
 class U64(IRConst):
+    __slots__ = [ ]
+
     type = 'Ity_I64'
     tag = 'Ico_U64'
     op_format = '64'
@@ -126,8 +141,10 @@ class U64(IRConst):
     def _from_c(c_const):
         return U64(c_const.Ico.U64)
 
+
 # Integer Type Imagination
 class_cache = { 1 : U1, 8 : U8, 16 : U16, 32 : U32, 64 : U64 }
+
 
 def vex_int_class(size):
     try:
@@ -148,7 +165,10 @@ def vex_int_class(size):
         class_cache[size] = VexInt
         return VexInt
 
+
 class F32(IRConst):
+    __slots__ = [ ]
+
     type = 'Ity_F32'
     tag = 'Ico_F32'
     op_format = 'F32'
@@ -164,7 +184,10 @@ class F32(IRConst):
     def _from_c(c_const):
         return F32(c_const.Ico.F32)
 
+
 class F32i(IRConst):
+    __slots__ = [ ]
+
     type = 'Ity_F32'
     tag = 'Ico_F32i'
     op_format = 'F32'
@@ -180,7 +203,10 @@ class F32i(IRConst):
     def _from_c(c_const):
         return F32i(c_const.Ico.F32)
 
+
 class F64(IRConst):
+    __slots__ = [ ]
+
     type = 'Ity_F64'
     tag = 'Ico_F64'
     op_format = 'F64'
@@ -196,7 +222,10 @@ class F64(IRConst):
     def _from_c(c_const):
         return F64(c_const.Ico.F64)
 
+
 class F64i(IRConst):
+    __slots__ = [ ]
+
     type = 'Ity_F64'
     tag = 'Ico_F64i'
     op_format = 'F64'
@@ -212,7 +241,10 @@ class F64i(IRConst):
     def _from_c(c_const):
         return F64i(c_const.Ico.F64)
 
+
 class V128(IRConst):
+    __slots__ = [ ]
+
     type = 'Ity_V128'
     tag = 'Ico_V128'
     op_format = 'V128'
@@ -235,7 +267,10 @@ class V128(IRConst):
                 real_const |= 0xff << (8 * i)
         return V128(real_const)
 
+
 class V256(IRConst):
+    __slots__ = [ ]
+
     type = 'Ity_V256'
     tag = 'Ico_V256'
     op_format = 'V256'
@@ -257,6 +292,7 @@ class V256(IRConst):
                 real_const |= 0xff << (8 * i)
         return V256(real_const)
 
+
 predefined_types = [ U1, U8, U16, U32, U64, F32, F32i, F64, F64i, V128, V256 ]
 predefined_types_map = { c.type : c for c in predefined_types }
 predefined_classes_map = { c.tag : c for c in predefined_types }
@@ -271,9 +307,11 @@ def is_int_ty(ty):
     m = int_ty_re.match(ty)
     return m is not None
 
+
 def is_int_tag(tag):
     m = int_tag_re.match(tag)
     return m is not None
+
 
 def get_tag_size(tag):
     m = tag_size_re.match(tag)
@@ -284,6 +322,7 @@ def get_tag_size(tag):
 
 type_str_re = re.compile(r'Ity_[IFDV](?P<size>\d+)')
 type_tag_str_re = re.compile(r'[IFDV]?(?P<size>\d+)[SU]?')
+
 
 def get_type_size(ty):
     """

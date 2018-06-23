@@ -14,6 +14,8 @@ class IRExpr(VEXObject):
     IR expressions in VEX represent operations without side effects.
     """
 
+    __slots__ = [ ]
+
     tag = None
 
     def pp(self):
@@ -100,9 +102,12 @@ class Binder(IRExpr):
     def result_type(self, tyenv):
         return 'Ity_INVALID'
 
+
 class VECRET(IRExpr):
 
     tag = 'Iex_VECRET'
+
+    __slots__ = [ ]
 
     def __str__(self):
         return "VECRET"
@@ -120,6 +125,8 @@ class VECRET(IRExpr):
 
 
 class GSPTR(IRExpr):
+
+    __slots__ = [ ]
 
     tag = 'Iex_GSPTR'
 
@@ -307,6 +314,7 @@ class Qop(IRExpr):
             return None
 
         return resty
+
 
 class Triop(IRExpr):
     """
@@ -606,6 +614,7 @@ class ITE(IRExpr):
             return None
 
         return falsety
+
 
 class CCall(IRExpr):
     """
