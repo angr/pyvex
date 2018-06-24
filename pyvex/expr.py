@@ -192,15 +192,19 @@ class RdTmp(IRExpr):
     Read the value held by a temporary.
     """
 
-    __slots__ = ['tmp']
+    __slots__ = ['_tmp']
 
     tag = 'Iex_RdTmp'
 
     def __init__(self, tmp):
-        self.tmp = tmp
+        self._tmp = tmp
 
     def __str__(self):
         return "t%d" % self.tmp
+
+    @property
+    def tmp(self):
+        return self._tmp
 
     @staticmethod
     def _from_c(c_expr):
@@ -553,15 +557,19 @@ class Const(IRExpr):
     A constant expression.
     """
 
-    __slots__ = ['con']
+    __slots__ = ['_con']
 
     tag = 'Iex_Const'
 
     def __init__(self, con):
-        self.con = con
+        self._con = con
 
     def __str__(self):
         return str(self.con)
+
+    @property
+    def con(self):
+        return self._con
 
     @staticmethod
     def _from_c(c_expr):
