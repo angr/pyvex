@@ -82,7 +82,12 @@ class U8(IRConst):
 
     @staticmethod
     def _from_c(c_const):
-        return U8(c_const.Ico.U8)
+        global _U8_POOL
+
+        return _U8_POOL[c_const.Ico.U8]
+
+
+_U8_POOL = [ U8(i) for i in range(256) ]
 
 
 class U16(IRConst):
@@ -101,7 +106,15 @@ class U16(IRConst):
 
     @staticmethod
     def _from_c(c_const):
-        return U16(c_const.Ico.U16)
+        global _U16_POOL
+
+        val = c_const.Ico.U16
+        if val < 1024:
+            return _U16_POOL[val]
+        return U16(val)
+
+
+_U16_POOL = [ U16(i) for i in range(1024) ]
 
 
 class U32(IRConst):
@@ -120,7 +133,15 @@ class U32(IRConst):
 
     @staticmethod
     def _from_c(c_const):
-        return U32(c_const.Ico.U32)
+        global _U32_POOL
+
+        val = c_const.Ico.U32
+        if val < 1024:
+            return _U32_POOL[val]
+        return U32(val)
+
+
+_U32_POOL = [ U32(i) for i in range(1024) ]
 
 
 class U64(IRConst):
@@ -139,8 +160,15 @@ class U64(IRConst):
 
     @staticmethod
     def _from_c(c_const):
-        return U64(c_const.Ico.U64)
+        global _U64_POOL
 
+        val = c_const.Ico.U64
+        if val < 1024:
+            return _U64_POOL[val]
+        return U64(val)
+
+
+_U64_POOL = [ U64(i) for i in range(1024) ]
 
 # Integer Type Imagination
 class_cache = { 1 : U1, 8 : U8, 16 : U16, 32 : U32, 64 : U64 }

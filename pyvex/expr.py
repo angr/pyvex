@@ -4,7 +4,7 @@ import logging
 
 from . import VEXObject
 from .enums import IRCallee, IRRegArray, get_int_from_enum, get_enum_from_int
-from .const import get_type_size
+from .const import get_type_size, U8, U16, U32, U64
 
 l = logging.getLogger("pyvex.expr")
 
@@ -565,7 +565,13 @@ class Const(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return Const(IRConst._from_c(c_expr.Iex.Const.con))
+        global _CONST_POOL
+
+        con = IRConst._from_c(c_expr.Iex.Const.con)
+        if con.value < 1024 and con.__class__ in _CONST_POOL:
+            return _CONST_POOL[con.__class__][con.value]
+
+        return Const(con)
 
     @staticmethod
     def _to_c(expr):
@@ -573,6 +579,14 @@ class Const(IRExpr):
 
     def result_type(self, tyenv):
         return self.con.type
+
+
+_CONST_POOL = {
+    U8: [Const(U8(i)) for i in range(0, 1024)],
+    U16: [Const(U16(i)) for i in range(0, 1024)],
+    U32: [Const(U32(i)) for i in range(0, 1024)],
+    U64: [Const(U64(i)) for i in range(0, 1024)],
+}
 
 
 class ITE(IRExpr):
