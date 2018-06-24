@@ -126,7 +126,8 @@ class IRSB(VEXObject):
             :vartype expr:    :class:`IRExpr`
             """
             if type(expr) is RdTmp:
-                expr.tmp = convert_tmp(expr.tmp)
+                return RdTmp(convert_tmp(expr.tmp))
+            return expr
 
         for stmt in extendwith.statements:
             stmttype = type(stmt)
@@ -144,10 +145,10 @@ class IRSB(VEXObject):
             elif stmttype is CAS:
                 if stmt.oldLo not in invalid_vals: stmt.oldLo = convert_tmp(stmt.oldLo)
                 if stmt.oldHi not in invalid_vals: stmt.oldHi = convert_tmp(stmt.oldHi)
-            for e in stmt.expressions:
-                convert_expr(e)
+            for i in range(len(stmt.expressions)):
+                stmt.expressions[i] = convert_expr(stmt.expressions[i])
             self.statements.append(stmt)
-        convert_expr(extendwith.next)
+        extendwith.next = convert_expr(extendwith.next)
         self.next = extendwith.next
         self.jumpkind = extendwith.jumpkind
         self._size = new_size
