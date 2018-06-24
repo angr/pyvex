@@ -221,7 +221,7 @@ class RdTmp(IRExpr):
         return tyenv.lookup(self.tmp)
 
 
-_RDTMP_POOL = dict((i, RdTmp(i)) for i in range(0, 1024))
+_RDTMP_POOL = list(RdTmp(i) for i in range(0, 1024))
 
 
 class Get(IRExpr):
