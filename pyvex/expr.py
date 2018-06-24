@@ -204,7 +204,14 @@ class RdTmp(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return RdTmp(c_expr.Iex.RdTmp.tmp)
+        global _RDTMP_POOL
+
+        tmp = c_expr.Iex.RdTmp.tmp
+        if tmp < 1024:
+            # for small tmp reads, they are cached and are only created once globally
+            return _RDTMP_POOL[tmp]
+
+        return RdTmp(tmp)
 
     @staticmethod
     def _to_c(expr):
@@ -212,6 +219,9 @@ class RdTmp(IRExpr):
 
     def result_type(self, tyenv):
         return tyenv.lookup(self.tmp)
+
+
+_RDTMP_POOL = dict((i, RdTmp(i)) for i in range(0, 1024))
 
 
 class Get(IRExpr):
