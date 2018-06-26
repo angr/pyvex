@@ -7,12 +7,15 @@ from .enums import get_enum_from_int, get_int_from_enum
 
 l = logging.getLogger('pyvex.stmt')
 
+
 class IRStmt(VEXObject):
     """
     IR statements in VEX represents operations with side-effects.
     """
 
     tag = None
+
+    __slots__ = [ ]
 
     def pp(self):
         print(self.__str__())
@@ -54,6 +57,8 @@ class NoOp(IRStmt):
     A no-operation statement. It is usually the result of an IR optimization.
     """
 
+    __slots__ = [ ]
+
     tag = 'Ist_NoOp'
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
@@ -62,6 +67,7 @@ class NoOp(IRStmt):
     @staticmethod
     def _from_c(c_stmt):
         return NoOp()
+
 
 class IMark(IRStmt):
     """
@@ -143,6 +149,7 @@ class Put(IRStmt):
     def typecheck(self, tyenv):
         return self.data.typecheck(tyenv)
 
+
 class PutI(IRStmt):
     """
     Write to a guest register, at a non-fixed offset in the guest state.
@@ -176,6 +183,7 @@ class PutI(IRStmt):
             l.debug("Expression doesn't match RegArray type")
             return False
         return True
+
 
 class WrTmp(IRStmt):
     """
@@ -215,6 +223,7 @@ class WrTmp(IRStmt):
             l.debug("Expression doesn't match tmp type")
             return False
         return True
+
 
 class Store(IRStmt):
     """
@@ -257,6 +266,7 @@ class Store(IRStmt):
             l.debug("invalid endness enum")
             return False
         return True
+
 
 class CAS(IRStmt):
     """
@@ -335,6 +345,7 @@ class CAS(IRStmt):
 
         return True
 
+
 class LLSC(IRStmt):
     """
      Either Load-Linked or Store-Conditional, depending on STOREDATA. If STOREDATA is NULL then this is a Load-Linked,
@@ -409,6 +420,7 @@ class MBE(IRStmt):
     def _from_c(c_stmt):
         return MBE(get_enum_from_int(c_stmt.Ist.MBE.event))
 
+
 class Dirty(IRStmt):
 
     __slots__ = ['cee', 'guard', 'args', 'tmp', 'mFx', 'mAddr', 'mSize', 'nFxState']
@@ -455,6 +467,7 @@ class Dirty(IRStmt):
                      IRExpr._from_c(c_stmt.Ist.Dirty.details.mAddr),
                      c_stmt.Ist.Dirty.details.mSize,
                      c_stmt.Ist.Dirty.details.nFxState)
+
 
 class Exit(IRStmt):
     """

@@ -6,7 +6,7 @@ import nose
 ##########################
 ### ARM Postprocessing ###
 ##########################
-def test_arm_postprocess():
+def test_arm_postprocess_call():
     for i in xrange(3):
         # Thumb
 
@@ -277,3 +277,32 @@ def test_arm_postprocess():
                           num_inst=3,
                           opt_level=i)
         nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Boring')
+
+
+def test_arm_postprocess_ret():
+
+    for i in xrange(3):
+        # e91ba8f0
+        # ldmdb  R11, {R4,R11,SP,PC}
+        irsb = pyvex.IRSB(data='\xe9\x1b\xa8\xf0',
+                          mem_addr=0xed4028,
+                          arch=archinfo.ArchARMEL(endness=archinfo.Endness.BE),
+                          num_inst=1,
+                          opt_level=i
+                          )
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Ret')
+
+        # e91badf0
+        # ldmdb  R11, {R4-R8,R10,R11,SP,PC}
+        irsb = pyvex.IRSB(data='\xe9\x1b\xa8\xf0',
+                          mem_addr=0x4d4028,
+                          arch=archinfo.ArchARMEL(endness=archinfo.Endness.BE),
+                          num_inst=1,
+                          opt_level=i
+                          )
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Ret')
+
+
+if __name__ == "__main__":
+    test_arm_postprocess_call()
+    test_arm_postprocess_ret()

@@ -194,7 +194,7 @@ if 'bdist_wheel' in sys.argv and '--plat-name' not in sys.argv:
         sys.argv.append(name.replace('.', '_').replace('-', '_'))
 
 setup(
-    name="pyvex", version='7.8.6.16', description="A Python interface to libVEX and VEX IR",
+    name="pyvex", version='7.8.6.23', description="A Python interface to libVEX and VEX IR",
     url='https://github.com/angr/pyvex',
     packages=packages,
     cmdclass=cmdclass,
