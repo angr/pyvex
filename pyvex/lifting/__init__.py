@@ -14,7 +14,8 @@ class LiftingException(Exception):
     pass
 
 
-def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt_level=1, traceflags=False, strict_block_end=True, inner=False):
+def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt_level=1, traceflags=False,
+         strict_block_end=True, inner=False, skip_stmts=False):
     """
     Recursively lifts blocks using the registered lifters and postprocessors. Tries each lifter in the order in
     which they are registered on the data to lift.
@@ -51,7 +52,7 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
     if not data:
         raise PyVEXError("cannot lift block with no data (data is empty)")
 
-    final_irsb = IRSB.empty_block(arch, addr)
+    final_irsb = None
 
     if isinstance(data, (str, bytes)):
         py_data = data if isinstance(data, bytes) else data.encode()
@@ -79,10 +80,11 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
                     u_data = ffi.buffer(c_data, max_bytes)[:]
                 else:
                     u_data = py_data
-            next_irsb_part = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags, allow_lookback, strict_block_end)
+            final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
+                                                      allow_lookback, strict_block_end, skip_stmts
+                                                      )
             #l.debug('block lifted by %s' % str(lifter))
-            #l.debug(str(next_irsb_part))
-            final_irsb.extend(next_irsb_part)
+            #l.debug(str(final_irsb))
             break
         except LiftingException as ex:
             l.debug('Lifting Exception: %s', str(ex))
@@ -97,31 +99,33 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
     if final_irsb.jumpkind == 'Ijk_NoDecode':
 
         # Determine if this is an intentional NoDecode, like the ud2 instruction on AMD64
-        nodecode_addr_expr = next_irsb_part.next
+        nodecode_addr_expr = final_irsb.next
         if type(nodecode_addr_expr) is Const:
             nodecode_addr = nodecode_addr_expr.con.value
-            next_irsb_start_addr = addr + next_irsb_part.size
+            next_irsb_start_addr = addr + final_irsb.size
             if nodecode_addr != next_irsb_start_addr:
                 # The last instruction of the IRSB has a non-zero length. This is an intentional NoDecode.
                 # The very last instruction has been decoded
                 final_irsb.jumpkind = 'Ijk_NoDecode'
-                final_irsb.next = next_irsb_part.next
+                final_irsb.next = final_irsb.next
                 final_irsb.invalidate_direct_next()
                 irsb._from_py(final_irsb)
                 return
 
-        addr += next_irsb_part.size
+        addr += final_irsb.size
         if max_bytes is not None:
-            max_bytes -= next_irsb_part.size
+            max_bytes -= final_irsb.size
         if isinstance(data, (str, bytes)):
-            data_left = data[next_irsb_part.size:]
+            data_left = data[final_irsb.size:]
         else:
-            data_left = data + next_irsb_part.size
+            data_left = data + final_irsb.size
         if max_inst is not None:
-            max_inst -= next_irsb_part.instructions
+            max_inst -= final_irsb.instructions
         if max_bytes > 0 and (max_inst is None or max_inst > 0):
-            more_irsb = final_irsb.empty_block(final_irsb.arch, final_irsb.addr)
-            lift(more_irsb, arch, addr, data_left, max_bytes, max_inst, bytes_offset, opt_level, traceflags, inner=True)
+            more_irsb = final_irsb.empty_block(final_irsb.arch, final_irsb.addr, size=0)
+            lift(more_irsb, arch, addr, data_left, max_bytes, max_inst, bytes_offset, opt_level, traceflags,
+                 strict_block_end, inner=True, skip_stmts=False
+                 )
             final_irsb.extend(more_irsb)
 
     if not inner:

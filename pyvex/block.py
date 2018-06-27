@@ -1,5 +1,6 @@
 from __future__ import print_function
 import copy
+import sys
 
 from . import VEXObject
 from . import expr, stmt
@@ -9,8 +10,18 @@ from .errors import PyVEXError
 from .stmt import *
 from .expr import RdTmp
 
+
+# Some Python 3 compatibility shims
+if sys.version_info.major < 3:
+    STRING_TYPES = (str, unicode)
+else:
+    STRING_TYPES = str
+    xrange = range
+
+
 import logging
 l = logging.getLogger("pyvex.block")
+
 
 class IRSB(VEXObject):
     """
@@ -34,10 +45,12 @@ class IRSB(VEXObject):
     :ivar int addr:         The address of this basic block, i.e. the address in the first IMark
     """
 
-    __slots__ = ['_addr', 'arch', 'statements', 'next', 'tyenv', 'jumpkind', '_direct_next', '_size', '_instructions']
+    __slots__ = ['_addr', 'arch', 'statements', 'next', '_tyenv', 'jumpkind', '_direct_next', '_size', '_instructions',
+                 'exit_statements']
 
     def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None,
-                 bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None, strict_block_end=False):
+                 bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None, strict_block_end=False,
+                 skip_stmts=False):
         """
         :param data:                The bytes to lift. Can be either a string of bytes or a cffi buffer object.
                                     You may also pass None to initialize an empty IRSB.
@@ -72,20 +85,39 @@ class IRSB(VEXObject):
 
         self.statements = []
         self.next = None
-        self.tyenv = IRTypeEnv(arch)
+        self._tyenv = None
         self.jumpkind = None
         self._direct_next = None
         self._size = None
         self._instructions = None
+        self.exit_statements = None
 
         if data is not None:
-            lift(self, arch, mem_addr, data, max_bytes, max_inst, bytes_offset, opt_level, traceflags, strict_block_end)
+            lift(self, arch, mem_addr, data,
+                 max_bytes=max_bytes,
+                 max_inst=max_inst,
+                 bytes_offset=bytes_offset,
+                 opt_level=opt_level,
+                 traceflags=traceflags,
+                 strict_block_end=strict_block_end,
+                 skip_stmts=skip_stmts,
+                 )
 
     @staticmethod
     def empty_block(arch, addr, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
         block = IRSB(None, addr, arch)
-        block._set_attributes(statements, nxt, tyenv, jumpkind, direct_next)
+        block._set_attributes(statements, nxt, tyenv, jumpkind, direct_next, size=size)
         return block
+
+    @property
+    def tyenv(self):
+        if self._tyenv is None:
+            self._tyenv = IRTypeEnv(self.arch)
+        return self._tyenv
+
+    @tyenv.setter
+    def tyenv(self, v):
+        self._tyenv = v
 
     def copy(self):
         return copy.deepcopy(self)
@@ -279,8 +311,6 @@ class IRSB(VEXObject):
         """
         The size of this block, in bytes
         """
-        if self._size is None:
-            self._size = sum([s.len for s in self.statements if type(s) is stmt.IMark])
         return self._size
 
     @property
@@ -382,6 +412,7 @@ class IRSB(VEXObject):
         """
         The default exit target, if it is constant, or None.
         """
+        return 0
         if isinstance(self.next, expr.Const):
             return self.next.con.value
 
@@ -433,13 +464,27 @@ class IRSB(VEXObject):
     # internal "constructors" to fill this block out with data from various sources
     #
 
-    def _from_c(self, c_irsb):
-        self.statements = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in range(c_irsb.stmts_used)]
-        self.tyenv = IRTypeEnv._from_c(self.arch, c_irsb.tyenv)
+    def _from_c(self, lift_r, skip_stmts=False):
+        c_irsb = lift_r.irsb
+        if not skip_stmts:
+            self.statements = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in range(c_irsb.stmts_used)]
+            self.tyenv = IRTypeEnv._from_c(self.arch, c_irsb.tyenv)
+        else:
+            self.statements = None
+            self.tyenv = None
+
         self.next = expr.IRExpr._from_c(c_irsb.next)
         self.jumpkind = get_enum_from_int(c_irsb.jumpkind)
+        self._size = lift_r.size
 
-    def _set_attributes(self, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None, instructions=None):
+        self.exit_statements = [ ]
+        for i in xrange(lift_r.exit_count):
+            ex = lift_r.exits[i]
+            exit_stmt = stmt.IRStmt._from_c(ex.stmt)
+            self.exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt))
+
+    def _set_attributes(self, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None,
+                        instructions=None, exit_statements=None):
         self.statements = statements if statements is not None else []
         self.next = nxt
         if tyenv is not None:
@@ -448,9 +493,11 @@ class IRSB(VEXObject):
         self._direct_next = direct_next
         self._size = size
         self._instructions = instructions
+        self.exit_statements = exit_statements
 
     def _from_py(self, irsb):
-        self._set_attributes(irsb.statements, irsb.next, irsb.tyenv, irsb.jumpkind, irsb.direct_next, irsb.size, irsb.instructions)
+        self._set_attributes(irsb.statements, irsb.next, irsb.tyenv, irsb.jumpkind, irsb.direct_next, irsb.size,
+                             instructions=irsb._instructions, exit_statements=irsb.exit_statements)
 
 class IRTypeEnv(VEXObject):
     """

@@ -13,7 +13,7 @@ class FixesPostProcessor(Postprocessor):
 
     def _post_process_ARM(self):
         # Jumpkind
-        if self.irsb.jumpkind == "Ijk_Boring":
+        if self.irsb.statements and self.irsb.jumpkind == "Ijk_Boring":
             # If PC is moved to LR, then this should be an Ijk_Call
             #
             # Example:

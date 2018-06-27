@@ -278,10 +278,40 @@ static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 	}
 }
 
+
+void process_stmts(
+		IRSB *irsb,
+		VEXLiftResult *lift_r ) {
+	Int i, exit_ctr = 0;
+	Addr ins_addr;
+	UInt size = 0;
+	for (i = 0; i < irsb->stmts_used; ++i) {
+		IRStmt* stmt = irsb->stmts[i];
+		if (stmt->tag == Ist_Exit) {
+			if (exit_ctr < MAX_EXITS) {
+				lift_r->exits[exit_ctr].ins_addr = ins_addr;
+				lift_r->exits[exit_ctr].stmt_idx = i;
+				lift_r->exits[exit_ctr].stmt = stmt;
+			}
+			exit_ctr += 1;
+		}
+		else if (stmt->tag == Ist_IMark) {
+			ins_addr = stmt->Ist.IMark.addr + stmt->Ist.IMark.delta;
+			size += stmt->Ist.IMark.len;
+		}
+	}
+
+	lift_r->exit_count = exit_ctr;
+	lift_r->size = size;
+}
+
+
+VEXLiftResult _lift_r;
+
 //----------------------------------------------------------------------
 // Main entry point. Do a lift.
 //----------------------------------------------------------------------
-IRSB *vex_lift(
+VEXLiftResult *vex_lift(
 		VexArch guest,
 		VexArchInfo archinfo,
 		unsigned char *insn_start,
@@ -319,7 +349,9 @@ IRSB *vex_lift(
 	// Do the actual translation
 	if (setjmp(jumpout) == 0) {
 		LibVEX_Update_Control(&vc);
-		return LibVEX_Lift(&vta, &vtr, &pxControl);
+		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl);
+		process_stmts(_lift_r.irsb, &_lift_r);
+		return &_lift_r;
 	} else {
 		return NULL;
 	}
