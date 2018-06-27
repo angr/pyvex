@@ -500,9 +500,10 @@ class IRTypeEnv(VEXObject):
     def typecheck(self):
         for ty in self.types:
             try:
-               get_type_size(ty)
+                get_type_size(ty)
             except ValueError:
                 return False
+        return True
 
 from . import pvc
 from .lifting import lift
