@@ -93,15 +93,19 @@ class IRSB(VEXObject):
         self.exit_statements = None
 
         if data is not None:
-            lift(self, arch, mem_addr, data,
-                 max_bytes=max_bytes,
-                 max_inst=max_inst,
-                 bytes_offset=bytes_offset,
-                 opt_level=opt_level,
-                 traceflags=traceflags,
-                 strict_block_end=strict_block_end,
-                 skip_stmts=skip_stmts,
-                 )
+            # This is the slower path (because we need to call _from_py() to copy the content in the returned IRSB to
+            # the current IRSB instance. You should always call `lift()` directly. This method is kept for compatibility
+            # concerns.
+            irsb = lift(arch, mem_addr, data,
+                        max_bytes=max_bytes,
+                        max_inst=max_inst,
+                        bytes_offset=bytes_offset,
+                        opt_level=opt_level,
+                        traceflags=traceflags,
+                        strict_block_end=strict_block_end,
+                        skip_stmts=skip_stmts,
+                        )
+            self._from_py(irsb)
 
     @staticmethod
     def empty_block(arch, addr, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None):
@@ -267,6 +271,8 @@ class IRSB(VEXObject):
 
     @property
     def stmts_used(self):
+        if self.statements is None:
+            return 0
         return len(self.statements)
 
     @property
@@ -296,7 +302,10 @@ class IRSB(VEXObject):
         The number of instructions in this block
         """
         if self._instructions is None:
-            self._instructions = len([s for s in self.statements if type(s) is stmt.IMark])
+            if self.statements is None:
+                self._instructions = 0
+            else:
+                self._instructions = len([s for s in self.statements if type(s) is stmt.IMark])
         return self._instructions
 
     @property
@@ -383,19 +392,22 @@ class IRSB(VEXObject):
         """
         sa = []
         sa.append("IRSB {")
-        sa.append("   %s" % self.tyenv)
+        if self.statements is not None:
+            sa.append("   %s" % self.tyenv)
         sa.append("")
-        for i, s in enumerate(self.statements):
-            stmt_str = ''
-            if isinstance(s, stmt.Put):
-                stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.offset, s.data.result_size(self.tyenv) // 8))
-            elif isinstance(s, stmt.WrTmp) and isinstance(s.data, expr.Get):
-                stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.data.offset, s.data.result_size(self.tyenv) // 8))
-            elif isinstance(s, stmt.Exit):
-                stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.offsIP, self.arch.bits // 8))
-            else:
-                stmt_str = s.__str__()
-            sa.append("   %02d | %s" % (i, stmt_str))
+        if self.statements is not None:
+            for i, s in enumerate(self.statements):
+                if isinstance(s, stmt.Put):
+                    stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.offset, s.data.result_size(self.tyenv) // 8))
+                elif isinstance(s, stmt.WrTmp) and isinstance(s.data, expr.Get):
+                    stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.data.offset, s.data.result_size(self.tyenv) // 8))
+                elif isinstance(s, stmt.Exit):
+                    stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.offsIP, self.arch.bits // 8))
+                else:
+                    stmt_str = s.__str__()
+                sa.append("   %02d | %s" % (i, stmt_str))
+        else:
+            sa.append("   Statements are omitted.")
         sa.append(
             "   NEXT: PUT(%s) = %s; %s" % (self.arch.translate_register_name(self.offsIP), self.next, self.jumpkind))
         sa.append("}")
