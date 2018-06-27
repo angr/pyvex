@@ -3,6 +3,10 @@ from ..block import IRSB
 
 
 class Lifter(object):
+
+    __slots__ = ('data', 'bytes_offset', 'opt_level', 'traceflags', 'allow_lookback', 'strict_block_end', 'max_inst',
+                 'max_bytes', 'skip_stmts', 'irsb', 'arch', 'addr', )
+
     """
     A lifter is a class of methods for processing a block.
 
@@ -17,6 +21,7 @@ class Lifter(object):
     :ivar allow_lookback:   Should the LibVEX arm-thumb lifter be allowed to look before the current instruction pointer.
                             Most likely will be ignored in any lifter other than LibVEX.
     :ivar strict_block_end: Should the LibVEX arm-thumb split block at some instructions, for example CB{N}Z.
+    :ivar skip_stmts:       Should LibVEX ignore statements.
     """
     REQUIRE_DATA_C = False
     REQUIRE_DATA_PY = False
@@ -26,14 +31,15 @@ class Lifter(object):
         self.addr = addr
 
     def _lift(self,
-             data,
-             bytes_offset=None,
-             max_bytes=None,
-             max_inst=None,
-             opt_level=1,
-             traceflags=None,
-             allow_lookback=None,
-             strict_block_end=None):
+              data,
+              bytes_offset=None,
+              max_bytes=None,
+              max_inst=None,
+              opt_level=1,
+              traceflags=None,
+              allow_lookback=None,
+              strict_block_end=None,
+              skip_stmts=False):
         """
         Wrapper around the `lift` method on Lifters. Should not be overridden in child classes.
 
@@ -58,6 +64,7 @@ class Lifter(object):
         self.strict_block_end = strict_block_end
         self.max_inst = max_inst
         self.max_bytes = max_bytes
+        self.skip_stmts = skip_stmts
         self.irsb = irsb
         self.lift()
         return self.irsb
