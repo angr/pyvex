@@ -1,3 +1,5 @@
+import copy
+
 from . import Postprocessor, register
 from . import libvex
 
@@ -45,7 +47,7 @@ class ZeroDivisionPostProcessor(Postprocessor):
             if s.tag == 'Ist_WrTmp' and s.data.tag == 'Iex_Binop' and ('Div' in s.data.op or 'Mod' in s.data.op):
                 arg_size = s.data.args[1].result_size(self.irsb.tyenv)
                 cmp_args = [
-                    s.data.args[1],
+                    copy.copy(s.data.args[1]),
                     expr.Const(const.vex_int_class(arg_size)(0))
                 ]
                 cmp_tmp = self.irsb.tyenv.add("Ity_I1")

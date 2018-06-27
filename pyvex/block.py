@@ -164,7 +164,7 @@ class IRSB(VEXObject):
         print(self._pp_str())
 
     def __repr__(self):
-        return 'IRSB <0x%x bytes, %d ins., %s> at 0x%x' % (self.size, self.instructions, str(self.arch), self.addr)
+        return 'IRSB <0x%x bytes, %s ins., %s> at 0x%x' % (self.size, self.instructions, str(self.arch), self.addr)
 
     def __str__(self):
         return self._pp_str()

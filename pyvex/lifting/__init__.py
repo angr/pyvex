@@ -14,7 +14,7 @@ class LiftingException(Exception):
     pass
 
 
-def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt_level=1, traceflags=False, strict_block_end=True):
+def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt_level=1, traceflags=False, strict_block_end=True, inner=False):
     """
     Recursively lifts blocks using the registered lifters and postprocessors. Tries each lifter in the order in
     which they are registered on the data to lift.
@@ -106,14 +106,15 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
             max_inst -= next_irsb_part.instructions
         if max_bytes > 0 and (max_inst is None or max_inst > 0):
             more_irsb = final_irsb.empty_block(final_irsb.arch, final_irsb.addr)
-            lift(more_irsb, arch, addr, data_left, max_bytes, max_inst, bytes_offset, opt_level, traceflags)
+            lift(more_irsb, arch, addr, data_left, max_bytes, max_inst, bytes_offset, opt_level, traceflags, inner=True)
             final_irsb.extend(more_irsb)
 
-    for postprocessor in postprocessors[arch.name]:
-        try:
-            postprocessor(final_irsb).postprocess()
-        except LiftingException:
-            continue
+    if not inner:
+        for postprocessor in postprocessors[arch.name]:
+            try:
+                postprocessor(final_irsb).postprocess()
+            except LiftingException:
+                continue
     irsb._from_py(final_irsb)
 
 
