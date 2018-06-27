@@ -3,6 +3,7 @@ import copy
 from . import Postprocessor, register
 from . import libvex
 
+
 class ZeroDivisionPostProcessor(Postprocessor):
     """
     A postprocessor for adding zero-division checks to VEX.
@@ -39,6 +40,11 @@ class ZeroDivisionPostProcessor(Postprocessor):
     """
 
     def postprocess(self):
+
+        if self.irsb.statements is None:
+            # This is an optimized IRSB. We cannot really post-process it.
+            return
+
         insertions = [ ]
         last_ip = 0
         for i,s in enumerate(self.irsb.statements):

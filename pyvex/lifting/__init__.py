@@ -14,7 +14,7 @@ class LiftingException(Exception):
     pass
 
 
-def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=None, opt_level=1, traceflags=False,
+def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_level=1, traceflags=0,
          strict_block_end=True, inner=False, skip_stmts=False):
     """
     Recursively lifts blocks using the registered lifters and postprocessors. Tries each lifter in the order in
@@ -24,8 +24,6 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
     If it succeeds and returns a block with a jumpkind of Ijk_NoDecode, all of the lifters are tried on the rest
     of the data and if they work, their output is appended to the first block.
 
-    :param irsb:            The IRSB to set to the lifted block (overriden by the lifted block)
-    :type irsb:             :class:`IRSB`
     :param arch:            The arch to lift the data as.
     :type arch:             :class:`archinfo.Arch`
     :param addr:            The starting address of the block. Effects the IMarks.
@@ -51,8 +49,6 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
 
     if not data:
         raise PyVEXError("cannot lift block with no data (data is empty)")
-
-    final_irsb = None
 
     if isinstance(data, (str, bytes)):
         py_data = data if isinstance(data, bytes) else data.encode()
@@ -90,13 +86,17 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
             l.debug('Lifting Exception: %s', str(ex))
             continue
     else:
-        final_irsb.jumpkind = 'Ijk_NoDecode'
-        final_irsb.next = Const(const.vex_int_class(final_irsb.arch.bits)(final_irsb._addr))
+        final_irsb = IRSB.empty_block(arch,
+                                      addr,
+                                      size=0,
+                                      nxt=Const(const.vex_int_class(arch.bits)(addr)),
+                                      jumpkind='Ijk_NoDecode',
+                                      )
         final_irsb.invalidate_direct_next()
-        irsb._from_py(final_irsb)
-        return
+        return final_irsb
 
-    if final_irsb.jumpkind == 'Ijk_NoDecode':
+    if final_irsb.size > 0 and final_irsb.jumpkind == 'Ijk_NoDecode':
+        # We have decoded a few bytes before we hit an undecodeable instruction.
 
         # Determine if this is an intentional NoDecode, like the ud2 instruction on AMD64
         nodecode_addr_expr = final_irsb.next
@@ -109,8 +109,20 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
                 final_irsb.jumpkind = 'Ijk_NoDecode'
                 final_irsb.next = final_irsb.next
                 final_irsb.invalidate_direct_next()
-                irsb._from_py(final_irsb)
-                return
+                return final_irsb
+
+        # Decode more bytes
+        if skip_stmts:
+            # In this case, statements are required
+            return lift(arch, addr, data,
+                        max_bytes=max_bytes,
+                        max_inst=max_inst,
+                        bytes_offset=bytes_offset,
+                        opt_level=opt_level,
+                        traceflags=traceflags,
+                        strict_block_end=strict_block_end,
+                        skip_stmts=False,
+                        )
 
         addr += final_irsb.size
         if max_bytes is not None:
@@ -122,11 +134,19 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
         if max_inst is not None:
             max_inst -= final_irsb.instructions
         if max_bytes > 0 and (max_inst is None or max_inst > 0):
-            more_irsb = final_irsb.empty_block(final_irsb.arch, final_irsb.addr, size=0)
-            lift(more_irsb, arch, addr, data_left, max_bytes, max_inst, bytes_offset, opt_level, traceflags,
-                 strict_block_end, inner=True, skip_stmts=False
-                 )
-            final_irsb.extend(more_irsb)
+            more_irsb = lift(arch, addr, data_left,
+                             max_bytes=max_bytes,
+                             max_inst=max_inst,
+                             bytes_offset=bytes_offset,
+                             opt_level=opt_level,
+                             traceflags=traceflags,
+                             strict_block_end=strict_block_end,
+                             inner=True,
+                             skip_stmts=False,
+                             )
+            if more_irsb.size:
+                # Successfully decoded more bytes
+                final_irsb.extend(more_irsb)
 
     if not inner:
         for postprocessor in postprocessors[arch.name]:
@@ -134,7 +154,8 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
                 postprocessor(final_irsb).postprocess()
             except LiftingException:
                 continue
-    irsb._from_py(final_irsb)
+
+    return final_irsb
 
 
 def register(lifter, arch_name):
