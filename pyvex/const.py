@@ -167,7 +167,7 @@ class U64(IRConst):
         if val < 1024:
             return _U64_POOL[val]
         if val >= 0xfffffffffffffc00:
-            return _U32_POOL[val - 0xfffffffffffffc00 + 1024]
+            return _U64_POOL[val - 0xfffffffffffffc00 + 1024]
         return U64(val)
 
 
