@@ -6,10 +6,11 @@ from . import VEXObject, ffi, pvc
 from .enums import get_enum_from_int
 from .errors import PyVEXError
 
+
 # IRConst hierarchy
 class IRConst(VEXObject):
 
-    __slots__ = ['value']
+    __slots__ = ['_value']
 
     type = None
     tag = None
@@ -21,6 +22,10 @@ class IRConst(VEXObject):
     @property
     def size(self):
         return get_type_size(self.type)
+
+    @property
+    def value(self):
+        return self._value
 
     @staticmethod
     def _from_c(c_const):
@@ -56,7 +61,7 @@ class U1(IRConst):
     c_constructor = pvc.IRConst_U1
 
     def __init__(self, value):
-        self.value = value
+        self._value = value
 
     def __str__(self):
         return "%d" % self.value
@@ -75,14 +80,17 @@ class U8(IRConst):
     c_constructor = pvc.IRConst_U8
 
     def __init__(self, value):
-        self.value = value
+        self._value = value
 
     def __str__(self):
         return "0x%02x" % self.value
 
     @staticmethod
     def _from_c(c_const):
-        return U8(c_const.Ico.U8)
+        return _U8_POOL[c_const.Ico.U8]
+
+
+_U8_POOL = [ U8(i) for i in range(256) ]
 
 
 class U16(IRConst):
@@ -94,14 +102,22 @@ class U16(IRConst):
     c_constructor = pvc.IRConst_U16
 
     def __init__(self, value):
-        self.value = value
+        self._value = value
 
     def __str__(self):
         return "0x%04x" % self.value
 
     @staticmethod
     def _from_c(c_const):
-        return U16(c_const.Ico.U16)
+        val = c_const.Ico.U16
+        if val < 1024:
+            return _U16_POOL[val]
+        if val >= 0xfc00:
+            return _U16_POOL[val - 0xfc00 + 1024]
+        return U16(val)
+
+
+_U16_POOL = [ U16(i) for i in range(1024) ] + [ U16(i) for i in range(0xfc00, 0xffff + 1) ]
 
 
 class U32(IRConst):
@@ -113,14 +129,22 @@ class U32(IRConst):
     c_constructor = pvc.IRConst_U32
 
     def __init__(self, value):
-        self.value = value
+        self._value = value
 
     def __str__(self):
         return "0x%08x" % self.value
 
     @staticmethod
     def _from_c(c_const):
-        return U32(c_const.Ico.U32)
+        val = c_const.Ico.U32
+        if val < 1024:
+            return _U32_POOL[val]
+        if val >= 0xfffffc00:
+            return _U32_POOL[val - 0xfffffc00 + 1024]
+        return U32(val)
+
+
+_U32_POOL = [ U32(i) for i in range(1024) ] + [ U32(i) for i in range(0xfffffc00, 0xffffffff + 1)]
 
 
 class U64(IRConst):
@@ -132,15 +156,23 @@ class U64(IRConst):
     c_constructor = pvc.IRConst_U64
 
     def __init__(self, value):
-        self.value = value
+        self._value = value
 
     def __str__(self):
         return "0x%016x" % self.value
 
     @staticmethod
     def _from_c(c_const):
-        return U64(c_const.Ico.U64)
+        val = c_const.Ico.U64
+        if val < 1024:
+            return _U64_POOL[val]
+        if val >= 0xfffffffffffffc00:
+            return _U64_POOL[val - 0xfffffffffffffc00 + 1024]
+        return U64(val)
 
+
+_U64_POOL = [ U64(i) for i in range(1024) ] + \
+    [ U64(i) for i in range(0xfffffffffffffc00, 0xffffffffffffffff + 1) ]
 
 # Integer Type Imagination
 class_cache = { 1 : U1, 8 : U8, 16 : U16, 32 : U32, 64 : U64 }
@@ -157,7 +189,7 @@ def vex_int_class(size):
 
             def __init__(self, value):
                 IRConst.__init__(self)
-                self.value = value
+                self._value = value
 
             def __str__(self):
                 return '(0x%x :: %s)' % (self.value, self.type)
@@ -175,7 +207,7 @@ class F32(IRConst):
     c_constructor = pvc.IRConst_F32
 
     def __init__(self, value):
-        self.value = value
+        self._value = value
 
     def __str__(self):
         return "%f" % self.value
@@ -194,7 +226,7 @@ class F32i(IRConst):
     c_constructor = pvc.IRConst_F32i
 
     def __init__(self, value):
-        self.value = value
+        self._value = value
 
     def __str__(self):
         return "%f" % self.value
@@ -213,7 +245,7 @@ class F64(IRConst):
     c_constructor = pvc.IRConst_F64
 
     def __init__(self, value):
-        self.value = value
+        self._value = value
 
     def __str__(self):
         return "%f" % self.value
@@ -232,7 +264,7 @@ class F64i(IRConst):
     c_constructor = pvc.IRConst_F64i
 
     def __init__(self, value):
-        self.value = value
+        self._value = value
 
     def __str__(self):
         return "%f" % self.value
@@ -251,7 +283,7 @@ class V128(IRConst):
     c_constructor = pvc.IRConst_V128
 
     def __init__(self, value):
-        self.value = value
+        self._value = value
 
     def __str__(self):
         return "%x" % self.value
@@ -277,7 +309,7 @@ class V256(IRConst):
     c_constructor = pvc.IRConst_V256
 
     def __init__(self, value):
-        self.value = value
+        self._value = value
 
     def __str__(self):
         return "%x" % self.value
