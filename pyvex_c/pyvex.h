@@ -30,8 +30,12 @@ typedef struct _ExitInfo {
 typedef struct _VEXLiftResult {
 	IRSB* irsb;
 	Int size;
+	// Conditional exits
 	Int exit_count;
 	ExitInfo exits[MAX_EXITS];
+	// The default exit
+	Int is_default_exit_constant;
+	Addr default_exit;
 } VEXLiftResult;
 
 VEXLiftResult *vex_lift(

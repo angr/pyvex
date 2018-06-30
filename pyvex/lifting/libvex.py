@@ -63,7 +63,8 @@ class LibVEXLifter(Lifter):
                                   self.opt_level,
                                   self.traceflags,
                                   self.allow_lookback,
-                                  strict_block_end)
+                                  strict_block_end
+                                  )
             log_str = self.get_vex_log()
             if lift_r == ffi.NULL:
                 raise LiftingException("libvex: unknown error" if log_str is None else log_str)

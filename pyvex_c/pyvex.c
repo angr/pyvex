@@ -279,7 +279,7 @@ static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 }
 
 
-void process_stmts(
+void get_exits(
 		IRSB *irsb,
 		VEXLiftResult *lift_r ) {
 	Int i, exit_ctr = 0;
@@ -303,6 +303,116 @@ void process_stmts(
 
 	lift_r->exit_count = exit_ctr;
 	lift_r->size = size;
+}
+
+void get_default_exit_target(
+		IRSB *irsb,
+		VEXLiftResult *lift_r ) {
+
+	IRTemp tmp;
+	Int reg = -1;
+	IRType reg_type = Ity_INVALID;
+	Int i;
+
+	lift_r->is_default_exit_constant = 0;
+
+	if (irsb->jumpkind != Ijk_Boring && irsb->jumpkind != Ijk_Call) {
+		return;
+	}
+
+	if (irsb->next->tag == Iex_Const) {
+		IRConst *con = irsb->next->Iex.Const.con;
+		switch (con->tag) {
+		case Ico_U16:
+			lift_r->is_default_exit_constant = 1;
+			lift_r->default_exit = con->Ico.U16;
+			break;
+		case Ico_U32:
+			lift_r->is_default_exit_constant = 1;
+			lift_r->default_exit = con->Ico.U32;
+			break;
+		case Ico_U64:
+			lift_r->is_default_exit_constant = 1;
+			lift_r->default_exit = con->Ico.U64;
+			break;
+		default:
+			// A weird address... we don't support it.
+			break;
+		}
+		return;
+	}
+
+	if (irsb->next->tag != Iex_RdTmp) {
+		// Unexpected irsb->next type
+		return;
+	}
+
+	// Scan statements backwards to find the assigning statement
+	tmp = irsb->next->Iex.RdTmp.tmp;
+	for (i = irsb->stmts_used - 1; i >= 0; --i) {
+		IRExpr *data = NULL;
+		IRStmt *stmt = irsb->stmts[i];
+		if (stmt->tag == Ist_WrTmp &&
+				stmt->Ist.WrTmp.tmp == tmp) {
+			data = stmt->Ist.WrTmp.data;
+		}
+		else if (stmt->tag == Ist_Put &&
+				stmt->Ist.Put.offset == reg) {
+			IRType put_type = typeOfIRExpr(irsb->tyenv, stmt->Ist.Put.data);
+			if (put_type != reg_type) {
+				// The size does not match. Give up.
+				return;
+			}
+		}
+		else if (stmt->tag == Ist_LoadG) {
+			// We do not handle LoadG. Give up.
+			return;
+		}
+		else {
+			continue;
+		}
+
+		if (data->tag == Iex_Const) {
+			lift_r->is_default_exit_constant = 1;
+			IRConst *con = data->Iex.Const.con;
+			switch (con->tag) {
+			case Ico_U16:
+				lift_r->is_default_exit_constant = 1;
+				lift_r->default_exit = con->Ico.U16;
+				break;
+			case Ico_U32:
+				lift_r->is_default_exit_constant = 1;
+				lift_r->default_exit = con->Ico.U32;
+				break;
+			case Ico_U64:
+				lift_r->is_default_exit_constant = 1;
+				lift_r->default_exit = con->Ico.U64;
+				break;
+			default:
+				// A weird address... we don't support it.
+				break;
+			}
+			return;
+		}
+		else if (data->tag == Iex_RdTmp) {
+			// Reading another temp variable
+			tmp = data->Iex.RdTmp.tmp;
+			reg = -1;
+		}
+		else if (data->tag == Iex_Get) {
+			// Reading from a register
+			tmp = IRTemp_INVALID;
+			reg = data->Iex.Get.offset;
+			reg_type = typeOfIRExpr(irsb->tyenv, data);
+		}
+		else {
+			// Something we don't currently support
+			return;
+		}
+	}
+
+	// We cannot resolve it to a constant value.
+	return;
 }
 
 
@@ -350,7 +460,8 @@ VEXLiftResult *vex_lift(
 	if (setjmp(jumpout) == 0) {
 		LibVEX_Update_Control(&vc);
 		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl);
-		process_stmts(_lift_r.irsb, &_lift_r);
+		get_exits(_lift_r.irsb, &_lift_r);
+		get_default_exit_target(_lift_r.irsb, &_lift_r);
 		return &_lift_r;
 	} else {
 		return NULL;
