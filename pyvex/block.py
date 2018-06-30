@@ -45,8 +45,8 @@ class IRSB(VEXObject):
     :ivar int addr:         The address of this basic block, i.e. the address in the first IMark
     """
 
-    __slots__ = ['_addr', 'arch', 'statements', 'next', '_tyenv', 'jumpkind', '_direct_next', '_size', '_instructions',
-                 'exit_statements']
+    __slots__ = ('_addr', 'arch', 'statements', 'next', '_tyenv', 'jumpkind', '_direct_next', '_size', '_instructions',
+                 'exit_statements', 'default_exit_target', )
 
     def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None,
                  bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None, strict_block_end=False,
@@ -354,11 +354,10 @@ class IRSB(VEXObject):
         A set of the static jump targets of the basic block.
         """
         exits = set()
-        for s in self.statements:
-            if isinstance(s, stmt.Exit):
-                exits.add(s.dst.value)
+        for _, _, stmt in self.exit_statements:
+            exits.add(stmt.dst.value)
 
-        default_target = self._get_defaultexit_target()
+        default_target = self.default_exit_target
         if default_target is not None:
             exits.add(default_target)
 
@@ -370,11 +369,10 @@ class IRSB(VEXObject):
         A dict of the static jump targets of the basic block to their jumpkind.
         """
         exits = dict()
-        for s in self.statements:
-            if isinstance(s, stmt.Exit):
-                exits[s.dst.value] = s.jumpkind
+        for _, _, stmt in self.exit_statements:
+            exits[stmt.dst.value] = stmt.jumpkind
 
-        default_target = self._get_defaultexit_target()
+        default_target = self.default_exit_target
         if default_target is not None:
             exits[default_target] = self.jumpkind
 
@@ -413,48 +411,6 @@ class IRSB(VEXObject):
         sa.append("}")
         return '\n'.join(sa)
 
-    def _get_defaultexit_target(self):
-        """
-        The default exit target, if it is constant, or None.
-        """
-        return 0
-        if isinstance(self.next, expr.Const):
-            return self.next.con.value
-
-        if not isinstance(self.next, expr.RdTmp):
-            raise PyVEXError("unexpected self.next type: %s" % self.next.__class__.__name__)
-
-        tmp_next = self.next.tmp
-        reg_next = None
-        reg_next_size = None
-        for stat in reversed(self.statements):
-            if isinstance(stat, stmt.WrTmp) and stat.tmp == tmp_next:
-                data = stat.data
-            elif isinstance(stat, stmt.Put) and stat.offset == reg_next:
-                data = stat.data
-                if data.result_size(self.tyenv) != reg_next_size:
-                    return None
-            elif isinstance(stat, stmt.LoadG) and stat.dst == tmp_next:
-                return None
-            else:
-                continue
-
-            if isinstance(data, expr.Const):
-                return data.con.value
-            elif isinstance(data, expr.RdTmp):
-                tmp_next = data.tmp
-                reg_next = None
-            elif isinstance(data, expr.Get):
-                tmp_next = None
-                reg_next = data.offset
-                reg_next_size = data.result_size(self.tyenv)
-            else:
-                return None
-
-        if tmp_next is not None:
-            raise PyVEXError('Malformed IRSB at address #%x. Please report to Fish.' % self._addr)
-        return None
-
     def _is_defaultexit_direct_jump(self):
         """
         Checks if the default of this IRSB a direct jump or not.
@@ -462,7 +418,7 @@ class IRSB(VEXObject):
         if not (self.jumpkind == 'Ijk_Boring' or self.jumpkind == 'Ijk_Call'):
             return False
 
-        target = self._get_defaultexit_target()
+        target = self.default_exit_target
         return target is not None
 
     #
@@ -482,14 +438,22 @@ class IRSB(VEXObject):
         self.jumpkind = get_enum_from_int(c_irsb.jumpkind)
         self._size = lift_r.size
 
+        # Conditional exits
         self.exit_statements = [ ]
         for i in xrange(lift_r.exit_count):
             ex = lift_r.exits[i]
             exit_stmt = stmt.IRStmt._from_c(ex.stmt)
             self.exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt))
+        self.exit_statements = tuple(self.exit_statements)
+
+        # The default exit
+        if lift_r.is_default_exit_constant == 1:
+            self.default_exit_target = lift_r.default_exit
+        else:
+            self.default_exit_target = None
 
     def _set_attributes(self, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None,
-                        instructions=None, exit_statements=None):
+                        instructions=None, exit_statements=None, default_exit_target=None):
         self.statements = statements if statements is not None else []
         self.next = nxt
         if tyenv is not None:
@@ -499,10 +463,13 @@ class IRSB(VEXObject):
         self._size = size
         self._instructions = instructions
         self.exit_statements = exit_statements
+        self.default_exit_target = default_exit_target
 
     def _from_py(self, irsb):
         self._set_attributes(irsb.statements, irsb.next, irsb.tyenv, irsb.jumpkind, irsb.direct_next, irsb.size,
-                             instructions=irsb._instructions, exit_statements=irsb.exit_statements)
+                             instructions=irsb._instructions, exit_statements=irsb.exit_statements,
+                             default_exit_target=irsb.default_exit_target
+                             )
 
 class IRTypeEnv(VEXObject):
     """
