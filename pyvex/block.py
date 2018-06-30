@@ -145,8 +145,8 @@ class IRSB(VEXObject):
             elif stmttype is CAS:
                 if stmt.oldLo not in invalid_vals: stmt.oldLo = convert_tmp(stmt.oldLo)
                 if stmt.oldHi not in invalid_vals: stmt.oldHi = convert_tmp(stmt.oldHi)
-            for i in range(len(stmt.expressions)):
-                stmt.expressions[i] = convert_expr(stmt.expressions[i])
+            for i, expr in enumerate(stmt.expressions):
+                stmt.expressions[i] = convert_expr(expr)
             self.statements.append(stmt)
         extendwith.next = convert_expr(extendwith.next)
         self.next = extendwith.next

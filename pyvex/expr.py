@@ -208,8 +208,6 @@ class RdTmp(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        global _RDTMP_POOL
-
         tmp = c_expr.Iex.RdTmp.tmp
         if tmp < 1024:
             # for small tmp reads, they are cached and are only created once globally
@@ -573,8 +571,6 @@ class Const(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        global _CONST_POOL
-
         con = IRConst._from_c(c_expr.Iex.Const.con)
         if con.value < 1024 and con.__class__ in _CONST_POOL:
             return _CONST_POOL[con.__class__][con.value]
