@@ -22,13 +22,14 @@ class IRStmt(VEXObject):
 
     @property
     def expressions(self):
-        expressions = []
         for k in self.__slots__:
             v = getattr(self, k)
             if isinstance(v, IRExpr):
-                expressions.append(v)
-                expressions.extend(v.child_expressions)
-        return expressions
+                # return itself
+                yield v
+                # return all the child expressions
+                for child in v.child_expressions:
+                    yield child
 
     @property
     def constants(self):
@@ -47,6 +48,22 @@ class IRStmt(VEXObject):
 
     def typecheck(self, tyenv): # pylint: disable=unused-argument,no-self-use
         return True
+
+    def replace_expression(self, expr, replacement):
+        """
+        Replace child expressions in-place.
+
+        :param IRExpr expr:         The expression to look for.
+        :param IRExpr replacement:  The expression to replace with.
+        :return:                    None
+        """
+
+        for k in self.__slots__:
+            v = getattr(self, k)
+            if v is expr:
+                setattr(self, k, replacement)
+            elif isinstance(v, IRExpr):
+                v.replace_expression(expr, replacement)
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
         raise NotImplementedError()

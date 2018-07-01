@@ -54,6 +54,39 @@ class IRExpr(VEXObject):
     def result_type(self, tyenv):
         raise NotImplementedError()
 
+    def replace_expression(self, expr, replacement):
+        """
+        Replace child expressions in-place.
+
+        :param IRExpr expr:         The expression to look for.
+        :param IRExpr replacement:  The expression to replace with.
+        :return:                    None
+        """
+
+        for k in self.__slots__:
+            v = getattr(self, k)
+            if v is expr:
+                setattr(self, k, replacement)
+            elif type(v) is list:
+                # Replace the instance in the list
+                for i, expr_ in enumerate(v):
+                    if expr_ is expr:
+                        v[i] = replacement
+            elif type(v) is tuple:
+                # Rebuild the tuple
+                _lst = [ ]
+                replaced = False
+                for i, expr_ in enumerate(v):
+                    if expr_ is expr:
+                        _lst.append(replacement)
+                        replaced = True
+                    else:
+                        _lst.append(expr)
+                if replaced:
+                    setattr(self, k, tuple(_lst))
+            elif isinstance(v, IRExpr):
+                v.replace_expression(expr, replacement)
+
     @staticmethod
     def _from_c(c_expr):
         if c_expr == ffi.NULL or c_expr[0] == ffi.NULL:
@@ -221,6 +254,10 @@ class RdTmp(IRExpr):
             # for small tmp reads, they are cached and are only created once globally
             return _RDTMP_POOL[tmp]
         return RdTmp(tmp)
+
+    def replace_expression(self, expr, replacement):
+        # RdTmp is one of the terminal IRExprs, which cannot be replaced.
+        pass
 
     def result_type(self, tyenv):
         return tyenv.lookup(self.tmp)
