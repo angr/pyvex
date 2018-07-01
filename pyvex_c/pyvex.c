@@ -460,6 +460,10 @@ VEXLiftResult *vex_lift(
 	if (setjmp(jumpout) == 0) {
 		LibVEX_Update_Control(&vc);
 		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl);
+		if (!_lift_r.irsb) {
+			// Lifting failed
+			return NULL;
+		}
 		get_exits(_lift_r.irsb, &_lift_r);
 		get_default_exit_target(_lift_r.irsb, &_lift_r);
 		return &_lift_r;
