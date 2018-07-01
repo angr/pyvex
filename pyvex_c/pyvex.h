@@ -19,7 +19,26 @@ void clear_log(void);
 //
 void vex_init(void);
 
-IRSB *vex_lift(
+typedef struct _ExitInfo {
+	Int stmt_idx;
+	Addr ins_addr;
+	IRStmt *stmt;
+} ExitInfo;
+
+#define MAX_EXITS 32
+
+typedef struct _VEXLiftResult {
+	IRSB* irsb;
+	Int size;
+	// Conditional exits
+	Int exit_count;
+	ExitInfo exits[MAX_EXITS];
+	// The default exit
+	Int is_default_exit_constant;
+	Addr default_exit;
+} VEXLiftResult;
+
+VEXLiftResult *vex_lift(
 		VexArch guest,
 		VexArchInfo archinfo,
 		unsigned char *insn_start,

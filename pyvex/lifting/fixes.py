@@ -2,9 +2,14 @@ from . import Postprocessor, register, LiftingException
 from . import libvex
 from functools import reduce
 
+
 class FixesPostProcessor(Postprocessor):
 
     def postprocess(self):
+        if self.irsb.statements is None:
+            # This is an optimized IRSB. We cannot really post-process it.
+            return
+
         self.irsb.statements = [x for x in self.irsb.statements if x.tag != 'Ist_NoOp']
 
         funcname = "_post_process_%s" % self.irsb.arch.name
@@ -13,7 +18,7 @@ class FixesPostProcessor(Postprocessor):
 
     def _post_process_ARM(self):
         # Jumpkind
-        if self.irsb.jumpkind == "Ijk_Boring":
+        if self.irsb.statements and self.irsb.jumpkind == "Ijk_Boring":
             # If PC is moved to LR, then this should be an Ijk_Call
             #
             # Example:

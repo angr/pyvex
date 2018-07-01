@@ -15,7 +15,11 @@ SUPPORTED = {'X86', 'AMD64', 'MIPS32', 'MIPS64', 'ARM', 'ARMEL', 'ARMHF', 'AARCH
 VEX_MAX_INSTRUCTIONS = 99
 VEX_MAX_BYTES = 5000
 
+
 class LibVEXLifter(Lifter):
+
+    __slots__ = ()
+
     REQUIRE_DATA_C = True
 
     @staticmethod
@@ -45,11 +49,12 @@ class LibVEXLifter(Lifter):
             else:
                 max_inst = self.max_inst
 
-            if self.strict_block_end is None:
+            strict_block_end = self.strict_block_end
+            if strict_block_end is None:
                 strict_block_end = True
 
             self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
-            c_irsb = pvc.vex_lift(vex_arch,
+            lift_r = pvc.vex_lift(vex_arch,
                                   self.irsb.arch.vex_archinfo,
                                   self.data + self.bytes_offset,
                                   self.irsb._addr,
@@ -58,21 +63,23 @@ class LibVEXLifter(Lifter):
                                   self.opt_level,
                                   self.traceflags,
                                   self.allow_lookback,
-                                  self.strict_block_end)
+                                  strict_block_end
+                                  )
             log_str = self.get_vex_log()
-            if c_irsb == ffi.NULL:
-                raise LiftingException("libvex: unkown error" if log_str is None else log_str)
+            if lift_r == ffi.NULL:
+                raise LiftingException("libvex: unknown error" if log_str is None else log_str)
             else:
                 if log_str is not None:
                     l.info(log_str)
 
-            self.irsb._from_c(c_irsb)
+            self.irsb._from_c(lift_r, skip_stmts=self.skip_stmts)
             if self.irsb.size == 0:
                 l.debug('raising lifting exception')
                 raise LiftingException("libvex: could not decode any instructions")
         finally:
             _libvex_lock.release()
             self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = None
+
 
 for arch_name in SUPPORTED:
     register(LibVEXLifter, arch_name)
