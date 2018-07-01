@@ -146,8 +146,15 @@ class IRSB(VEXObject):
             elif stmttype is CAS:
                 if stmt.oldLo not in invalid_vals: stmt.oldLo = convert_tmp(stmt.oldLo)
                 if stmt.oldHi not in invalid_vals: stmt.oldHi = convert_tmp(stmt.oldHi)
-            for i, expr in enumerate(stmt.expressions):
-                stmt.expressions[i] = convert_expr(expr)
+            # Convert all expressions
+            to_replace = { }
+            for expr in stmt.expressions:
+                replacement = convert_expr(expr)
+                if replacement is not expr:
+                    to_replace[expr] = replacement
+            for expr, replacement in to_replace.items():
+                stmt.replace_expression(expr, replacement)
+            # Add the converted statement to self.statements
             self.statements.append(stmt)
         extendwith.next = convert_expr(extendwith.next)
         self.next = extendwith.next
@@ -251,13 +258,12 @@ class IRSB(VEXObject):
     @property
     def expressions(self):
         """
-        A list of all expressions contained in the IRSB.
+        Return an iterator of all expressions contained in the IRSB.
         """
-        expressions = []
         for s in self.statements:
-            expressions.extend(s.expressions)
-        expressions.append(self.next)
-        return expressions
+            for expr in s.expressions:
+                yield expr
+        yield self.next
 
     @property
     def instructions(self):
