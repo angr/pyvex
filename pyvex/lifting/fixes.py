@@ -198,18 +198,20 @@ class FixesPostProcessor(Postprocessor):
                                     stt.data.child_expressions[0].con.value == stt.data.child_expressions[
                                 1].con.value:
 
+                        # Update statements
+                        self.irsb.statements = self.irsb.statements[: exit_stt_idx] + self.irsb.statements[
+                                                                                      exit_stt_idx + 1:]
                         # Create a new IRConst
-                        irconst = expr.Const.__new__(expr.Const)    # XXX: does this work???
-                        irconst.con = dst
-
-                        self.irsb.statements = self.irsb.statements[: exit_stt_idx] + self.irsb.statements[exit_stt_idx + 1:]
+                        irconst = expr.Const.get_instance(dst)
                         # Replace the default exit!
                         self.irsb.next = irconst
 
                     else:
                         break
 
+
 for arch_name in libvex.SUPPORTED:
     register(FixesPostProcessor, arch_name)
+
 
 from .. import stmt, expr

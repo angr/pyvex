@@ -166,8 +166,8 @@ def test_irstmt_imark():
 def test_irstmt_abihint():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.AbiHint, ())
 
-    a = pyvex.IRExpr.RdTmp(123)
-    b = pyvex.IRExpr.RdTmp(456)
+    a = pyvex.IRExpr.RdTmp.get_instance(123)
+    b = pyvex.IRExpr.RdTmp.get_instance(456)
 
     m = pyvex.IRStmt.AbiHint(a, 10, b)
     nose.tools.assert_equal(m.base.tmp, 123)
@@ -177,7 +177,7 @@ def test_irstmt_abihint():
 def test_irstmt_put():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.Put, ())
 
-    a = pyvex.IRExpr.RdTmp(123)
+    a = pyvex.IRExpr.RdTmp.get_instance(123)
     m = pyvex.IRStmt.Put(a, 10)
     print("Put stmt:", end=' ')
     print(m)
@@ -187,8 +187,8 @@ def test_irstmt_put():
 
 def test_irexpr_puti():
     r = pyvex.IRRegArray(10, "Ity_I64", 20)
-    i = pyvex.IRExpr.RdTmp(5)
-    d = pyvex.IRExpr.RdTmp(30)
+    i = pyvex.IRExpr.RdTmp.get_instance(5)
+    d = pyvex.IRExpr.RdTmp.get_instance(30)
     m = pyvex.IRStmt.PutI(r, i, d, 2)
     nose.tools.assert_equal(m.descr.base, 10)
     nose.tools.assert_equal(m.ix.tmp, 5)
@@ -200,7 +200,7 @@ def test_irexpr_puti():
 def test_irstmt_wrtmp():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.WrTmp, ())
 
-    a = pyvex.IRExpr.RdTmp(123)
+    a = pyvex.IRExpr.RdTmp.get_instance(123)
     m = pyvex.IRStmt.WrTmp(10, a)
     nose.tools.assert_equal(m.tag, "Ist_WrTmp")
     nose.tools.assert_equal(m.tmp, 10)
@@ -209,8 +209,8 @@ def test_irstmt_wrtmp():
 def test_irstmt_store():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.Store, ())
 
-    a = pyvex.IRExpr.RdTmp(123)
-    d = pyvex.IRExpr.RdTmp(456)
+    a = pyvex.IRExpr.RdTmp.get_instance(123)
+    d = pyvex.IRExpr.RdTmp.get_instance(456)
     m = pyvex.IRStmt.Store(a, d, "Iend_LE")
     nose.tools.assert_equal(m.tag, "Ist_Store")
     nose.tools.assert_equal(m.endness, "Iend_LE")
@@ -220,11 +220,11 @@ def test_irstmt_store():
 def test_irstmt_cas():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.CAS, ())
 
-    a = pyvex.IRExpr.RdTmp(10)
-    eh = pyvex.IRExpr.RdTmp(11)
-    el = pyvex.IRExpr.RdTmp(12)
-    dh = pyvex.IRExpr.RdTmp(21)
-    dl = pyvex.IRExpr.RdTmp(22)
+    a = pyvex.IRExpr.RdTmp.get_instance(10)
+    eh = pyvex.IRExpr.RdTmp.get_instance(11)
+    el = pyvex.IRExpr.RdTmp.get_instance(12)
+    dh = pyvex.IRExpr.RdTmp.get_instance(21)
+    dl = pyvex.IRExpr.RdTmp.get_instance(22)
 
     args = { "oldHi": 1, "oldLo": 2, "end": "Iend_LE", "addr": a,
                  "expdHi": eh, "expdLo": el, "dataHi": dh, "dataLo": dl }
@@ -243,9 +243,9 @@ def test_irstmt_cas():
 def test_irstmt_loadg():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.LoadG, ())
 
-    a = pyvex.IRExpr.RdTmp(10)
-    alt = pyvex.IRExpr.RdTmp(11)
-    guard = pyvex.IRExpr.RdTmp(12)
+    a = pyvex.IRExpr.RdTmp.get_instance(10)
+    alt = pyvex.IRExpr.RdTmp.get_instance(11)
+    guard = pyvex.IRExpr.RdTmp.get_instance(12)
 
     args = { "dst": 1, "end": "Iend_LE", "addr": a,
                  "alt": alt, "guard": guard, "cvt": "ILGop_Ident32" }
@@ -264,9 +264,9 @@ def test_irstmt_loadg():
 def test_irstmt_storeg():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.LoadG, ())
 
-    a = pyvex.IRExpr.RdTmp(10)
-    data = pyvex.IRExpr.RdTmp(11)
-    guard = pyvex.IRExpr.RdTmp(12)
+    a = pyvex.IRExpr.RdTmp.get_instance(10)
+    data = pyvex.IRExpr.RdTmp.get_instance(11)
+    guard = pyvex.IRExpr.RdTmp.get_instance(12)
 
     args = { "end": "Iend_LE", "addr": a, "data": data, "guard": guard }
 
@@ -280,8 +280,8 @@ def test_irstmt_storeg():
 def test_irstmt_llsc():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.LLSC)
 
-    a = pyvex.IRExpr.RdTmp(123)
-    d = pyvex.IRExpr.RdTmp(456)
+    a = pyvex.IRExpr.RdTmp.get_instance(123)
+    d = pyvex.IRExpr.RdTmp.get_instance(456)
     m = pyvex.IRStmt.LLSC(a, d, 1, "Iend_LE")
     nose.tools.assert_equal(m.tag, "Ist_LLSC")
     nose.tools.assert_equal(m.endness, "Iend_LE")
@@ -296,7 +296,7 @@ def test_irstmt_mbe():
     nose.tools.assert_equal(m.event, "Imbe_Fence")
 
 def test_irstmt_dirty():
-    args = [ pyvex.IRExpr.RdTmp(i) for i in range(10) ]
+    args = [ pyvex.IRExpr.RdTmp.get_instance(i) for i in range(10) ]
     m = pyvex.IRStmt.Dirty("test_dirty", pyvex.IRConst.U8(1), args, 15, "Ifx_None", 0, 1, 0)
     nose.tools.assert_equal(m.cee, "test_dirty")
     nose.tools.assert_equals(type(m.guard), pyvex.IRConst.U8)
@@ -310,7 +310,7 @@ def test_irstmt_dirty():
 def test_irstmt_exit():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.Exit)
 
-    g = pyvex.IRExpr.RdTmp(123)
+    g = pyvex.IRExpr.RdTmp.get_instance(123)
     d = pyvex.IRConst.U32(456)
 
     m = pyvex.IRStmt.Exit(g, d, "Ijk_Ret", 10)
@@ -380,7 +380,7 @@ def test_irexpr_binder():
 
 def test_irexpr_geti():
     r = pyvex.IRRegArray(10, "Ity_I64", 20)
-    i = pyvex.IRExpr.RdTmp(5)
+    i = pyvex.IRExpr.RdTmp.get_instance(5)
     m = pyvex.IRExpr.GetI(r, i, 2)
     nose.tools.assert_equal(m.description.base, 10)
     nose.tools.assert_equal(m.index.tmp, 5)
@@ -389,7 +389,7 @@ def test_irexpr_geti():
     nose.tools.assert_raises(Exception, pyvex.IRExpr.GetI)
 
 def test_irexpr_rdtmp():
-    m = pyvex.IRExpr.RdTmp(123)
+    m = pyvex.IRExpr.RdTmp.get_instance(123)
     nose.tools.assert_equal(m.tag, "Iex_RdTmp")
     nose.tools.assert_equal(m.tmp, 123)
 
@@ -410,8 +410,8 @@ def test_irexpr_get():
 def test_irexpr_qop():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
     b = pyvex.IRExpr.Get(184, "Ity_I64")
-    c = pyvex.IRExpr.RdTmp(1)
-    d = pyvex.IRExpr.RdTmp(2)
+    c = pyvex.IRExpr.RdTmp.get_instance(1)
+    d = pyvex.IRExpr.RdTmp.get_instance(2)
     op = "Iop_QAdd32S"
 
     m = pyvex.IRExpr.Qop(op, [a, b, c, d])
@@ -425,7 +425,7 @@ def test_irexpr_qop():
 def test_irexpr_triop():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
     b = pyvex.IRExpr.Get(184, "Ity_I64")
-    c = pyvex.IRExpr.RdTmp(1)
+    c = pyvex.IRExpr.RdTmp.get_instance(1)
     op = "Iop_MAddF64"
 
     m = pyvex.IRExpr.Triop(op, [a, b, c])
@@ -438,7 +438,7 @@ def test_irexpr_triop():
 
 def test_irexpr_binop():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
-    c = pyvex.IRExpr.RdTmp(1)
+    c = pyvex.IRExpr.RdTmp.get_instance(1)
     op = "Iop_Add64"
 
     m = pyvex.IRExpr.Binop(op, [a, c])
@@ -481,7 +481,7 @@ def test_irexpr_const():
 
 def test_irexpr_ite():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
-    iffalse = pyvex.IRExpr.RdTmp(1)
+    iffalse = pyvex.IRExpr.RdTmp.get_instance(1)
     iftrue = pyvex.IRExpr.Const(pyvex.IRConst.U8(200))
 
     m = pyvex.IRExpr.ITE(a, iffalse, iftrue)
@@ -490,7 +490,7 @@ def test_irexpr_ite():
 
 def test_irexpr_ccall():
     callee = pyvex.IRCallee(3, "test_name", 1234, 0xFFFFFF)
-    args = [ pyvex.IRExpr.RdTmp(i) for i in range(10) ]
+    args = [ pyvex.IRExpr.RdTmp.get_instance(i) for i in range(10) ]
 
     m = pyvex.IRExpr.CCall("Ity_I64", callee, args)
 
