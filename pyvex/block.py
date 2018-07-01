@@ -107,6 +107,7 @@ class IRSB(VEXObject):
         new_size = self.size + extendwith.size
         new_instructions = self.instructions + extendwith.instructions
         new_direct_next = extendwith.direct_next
+
         def convert_tmp(tmp):
             """
             Converts a tmp from the appended-block into one in the appended-to-block. Creates a new tmp if it does not
@@ -126,7 +127,7 @@ class IRSB(VEXObject):
             :vartype expr:    :class:`IRExpr`
             """
             if type(expr) is RdTmp:
-                return RdTmp(convert_tmp(expr.tmp))
+                return RdTmp.get_instance(convert_tmp(expr.tmp))
             return expr
 
         for stmt in extendwith.statements:

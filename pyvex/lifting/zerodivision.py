@@ -53,7 +53,7 @@ class ZeroDivisionPostProcessor(Postprocessor):
                 cmp_tmp = self.irsb.tyenv.add("Ity_I1")
                 insertions.append((i, stmt.WrTmp(cmp_tmp, expr.Binop('Iop_CmpEQ%d' % arg_size, cmp_args))))
                 insertions.append((i, stmt.Exit(
-                    expr.RdTmp(cmp_tmp),
+                    expr.RdTmp.get_instance(cmp_tmp),
                     const.vex_int_class(self.irsb.arch.bits)(last_ip),
                     'Ijk_SigFPE_IntDiv', self.irsb.offsIP
                 )))
@@ -61,7 +61,9 @@ class ZeroDivisionPostProcessor(Postprocessor):
         for i,s in reversed(insertions):
             self.irsb.statements.insert(i,s)
 
+
 for arch_name in libvex.SUPPORTED:
     register(ZeroDivisionPostProcessor, arch_name)
+
 
 from .. import stmt, expr, const

@@ -209,15 +209,18 @@ class RdTmp(IRExpr):
     @staticmethod
     def _from_c(c_expr):
         tmp = c_expr.Iex.RdTmp.tmp
-        if tmp < 1024:
-            # for small tmp reads, they are cached and are only created once globally
-            return _RDTMP_POOL[tmp]
-
-        return RdTmp(tmp)
+        return RdTmp.get_instance(tmp)
 
     @staticmethod
     def _to_c(expr):
         return pvc.IRExpr_RdTmp(expr.tmp)
+
+    @staticmethod
+    def get_instance(tmp):
+        if tmp < 1024:
+            # for small tmp reads, they are cached and are only created once globally
+            return _RDTMP_POOL[tmp]
+        return RdTmp(tmp)
 
     def result_type(self, tyenv):
         return tyenv.lookup(self.tmp)
@@ -572,14 +575,17 @@ class Const(IRExpr):
     @staticmethod
     def _from_c(c_expr):
         con = IRConst._from_c(c_expr.Iex.Const.con)
-        if con.value < 1024 and con.__class__ in _CONST_POOL:
-            return _CONST_POOL[con.__class__][con.value]
-
-        return Const(con)
+        return Const.get_instance(con)
 
     @staticmethod
     def _to_c(expr):
         return pvc.IRExpr_Const(IRConst._to_c(expr.con))
+
+    @staticmethod
+    def get_instance(con):
+        if con.value < 1024 and con.__class__ in _CONST_POOL:
+            return _CONST_POOL[con.__class__][con.value]
+        return Const(con)
 
     def result_type(self, tyenv):
         return self.con.type
