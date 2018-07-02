@@ -10,8 +10,6 @@ class FixesPostProcessor(Postprocessor):
             # This is an optimized IRSB. We cannot really post-process it.
             return
 
-        self.irsb.statements = [x for x in self.irsb.statements if x.tag != 'Ist_NoOp']
-
         funcname = "_post_process_%s" % self.irsb.arch.name
         if hasattr(self, funcname):
             getattr(self, funcname)()
