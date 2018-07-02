@@ -124,6 +124,10 @@ class IRSB(VEXObject):
     def tyenv(self, v):
         self._tyenv = v
 
+    @property
+    def has_statements(self):
+        return self.statements is not None and self.statements
+
     def copy(self):
         return copy.deepcopy(self)
 
