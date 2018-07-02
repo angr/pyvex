@@ -1,5 +1,5 @@
 pycparser
 cffi>=1.0.3
-archinfo>=7.8.6.16
+archinfo>=7.8.7.1
 bitstring
 future
