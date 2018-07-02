@@ -370,6 +370,7 @@ void get_default_exit_target(
 				// The size does not match. Give up.
 				return;
 			}
+			data = stmt->Ist.Put.data;
 		}
 		else if (stmt->tag == Ist_LoadG) {
 			// We do not handle LoadG. Give up.
