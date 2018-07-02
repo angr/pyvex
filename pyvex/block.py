@@ -341,10 +341,7 @@ class IRSB(VEXObject):
 
     @property
     def addr(self):
-        for s in self.statements:
-            if isinstance(s, stmt.IMark):
-                return s.addr
-        return None
+        return self._addr
 
     @property
     def operations(self):
