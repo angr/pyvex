@@ -279,10 +279,10 @@ static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 }
 
 
-void get_exits(
+void get_exits_and_inst_addrs(
 		IRSB *irsb,
 		VEXLiftResult *lift_r ) {
-	Int i, exit_ctr = 0;
+	Int i, exit_ctr = 0, inst_count = 0;
 	Addr ins_addr;
 	UInt size = 0;
 	for (i = 0; i < irsb->stmts_used; ++i) {
@@ -298,11 +298,18 @@ void get_exits(
 		else if (stmt->tag == Ist_IMark) {
 			ins_addr = stmt->Ist.IMark.addr + stmt->Ist.IMark.delta;
 			size += stmt->Ist.IMark.len;
+			if (inst_count < sizeof(lift_r->inst_addrs) / sizeof(Addr)) {
+				lift_r->inst_addrs[inst_count] = ins_addr;
+			}
+			// inst_count is incremented anyway. If lift_r->insts > 200, the overflowed
+			// instruction addresses will not be written into inst_addrs.
+			inst_count++;
 		}
 	}
 
 	lift_r->exit_count = exit_ctr;
 	lift_r->size = size;
+	lift_r->insts = inst_count;
 }
 
 void get_default_exit_target(
@@ -464,7 +471,7 @@ VEXLiftResult *vex_lift(
 			// Lifting failed
 			return NULL;
 		}
-		get_exits(_lift_r.irsb, &_lift_r);
+		get_exits_and_inst_addrs(_lift_r.irsb, &_lift_r);
 		get_default_exit_target(_lift_r.irsb, &_lift_r);
 		return &_lift_r;
 	} else {

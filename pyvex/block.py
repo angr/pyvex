@@ -1,6 +1,7 @@
 from __future__ import print_function
 import copy
 import sys
+import itertools
 
 from . import VEXObject
 from . import expr, stmt
@@ -46,7 +47,7 @@ class IRSB(VEXObject):
     """
 
     __slots__ = ('_addr', 'arch', 'statements', 'next', '_tyenv', 'jumpkind', '_direct_next', '_size', '_instructions',
-                 'exit_statements', 'default_exit_target', )
+                 'exit_statements', 'default_exit_target', '_instruction_addresses' )
 
     def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None,
                  bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None, strict_block_end=False,
@@ -316,6 +317,18 @@ class IRSB(VEXObject):
         return self._instructions
 
     @property
+    def instruction_addresses(self):
+        """
+        Addresses of instructions in this block.
+        """
+        if self._instruction_addresses is None:
+            if self.statements is None:
+                self._instruction_addresses = [ ]
+            else:
+                self._instruction_addresses = [ (s.addr + s.delta) for s in self.statements if type(s) is stmt.IMark ]
+        return self._instruction_addresses
+
+    @property
     def size(self):
         """
         The size of this block, in bytes
@@ -444,6 +457,8 @@ class IRSB(VEXObject):
         self.next = expr.IRExpr._from_c(c_irsb.next)
         self.jumpkind = get_enum_from_int(c_irsb.jumpkind)
         self._size = lift_r.size
+        self._instructions = lift_r.insts
+        self._instruction_addresses = tuple(itertools.islice(lift_r.inst_addrs, lift_r.insts))
 
         # Conditional exits
         self.exit_statements = [ ]

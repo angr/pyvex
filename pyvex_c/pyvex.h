@@ -36,6 +36,9 @@ typedef struct _VEXLiftResult {
 	// The default exit
 	Int is_default_exit_constant;
 	Addr default_exit;
+	// Instruction addresses
+	Int insts;
+	Addr inst_addrs[200];
 } VEXLiftResult;
 
 VEXLiftResult *vex_lift(
