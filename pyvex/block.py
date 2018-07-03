@@ -337,6 +337,8 @@ class IRSB(VEXObject):
         """
         The size of this block, in bytes
         """
+        if self._size is None:
+            self._size = sum(s.len for s in self.statements if type(s) is stmt.IMark)
         return self._size
 
     @property
