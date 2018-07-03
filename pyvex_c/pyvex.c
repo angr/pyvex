@@ -279,6 +279,28 @@ static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 }
 
 
+void remove_noops(
+	IRSB* irsb
+	) {
+	Int noops = 0, i;
+	Int pos = 0;
+
+	for (i = 0; i < irsb->stmts_used; ++i) {
+		if (irsb->stmts[i]->tag != Ist_NoOp) {
+			if (i != pos) {
+				irsb->stmts[pos] = irsb->stmts[i];
+			}
+			pos++;
+		}
+		else {
+			noops++;
+		}
+	}
+
+	irsb->stmts_used -= noops;
+}
+
+
 void get_exits_and_inst_addrs(
 		IRSB *irsb,
 		VEXLiftResult *lift_r ) {
@@ -472,6 +494,7 @@ VEXLiftResult *vex_lift(
 			// Lifting failed
 			return NULL;
 		}
+		remove_noops(_lift_r.irsb);
 		get_exits_and_inst_addrs(_lift_r.irsb, &_lift_r);
 		get_default_exit_target(_lift_r.irsb, &_lift_r);
 		return &_lift_r;
