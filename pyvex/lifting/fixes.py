@@ -40,7 +40,7 @@ class FixesPostProcessor(Postprocessor):
 
             lr_store_pc = False
             inst_ctr = 0
-            next_irsb_addr = self.irsb.statements[0].addr + self.irsb.size
+            next_irsb_addr = ((self.irsb.addr + self.irsb.size) >> 1) << 1
             _lr_offset = self.irsb.arch.registers['lr'][0]
 
             for stt in self.irsb.statements:
