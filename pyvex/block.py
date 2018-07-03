@@ -377,8 +377,10 @@ class IRSB(VEXObject):
         A set of the static jump targets of the basic block.
         """
         exits = set()
-        for _, _, stmt in self.exit_statements:
-            exits.add(stmt.dst.value)
+
+        if self.exit_statements:
+            for _, _, stmt in self.exit_statements:
+                exits.add(stmt.dst.value)
 
         default_target = self.default_exit_target
         if default_target is not None:
@@ -392,8 +394,10 @@ class IRSB(VEXObject):
         A dict of the static jump targets of the basic block to their jumpkind.
         """
         exits = dict()
-        for _, _, stmt in self.exit_statements:
-            exits[stmt.dst.value] = stmt.jumpkind
+
+        if self.exit_statements:
+            for _, _, stmt in self.exit_statements:
+                exits[stmt.dst.value] = stmt.jumpkind
 
         default_target = self.default_exit_target
         if default_target is not None:
