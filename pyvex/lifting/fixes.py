@@ -31,43 +31,14 @@ class FixesPostProcessor(Postprocessor):
             #   t2 = ITE(cond, t0, t1)
             #   PUT(lr) = t2
 
-            # We also handle another case
-            # If [BP-4] is moved to PC, then this should be an Ijk_Ret
-            #
-            # Example:
-            # [ bytes: e91ba810, ARMBE ]
-            # ldmdb   fp, {r4, fp, sp, pc}
-            #
-            # VEX:
-            #    00 | ------ IMark(0x35ce68, 4, 0) ------
-            #    01 | t0 = GET:I32(bp)
-            #    02 | t3 = Sub32(t0,0x00000004)
-            #    03 | t2 = LDbe:I32(t3)
-            #    04 | PUT(ip) = t2
-            #    05 | t5 = Sub32(t0,0x00000008)
-            #    06 | t4 = LDbe:I32(t5)
-            #    07 | PUT(r13) = t4
-            #    08 | t7 = Sub32(t0,0x00000010)
-            #    09 | t6 = LDbe:I32(t7)
-            #    10 | PUT(v1) = t6
-            #    11 | t9 = Sub32(t0,0x0000000c)
-            #    12 | t8 = LDbe:I32(t9)
-            #    13 | PUT(bp) = t8
-            #    NEXT: PUT(pc) = t2; Ijk_Boring
-
             # Emulated CPU context
             tmps = {}
-            regs = {
-                self.irsb.arch.registers['bp'][0]: 0xf000,  # r11 is bp. 0xf000 is the virtual stack base
-            }
-            mem = {
-                0xf000 - 4: 'stored_pc',
-            }
+            regs = {}
 
-            lr_store_pc, pc_from_bp_sub_4 = False, False
+            lr_store_pc = False
             inst_ctr = 0
             next_irsb_addr = self.irsb.statements[0].addr + self.irsb.size
-            _lr_offset, _pc_offset = self.irsb.arch.registers['lr'][0], self.irsb.arch.registers['ip'][0]
+            _lr_offset = self.irsb.arch.registers['lr'][0]
 
             for stt in self.irsb.statements:
                 if type(stt) == stmt.Put:
@@ -82,11 +53,6 @@ class FixesPostProcessor(Postprocessor):
                             if next_irsb_addr == tmps.get(stt.data.tmp):
                                 lr_store_pc = True
                         break
-                    elif stt.offset == _pc_offset:
-                        if type(stt.data) == expr.RdTmp:
-                            if stt.data.tmp in tmps and tmps[stt.data.tmp] == 'stored_pc':
-                                pc_from_bp_sub_4 = True
-                                break
                     else:
                         reg_offset = stt.offset
                         if type(stt.data) == expr.Const:
@@ -140,21 +106,12 @@ class FixesPostProcessor(Postprocessor):
                         tmps[stt.tmp] = tmps[stt.data.tmp]
                     elif type(stt.data) == expr.Const:
                         tmps[stt.tmp] = stt.data.con.value
-                    elif type(stt.data) == expr.Load:
-                        if type(stt.data.addr) is expr.RdTmp:
-                            # the address is coming from a tmp
-                            if stt.data.addr.tmp in tmps:
-                                addr = tmps[stt.data.addr.tmp]
-                                if addr in mem:
-                                    tmps[stt.tmp] = mem[addr]
 
                 elif type(stt) == stmt.IMark:
                     inst_ctr += 1
 
             if lr_store_pc:
                 self.irsb.jumpkind = 'Ijk_Call'
-            elif pc_from_bp_sub_4:
-                self.irsb.jumpkind = 'Ijk_Ret'
 
     _post_process_ARMEL = _post_process_ARM
     _post_process_ARMHF = _post_process_ARM
