@@ -3,7 +3,6 @@ from past.builtins import xrange
 import pyvex
 import nose
 import random
-import resource
 import gc
 import copy
 import logging
@@ -12,6 +11,13 @@ from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
 from pyvex.lifting import LibVEXLifter
 
 def test_memory():
+
+    try:
+        import resource
+    except ImportError:
+        print("Cannot import the resource package. Are you using Windows? Skip test_memory().")
+        return
+
     arches = [ ArchX86(), ArchPPC32(endness=Endness.BE), ArchAMD64(), ArchARM() ]
     # we're not including ArchMIPS32 cause it segfaults sometimes
 
@@ -393,10 +399,6 @@ def test_irexpr_rdtmp():
     nose.tools.assert_equal(m.tag, "Iex_RdTmp")
     nose.tools.assert_equal(m.tmp, 123)
 
-    m.tmp = 1337
-    nose.tools.assert_equal(m.tmp, 1337)
-    nose.tools.assert_raises(Exception, pyvex.IRExpr.RdTmp)
-
     irsb = pyvex.IRSB('\x90\x5d\xc3', mem_addr=0x0, arch=ArchAMD64())
     print("TMP:",irsb.next.tmp)
 
@@ -504,5 +506,9 @@ def test_irexpr_ccall():
     m = pyvex.IRExpr.CCall(callee, "Ity_I64", ())
     nose.tools.assert_equals(len(m.args), 0)
 
+
 if __name__ == '__main__':
-    test_memory()
+    g = globals().copy()
+    for k, v in g.items():
+        if k.startswith("test_") and hasattr(v, "__call__"):
+            v()
