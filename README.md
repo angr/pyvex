@@ -62,14 +62,14 @@ for stmt in irsb.statements:
 
 # pretty-print the condition and jump target of every conditional exit from the basic block
 for stmt in irsb.statements:
-	if isinstance(stmt, pyvex.IRStmt.Exit):
-		print "Condition:",
-		stmt.guard.pp()
-		print ""
+  if isinstance(stmt, pyvex.IRStmt.Exit):
+    print "Condition:",
+    stmt.guard.pp()
+    print ""
 
-		print "Target:",
-		stmt.dst.pp()
-		print ""
+    print "Target:",
+    stmt.dst.pp()
+    print ""
 
 # these are the types of every temp in the IRSB
 print irsb.tyenv.types
