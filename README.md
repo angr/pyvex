@@ -46,30 +46,30 @@ irsb.next.pp()
 
 # iterate through each statement and print all the statements
 for stmt in irsb.statements:
-	stmt.pp()
+    stmt.pp()
 
 # pretty-print the IR expression representing the data, and the *type* of that IR expression written by every store statement
 import pyvex
 for stmt in irsb.statements:
-  if isinstance(stmt, pyvex.IRStmt.Store):
-    print "Data:",
-    stmt.data.pp()
-    print ""
+    if isinstance(stmt, pyvex.IRStmt.Store):
+        print "Data:",
+        stmt.data.pp()
+        print ""
 
-    print "Type:",
-    print stmt.data.result_type
-    print ""
+        print "Type:",
+        print stmt.data.result_type
+        print ""
 
 # pretty-print the condition and jump target of every conditional exit from the basic block
 for stmt in irsb.statements:
-  if isinstance(stmt, pyvex.IRStmt.Exit):
-    print "Condition:",
-    stmt.guard.pp()
-    print ""
+    if isinstance(stmt, pyvex.IRStmt.Exit):
+        print "Condition:",
+        stmt.guard.pp()
+        print ""
 
-    print "Target:",
-    stmt.dst.pp()
-    print ""
+        print "Target:",
+        stmt.dst.pp()
+        print ""
 
 # these are the types of every temp in the IRSB
 print irsb.tyenv.types
@@ -127,14 +127,14 @@ The astute reader will observe that the actual subtraction is modeled by the fir
 
 The following ARM instruction:
 
-	subs R2, R2, #8
+    subs R2, R2, #8
 	
 Becomes this VEX IR:
 
-	t0 = GET:I32(16)
-	t1 = 0x8:I32
-	t3 = Sub32(t0,t1)
-	PUT(16) = t3
-	PUT(68) = 0x59FC8:I32
+    t0 = GET:I32(16)
+    t1 = 0x8:I32
+    t3 = Sub32(t0,t1)
+    PUT(16) = t3
+    PUT(68) = 0x59FC8:I32
 
 Cool stuff!
