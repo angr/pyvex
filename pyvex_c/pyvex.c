@@ -729,6 +729,8 @@ void mips32_post_processor_fix_unconditional_exit(
 			break;
 		}
 	}
+
+#undef INVALID
 }
 
 
