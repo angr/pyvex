@@ -474,7 +474,7 @@ Addr get_value_from_const_expr(
 // Example:
 // MOV LR, PC
 // MOV PC, R8
-
+//
 // Note that the value of PC is directly used in IRStatements, i.e
 // instead of having:
 //   t0 = GET:I32(pc)
@@ -660,7 +660,77 @@ void arm_post_processor_determine_calls(
 	if (lr_store_pc) {
 		irsb->jumpkind = Ijk_Call;
 	}
+
+// Undefine all defined values
+#undef ARM_OFFB_LR
+#undef MAX_TMP
+#undef MAX_REG_OFFSET
+#undef DUMMY
 }
+
+
+//
+// Unconditional branch fixes for MIPS32
+//
+// Handle unconditional branches
+// `beq $zero, $zero, xxxx`
+// It is translated to
+//
+// 15 | ------ IMark(0x401684, 4, 0) ------
+// 16 | t0 = CmpEQ32(0x00000000, 0x00000000)
+// 17 | PUT(128) = 0x00401688
+// 18 | ------ IMark(0x401688, 4, 0) ------
+// 19 | if (t0) goto {Ijk_Boring} 0x401684
+// 20 | PUT(128) = 0x0040168c
+// 21 | t4 = GET:I32(128)
+// NEXT: PUT(128) = t4; Ijk_Boring
+//
+void mips32_post_processor_fix_unconditional_exit(
+	IRSB *irsb) {
+
+#define INVALID		0xffff
+
+	Int i;
+	Int tmp_exit = INVALID, exit_stmt_idx = INVALID;
+	IRConst *dst = NULL;
+
+	for (i = irsb->stmts_used - 1; i >= 0; --i) {
+		IRStmt *stmt = irsb->stmts[i];
+		if (tmp_exit == INVALID) {
+			// Looking for the Exit statement
+			if (stmt->tag == Ist_Exit &&
+					stmt->Ist.Exit.jk == Ijk_Boring &&
+					stmt->Ist.Exit.guard->tag == Iex_RdTmp) {
+				tmp_exit = stmt->Ist.Exit.guard->Iex.RdTmp.tmp;
+				dst = stmt->Ist.Exit.dst;
+				exit_stmt_idx = i;
+			}
+		}
+		else if (stmt->tag == Ist_WrTmp && stmt->Ist.WrTmp.tmp == tmp_exit) {
+			// Looking for the WrTmp statement
+			IRExpr *data = stmt->Ist.WrTmp.data;
+			if (data->tag == Iex_Binop &&
+				data->Iex.Binop.op == Iop_CmpEQ32 &&
+				data->Iex.Binop.arg1->tag == Iex_Const &&
+				data->Iex.Binop.arg2->tag == Iex_Const &&
+				get_value_from_const_expr(data->Iex.Binop.arg1->Iex.Const.con) ==
+					get_value_from_const_expr(data->Iex.Binop.arg2->Iex.Const.con)) {
+						// We found it
+
+						// Update the statements
+						Int j;
+						for (j = exit_stmt_idx; j < irsb->stmts_used - 1; ++j) {
+							irsb->stmts[j] = irsb->stmts[j + 1];
+						}
+						irsb->stmts_used -= 1;
+						// Update the default of the IRSB
+						irsb->next = IRExpr_Const(dst);
+			}
+			break;
+		}
+	}
+}
+
 
 VEXLiftResult _lift_r;
 
@@ -711,6 +781,11 @@ VEXLiftResult *vex_lift(
 			return NULL;
 		}
 		remove_noops(_lift_r.irsb);
+		if (guest == VexArchMIPS32) {
+			// This post processor may potentially remove statements.
+			// Call it before we get exit statements and such.
+			mips32_post_processor_fix_unconditional_exit(_lift_r.irsb);
+		}
 		get_exits_and_inst_addrs(_lift_r.irsb, &_lift_r);
 		get_default_exit_target(_lift_r.irsb, &_lift_r);
 		if (guest == VexArchARM && _lift_r.insts > 0) {

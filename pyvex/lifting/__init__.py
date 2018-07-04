@@ -178,6 +178,5 @@ from .. import ffi
 from .lifter import Lifter
 from .post_processor import Postprocessor
 from .libvex import LibVEXLifter
-from .fixes import FixesPostProcessor
 from .zerodivision import ZeroDivisionPostProcessor
 from ..block import IRSB
