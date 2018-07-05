@@ -81,7 +81,7 @@ class IRExpr(VEXObject):
                         _lst.append(replacement)
                         replaced = True
                     else:
-                        _lst.append(expr)
+                        _lst.append(expr_)
                 if replaced:
                     setattr(self, k, tuple(_lst))
             elif isinstance(v, IRExpr):
