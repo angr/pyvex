@@ -42,7 +42,7 @@ from .enums import *
 from . import stmt, expr, const
 from .block import IRSB
 from .expr import get_op_retty
-from .const import tag_to_const_class
+from .const import tag_to_const_class, get_type_size, get_type_spec_size
 from .lifting import lift, lifters
 from .errors import PyVEXError
 
