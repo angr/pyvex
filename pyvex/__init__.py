@@ -40,7 +40,7 @@ pvc = _find_c_lib()
 # pylint: disable=wildcard-import
 from .enums import *
 from . import stmt, expr, const
-from .block import IRSB
+from .block import IRSB, IRTypeEnv
 from .expr import get_op_retty
 from .const import tag_to_const_class, get_type_size, get_type_spec_size
 from .lifting import lift, lifters
