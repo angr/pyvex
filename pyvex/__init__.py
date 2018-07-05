@@ -42,6 +42,7 @@ from .block import *
 from .expr import get_op_retty
 from .const import tag_to_const_class
 from .lifting import lift, lifters
+from .errors import PyVEXError
 
 # aliases....
 IRStmt = stmt
