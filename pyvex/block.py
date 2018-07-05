@@ -5,10 +5,8 @@ import itertools
 
 from . import VEXObject
 from . import expr, stmt
-from .enums import get_enum_from_int, get_int_from_enum
 from .const import get_type_size
-from .errors import PyVEXError
-from .stmt import *
+from .stmt import WrTmp, LoadG, LLSC, Dirty, CAS, get_enum_from_int, get_int_from_enum
 from .expr import RdTmp
 
 
@@ -17,7 +15,7 @@ if sys.version_info.major < 3:
     STRING_TYPES = (str, unicode)
 else:
     STRING_TYPES = str
-    xrange = range
+    xrange = range  # pylint:disable=redefined-builtin
 
 
 import logging
@@ -92,6 +90,7 @@ class IRSB(VEXObject):
         self._size = None
         self._instructions = None
         self.exit_statements = None
+        self.default_exit_target = None
 
         if data is not None:
             # This is the slower path (because we need to call _from_py() to copy the content in the returned IRSB to
@@ -161,43 +160,43 @@ class IRSB(VEXObject):
                 conversion_dict[tmp] = self.tyenv.add(tmp_type)
             return conversion_dict[tmp]
 
-        def convert_expr(expr):
+        def convert_expr(expr_):
             """
             Converts a VEX expression to use tmps in the appended-block instead of the appended-to-block. Used to prevent
             collisions in tmp numbers between the two blocks.
             :param tmp:       The VEX expression to convert
             :vartype expr:    :class:`IRExpr`
             """
-            if type(expr) is RdTmp:
-                return RdTmp.get_instance(convert_tmp(expr.tmp))
-            return expr
+            if type(expr_) is RdTmp:
+                return RdTmp.get_instance(convert_tmp(expr_.tmp))
+            return expr_
 
-        for stmt in extendwith.statements:
-            stmttype = type(stmt)
+        for stmt_ in extendwith.statements:
+            stmttype = type(stmt_)
             if stmttype is WrTmp:
-                stmt.tmp = convert_tmp(stmt.tmp)
+                stmt_.tmp = convert_tmp(stmt_.tmp)
             elif stmttype is LoadG:
-                stmt.dst = convert_tmp(stmt.dst)
+                stmt_.dst = convert_tmp(stmt_.dst)
             elif stmttype is LLSC:
-                stmt.result = convert_tmp(stmt.result)
+                stmt_.result = convert_tmp(stmt_.result)
             elif stmttype is Dirty:
-                if stmt.tmp not in invalid_vals:
-                    stmt.tmp = convert_tmp(stmt.tmp)
-                for e in stmt.args:
+                if stmt_.tmp not in invalid_vals:
+                    stmt_.tmp = convert_tmp(stmt_.tmp)
+                for e in stmt_.args:
                     convert_expr(e)
             elif stmttype is CAS:
-                if stmt.oldLo not in invalid_vals: stmt.oldLo = convert_tmp(stmt.oldLo)
-                if stmt.oldHi not in invalid_vals: stmt.oldHi = convert_tmp(stmt.oldHi)
+                if stmt_.oldLo not in invalid_vals: stmt_.oldLo = convert_tmp(stmt_.oldLo)
+                if stmt_.oldHi not in invalid_vals: stmt_.oldHi = convert_tmp(stmt_.oldHi)
             # Convert all expressions
             to_replace = { }
-            for expr in stmt.expressions:
-                replacement = convert_expr(expr)
-                if replacement is not expr:
-                    to_replace[expr] = replacement
-            for expr, replacement in to_replace.items():
-                stmt.replace_expression(expr, replacement)
+            for expr_ in stmt_.expressions:
+                replacement = convert_expr(expr_)
+                if replacement is not expr_:
+                    to_replace[expr_] = replacement
+            for expr_, replacement in to_replace.items():
+                stmt_.replace_expression(expr_, replacement)
             # Add the converted statement to self.statements
-            self.statements.append(stmt)
+            self.statements.append(stmt_)
         extendwith.next = convert_expr(extendwith.next)
         self.next = extendwith.next
         self.jumpkind = extendwith.jumpkind
@@ -307,8 +306,8 @@ class IRSB(VEXObject):
         Return an iterator of all expressions contained in the IRSB.
         """
         for s in self.statements:
-            for expr in s.expressions:
-                yield expr
+            for expr_ in s.expressions:
+                yield expr_
         yield self.next
 
     @property
@@ -382,8 +381,8 @@ class IRSB(VEXObject):
         exits = set()
 
         if self.exit_statements:
-            for _, _, stmt in self.exit_statements:
-                exits.add(stmt.dst.value)
+            for _, _, stmt_ in self.exit_statements:
+                exits.add(stmt_.dst.value)
 
         default_target = self.default_exit_target
         if default_target is not None:
@@ -399,8 +398,8 @@ class IRSB(VEXObject):
         exits = dict()
 
         if self.exit_statements:
-            for _, _, stmt in self.exit_statements:
-                exits[stmt.dst.value] = stmt.jumpkind
+            for _, _, stmt_ in self.exit_statements:
+                exits[stmt_.dst.value] = stmt_.jumpkind
 
         default_target = self.default_exit_target
         if default_target is not None:

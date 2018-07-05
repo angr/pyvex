@@ -24,7 +24,7 @@ def test_memory():
     # disable logging, as that may fill up log buffers somewhere
     logging.disable(logging.ERROR)
 
-    for i in xrange(10000):
+    for _ in xrange(10000):
         try:
             s = hex(random.randint(2**100,2**100*16))[2:]
             a = random.choice(arches)
@@ -34,7 +34,7 @@ def test_memory():
 
     kb_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
-    for i in xrange(20000):
+    for _ in xrange(20000):
         try:
             s = hex(random.randint(2**100,2**100*16))[2:]
             a = random.choice(arches)
@@ -381,8 +381,8 @@ def test_irexpr_binder():
     # binder doesn't work statically, but hopefully we should
     # never see it, anyways
     return
-    m = pyvex.IRExpr.Binder(1534252)
-    nose.tools.assert_equal(m.binder, 1534252)
+    # m = pyvex.IRExpr.Binder(1534252)
+    # nose.tools.assert_equal(m.binder, 1534252)
 
 def test_irexpr_geti():
     r = pyvex.IRRegArray(10, "Ity_I64", 20)
@@ -476,7 +476,7 @@ def test_irexpr_const():
     f64 = pyvex.IRConst.F64(1.123)
 
     ue = pyvex.IRExpr.Const(u1)
-    fe = pyvex.IRExpr.Const(f64)
+    _ = pyvex.IRExpr.Const(f64)
 
     nose.tools.assert_equal(ue.con.value, u1.value)
     nose.tools.assert_not_equal(ue.con.value, f64.value)
@@ -508,7 +508,7 @@ def test_irexpr_ccall():
 
 
 if __name__ == '__main__':
-    g = globals().copy()
-    for k, v in g.items():
+    _g = globals().copy()
+    for k, v in _g.items():
         if k.startswith("test_") and hasattr(v, "__call__"):
             v()
