@@ -15,7 +15,7 @@ class LiftingException(Exception):
 
 
 def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_level=1, traceflags=0,
-         strict_block_end=True, inner=False, skip_stmts=False):
+         strict_block_end=True, inner=False, skip_stmts=False, collect_data_refs=False):
     """
     Recursively lifts blocks using the registered lifters and postprocessors. Tries each lifter in the order in
     which they are registered on the data to lift.
@@ -77,7 +77,7 @@ def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                 else:
                     u_data = py_data
             final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
-                                                      allow_lookback, strict_block_end, skip_stmts
+                                                      allow_lookback, strict_block_end, skip_stmts, collect_data_refs
                                                       )
             #l.debug('block lifted by %s' % str(lifter))
             #l.debug(str(final_irsb))
@@ -122,6 +122,7 @@ def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                         traceflags=traceflags,
                         strict_block_end=strict_block_end,
                         skip_stmts=False,
+                        collect_data_refs=collect_data_refs,
                         )
 
         addr += final_irsb.size
@@ -143,6 +144,7 @@ def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                              strict_block_end=strict_block_end,
                              inner=True,
                              skip_stmts=False,
+                             collect_data_refs=collect_data_refs,
                              )
             if more_irsb.size:
                 # Successfully decoded more bytes

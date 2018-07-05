@@ -305,7 +305,7 @@ void remove_noops(
 
 void get_exits_and_inst_addrs(
 		IRSB *irsb,
-		VEXLiftResult *lift_r ) {
+		VEXLiftResult *lift_r) {
 	Int i, exit_ctr = 0, inst_count = 0;
 	Addr ins_addr;
 	UInt size = 0;
@@ -735,6 +735,160 @@ void mips32_post_processor_fix_unconditional_exit(
 }
 
 
+//
+// Collect data references
+//
+
+
+void record_data_reference(
+	VEXLiftResult *lift_r,
+	Addr data_addr,
+	Int size,
+	DataRefTypes data_type,
+	Int stmt_idx,
+	Addr inst_addr) {
+
+	if (lift_r->data_ref_count < MAX_DATA_REFS) {
+		Int idx = lift_r->data_ref_count;
+		lift_r->data_refs[idx].size = size;
+		lift_r->data_refs[idx].data_addr = data_addr;
+		lift_r->data_refs[idx].data_type = data_type;
+		lift_r->data_refs[idx].stmt_idx = stmt_idx;
+		lift_r->data_refs[idx].ins_addr = inst_addr;
+	}
+	lift_r->data_ref_count++;
+}
+
+void record_const(
+	VEXLiftResult *lift_r,
+	IRExpr *const_expr,
+	Int size,
+	DataRefTypes data_type,
+	Int stmt_idx,
+	Addr inst_addr,
+	Addr next_inst_addr) {
+
+	if (const_expr->tag != Iex_Const) {
+		// Why are you calling me?
+		assert (const_expr->tag == Iex_Const);
+		return;
+	}
+
+	Addr addr = get_value_from_const_expr(const_expr->Iex.Const.con);
+	if (addr != next_inst_addr) {
+		record_data_reference(lift_r, addr, size, data_type, stmt_idx, inst_addr);
+	}
+
+}
+
+
+void collect_data_references(
+	IRSB *irsb,
+	VEXLiftResult *lift_r) {
+
+	Int i;
+	Addr inst_addr, next_inst_addr;
+
+	for (i = 0; i < irsb->stmts_used; ++i) {
+		IRStmt *stmt = irsb->stmts[i];
+		switch (stmt->tag) {
+		case Ist_IMark:
+			inst_addr = stmt->Ist.IMark.addr + stmt->Ist.IMark.delta;
+			next_inst_addr = inst_addr + stmt->Ist.IMark.len;
+			break;
+		case Ist_WrTmp:
+			{
+				IRExpr *data = stmt->Ist.WrTmp.data;
+				switch (data->tag) {
+				case Iex_Load:
+					// load
+                    // e.g. t7 = LDle:I64(0x0000000000600ff8)
+					if (data->Iex.Load.addr->tag == Iex_Const) {
+						Int size;
+						Addr addr;
+						size = sizeofIRType(typeOfIRTemp(irsb->tyenv, stmt->Ist.WrTmp.tmp));
+						record_const(lift_r, data->Iex.Load.addr, size, Dt_Integer, i, inst_addr, next_inst_addr);
+					}
+					break;
+				case Iex_Binop:
+					if (data->Iex.Binop.op == Iop_Add32 || data->Iex.Binop.op == Iop_Add64) {
+						if (data->Iex.Binop.arg1->tag == Iex_Const && data->Iex.Binop.arg2->tag == Iex_Const) {
+							// ip-related addressing
+							Addr addr;
+							addr = get_value_from_const_expr(data->Iex.Binop.arg1->Iex.Const.con) +
+								get_value_from_const_expr(data->Iex.Binop.arg2->Iex.Const.con);
+							if (addr != next_inst_addr) {
+								record_data_reference(lift_r, addr, 0, Dt_Unknown, i, inst_addr);
+							}
+						}
+					}
+					else {
+						// Normal binary operations
+						if (data->Iex.Binop.arg1->tag == Iex_Const) {
+							record_const(lift_r, data->Iex.Binop.arg1, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+						}
+						if (data->Iex.Binop.arg2->tag == Iex_Const) {
+							record_const(lift_r, data->Iex.Binop.arg2, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+						}
+					}
+					break;
+				case Iex_Const:
+					{
+						record_const(lift_r, data, 0, i, Dt_Unknown, inst_addr, next_inst_addr);
+					}
+					break;
+				case Iex_ITE:
+					{
+						if (data->Iex.ITE.iftrue->tag == Iex_Const) {
+							record_const(lift_r, data->Iex.ITE.iftrue, 0, i, Dt_Unknown, inst_addr, next_inst_addr);
+						}
+						if (data->Iex.ITE.iffalse->tag == Iex_Const) {
+							record_const(lift_r, data->Iex.ITE.iffalse, 0, i, Dt_Unknown, inst_addr, next_inst_addr);
+						}
+					}
+					break;
+				default:
+					// Unsupported for now
+					break;
+				} // end switch (data->tag)
+			}
+			break;
+		case Ist_Put:
+			// put
+			// e.g. PUT(rdi) = 0x0000000000400714
+			{
+				IRExpr *data = stmt->Ist.Put.data;
+				if (data->tag == Iex_Const) {
+					record_const(lift_r, data, 0, i, Dt_Unknown, inst_addr, next_inst_addr);
+				}
+			}
+			break;
+		case Ist_Store:
+			// Store
+			{
+				IRExpr *store_dst = stmt->Ist.Store.addr;
+				IRExpr *store_data = stmt->Ist.Store.data;
+				if (store_dst->tag == Iex_Const) {
+					record_const(lift_r, store_dst, 0, i, Dt_Unknown, inst_addr, next_inst_addr);
+				}
+				if (store_data->tag == Iex_Const) {
+					record_const(lift_r, store_data, 0, i, Dt_Unknown, inst_addr, next_inst_addr);
+				}
+			}
+			break;
+		case Ist_Dirty:
+			// Dirty
+			if (stmt->Ist.Dirty.details->mAddr->tag == Iex_Const) {
+				IRExpr *m_addr = stmt->Ist.Dirty.details->mAddr;
+				record_const(lift_r, m_addr, stmt->Ist.Dirty.details->mSize, Dt_FP, i, inst_addr, next_inst_addr);
+			}
+			break;
+		default:
+			break;
+		} // end switch (stmt->tag)
+	}
+}
+
 VEXLiftResult _lift_r;
 
 //----------------------------------------------------------------------
@@ -750,7 +904,8 @@ VEXLiftResult *vex_lift(
 		int opt_level,
 		int traceflags,
 		int allow_lookback,
-		int strict_block_end) {
+		int strict_block_end,
+		int collect_data_refs) {
 	VexRegisterUpdates pxControl;
 
 	vex_prepare_vai(guest, &archinfo);
@@ -778,6 +933,7 @@ VEXLiftResult *vex_lift(
 	// Do the actual translation
 	if (setjmp(jumpout) == 0) {
 		LibVEX_Update_Control(&vc);
+		_lift_r.data_ref_count = 0;
 		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl);
 		if (!_lift_r.irsb) {
 			// Lifting failed
@@ -793,6 +949,9 @@ VEXLiftResult *vex_lift(
 		get_default_exit_target(_lift_r.irsb, &_lift_r);
 		if (guest == VexArchARM && _lift_r.insts > 0) {
 			arm_post_processor_determine_calls(_lift_r.inst_addrs[0], _lift_r.size, _lift_r.insts, _lift_r.irsb);
+		}
+		if (collect_data_refs) {
+			collect_data_references(_lift_r.irsb, &_lift_r);
 		}
 		return &_lift_r;
 	} else {

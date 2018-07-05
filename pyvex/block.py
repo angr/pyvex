@@ -47,11 +47,11 @@ class IRSB(VEXObject):
     """
 
     __slots__ = ('_addr', 'arch', 'statements', 'next', '_tyenv', 'jumpkind', '_direct_next', '_size', '_instructions',
-                 'exit_statements', 'default_exit_target', '_instruction_addresses' )
+                 'exit_statements', 'default_exit_target', '_instruction_addresses', 'data_refs', )
 
     def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None,
                  bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None, strict_block_end=False,
-                 skip_stmts=False):
+                 skip_stmts=False, collect_data_refs=False):
         """
         :param data:                The bytes to lift. Can be either a string of bytes or a cffi buffer object.
                                     You may also pass None to initialize an empty IRSB.
@@ -105,6 +105,7 @@ class IRSB(VEXObject):
                         traceflags=traceflags,
                         strict_block_end=strict_block_end,
                         skip_stmts=skip_stmts,
+                        collect_data_refs=collect_data_refs,
                         )
             self._from_py(irsb)
 
@@ -203,6 +204,8 @@ class IRSB(VEXObject):
         self._size = new_size
         self._instructions = new_instructions
         self._direct_next = new_direct_next
+
+        # TODO: Change exit_statements, data_references, etc.
 
     def invalidate_direct_next(self):
         self._direct_next = None
@@ -481,8 +484,17 @@ class IRSB(VEXObject):
         else:
             self.default_exit_target = None
 
+        # Data references
+        self.data_refs = None
+        if lift_r.data_ref_count > 0:
+            data_refs = [ ]
+            for i in xrange(min(lift_r.data_ref_count, 2000)):
+                r = lift_r.data_refs[i]
+                data_refs.append((r.data_addr, r.size, r.data_type, r.stmt_idx, r.ins_addr))
+            self.data_refs= data_refs
+
     def _set_attributes(self, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None,
-                        instructions=None, exit_statements=None, default_exit_target=None):
+                        instructions=None, instruction_addresses=None, exit_statements=None, default_exit_target=None):
         self.statements = statements if statements is not None else []
         self.next = nxt
         if tyenv is not None:
@@ -491,13 +503,14 @@ class IRSB(VEXObject):
         self._direct_next = direct_next
         self._size = size
         self._instructions = instructions
+        self._instruction_addresses = instruction_addresses
         self.exit_statements = exit_statements
         self.default_exit_target = default_exit_target
 
     def _from_py(self, irsb):
         self._set_attributes(irsb.statements, irsb.next, irsb.tyenv, irsb.jumpkind, irsb.direct_next, irsb.size,
-                             instructions=irsb._instructions, exit_statements=irsb.exit_statements,
-                             default_exit_target=irsb.default_exit_target
+                             instructions=irsb._instructions, instruction_addresses=irsb._instruction_addresses,
+                             exit_statements=irsb.exit_statements, default_exit_target=irsb.default_exit_target,
                              )
 
 class IRTypeEnv(VEXObject):

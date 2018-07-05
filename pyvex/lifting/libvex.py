@@ -53,6 +53,10 @@ class LibVEXLifter(Lifter):
             if strict_block_end is None:
                 strict_block_end = True
 
+            collect_data_refs = self.collect_data_refs
+            if collect_data_refs is None:
+                collect_data_refs = False
+
             self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
             lift_r = pvc.vex_lift(vex_arch,
                                   self.irsb.arch.vex_archinfo,
@@ -63,7 +67,8 @@ class LibVEXLifter(Lifter):
                                   self.opt_level,
                                   self.traceflags,
                                   self.allow_lookback,
-                                  strict_block_end
+                                  strict_block_end,
+                                  collect_data_refs,
                                   )
             log_str = self.get_vex_log()
             if lift_r == ffi.NULL:

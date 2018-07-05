@@ -25,7 +25,22 @@ typedef struct _ExitInfo {
 	IRStmt *stmt;
 } ExitInfo;
 
+typedef enum {
+	Dt_Unknown = 0x9000,
+	Dt_Integer,
+	Dt_FP
+} DataRefTypes;
+
+typedef struct _DataRef {
+	Addr data_addr;
+	Int size;
+	DataRefTypes data_type;
+	Int stmt_idx;
+	Addr ins_addr;
+} DataRef;
+
 #define MAX_EXITS 32
+#define MAX_DATA_REFS 2000
 
 typedef struct _VEXLiftResult {
 	IRSB* irsb;
@@ -39,6 +54,9 @@ typedef struct _VEXLiftResult {
 	// Instruction addresses
 	Int insts;
 	Addr inst_addrs[200];
+	// Data references
+	Int data_ref_count;
+	DataRef data_refs[MAX_DATA_REFS];
 } VEXLiftResult;
 
 VEXLiftResult *vex_lift(
@@ -51,6 +69,7 @@ VEXLiftResult *vex_lift(
 		int opt_level,
 		int traceflags,
 		int allow_lookback,
-		int strict_block_end);
+		int strict_block_end,
+		int collect_data_refs);
 
 #endif
