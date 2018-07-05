@@ -4,15 +4,16 @@ For an introduction to VEX, take a look here: https://docs.angr.io/docs/ir.html
 """
 
 import os
-import sys
 import cffi
 import pkg_resources
 
 from .vex_ffi import ffi_str as _ffi_str
 ffi = cffi.FFI()
 
+
 import logging
 logging.getLogger("pyvex").addHandler(logging.NullHandler())
+
 
 def _find_c_lib():
     # Load the c library for calling into VEX
@@ -38,7 +39,7 @@ pvc = _find_c_lib()
 # pylint: disable=wildcard-import
 from .enums import *
 from . import stmt, expr, const
-from .block import *
+from .block import IRSB
 from .expr import get_op_retty
 from .const import tag_to_const_class
 from .lifting import lift, lifters
