@@ -4,6 +4,7 @@ For an introduction to VEX, take a look here: https://docs.angr.io/docs/ir.html
 """
 
 import os
+import sys
 import cffi
 import pkg_resources
 
