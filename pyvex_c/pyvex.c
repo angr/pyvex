@@ -22,6 +22,7 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <string.h>
 #include <assert.h>
 #include <setjmp.h>
+#include <stddef.h>
 #include <libvex.h>
 #include <libvex_guest_arm.h>
 
