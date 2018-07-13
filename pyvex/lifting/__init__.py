@@ -95,6 +95,21 @@ def lift(irsb, arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=Non
         return
 
     if final_irsb.jumpkind == 'Ijk_NoDecode':
+
+        # Determine if this is an intentional NoDecode, like the ud2 instruction on AMD64
+        nodecode_addr_expr = next_irsb_part.next
+        if type(nodecode_addr_expr) is Const:
+            nodecode_addr = nodecode_addr_expr.con.value
+            next_irsb_start_addr = addr + next_irsb_part.size
+            if nodecode_addr != next_irsb_start_addr:
+                # The last instruction of the IRSB has a non-zero length. This is an intentional NoDecode.
+                # The very last instruction has been decoded
+                final_irsb.jumpkind = 'Ijk_NoDecode'
+                final_irsb.next = next_irsb_part.next
+                final_irsb.invalidate_direct_next()
+                irsb._from_py(final_irsb)
+                return
+
         addr += next_irsb_part.size
         if max_bytes is not None:
             max_bytes -= next_irsb_part.size
