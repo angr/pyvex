@@ -30,7 +30,7 @@ import pyvex
 import archinfo
 
 # translate an AMD64 basic block (of nops) at 0x400400 into VEX
-irsb = pyvex.IRSB("\x90\x90\x90\x90\x90", 0x400400, archinfo.ArchAMD64())
+irsb = pyvex.lift("\x90\x90\x90\x90\x90", 0x400400, archinfo.ArchAMD64())
 
 # pretty-print the basic block
 irsb.pp()
