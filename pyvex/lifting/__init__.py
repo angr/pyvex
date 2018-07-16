@@ -14,6 +14,21 @@ class LiftingException(Exception):
     pass
 
 
+class NeedStatementsNotification(LiftingException):
+    """
+    A post-processor may raise a NeedStatementsNotification if it needs to work with statements, but the current IRSB
+    is generated without any statement available (skip_stmts=True). The lifter will re-lift the current block with
+    skip_stmts=False upon catching a NeedStatementsNotification, and re-run the post-processors.
+
+    It's worth noting that if a post-processor always raises this notification for every basic block without statements,
+    it will essentially disable the skipping statement optimization, and it is bad for performance (especially for
+    CFGFast, which heavily relies on this optimization). Post-processor authors are encouraged to at least filter the
+    IRSBs based on available properties (jumpkind, next, etc.). If a post-processor must work with statements for the
+    majority of IRSBs, the author should implement it in PyVEX in C for the sake of a better performance.
+    """
+    pass
+
+
 def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_level=1, traceflags=0,
          strict_block_end=True, inner=False, skip_stmts=False, collect_data_refs=False):
     """
@@ -125,7 +140,7 @@ def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                         collect_data_refs=collect_data_refs,
                         )
 
-        addr += final_irsb.size
+        next_addr = addr + final_irsb.size
         if max_bytes is not None:
             max_bytes -= final_irsb.size
         if isinstance(data, (str, bytes)):
@@ -135,7 +150,7 @@ def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
         if max_inst is not None:
             max_inst -= final_irsb.instructions
         if max_bytes > 0 and (max_inst is None or max_inst > 0):
-            more_irsb = lift(arch, addr, data_left,
+            more_irsb = lift(arch, next_addr, data_left,
                              max_bytes=max_bytes,
                              max_inst=max_inst,
                              bytes_offset=bytes_offset,
@@ -154,6 +169,27 @@ def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
         for postprocessor in postprocessors[arch.name]:
             try:
                 postprocessor(final_irsb).postprocess()
+            except NeedStatementsNotification:
+                # The post-processor cannot work without statements. Re-lift the current block with skip_stmts=False
+                if not skip_stmts:
+                    # sanity check
+                    # Why does the post-processor raise NeedStatementsNotification when skip_stmts is False?
+                    raise TypeError("Bad post-processor %s: "
+                                    "NeedStatementsNotification is raised when statements are available." %
+                                    postprocessor.__class__)
+
+                # Re-lift the current IRSB
+                return lift(arch, addr, data,
+                            max_bytes=max_bytes,
+                            max_inst=max_inst,
+                            bytes_offset=bytes_offset,
+                            opt_level=opt_level,
+                            traceflags=traceflags,
+                            strict_block_end=strict_block_end,
+                            inner=inner,
+                            skip_stmts=False,
+                            collect_data_refs=collect_data_refs,
+                            )
             except LiftingException:
                 continue
 
