@@ -92,6 +92,8 @@ class IRSB(VEXObject):
         self._instructions = None
         self.exit_statements = None
         self.default_exit_target = None
+        self.data_refs = ()
+        self._instruction_addresses = ()
 
         if data is not None:
             # This is the slower path (because we need to call _from_py() to copy the content in the returned IRSB to
