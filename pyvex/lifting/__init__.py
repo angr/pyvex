@@ -1,32 +1,18 @@
+
 from collections import defaultdict
 import logging
-from .. import const
+
+from .. import const, ffi
 from ..expr import Const
-from ..errors import PyVEXError
+from ..block import IRSB
+from ..errors import PyVEXError, NeedStatementsNotification, LiftingException
+from .lifter import Lifter
+from .post_processor import Postprocessor
 
 l = logging.getLogger('pyvex.lift')
 
 lifters = defaultdict(list)
 postprocessors = defaultdict(list)
-
-
-class LiftingException(Exception):
-    pass
-
-
-class NeedStatementsNotification(LiftingException):
-    """
-    A post-processor may raise a NeedStatementsNotification if it needs to work with statements, but the current IRSB
-    is generated without any statement available (skip_stmts=True). The lifter will re-lift the current block with
-    skip_stmts=False upon catching a NeedStatementsNotification, and re-run the post-processors.
-
-    It's worth noting that if a post-processor always raises this notification for every basic block without statements,
-    it will essentially disable the skipping statement optimization, and it is bad for performance (especially for
-    CFGFast, which heavily relies on this optimization). Post-processor authors are encouraged to at least filter the
-    IRSBs based on available properties (jumpkind, next, etc.). If a post-processor must work with statements for the
-    majority of IRSBs, the author should implement it in PyVEX in C for the sake of a better performance.
-    """
-    pass
 
 
 def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_level=1, traceflags=0,
@@ -212,9 +198,5 @@ def register(lifter, arch_name):
         postprocessors[arch_name].append(lifter)
 
 
-from .. import ffi
-from .lifter import Lifter
-from .post_processor import Postprocessor
 from .libvex import LibVEXLifter
 from .zerodivision import ZeroDivisionPostProcessor
-from ..block import IRSB
