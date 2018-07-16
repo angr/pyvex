@@ -99,7 +99,7 @@ class IRSB(VEXObject):
             # This is the slower path (because we need to call _from_py() to copy the content in the returned IRSB to
             # the current IRSB instance. You should always call `lift()` directly. This method is kept for compatibility
             # concerns.
-            irsb = lift(arch, mem_addr, data,
+            irsb = lift(data, mem_addr, arch,
                         max_bytes=max_bytes,
                         max_inst=max_inst,
                         bytes_offset=bytes_offset,

@@ -15,7 +15,7 @@ lifters = defaultdict(list)
 postprocessors = defaultdict(list)
 
 
-def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_level=1, traceflags=0,
+def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_level=1, traceflags=0,
          strict_block_end=True, inner=False, skip_stmts=False, collect_data_refs=False):
     """
     Recursively lifts blocks using the registered lifters and postprocessors. Tries each lifter in the order in
@@ -115,7 +115,7 @@ def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
         # Decode more bytes
         if skip_stmts:
             # In this case, statements are required
-            return lift(arch, addr, data,
+            return lift(data, addr, arch,
                         max_bytes=max_bytes,
                         max_inst=max_inst,
                         bytes_offset=bytes_offset,
@@ -136,7 +136,7 @@ def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
         if max_inst is not None:
             max_inst -= final_irsb.instructions
         if max_bytes > 0 and (max_inst is None or max_inst > 0):
-            more_irsb = lift(arch, next_addr, data_left,
+            more_irsb = lift(data_left, next_addr, arch,
                              max_bytes=max_bytes,
                              max_inst=max_inst,
                              bytes_offset=bytes_offset,
@@ -165,7 +165,7 @@ def lift(arch, addr, data, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                                     postprocessor.__class__)
 
                 # Re-lift the current IRSB
-                return lift(arch, addr, data,
+                return lift(data, addr, arch,
                             max_bytes=max_bytes,
                             max_inst=max_inst,
                             bytes_offset=bytes_offset,
