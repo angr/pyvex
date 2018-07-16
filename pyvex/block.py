@@ -8,6 +8,7 @@ from . import expr, stmt
 from .const import get_type_size
 from .stmt import WrTmp, LoadG, LLSC, Dirty, CAS, get_enum_from_int, get_int_from_enum
 from .expr import RdTmp
+from .data_ref import DataRef
 
 
 # Some Python 3 compatibility shims
@@ -484,11 +485,7 @@ class IRSB(VEXObject):
         if lift_r.data_ref_count > 0:
             if lift_r.data_ref_count > 2000:
                 raise ValueError("data_ref_count exceeded MAX_DATA_REFS (2000)")
-            data_refs = [ ]
-            for i in xrange(lift_r.data_ref_count):
-                r = lift_r.data_refs[i]
-                data_refs.append((r.data_addr, r.size, r.data_type, r.stmt_idx, r.ins_addr))
-            self.data_refs= data_refs
+            self.data_refs = [DataRef.from_c(lift_r.data_refs[i]) for i in xrange(lift_r.data_ref_count)]
 
     def _set_attributes(self, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None,
                         instructions=None, instruction_addresses=None, exit_statements=None, default_exit_target=None):
