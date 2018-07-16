@@ -61,7 +61,7 @@ class LibVEXLifter(Lifter):
             lift_r = pvc.vex_lift(vex_arch,
                                   self.irsb.arch.vex_archinfo,
                                   self.data + self.bytes_offset,
-                                  self.irsb._addr,
+                                  self.irsb.addr,
                                   max_inst,
                                   max_bytes,
                                   self.opt_level,

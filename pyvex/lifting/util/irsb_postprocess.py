@@ -28,7 +28,7 @@ def irsb_postproc_flatten(irsb_old, irsb_new=None):
     :return: the flattened IRSB
     :rtype: IRSB
     """
-    irsb_new = irsb_new if irsb_new is not None else IRSB(None, irsb_old._addr, irsb_old.arch)
+    irsb_new = irsb_new if irsb_new is not None else IRSB(None, irsb_old.addr, irsb_old.arch)
     irsb_c = IRSBCustomizer(irsb_new)
     old_to_new_tmp = {}
 

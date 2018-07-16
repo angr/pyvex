@@ -44,7 +44,7 @@ class IRSB(VEXObject):
     :ivar int addr:         The address of this basic block, i.e. the address in the first IMark
     """
 
-    __slots__ = ('_addr', 'arch', 'statements', 'next', '_tyenv', 'jumpkind', '_direct_next', '_size', '_instructions',
+    __slots__ = ('addr', 'arch', 'statements', 'next', '_tyenv', 'jumpkind', '_direct_next', '_size', '_instructions',
                  'exit_statements', 'default_exit_target', '_instruction_addresses', 'data_refs', )
 
     def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None,
@@ -79,7 +79,7 @@ class IRSB(VEXObject):
         if max_inst is None: max_inst = num_inst
         if max_bytes is None: max_bytes = num_bytes
         VEXObject.__init__(self)
-        self._addr = mem_addr
+        self.addr = mem_addr
         self.arch = arch
 
         self.statements = []
@@ -342,10 +342,6 @@ class IRSB(VEXObject):
         if self._size is None:
             self._size = sum(s.len for s in self.statements if type(s) is stmt.IMark)
         return self._size
-
-    @property
-    def addr(self):
-        return self._addr
 
     @property
     def operations(self):
