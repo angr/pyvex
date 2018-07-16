@@ -482,8 +482,10 @@ class IRSB(VEXObject):
         # Data references
         self.data_refs = None
         if lift_r.data_ref_count > 0:
+            if lift_r.data_ref_count > 2000:
+                raise ValueError("data_ref_count exceeded MAX_DATA_REFS (2000)")
             data_refs = [ ]
-            for i in xrange(min(lift_r.data_ref_count, 2000)):
+            for i in xrange(lift_r.data_ref_count):
                 r = lift_r.data_refs[i]
                 data_refs.append((r.data_addr, r.size, r.data_type, r.stmt_idx, r.ins_addr))
             self.data_refs= data_refs
