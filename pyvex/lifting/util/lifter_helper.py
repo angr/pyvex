@@ -60,7 +60,7 @@ class GymratLifter(Lifter):
             self.create_bitstrm()
             count = 0
             disas = []
-            addr = self.irsb._addr
+            addr = self.irsb.addr
             l.debug("Starting block at address: " + hex(addr))
             bytepos = self.bitstrm.bytepos
 
