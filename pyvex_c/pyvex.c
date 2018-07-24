@@ -220,7 +220,7 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai) {
 							VEX_HWCAPS_AMD64_AVX2;
 			break;
 		case VexArchARM:
-			vai->hwcaps = VEX_ARM_ARCHLEVEL(7) |
+			vai->hwcaps = VEX_ARM_ARCHLEVEL(8) |
 							VEX_HWCAPS_ARM_NEON |
 							VEX_HWCAPS_ARM_VFP3;
 			break;
