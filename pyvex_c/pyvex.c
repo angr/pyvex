@@ -127,7 +127,7 @@ void vex_init() {
 	vc.guest_chase_thresh           = 0;
 	vc.arm64_allow_reordered_writeback = 0;
 	vc.x86_optimize_callpop_idiom = 0;
-	vc.arm_strict_block_end = 0;
+	vc.strict_block_end = 0;
 
 	pyvex_debug("Calling LibVEX_Init()....\n");
 	// the 0 is the debug level
@@ -312,7 +312,7 @@ IRSB *vex_lift(
 	vc.guest_max_insns     = max_insns;
 	vc.iropt_level         = opt_level;
 	vc.arm_allow_optimizing_lookback = allow_lookback;
-	vc.arm_strict_block_end = strict_block_end;
+	vc.strict_block_end = strict_block_end;
 
 	clear_log();
 
