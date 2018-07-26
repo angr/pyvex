@@ -288,16 +288,16 @@ void collect_data_references(
 					break;
 				case Iex_Const:
 					{
-						record_const(lift_r, data, 0, i, Dt_Unknown, inst_addr, next_inst_addr);
+						record_const(lift_r, data, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
 					}
 					break;
 				case Iex_ITE:
 					{
 						if (data->Iex.ITE.iftrue->tag == Iex_Const) {
-							record_const(lift_r, data->Iex.ITE.iftrue, 0, i, Dt_Unknown, inst_addr, next_inst_addr);
+							record_const(lift_r, data->Iex.ITE.iftrue, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
 						}
 						if (data->Iex.ITE.iffalse->tag == Iex_Const) {
-							record_const(lift_r, data->Iex.ITE.iffalse, 0, i, Dt_Unknown, inst_addr, next_inst_addr);
+							record_const(lift_r, data->Iex.ITE.iffalse, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
 						}
 					}
 					break;
@@ -313,7 +313,7 @@ void collect_data_references(
 			{
 				IRExpr *data = stmt->Ist.Put.data;
 				if (data->tag == Iex_Const) {
-					record_const(lift_r, data, 0, i, Dt_Unknown, inst_addr, next_inst_addr);
+					record_const(lift_r, data, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
 				}
 			}
 			break;
@@ -323,10 +323,10 @@ void collect_data_references(
 				IRExpr *store_dst = stmt->Ist.Store.addr;
 				IRExpr *store_data = stmt->Ist.Store.data;
 				if (store_dst->tag == Iex_Const) {
-					record_const(lift_r, store_dst, 0, i, Dt_Unknown, inst_addr, next_inst_addr);
+					record_const(lift_r, store_dst, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
 				}
 				if (store_data->tag == Iex_Const) {
-					record_const(lift_r, store_data, 0, i, Dt_Unknown, inst_addr, next_inst_addr);
+					record_const(lift_r, store_data, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
 				}
 			}
 			break;
