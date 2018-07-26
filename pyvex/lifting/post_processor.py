@@ -1,4 +1,8 @@
 
+#
+# The post-processor base class
+#
+
 class Postprocessor(object):
     def __init__(self, irsb):
         self.irsb = irsb

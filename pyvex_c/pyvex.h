@@ -19,7 +19,47 @@ void clear_log(void);
 //
 void vex_init(void);
 
-IRSB *vex_lift(
+typedef struct _ExitInfo {
+	Int stmt_idx;
+	Addr ins_addr;
+	IRStmt *stmt;
+} ExitInfo;
+
+typedef enum {
+	Dt_Unknown = 0x9000,
+	Dt_Integer,
+	Dt_FP
+} DataRefTypes;
+
+typedef struct _DataRef {
+	Addr data_addr;
+	Int size;
+	DataRefTypes data_type;
+	Int stmt_idx;
+	Addr ins_addr;
+} DataRef;
+
+#define MAX_EXITS 32
+#define MAX_DATA_REFS 2000
+
+typedef struct _VEXLiftResult {
+	IRSB* irsb;
+	Int size;
+	// Conditional exits
+	Int exit_count;
+	ExitInfo exits[MAX_EXITS];
+	// The default exit
+	Int is_default_exit_constant;
+	Addr default_exit;
+	// Instruction addresses
+	Int insts;
+	Addr inst_addrs[200];
+	// Data references
+	Int data_ref_count;
+	DataRef data_refs[MAX_DATA_REFS];
+} VEXLiftResult;
+
+VEXLiftResult *vex_lift(
 		VexArch guest,
 		VexArchInfo archinfo,
 		unsigned char *insn_start,
@@ -29,6 +69,17 @@ IRSB *vex_lift(
 		int opt_level,
 		int traceflags,
 		int allow_lookback,
-		int strict_block_end);
+		int strict_block_end,
+		int collect_data_refs);
+
+// internal analyses and postprocessors
+void arm_post_processor_determine_calls(Addr irsb_addr, Int irsb_size, Int irsb_insts, IRSB *irsb);
+void mips32_post_processor_fix_unconditional_exit(IRSB *irsb);
+
+void remove_noops(IRSB* irsb);
+void get_exits_and_inst_addrs(IRSB *irsb, VEXLiftResult *lift_r);
+void get_default_exit_target(IRSB *irsb, VEXLiftResult *lift_r );
+void collect_data_references(IRSB *irsb, VEXLiftResult *lift_r);
+Addr get_value_from_const_expr(IRConst* con);
 
 #endif

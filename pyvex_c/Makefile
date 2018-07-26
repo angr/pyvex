@@ -25,18 +25,19 @@ AR=ar
 INCFLAGS=-I $(VEX_INCLUDE_PATH)
 CFLAGS=-g -O2 -shared -fPIC -std=c99 $(INCFLAGS)
 
-OBJECTS=pyvex.o logging.o
+OBJECTS=pyvex.o logging.o analysis.o postprocess.o
+HEADERS=pyvex.h
 
 all: $(LIBRARY_FILE) $(STATIC_LIBRARY_FILE)
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $<
 
-$(LIBRARY_FILE): pyvex.o logging.o $(VEX_LIB_PATH)/libvex.a
-	$(CC) $(CFLAGS) -o $(LIBRARY_FILE) pyvex.o logging.o $(VEX_LIB_PATH)/libvex.a $(LDFLAGS)
+$(LIBRARY_FILE): $(OBJECTS) $(HEADERS) $(VEX_LIB_PATH)/libvex.a
+	$(CC) $(CFLAGS) -o $(LIBRARY_FILE) $(OBJECTS) $(VEX_LIB_PATH)/libvex.a $(LDFLAGS)
 
-$(STATIC_LIBRARY_FILE): pyvex.o logging.o $(VEX_LIB_PATH)/libvex.a
-	$(AR) rcs $(STATIC_LIBRARY_FILE) pyvex.o logging.o
+$(STATIC_LIBRARY_FILE): $(OBJECTS) $(HEADERS) $(VEX_LIB_PATH)/libvex.a
+	$(AR) rcs $(STATIC_LIBRARY_FILE) $(OBJECTS)
 
 clean:
 	rm -f $(LIBRARY_FILE) $(STATIC_LIBRARY_FILE) *.o

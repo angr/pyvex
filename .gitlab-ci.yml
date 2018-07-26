@@ -7,8 +7,8 @@ lint:
     tags: [angr]
 
 ### first level
-simuvex:
-    script: "angr-test simuvex"
+pyvex:
+    script: "angr-test pyvex"
     tags: [angr]
 
 angr:

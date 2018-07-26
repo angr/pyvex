@@ -3,7 +3,6 @@ from past.builtins import xrange
 import pyvex
 import nose
 import random
-import resource
 import gc
 import copy
 import logging
@@ -12,13 +11,20 @@ from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
 from pyvex.lifting import LibVEXLifter
 
 def test_memory():
+
+    try:
+        import resource
+    except ImportError:
+        print("Cannot import the resource package. Are you using Windows? Skip test_memory().")
+        return
+
     arches = [ ArchX86(), ArchPPC32(endness=Endness.BE), ArchAMD64(), ArchARM() ]
     # we're not including ArchMIPS32 cause it segfaults sometimes
 
     # disable logging, as that may fill up log buffers somewhere
     logging.disable(logging.ERROR)
 
-    for i in xrange(10000):
+    for _ in xrange(10000):
         try:
             s = hex(random.randint(2**100,2**100*16))[2:]
             a = random.choice(arches)
@@ -28,7 +34,7 @@ def test_memory():
 
     kb_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
-    for i in xrange(20000):
+    for _ in xrange(20000):
         try:
             s = hex(random.randint(2**100,2**100*16))[2:]
             a = random.choice(arches)
@@ -375,8 +381,8 @@ def test_irexpr_binder():
     # binder doesn't work statically, but hopefully we should
     # never see it, anyways
     return
-    m = pyvex.IRExpr.Binder(1534252)
-    nose.tools.assert_equal(m.binder, 1534252)
+    # m = pyvex.IRExpr.Binder(1534252)
+    # nose.tools.assert_equal(m.binder, 1534252)
 
 def test_irexpr_geti():
     r = pyvex.IRRegArray(10, "Ity_I64", 20)
@@ -392,10 +398,6 @@ def test_irexpr_rdtmp():
     m = pyvex.IRExpr.RdTmp.get_instance(123)
     nose.tools.assert_equal(m.tag, "Iex_RdTmp")
     nose.tools.assert_equal(m.tmp, 123)
-
-    m.tmp = 1337
-    nose.tools.assert_equal(m.tmp, 1337)
-    nose.tools.assert_raises(Exception, pyvex.IRExpr.RdTmp)
 
     irsb = pyvex.IRSB('\x90\x5d\xc3', mem_addr=0x0, arch=ArchAMD64())
     print("TMP:",irsb.next.tmp)
@@ -474,7 +476,7 @@ def test_irexpr_const():
     f64 = pyvex.IRConst.F64(1.123)
 
     ue = pyvex.IRExpr.Const(u1)
-    fe = pyvex.IRExpr.Const(f64)
+    _ = pyvex.IRExpr.Const(f64)
 
     nose.tools.assert_equal(ue.con.value, u1.value)
     nose.tools.assert_not_equal(ue.con.value, f64.value)
@@ -504,5 +506,9 @@ def test_irexpr_ccall():
     m = pyvex.IRExpr.CCall(callee, "Ity_I64", ())
     nose.tools.assert_equals(len(m.args), 0)
 
+
 if __name__ == '__main__':
-    test_memory()
+    _g = globals().copy()
+    for k, v in _g.items():
+        if k.startswith("test_") and hasattr(v, "__call__"):
+            v()
