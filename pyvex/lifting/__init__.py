@@ -1,4 +1,3 @@
-
 from collections import defaultdict
 import logging
 
@@ -14,6 +13,8 @@ l = logging.getLogger('pyvex.lift')
 lifters = defaultdict(list)
 postprocessors = defaultdict(list)
 
+if bytes is not str:
+    unicode = str
 
 def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_level=1, traceflags=0,
          strict_block_end=True, inner=False, skip_stmts=False, collect_data_refs=False):
@@ -51,8 +52,11 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
     if not data:
         raise PyVEXError("cannot lift block with no data (data is empty)")
 
-    if isinstance(data, (str, bytes)):
-        py_data = data if isinstance(data, bytes) else data.encode()
+    if isinstance(data, unicode):
+        raise TypeError("Cannot pass unicode as data string to lifter")
+
+    if isinstance(data, bytes):
+        py_data = data
         c_data = None
         allow_lookback = False
     else:

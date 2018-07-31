@@ -75,11 +75,11 @@ def test_irsb_empty():
     nose.tools.assert_raises(Exception, pyvex.IRSB, data='', arch=ArchAMD64(), mem_addr=0)
 
 def test_irsb_arm():
-    irsb = pyvex.IRSB(data='\x33\xff\x2f\xe1', mem_addr=0, arch=ArchARM())
+    irsb = pyvex.IRSB(data=b'\x33\xff\x2f\xe1', mem_addr=0, arch=ArchARM())
     nose.tools.assert_equal(sum([ 1 for i in irsb.statements if type(i) == pyvex.IRStmt.IMark ]), 1)
 
 def test_irsb_popret():
-    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb = pyvex.IRSB(data=b'\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
     irsb.pp()
 
@@ -95,8 +95,8 @@ def test_irsb_popret():
     nose.tools.assert_equal(irsb.tyenv.lookup(irsb.statements[10].data.tmp), 'Ity_I64')
 
 def test_two_irsb():
-    irsb1 = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
-    irsb2 = pyvex.IRSB(data='\x5d\x5d\x5d\x5d', mem_addr=0, arch=ArchAMD64())
+    irsb1 = pyvex.IRSB(data=b'\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb2 = pyvex.IRSB(data=b'\x5d\x5d\x5d\x5d', mem_addr=0, arch=ArchAMD64())
 
     stmts1 = irsb1.statements
     stmts2 = irsb2.statements
@@ -104,7 +104,7 @@ def test_two_irsb():
     nose.tools.assert_not_equal(len(stmts1), len(stmts2))
 
 def test_irsb_deepCopy():
-    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb = pyvex.IRSB(data=b'\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
 
     irsb2 = copy.deepcopy(irsb)
@@ -112,7 +112,7 @@ def test_irsb_deepCopy():
     nose.tools.assert_equal(len(stmts), len(stmts2))
 
 def test_irsb_addStmt():
-    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb = pyvex.IRSB(data=b'\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
 
     irsb2 = copy.deepcopy(irsb)
@@ -126,7 +126,7 @@ def test_irsb_addStmt():
     irsb2.pp()
 
 def test_irsb_tyenv():
-    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb = pyvex.IRSB(data=b'\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     print(irsb.tyenv)
     print("Orig")
     print(irsb.tyenv)
@@ -144,7 +144,7 @@ def test_irsb_tyenv():
 ##################
 
 def test_irstmt_pp():
-    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb = pyvex.IRSB(data=b'\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
     for i in stmts:
         print("STMT: ", end=' ')
@@ -399,7 +399,7 @@ def test_irexpr_rdtmp():
     nose.tools.assert_equal(m.tag, "Iex_RdTmp")
     nose.tools.assert_equal(m.tmp, 123)
 
-    irsb = pyvex.IRSB('\x90\x5d\xc3', mem_addr=0x0, arch=ArchAMD64())
+    irsb = pyvex.IRSB(b'\x90\x5d\xc3', mem_addr=0x0, arch=ArchAMD64())
     print("TMP:",irsb.next.tmp)
 
 
