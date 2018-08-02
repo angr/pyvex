@@ -29,14 +29,14 @@ class IRCallee(VEXObject):
     @staticmethod
     def _from_c(c_callee):
         return IRCallee(c_callee.regparms,
-                        ffi.string(c_callee.name),
+                        ffi.string(c_callee.name).decode(),
                         int(ffi.cast("unsigned long long", c_callee.addr)),
                         c_callee.mcx_mask)
 
     @staticmethod
     def _to_c(callee):
         c_callee = pvc.mkIRCallee(callee.regparms,
-                                  callee.name,
+                                  callee.name.encode(),
                                   ffi.cast("void *", callee.addr))
         c_callee.mcx_mask = callee.mcx_mask
         return c_callee
