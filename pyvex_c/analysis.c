@@ -332,7 +332,8 @@ void collect_data_references(
 			break;
 		case Ist_Dirty:
 			// Dirty
-			if (stmt->Ist.Dirty.details->mAddr->tag == Iex_Const) {
+			if (stmt->Ist.Dirty.details->mAddr != NULL &&
+				stmt->Ist.Dirty.details->mAddr->tag == Iex_Const) {
 				IRExpr *m_addr = stmt->Ist.Dirty.details->mAddr;
 				record_const(lift_r, m_addr, stmt->Ist.Dirty.details->mSize, Dt_FP, i, inst_addr, next_inst_addr);
 			}
