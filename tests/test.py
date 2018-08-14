@@ -3,7 +3,6 @@ from past.builtins import xrange
 import pyvex
 import nose
 import random
-import resource
 import gc
 import copy
 import logging
@@ -12,13 +11,20 @@ from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
 from pyvex.lifting import LibVEXLifter
 
 def test_memory():
+
+    try:
+        import resource
+    except ImportError:
+        print("Cannot import the resource package. Are you using Windows? Skip test_memory().")
+        return
+
     arches = [ ArchX86(), ArchPPC32(endness=Endness.BE), ArchAMD64(), ArchARM() ]
     # we're not including ArchMIPS32 cause it segfaults sometimes
 
     # disable logging, as that may fill up log buffers somewhere
     logging.disable(logging.ERROR)
 
-    for i in xrange(10000):
+    for _ in xrange(10000):
         try:
             s = hex(random.randint(2**100,2**100*16))[2:]
             a = random.choice(arches)
@@ -28,7 +34,7 @@ def test_memory():
 
     kb_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
-    for i in xrange(20000):
+    for _ in xrange(20000):
         try:
             s = hex(random.randint(2**100,2**100*16))[2:]
             a = random.choice(arches)
@@ -69,11 +75,11 @@ def test_irsb_empty():
     nose.tools.assert_raises(Exception, pyvex.IRSB, data='', arch=ArchAMD64(), mem_addr=0)
 
 def test_irsb_arm():
-    irsb = pyvex.IRSB(data='\x33\xff\x2f\xe1', mem_addr=0, arch=ArchARM())
+    irsb = pyvex.IRSB(data=b'\x33\xff\x2f\xe1', mem_addr=0, arch=ArchARM())
     nose.tools.assert_equal(sum([ 1 for i in irsb.statements if type(i) == pyvex.IRStmt.IMark ]), 1)
 
 def test_irsb_popret():
-    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb = pyvex.IRSB(data=b'\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
     irsb.pp()
 
@@ -89,8 +95,8 @@ def test_irsb_popret():
     nose.tools.assert_equal(irsb.tyenv.lookup(irsb.statements[10].data.tmp), 'Ity_I64')
 
 def test_two_irsb():
-    irsb1 = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
-    irsb2 = pyvex.IRSB(data='\x5d\x5d\x5d\x5d', mem_addr=0, arch=ArchAMD64())
+    irsb1 = pyvex.IRSB(data=b'\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb2 = pyvex.IRSB(data=b'\x5d\x5d\x5d\x5d', mem_addr=0, arch=ArchAMD64())
 
     stmts1 = irsb1.statements
     stmts2 = irsb2.statements
@@ -98,7 +104,7 @@ def test_two_irsb():
     nose.tools.assert_not_equal(len(stmts1), len(stmts2))
 
 def test_irsb_deepCopy():
-    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb = pyvex.IRSB(data=b'\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
 
     irsb2 = copy.deepcopy(irsb)
@@ -106,7 +112,7 @@ def test_irsb_deepCopy():
     nose.tools.assert_equal(len(stmts), len(stmts2))
 
 def test_irsb_addStmt():
-    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb = pyvex.IRSB(data=b'\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
 
     irsb2 = copy.deepcopy(irsb)
@@ -120,7 +126,7 @@ def test_irsb_addStmt():
     irsb2.pp()
 
 def test_irsb_tyenv():
-    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb = pyvex.IRSB(data=b'\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     print(irsb.tyenv)
     print("Orig")
     print(irsb.tyenv)
@@ -138,7 +144,7 @@ def test_irsb_tyenv():
 ##################
 
 def test_irstmt_pp():
-    irsb = pyvex.IRSB(data='\x5d\xc3', mem_addr=0, arch=ArchAMD64())
+    irsb = pyvex.IRSB(data=b'\x5d\xc3', mem_addr=0, arch=ArchAMD64())
     stmts = irsb.statements
     for i in stmts:
         print("STMT: ", end=' ')
@@ -166,8 +172,8 @@ def test_irstmt_imark():
 def test_irstmt_abihint():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.AbiHint, ())
 
-    a = pyvex.IRExpr.RdTmp(123)
-    b = pyvex.IRExpr.RdTmp(456)
+    a = pyvex.IRExpr.RdTmp.get_instance(123)
+    b = pyvex.IRExpr.RdTmp.get_instance(456)
 
     m = pyvex.IRStmt.AbiHint(a, 10, b)
     nose.tools.assert_equal(m.base.tmp, 123)
@@ -177,7 +183,7 @@ def test_irstmt_abihint():
 def test_irstmt_put():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.Put, ())
 
-    a = pyvex.IRExpr.RdTmp(123)
+    a = pyvex.IRExpr.RdTmp.get_instance(123)
     m = pyvex.IRStmt.Put(a, 10)
     print("Put stmt:", end=' ')
     print(m)
@@ -187,8 +193,8 @@ def test_irstmt_put():
 
 def test_irexpr_puti():
     r = pyvex.IRRegArray(10, "Ity_I64", 20)
-    i = pyvex.IRExpr.RdTmp(5)
-    d = pyvex.IRExpr.RdTmp(30)
+    i = pyvex.IRExpr.RdTmp.get_instance(5)
+    d = pyvex.IRExpr.RdTmp.get_instance(30)
     m = pyvex.IRStmt.PutI(r, i, d, 2)
     nose.tools.assert_equal(m.descr.base, 10)
     nose.tools.assert_equal(m.ix.tmp, 5)
@@ -200,7 +206,7 @@ def test_irexpr_puti():
 def test_irstmt_wrtmp():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.WrTmp, ())
 
-    a = pyvex.IRExpr.RdTmp(123)
+    a = pyvex.IRExpr.RdTmp.get_instance(123)
     m = pyvex.IRStmt.WrTmp(10, a)
     nose.tools.assert_equal(m.tag, "Ist_WrTmp")
     nose.tools.assert_equal(m.tmp, 10)
@@ -209,8 +215,8 @@ def test_irstmt_wrtmp():
 def test_irstmt_store():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.Store, ())
 
-    a = pyvex.IRExpr.RdTmp(123)
-    d = pyvex.IRExpr.RdTmp(456)
+    a = pyvex.IRExpr.RdTmp.get_instance(123)
+    d = pyvex.IRExpr.RdTmp.get_instance(456)
     m = pyvex.IRStmt.Store(a, d, "Iend_LE")
     nose.tools.assert_equal(m.tag, "Ist_Store")
     nose.tools.assert_equal(m.endness, "Iend_LE")
@@ -220,11 +226,11 @@ def test_irstmt_store():
 def test_irstmt_cas():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.CAS, ())
 
-    a = pyvex.IRExpr.RdTmp(10)
-    eh = pyvex.IRExpr.RdTmp(11)
-    el = pyvex.IRExpr.RdTmp(12)
-    dh = pyvex.IRExpr.RdTmp(21)
-    dl = pyvex.IRExpr.RdTmp(22)
+    a = pyvex.IRExpr.RdTmp.get_instance(10)
+    eh = pyvex.IRExpr.RdTmp.get_instance(11)
+    el = pyvex.IRExpr.RdTmp.get_instance(12)
+    dh = pyvex.IRExpr.RdTmp.get_instance(21)
+    dl = pyvex.IRExpr.RdTmp.get_instance(22)
 
     args = { "oldHi": 1, "oldLo": 2, "end": "Iend_LE", "addr": a,
                  "expdHi": eh, "expdLo": el, "dataHi": dh, "dataLo": dl }
@@ -243,9 +249,9 @@ def test_irstmt_cas():
 def test_irstmt_loadg():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.LoadG, ())
 
-    a = pyvex.IRExpr.RdTmp(10)
-    alt = pyvex.IRExpr.RdTmp(11)
-    guard = pyvex.IRExpr.RdTmp(12)
+    a = pyvex.IRExpr.RdTmp.get_instance(10)
+    alt = pyvex.IRExpr.RdTmp.get_instance(11)
+    guard = pyvex.IRExpr.RdTmp.get_instance(12)
 
     args = { "dst": 1, "end": "Iend_LE", "addr": a,
                  "alt": alt, "guard": guard, "cvt": "ILGop_Ident32" }
@@ -264,9 +270,9 @@ def test_irstmt_loadg():
 def test_irstmt_storeg():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.LoadG, ())
 
-    a = pyvex.IRExpr.RdTmp(10)
-    data = pyvex.IRExpr.RdTmp(11)
-    guard = pyvex.IRExpr.RdTmp(12)
+    a = pyvex.IRExpr.RdTmp.get_instance(10)
+    data = pyvex.IRExpr.RdTmp.get_instance(11)
+    guard = pyvex.IRExpr.RdTmp.get_instance(12)
 
     args = { "end": "Iend_LE", "addr": a, "data": data, "guard": guard }
 
@@ -280,8 +286,8 @@ def test_irstmt_storeg():
 def test_irstmt_llsc():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.LLSC)
 
-    a = pyvex.IRExpr.RdTmp(123)
-    d = pyvex.IRExpr.RdTmp(456)
+    a = pyvex.IRExpr.RdTmp.get_instance(123)
+    d = pyvex.IRExpr.RdTmp.get_instance(456)
     m = pyvex.IRStmt.LLSC(a, d, 1, "Iend_LE")
     nose.tools.assert_equal(m.tag, "Ist_LLSC")
     nose.tools.assert_equal(m.endness, "Iend_LE")
@@ -296,7 +302,7 @@ def test_irstmt_mbe():
     nose.tools.assert_equal(m.event, "Imbe_Fence")
 
 def test_irstmt_dirty():
-    args = [ pyvex.IRExpr.RdTmp(i) for i in range(10) ]
+    args = [ pyvex.IRExpr.RdTmp.get_instance(i) for i in range(10) ]
     m = pyvex.IRStmt.Dirty("test_dirty", pyvex.IRConst.U8(1), args, 15, "Ifx_None", 0, 1, 0)
     nose.tools.assert_equal(m.cee, "test_dirty")
     nose.tools.assert_equals(type(m.guard), pyvex.IRConst.U8)
@@ -310,7 +316,7 @@ def test_irstmt_dirty():
 def test_irstmt_exit():
     nose.tools.assert_raises(Exception, pyvex.IRStmt.Exit)
 
-    g = pyvex.IRExpr.RdTmp(123)
+    g = pyvex.IRExpr.RdTmp.get_instance(123)
     d = pyvex.IRConst.U32(456)
 
     m = pyvex.IRStmt.Exit(g, d, "Ijk_Ret", 10)
@@ -375,12 +381,12 @@ def test_irexpr_binder():
     # binder doesn't work statically, but hopefully we should
     # never see it, anyways
     return
-    m = pyvex.IRExpr.Binder(1534252)
-    nose.tools.assert_equal(m.binder, 1534252)
+    # m = pyvex.IRExpr.Binder(1534252)
+    # nose.tools.assert_equal(m.binder, 1534252)
 
 def test_irexpr_geti():
     r = pyvex.IRRegArray(10, "Ity_I64", 20)
-    i = pyvex.IRExpr.RdTmp(5)
+    i = pyvex.IRExpr.RdTmp.get_instance(5)
     m = pyvex.IRExpr.GetI(r, i, 2)
     nose.tools.assert_equal(m.description.base, 10)
     nose.tools.assert_equal(m.index.tmp, 5)
@@ -389,15 +395,11 @@ def test_irexpr_geti():
     nose.tools.assert_raises(Exception, pyvex.IRExpr.GetI)
 
 def test_irexpr_rdtmp():
-    m = pyvex.IRExpr.RdTmp(123)
+    m = pyvex.IRExpr.RdTmp.get_instance(123)
     nose.tools.assert_equal(m.tag, "Iex_RdTmp")
     nose.tools.assert_equal(m.tmp, 123)
 
-    m.tmp = 1337
-    nose.tools.assert_equal(m.tmp, 1337)
-    nose.tools.assert_raises(Exception, pyvex.IRExpr.RdTmp)
-
-    irsb = pyvex.IRSB('\x90\x5d\xc3', mem_addr=0x0, arch=ArchAMD64())
+    irsb = pyvex.IRSB(b'\x90\x5d\xc3', mem_addr=0x0, arch=ArchAMD64())
     print("TMP:",irsb.next.tmp)
 
 
@@ -410,8 +412,8 @@ def test_irexpr_get():
 def test_irexpr_qop():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
     b = pyvex.IRExpr.Get(184, "Ity_I64")
-    c = pyvex.IRExpr.RdTmp(1)
-    d = pyvex.IRExpr.RdTmp(2)
+    c = pyvex.IRExpr.RdTmp.get_instance(1)
+    d = pyvex.IRExpr.RdTmp.get_instance(2)
     op = "Iop_QAdd32S"
 
     m = pyvex.IRExpr.Qop(op, [a, b, c, d])
@@ -425,7 +427,7 @@ def test_irexpr_qop():
 def test_irexpr_triop():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
     b = pyvex.IRExpr.Get(184, "Ity_I64")
-    c = pyvex.IRExpr.RdTmp(1)
+    c = pyvex.IRExpr.RdTmp.get_instance(1)
     op = "Iop_MAddF64"
 
     m = pyvex.IRExpr.Triop(op, [a, b, c])
@@ -438,7 +440,7 @@ def test_irexpr_triop():
 
 def test_irexpr_binop():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
-    c = pyvex.IRExpr.RdTmp(1)
+    c = pyvex.IRExpr.RdTmp.get_instance(1)
     op = "Iop_Add64"
 
     m = pyvex.IRExpr.Binop(op, [a, c])
@@ -474,14 +476,14 @@ def test_irexpr_const():
     f64 = pyvex.IRConst.F64(1.123)
 
     ue = pyvex.IRExpr.Const(u1)
-    fe = pyvex.IRExpr.Const(f64)
+    _ = pyvex.IRExpr.Const(f64)
 
     nose.tools.assert_equal(ue.con.value, u1.value)
     nose.tools.assert_not_equal(ue.con.value, f64.value)
 
 def test_irexpr_ite():
     a = pyvex.IRExpr.Get(0, "Ity_I64")
-    iffalse = pyvex.IRExpr.RdTmp(1)
+    iffalse = pyvex.IRExpr.RdTmp.get_instance(1)
     iftrue = pyvex.IRExpr.Const(pyvex.IRConst.U8(200))
 
     m = pyvex.IRExpr.ITE(a, iffalse, iftrue)
@@ -490,7 +492,7 @@ def test_irexpr_ite():
 
 def test_irexpr_ccall():
     callee = pyvex.IRCallee(3, "test_name", 1234, 0xFFFFFF)
-    args = [ pyvex.IRExpr.RdTmp(i) for i in range(10) ]
+    args = [ pyvex.IRExpr.RdTmp.get_instance(i) for i in range(10) ]
 
     m = pyvex.IRExpr.CCall("Ity_I64", callee, args)
 
@@ -504,5 +506,9 @@ def test_irexpr_ccall():
     m = pyvex.IRExpr.CCall(callee, "Ity_I64", ())
     nose.tools.assert_equals(len(m.args), 0)
 
+
 if __name__ == '__main__':
-    test_memory()
+    _g = globals().copy()
+    for k, v in _g.items():
+        if k.startswith("test_") and hasattr(v, "__call__"):
+            v()

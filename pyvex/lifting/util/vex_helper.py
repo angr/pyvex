@@ -156,7 +156,7 @@ class IRSBCustomizer(object):
         return self.irsb.tyenv.add(t)
 
     def _rdtmp(self, tmp):
-        return RdTmp(tmp)
+        return RdTmp.get_instance(tmp)
 
     def _settmp(self, expr):
         ty = self.get_type(expr)

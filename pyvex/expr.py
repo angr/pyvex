@@ -4,7 +4,7 @@ import logging
 
 from . import VEXObject
 from .enums import IRCallee, IRRegArray, get_int_from_enum, get_enum_from_int
-from .const import get_type_size
+from .const import get_type_size, U8, U16, U32, U64
 
 l = logging.getLogger("pyvex.expr")
 
@@ -53,6 +53,39 @@ class IRExpr(VEXObject):
 
     def result_type(self, tyenv):
         raise NotImplementedError()
+
+    def replace_expression(self, expr, replacement):
+        """
+        Replace child expressions in-place.
+
+        :param IRExpr expr:         The expression to look for.
+        :param IRExpr replacement:  The expression to replace with.
+        :return:                    None
+        """
+
+        for k in self.__slots__:
+            v = getattr(self, k)
+            if v is expr:
+                setattr(self, k, replacement)
+            elif type(v) is list:
+                # Replace the instance in the list
+                for i, expr_ in enumerate(v):
+                    if expr_ is expr:
+                        v[i] = replacement
+            elif type(v) is tuple:
+                # Rebuild the tuple
+                _lst = [ ]
+                replaced = False
+                for i, expr_ in enumerate(v):
+                    if expr_ is expr:
+                        _lst.append(replacement)
+                        replaced = True
+                    else:
+                        _lst.append(expr_)
+                if replaced:
+                    setattr(self, k, tuple(_lst))
+            elif isinstance(v, IRExpr):
+                v.replace_expression(expr, replacement)
 
     @staticmethod
     def _from_c(c_expr):
@@ -192,26 +225,45 @@ class RdTmp(IRExpr):
     Read the value held by a temporary.
     """
 
-    __slots__ = ['tmp']
+    __slots__ = ['_tmp']
 
     tag = 'Iex_RdTmp'
 
     def __init__(self, tmp):
-        self.tmp = tmp
+        self._tmp = tmp
 
     def __str__(self):
         return "t%d" % self.tmp
 
+    @property
+    def tmp(self):
+        return self._tmp
+
     @staticmethod
     def _from_c(c_expr):
-        return RdTmp(c_expr.Iex.RdTmp.tmp)
+        tmp = c_expr.Iex.RdTmp.tmp
+        return RdTmp.get_instance(tmp)
 
     @staticmethod
     def _to_c(expr):
         return pvc.IRExpr_RdTmp(expr.tmp)
 
+    @staticmethod
+    def get_instance(tmp):
+        if tmp < 1024:
+            # for small tmp reads, they are cached and are only created once globally
+            return _RDTMP_POOL[tmp]
+        return RdTmp(tmp)
+
+    def replace_expression(self, expr, replacement):
+        # RdTmp is one of the terminal IRExprs, which cannot be replaced.
+        pass
+
     def result_type(self, tyenv):
         return tyenv.lookup(self.tmp)
+
+
+_RDTMP_POOL = list(RdTmp(i) for i in range(0, 1024))
 
 
 class Get(IRExpr):
@@ -543,26 +595,45 @@ class Const(IRExpr):
     A constant expression.
     """
 
-    __slots__ = ['con']
+    __slots__ = ['_con']
 
     tag = 'Iex_Const'
 
     def __init__(self, con):
-        self.con = con
+        self._con = con
 
     def __str__(self):
         return str(self.con)
 
+    @property
+    def con(self):
+        return self._con
+
     @staticmethod
     def _from_c(c_expr):
-        return Const(IRConst._from_c(c_expr.Iex.Const.con))
+        con = IRConst._from_c(c_expr.Iex.Const.con)
+        return Const.get_instance(con)
 
     @staticmethod
     def _to_c(expr):
         return pvc.IRExpr_Const(IRConst._to_c(expr.con))
 
+    @staticmethod
+    def get_instance(con):
+        if con.value < 1024 and con.__class__ in _CONST_POOL:
+            return _CONST_POOL[con.__class__][con.value]
+        return Const(con)
+
     def result_type(self, tyenv):
         return self.con.type
+
+
+_CONST_POOL = {
+    U8: [Const(U8(i)) for i in range(0, 1024)],
+    U16: [Const(U16(i)) for i in range(0, 1024)],
+    U32: [Const(U32(i)) for i in range(0, 1024)],
+    U64: [Const(U64(i)) for i in range(0, 1024)],
+}
 
 
 class ITE(IRExpr):

@@ -9,13 +9,13 @@ def _flatten_and_get_expr(irsb_old, irsb_c, old_to_new_tmp, expr):
     if isinstance(expr, Const):
         return expr
     elif isinstance(expr, RdTmp):
-        return RdTmp(old_to_new_tmp[expr.tmp])
+        return RdTmp.get_instance(old_to_new_tmp[expr.tmp])
     elif isinstance(expr, Get):
-        return RdTmp(irsb_c.mktmp(expr))
+        return RdTmp.get_instance(irsb_c.mktmp(expr))
     else:
         assert expr.__class__ in [Unop, Binop, Triop, Qop], "Flattening expressions of type {} is not supported yet.".format(expr.__class__)
         expr_args = [_flatten_and_get_expr(irsb_old, irsb_c, old_to_new_tmp, expr_arg) for expr_arg in expr.args]
-        return RdTmp(irsb_c.mktmp(expr.__class__(expr.op, expr_args)))
+        return RdTmp.get_instance(irsb_c.mktmp(expr.__class__(expr.op, expr_args)))
 
 
 def irsb_postproc_flatten(irsb_old, irsb_new=None):
@@ -28,7 +28,7 @@ def irsb_postproc_flatten(irsb_old, irsb_new=None):
     :return: the flattened IRSB
     :rtype: IRSB
     """
-    irsb_new = irsb_new if irsb_new is not None else IRSB(None, irsb_old._addr, irsb_old.arch)
+    irsb_new = irsb_new if irsb_new is not None else IRSB(None, irsb_old.addr, irsb_old.arch)
     irsb_c = IRSBCustomizer(irsb_new)
     old_to_new_tmp = {}
 

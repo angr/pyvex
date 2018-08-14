@@ -1,5 +1,8 @@
+import copy
+
 from . import Postprocessor, register
 from . import libvex
+
 
 class ZeroDivisionPostProcessor(Postprocessor):
     """
@@ -37,6 +40,11 @@ class ZeroDivisionPostProcessor(Postprocessor):
     """
 
     def postprocess(self):
+
+        if self.irsb.statements is None:
+            # This is an optimized IRSB. We cannot really post-process it.
+            return
+
         insertions = [ ]
         last_ip = 0
         for i,s in enumerate(self.irsb.statements):
@@ -45,13 +53,13 @@ class ZeroDivisionPostProcessor(Postprocessor):
             if s.tag == 'Ist_WrTmp' and s.data.tag == 'Iex_Binop' and ('Div' in s.data.op or 'Mod' in s.data.op):
                 arg_size = s.data.args[1].result_size(self.irsb.tyenv)
                 cmp_args = [
-                    s.data.args[1],
+                    copy.copy(s.data.args[1]),
                     expr.Const(const.vex_int_class(arg_size)(0))
                 ]
                 cmp_tmp = self.irsb.tyenv.add("Ity_I1")
                 insertions.append((i, stmt.WrTmp(cmp_tmp, expr.Binop('Iop_CmpEQ%d' % arg_size, cmp_args))))
                 insertions.append((i, stmt.Exit(
-                    expr.RdTmp(cmp_tmp),
+                    expr.RdTmp.get_instance(cmp_tmp),
                     const.vex_int_class(self.irsb.arch.bits)(last_ip),
                     'Ijk_SigFPE_IntDiv', self.irsb.offsIP
                 )))
@@ -59,7 +67,9 @@ class ZeroDivisionPostProcessor(Postprocessor):
         for i,s in reversed(insertions):
             self.irsb.statements.insert(i,s)
 
+
 for arch_name in libvex.SUPPORTED:
     register(ZeroDivisionPostProcessor, arch_name)
+
 
 from .. import stmt, expr, const

@@ -6,10 +6,10 @@ import nose.tools
 import sys
 
 def test_cache_invalidation_on_extend():
-    b = pyvex.block.IRSB('\x50', 0, archinfo.ArchX86())
+    b = pyvex.block.IRSB(b'\x50', 0, archinfo.ArchX86())
     nose.tools.assert_equal(b.size, 1)
     nose.tools.assert_equal(b.instructions, 1)
-    toappend = pyvex.block.IRSB('\x51', 0, archinfo.ArchX86())
+    toappend = pyvex.block.IRSB(b'\x51', 0, archinfo.ArchX86())
     toappend.jumpkind = 'Ijk_Invalid'
     toappend._direct_next = None # Invalidate the cache because I manually changed the jumpkind
     nose.tools.assert_equal(toappend.direct_next, False)

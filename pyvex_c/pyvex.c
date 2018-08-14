@@ -20,8 +20,8 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <setjmp.h>
+#include <stddef.h>
 #include <libvex.h>
 
 #include "pyvex.h"
@@ -127,7 +127,7 @@ void vex_init() {
 	vc.guest_chase_thresh           = 0;
 	vc.arm64_allow_reordered_writeback = 0;
 	vc.x86_optimize_callpop_idiom = 0;
-	vc.arm_strict_block_end = 0;
+	vc.strict_block_end = 0;
 
 	pyvex_debug("Calling LibVEX_Init()....\n");
 	// the 0 is the debug level
@@ -220,7 +220,7 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai) {
 							VEX_HWCAPS_AMD64_AVX2;
 			break;
 		case VexArchARM:
-			vai->hwcaps = VEX_ARM_ARCHLEVEL(7) |
+			vai->hwcaps = VEX_ARM_ARCHLEVEL(8) |
 							VEX_HWCAPS_ARM_NEON |
 							VEX_HWCAPS_ARM_VFP3;
 			break;
@@ -278,10 +278,12 @@ static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 	}
 }
 
+VEXLiftResult _lift_r;
+
 //----------------------------------------------------------------------
 // Main entry point. Do a lift.
 //----------------------------------------------------------------------
-IRSB *vex_lift(
+VEXLiftResult *vex_lift(
 		VexArch guest,
 		VexArchInfo archinfo,
 		unsigned char *insn_start,
@@ -291,7 +293,8 @@ IRSB *vex_lift(
 		int opt_level,
 		int traceflags,
 		int allow_lookback,
-		int strict_block_end) {
+		int strict_block_end,
+		int collect_data_refs) {
 	VexRegisterUpdates pxControl;
 
 	vex_prepare_vai(guest, &archinfo);
@@ -312,14 +315,34 @@ IRSB *vex_lift(
 	vc.guest_max_insns     = max_insns;
 	vc.iropt_level         = opt_level;
 	vc.arm_allow_optimizing_lookback = allow_lookback;
-	vc.arm_strict_block_end = strict_block_end;
+	vc.strict_block_end = strict_block_end;
 
 	clear_log();
 
 	// Do the actual translation
 	if (setjmp(jumpout) == 0) {
 		LibVEX_Update_Control(&vc);
-		return LibVEX_Lift(&vta, &vtr, &pxControl);
+		_lift_r.data_ref_count = 0;
+		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl);
+		if (!_lift_r.irsb) {
+			// Lifting failed
+			return NULL;
+		}
+		remove_noops(_lift_r.irsb);
+		if (guest == VexArchMIPS32) {
+			// This post processor may potentially remove statements.
+			// Call it before we get exit statements and such.
+			mips32_post_processor_fix_unconditional_exit(_lift_r.irsb);
+		}
+		get_exits_and_inst_addrs(_lift_r.irsb, &_lift_r);
+		get_default_exit_target(_lift_r.irsb, &_lift_r);
+		if (guest == VexArchARM && _lift_r.insts > 0) {
+			arm_post_processor_determine_calls(_lift_r.inst_addrs[0], _lift_r.size, _lift_r.insts, _lift_r.irsb);
+		}
+		if (collect_data_refs) {
+			collect_data_references(_lift_r.irsb, &_lift_r);
+		}
+		return &_lift_r;
 	} else {
 		return NULL;
 	}
