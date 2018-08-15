@@ -287,7 +287,7 @@ class ARMSpotter(GymratLifter):
     instrs = None
 
     def lift(self, disassemble=False, dump_irsb=False):
-        if self.irsb._addr & 1:
+        if self.irsb.addr & 1:
             # Thumb!
             self.instrs = self.thumb_instrs
         else:
