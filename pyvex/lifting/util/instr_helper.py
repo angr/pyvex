@@ -231,7 +231,10 @@ class Instruction(object):
 
     def lookup_register(self, arch, reg):
         if isinstance(reg, int):
-            reg = arch.register_index[reg]
+            if hasattr(arch, 'register_index'):
+                reg = arch.register_index[reg]
+            else:
+                reg = arch.register_list[reg].name
         return arch.get_register_offset(reg)
 
     def get(self, reg, ty):
@@ -310,10 +313,14 @@ class Instruction(object):
                 ip_offset = self.arch.ip_offset
             assert ip_offset is not None
 
-            self.irsb_c.add_exit(condition.rdt, to_addr_rdt, jumpkind, ip_offset)
-            # and then set the default
+            # HACK: VEX does not allow conditional jumps to non-constant addresses.
+            # We invert the condition here.
+            not_condition = ~condition
+            # Conditionally go to the next instruction
+            self.irsb_c.add_exit(not_condition.rdt, self.constant(self.addr + (self.bitwidth // 8), to_addr_ty).rdt.con, JumpKind.Boring, ip_offset)
+            # ...otherwise do the jump
             self.irsb_c.irsb.jumpkind = jumpkind
-            self.irsb_c.irsb.next = self.constant(self.addr + (self.bitwidth // 8), to_addr_ty).rdt
+            self.irsb_c.irsb.next = to_addr_rdt
 
     def ite(self, cond, t, f):
         self.irsb_c.ite(cond.rdt, t.rdt, f.rdt)
@@ -336,7 +343,22 @@ class Instruction(object):
 
         from angr.engines.vex import ccall
 
-        if not hasattr(ccall, func_obj.__name__):
-            setattr(ccall, func_obj.__name__, func_obj)
+        # Check the args to make sure they're the right type
+        list_args = list(args)
+        new_args = []
+        for arg in list_args:
+            if isinstance(arg, VexValue):
+                arg = arg.rdt
+            new_args.append(arg)
+        args = tuple(new_args)
+
+
+        # Support calling ccalls via string name
+        if isinstance(func_obj, str):
+            func_obj = getattr(ccall, func_obj)
+        else:
+            # ew, monkey-patch in the user-provided CCall
+            if not hasattr(ccall, func_obj.__name__):
+                setattr(ccall, func_obj.__name__, func_obj)
         cc = self.irsb_c.op_ccall(ret_type, func_obj.__name__, args)
         return VexValue(self.irsb_c, cc)

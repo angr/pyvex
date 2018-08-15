@@ -49,7 +49,7 @@ class ARMInstruction(Instruction):
         cc_dep1 = self.get("cc_dep1", Type.int_32)
         cc_dep2 = self.get("cc_dep2", Type.int_32)
         cc_depn = self.get("cc_ndep", Type.int_32)
-        return self.ccall(Type.int_32, "armg_calculate_flag_z", [cc_op, cc_dep1, cc_dep2, cc_depn])
+        return self.ccall(Type.int_32, "armg_calculate_flag_z", [cc_op.rdt, cc_dep1.rdt, cc_dep2.rdt, cc_depn.rdt])
 
     def evaluate_condition(self):
         # condition codes should be in 'c'
@@ -152,22 +152,22 @@ class Instruction_MRS(ARMInstruction):
 
 class Instruction_STM(ARMInstruction):
     name = "STM"
-    bin_format = 'cccc100pusw0bbbbrrrrrrrrrrrrrrrr'
+    bin_format = 'cccc100pu1w0bbbbrrrrrrrrrrrrrrrr'
 
     def compute_result(self):
-        l.warning("Ignoring STMxx instruction at %#x. This mode is not implemented by VEX! See pyvex/lifting/gym/arm_spotter.py", self.addr)
+        l.warning("Ignoring STMxx ^ instruction at %#x. This mode is not implemented by VEX! See pyvex/lifting/gym/arm_spotter.py", self.addr)
 
 
 class Instruction_LDM(ARMInstruction):
     name = "LDM"
-    bin_format = 'cccc100PUSW1bbbbrrrrrrrrrrrrrrrr'
+    bin_format = 'cccc100PU1W1bbbbrrrrrrrrrrrrrrrr'
 
     def compute_result(self):
         # test if PC will be set. If so, the jumpkind of this block should be Ijk_Ret
-        l.warning("Spotting an LDM instruction at %#x.  This is not fully tested.  Prepare for errors.")
+        l.warning("Spotting an LDM instruction at %#x.  This is not fully tested.  Prepare for errors." % self.addr)
         l.warning(repr(self.rawbits))
         l.warning(repr(self.data))
-        """
+
         src_n = int(self.data['b'], 2)
         src = self.get(src_n, Type.int_32)
     
@@ -175,14 +175,14 @@ class Instruction_LDM(ARMInstruction):
             reg_num = 15 - reg_num
             if bit == '1':
                 if self.data['P'] == '1':
-                    if self.data['U'] == 0:
+                    if self.data['U'] == '0':
                         src += 4
                     else:
                         src -= 4
                 val = self.load(src, Type.int_32)
                 self.put(val, reg_num)
-                if self.data['P'] == 0:
-                    if self.data['U'] == 0:
+                if self.data['P'] == '0':
+                    if self.data['U'] == '0':
                         src += 4
                     else:
                         src -= 4
@@ -196,7 +196,7 @@ class Instruction_LDM(ARMInstruction):
         # Write-back
         if self.data['W'] == '1':
             self.put(src, src_n)
-        """
+
 
 class Instruction_STC(ARMInstruction):
     name = 'STC'
@@ -274,8 +274,8 @@ class ARMSpotter(GymratLifter):
         Instruction_MCR,
         Instruction_MSR,
         Instruction_MRS,
-        #Instruction_STM,
-        # Instruction_LDM,
+        Instruction_STM,
+        Instruction_LDM,
         Instruction_STC,
         Instruction_LDC,
         Instruction_CDP,
