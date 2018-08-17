@@ -118,7 +118,10 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
 
         # Decode more bytes
         if skip_stmts:
-            # In this case, statements are required
+            # When gymrat will be invoked, we will merge future basic blocks to the current basic block. In this case,
+            # statements are usually required.
+            # TODO: In the future, we may further optimize it to handle cases where getting statements in gymrat is not
+            # TODO: required.
             return lift(data, addr, arch,
                         max_bytes=max_bytes,
                         max_inst=max_inst,
@@ -154,6 +157,11 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
             if more_irsb.size:
                 # Successfully decoded more bytes
                 final_irsb.extend(more_irsb)
+        elif max_bytes == 0:
+            # We have no more bytes left. Mark the jumpkind of the IRSB as Ijk_Boring
+            if final_irsb.size > 0 and final_irsb.jumpkind == 'Ijk_NoDecode':
+                final_irsb.jumpkind = 'Ijk_Boring'
+                final_irsb.next = Const(vex_int_class(arch.bits)(final_irsb.addr + final_irsb.size))
 
     if not inner:
         for postprocessor in postprocessors[arch.name]:
@@ -202,5 +210,6 @@ def register(lifter, arch_name):
         postprocessors[arch_name].append(lifter)
 
 
+from ..const import vex_int_class
 from .libvex import LibVEXLifter
 from .zerodivision import ZeroDivisionPostProcessor
