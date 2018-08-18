@@ -29,7 +29,7 @@ IRSB {
 
    00 | ------ IMark(0x1, 2, 0) ------
    01 | t0 = Add27((0xa :: Ity_I27),(0x14 :: Ity_I27))
-   NEXT: PUT(eip) = None; Ijk_NoDecode
+   NEXT: PUT(eip) = 0x00000003; Ijk_Boring
 }
 """
 
