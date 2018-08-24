@@ -6,9 +6,10 @@ import itertools
 from . import VEXObject
 from . import expr, stmt
 from .const import get_type_size
-from .stmt import WrTmp, LoadG, LLSC, Dirty, CAS, get_enum_from_int, get_int_from_enum
+from .stmt import WrTmp, LoadG, LLSC, Dirty, CAS, get_enum_from_int, get_int_from_enum, Exit, IMark
 from .expr import RdTmp
 from .data_ref import DataRef
+from .errors import SkipStatementsError
 
 
 # Some Python 3 compatibility shims
@@ -46,7 +47,11 @@ class IRSB(VEXObject):
     """
 
     __slots__ = ('addr', 'arch', 'statements', 'next', '_tyenv', 'jumpkind', '_direct_next', '_size', '_instructions',
-                 'exit_statements', 'default_exit_target', '_instruction_addresses', 'data_refs', )
+                 '_exit_statements', 'default_exit_target', '_instruction_addresses', 'data_refs', )
+
+    # The following constants shall match the defs in pyvex.h
+    MAX_EXITS = 400
+    MAX_DATA_REFS = 2000
 
     def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None,
                  bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None, strict_block_end=False,
@@ -62,7 +67,8 @@ class IRSB(VEXObject):
         :param max_bytes:           The maximum number of bytes to use.
         :param num_inst:            Replaces max_inst if max_inst is None. If set to None as well, no instruction limit is used.
         :param num_bytes:           Replaces max_bytes if max_bytes is None. If set to None as well, no  byte limit is used.
-        :param bytes_offset:        The offset into `data` to start lifting at.
+        :param bytes_offset:        The offset into `data` to start lifting at. Note that for ARM THUMB mode, both
+                                    `mem_addr` and `bytes_offset` must be odd (typically `bytes_offset` is set to 1).
         :param traceflags:          The libVEX traceflags, controlling VEX debug prints.
         :param opt_level:           The level of optimization to apply to the IR, 0-2. 2 is highest, 0 is no optimization.
         :param strict_block_end:    Should the LibVEX arm-thumb split block at some instructions, for example CB{N}Z.
@@ -90,7 +96,7 @@ class IRSB(VEXObject):
         self._direct_next = None
         self._size = None
         self._instructions = None
-        self.exit_statements = None
+        self._exit_statements = None
         self.default_exit_target = None
         self.data_refs = ()
         self._instruction_addresses = ()
@@ -130,6 +136,28 @@ class IRSB(VEXObject):
     @property
     def has_statements(self):
         return self.statements is not None and self.statements
+
+    @property
+    def exit_statements(self):
+
+        if self._exit_statements is not None:
+            return self._exit_statements
+
+        # Delayed process
+        if not self.has_statements:
+            return [ ]
+
+        self._exit_statements = [ ]
+
+        ins_addr = None
+        for idx, stmt_ in enumerate(self.statements):
+            if type(stmt_) is IMark:
+                ins_addr = stmt_.addr + stmt_.delta
+            elif type(stmt_) is Exit:
+                self._exit_statements.append((ins_addr, idx, stmt_))
+
+        self._exit_statements = tuple(self._exit_statements)
+        return self._exit_statements
 
     def copy(self):
         return copy.deepcopy(self)
@@ -469,12 +497,19 @@ class IRSB(VEXObject):
         self._instruction_addresses = tuple(itertools.islice(lift_r.inst_addrs, lift_r.insts))
 
         # Conditional exits
-        self.exit_statements = [ ]
-        for i in xrange(lift_r.exit_count):
-            ex = lift_r.exits[i]
-            exit_stmt = stmt.IRStmt._from_c(ex.stmt)
-            self.exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt))
-        self.exit_statements = tuple(self.exit_statements)
+        self._exit_statements = [ ]
+        if skip_stmts:
+            if lift_r.exit_count > self.MAX_EXITS:
+                # There are more exits than the default size of the exits array. We will need all statements
+                raise SkipStatementsError("exit_count exceeded MAX_EXITS (%d)" % self.MAX_EXITS)
+            for i in xrange(lift_r.exit_count):
+                ex = lift_r.exits[i]
+                exit_stmt = stmt.IRStmt._from_c(ex.stmt)
+                self._exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt))
+
+            self._exit_statements = tuple(self._exit_statements)
+        else:
+            self._exit_statements = None  # It will be generated when self.exit_statements is called
 
         # The default exit
         if lift_r.is_default_exit_constant == 1:
@@ -485,8 +520,8 @@ class IRSB(VEXObject):
         # Data references
         self.data_refs = None
         if lift_r.data_ref_count > 0:
-            if lift_r.data_ref_count > 2000:
-                raise ValueError("data_ref_count exceeded MAX_DATA_REFS (2000)")
+            if lift_r.data_ref_count > self.MAX_DATA_REFS:
+                raise SkipStatementsError("data_ref_count exceeded MAX_DATA_REFS (%d)" % self.MAX_DATA_REFS)
             self.data_refs = [DataRef.from_c(lift_r.data_refs[i]) for i in xrange(lift_r.data_ref_count)]
 
     def _set_attributes(self, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None,
@@ -500,7 +535,7 @@ class IRSB(VEXObject):
         self._size = size
         self._instructions = instructions
         self._instruction_addresses = instruction_addresses
-        self.exit_statements = exit_statements
+        self._exit_statements = exit_statements
         self.default_exit_target = default_exit_target
 
     def _from_py(self, irsb):

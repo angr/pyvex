@@ -39,7 +39,7 @@ typedef struct _DataRef {
 	Addr ins_addr;
 } DataRef;
 
-#define MAX_EXITS 32
+#define MAX_EXITS 400
 #define MAX_DATA_REFS 2000
 
 typedef struct _VEXLiftResult {
