@@ -6,7 +6,7 @@ import itertools
 from . import VEXObject
 from . import expr, stmt
 from .const import get_type_size
-from .stmt import WrTmp, LoadG, LLSC, Dirty, CAS, get_enum_from_int, get_int_from_enum, Exit
+from .stmt import WrTmp, LoadG, LLSC, Dirty, CAS, get_enum_from_int, get_int_from_enum, Exit, IMark
 from .expr import RdTmp
 from .data_ref import DataRef
 from .errors import SkipStatementsError
@@ -149,9 +149,12 @@ class IRSB(VEXObject):
 
         self._exit_statements = [ ]
 
-        for stmt in self.statements:
-            if type(stmt) is Exit:
-                self._exit_statements.append(stmt)
+        ins_addr = None
+        for idx, stmt_ in enumerate(self.statements):
+            if type(stmt_) is IMark:
+                ins_addr = stmt_.addr + stmt_.delta
+            elif type(stmt_) is Exit:
+                self._exit_statements.append((ins_addr, idx, stmt_))
 
         self._exit_statements = tuple(self._exit_statements)
         return self._exit_statements
