@@ -57,7 +57,7 @@ void arm_post_processor_determine_calls(
 
 		if (stmt->tag == Ist_Put) {
 			// LR is modified just before the last instruction of the block...
-			if (stmt->Ist.Put.offset == ARM_OFFB_LR && inst_ctr == irsb_insts - 1) {
+			if (stmt->Ist.Put.offset == ARM_OFFB_LR /*&& inst_ctr == irsb_insts - 1*/) {
 				// ... by a constant, so test whether it is the address of the next IRSB
 				if (stmt->Ist.Put.data->tag == Iex_Const) {
 					IRConst *con = stmt->Ist.Put.data->Iex.Const.con;
