@@ -154,6 +154,12 @@ class Instruction_STM(ARMInstruction):
     name = "STM"
     bin_format = 'cccc100pu1w0bbbbrrrrrrrrrrrrrrrr'
 
+    def match_instruction(self, data, bitstrm):
+        # If we don't push anything, that's not real
+        if int(data['r']) == 0:
+            raise ParseError("Invalid STM instruction")
+        return True
+
     def compute_result(self):
         l.warning("Ignoring STMxx ^ instruction at %#x. This mode is not implemented by VEX! See pyvex/lifting/gym/arm_spotter.py", self.addr)
 
@@ -162,11 +168,17 @@ class Instruction_LDM(ARMInstruction):
     name = "LDM"
     bin_format = 'cccc100PU1W1bbbbrrrrrrrrrrrrrrrr'
 
+    def match_instruction(self, data, bitstrm):
+        # If we don't push anything, that's not real
+        if int(data['r']) == 0:
+            raise ParseError("Invalid LDM instruction")
+        return True
+
     def compute_result(self):
         # test if PC will be set. If so, the jumpkind of this block should be Ijk_Ret
         l.warning("Spotting an LDM instruction at %#x.  This is not fully tested.  Prepare for errors." % self.addr)
-        l.warning(repr(self.rawbits))
-        l.warning(repr(self.data))
+        #l.warning(repr(self.rawbits))
+        #l.warning(repr(self.data))
 
         src_n = int(self.data['b'], 2)
         src = self.get(src_n, Type.int_32)
