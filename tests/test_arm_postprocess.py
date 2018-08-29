@@ -278,6 +278,21 @@ def test_arm_postprocess_call():
                           opt_level=i)
         nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Boring')
 
+        # From a "real thing" compiled with armc
+        # ARM:
+        #
+        irsb = pyvex.IRSB(data=(b'H\x10\x9b\xe5'
+                                b'\x0b\x00\xa0\xe1'
+                                b'\x04 \x91\xe5'
+                                b'\x04\xe0\x8f\xe2'
+                                b'\x01\x10\x82\xe0'
+                                b'\x01\xf0\xa0\xe1'),
+                          mem_addr=0x264b4c,
+                          arch=archinfo.ArchARMEL(),
+                          num_inst=6,
+                          opt_level=i)
+        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+
 
 def test_arm_postprocess_ret():
 
@@ -301,7 +316,6 @@ def test_arm_postprocess_ret():
                           opt_level=i
                           )
         nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Ret')
-
 
 if __name__ == "__main__":
     test_arm_postprocess_call()
