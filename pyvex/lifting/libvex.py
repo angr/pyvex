@@ -24,7 +24,7 @@ class LibVEXLifter(Lifter):
 
     @staticmethod
     def get_vex_log():
-        return str(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)) if pvc.msg_buffer != ffi.NULL else None
+        return bytes(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)).decode() if pvc.msg_buffer != ffi.NULL else None
 
     def lift(self):
         if self.traceflags != 0 and l.getEffectiveLevel() > 20:

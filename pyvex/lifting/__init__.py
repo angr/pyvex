@@ -4,7 +4,7 @@ import logging
 from .. import const, ffi
 from ..expr import Const
 from ..block import IRSB
-from ..errors import PyVEXError, NeedStatementsNotification, LiftingException
+from ..errors import PyVEXError, NeedStatementsNotification, LiftingException, SkipStatementsError
 from .lifter import Lifter
 from .post_processor import Postprocessor
 
@@ -81,8 +81,16 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                     u_data = ffi.buffer(c_data, max_bytes)[:]
                 else:
                     u_data = py_data
-            final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
-                                                      allow_lookback, strict_block_end, skip_stmts, collect_data_refs
+
+            try:
+                final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
+                                                      allow_lookback, strict_block_end, skip_stmts, collect_data_refs,
+                                                      )
+            except SkipStatementsError:
+                assert skip_stmts is True
+                final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
+                                                      allow_lookback, strict_block_end, skip_stmts=False,
+                                                      collect_data_refs=collect_data_refs,
                                                       )
             #l.debug('block lifted by %s' % str(lifter))
             #l.debug(str(final_irsb))
