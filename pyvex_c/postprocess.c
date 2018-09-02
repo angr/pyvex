@@ -32,6 +32,7 @@ void arm_post_processor_determine_calls(
 
 // Offset to the link register
 #define ARM_OFFB_LR      offsetof(VexGuestARMState,guest_R14)
+#define ARM_OFFB_SP      offsetof(VexGuestARMState,guest_R13)
 // The maximum number of tmps
 #define MAX_TMP 		 1000
 // The maximum offset of registers
@@ -48,9 +49,29 @@ void arm_post_processor_determine_calls(
 	Addr regs[MAX_REG_OFFSET + 1] = { DUMMY };
 
 	Int lr_store_pc = 0;
+	Int lr_written = 0;
+	Int sp_written = 0;
 	Int inst_ctr = 0;
 	Addr next_irsb_addr = (irsb_addr & (~1)) + irsb_size; // Clear the least significant bit
 	Int i;
+
+    // if we pop {..,lr,...}; b xxx, I bet this isn't a boring jump!
+    for (i = 0; i < irsb->stmts_used; ++i) {
+		IRStmt *stmt = irsb->stmts[i];
+
+		if (stmt->tag == Ist_Put) {
+			// LR is modified just before the last instruction of the block...
+			if (stmt->Ist.Put.offset == ARM_OFFB_LR /*&& inst_ctr == irsb_insts - 1*/) {
+				lr_written = 1;
+
+			}
+		    else if (stmt->Ist.Put.offset == ARM_OFFB_SP) {
+		        //TODO: Look for an actual 'pop'
+		        sp_written = 1;
+		    }
+        }
+    }
+
 
 	for (i = 0; i < irsb->stmts_used; ++i) {
 		IRStmt *stmt = irsb->stmts[i];
@@ -58,6 +79,7 @@ void arm_post_processor_determine_calls(
 		if (stmt->tag == Ist_Put) {
 			// LR is modified just before the last instruction of the block...
 			if (stmt->Ist.Put.offset == ARM_OFFB_LR /*&& inst_ctr == irsb_insts - 1*/) {
+				lr_written = 1;
 				// ... by a constant, so test whether it is the address of the next IRSB
 				if (stmt->Ist.Put.data->tag == Iex_Const) {
 					IRConst *con = stmt->Ist.Put.data->Iex.Const.con;
@@ -71,7 +93,11 @@ void arm_post_processor_determine_calls(
 					}
 				}
 				break;
-			} else {
+			}
+		    else if (stmt->Ist.Put.offset == ARM_OFFB_SP) {
+		        sp_written = 1;
+		    }
+			else {
 				Int reg_offset = stmt->Ist.Put.offset;
 				if (reg_offset <= MAX_REG_OFFSET) {
 					IRExpr *data = stmt->Ist.Put.data;
@@ -196,6 +222,9 @@ void arm_post_processor_determine_calls(
 	}
 
 	if (lr_store_pc) {
+		irsb->jumpkind = Ijk_Call;
+	}
+	else if (lr_written && sp_written && irsb->jumpkind == Ijk_Boring) {
 		irsb->jumpkind = Ijk_Call;
 	}
 
