@@ -51,7 +51,10 @@ void arm_post_processor_determine_calls(
 	Int lr_store_pc = 0;
 	Int lr_written = 0;
 	Int sp_written = 0;
+	Int popped_lr = 0;
 	Int inst_ctr = 0;
+	Int has_exit = 0;
+	IRStmt *other_exit = NULL;
 	Addr next_irsb_addr = (irsb_addr & (~1)) + irsb_size; // Clear the least significant bit
 	Int i;
 
@@ -60,16 +63,29 @@ void arm_post_processor_determine_calls(
 		IRStmt *stmt = irsb->stmts[i];
 
 		if (stmt->tag == Ist_Put) {
-			// LR is modified just before the last instruction of the block...
-			if (stmt->Ist.Put.offset == ARM_OFFB_LR /*&& inst_ctr == irsb_insts - 1*/) {
+			if (stmt->Ist.Put.offset == ARM_OFFB_LR) {
 				lr_written = 1;
-
 			}
 		    else if (stmt->Ist.Put.offset == ARM_OFFB_SP) {
 		        //TODO: Look for an actual 'pop'
 		        sp_written = 1;
 		    }
         }
+        else if (stmt->tag == Ist_IMark) {
+            if (lr_written && sp_written)
+                popped_lr = 1;
+            lr_written = 0;
+            sp_written = 0;
+        }
+        else if (stmt->tag == Ist_Exit){
+		    // HACK: FIXME: BLCC and friends set the default exit to Ijk_Boring
+		    // Yet, the call is there, and it's just fine.
+		    // We assume if the block has an exit AND lr stores PC, we're probably
+		    // doing one of those fancy BL-ish things.
+		    // Should work for BCC and friends though
+		    has_exit = 1;
+		    other_exit = stmt;
+		}
     }
 
 
@@ -94,10 +110,7 @@ void arm_post_processor_determine_calls(
 				}
 				break;
 			}
-		    else if (stmt->Ist.Put.offset == ARM_OFFB_SP) {
-		        sp_written = 1;
-		    }
-			else {
+		    else {
 				Int reg_offset = stmt->Ist.Put.offset;
 				if (reg_offset <= MAX_REG_OFFSET) {
 					IRExpr *data = stmt->Ist.Put.data;
@@ -222,14 +235,25 @@ void arm_post_processor_determine_calls(
 	}
 
 	if (lr_store_pc) {
-		irsb->jumpkind = Ijk_Call;
-	}
-	else if (lr_written && sp_written && irsb->jumpkind == Ijk_Boring) {
+		if (has_exit) {
+		    if (other_exit->Ist.Exit.jk == Ijk_Boring) {
+		        //Fix the not-default exit
+		        other_exit->Ist.Exit.jk = Ijk_Call;
+		    }
+		}
+		else {
+		    //Fix the default exit
+		    irsb->jumpkind = Ijk_Call;
+	    }
+	   }
+
+	if (popped_lr && irsb->jumpkind == Ijk_Boring) {
 		irsb->jumpkind = Ijk_Call;
 	}
 
 // Undefine all defined values
 #undef ARM_OFFB_LR
+#undef ARM_OFFB_SP
 #undef MAX_TMP
 #undef MAX_REG_OFFSET
 #undef DUMMY
