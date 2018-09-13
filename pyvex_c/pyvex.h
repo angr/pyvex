@@ -68,7 +68,7 @@ VEXLiftResult *vex_lift(
 		unsigned int max_bytes,
 		int opt_level,
 		int traceflags,
-		int allow_lookback,
+		int allow_arch_optimizations,
 		int strict_block_end,
 		int collect_data_refs);
 

@@ -66,7 +66,7 @@ class LibVEXLifter(Lifter):
                                   max_bytes,
                                   self.opt_level,
                                   self.traceflags,
-                                  self.allow_lookback,
+                                  self.allow_arch_optimizations,
                                   strict_block_end,
                                   collect_data_refs,
                                   )

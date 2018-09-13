@@ -45,6 +45,12 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
 
     .. note:: If no instruction and byte limit is used, pyvex will continue lifting the block until the block
               ends properly or until it runs out of data to lift.
+
+    .. note:: If you specify an opt_level of 0, this will also disable many arch-specific optimizations
+              that VEX for some reason does not gate behind opt_level normally.  This specifically
+              includes the THUMB lookback optimization, which can cause the same code to be lifted to wildly
+              different results.
+
     """
     if max_bytes is not None and max_bytes <= 0:
         raise PyVEXError("cannot lift block with no data (max_bytes <= 0)")
@@ -58,11 +64,19 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
     if isinstance(data, bytes):
         py_data = data
         c_data = None
-        allow_lookback = False
+        allow_arch_optimizations = False
     else:
         c_data = data
         py_data = None
-        allow_lookback = True
+        allow_arch_optimizations = True
+
+    ## HACK: WARNING: In order to attempt to preserve the property that
+    ## VEX lifts the same bytes to the same IR at all times when optimizations are disabled
+    ## we hack off all of VEX's non-IROpt optimizations when opt_level == 0.
+    ## This is intended to enable comparisons of the lifted IR between code that happens to be
+    ## found in different contexts.
+    if opt_level <= 0:
+        allow_arch_optimizations = False
 
     for lifter in lifters[arch.name]:
         try:
@@ -84,12 +98,12 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
 
             try:
                 final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
-                                                      allow_lookback, strict_block_end, skip_stmts, collect_data_refs,
+                                                      allow_arch_optimizations, strict_block_end, skip_stmts, collect_data_refs,
                                                       )
             except SkipStatementsError:
                 assert skip_stmts is True
                 final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
-                                                      allow_lookback, strict_block_end, skip_stmts=False,
+                                                      allow_arch_optimizations, strict_block_end, skip_stmts=False,
                                                       collect_data_refs=collect_data_refs,
                                                       )
             #l.debug('block lifted by %s' % str(lifter))
