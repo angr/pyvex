@@ -90,7 +90,7 @@ def test_full_binary():
     p = angr.Project(os.path.join(test_location, 'armel', 'RTOSDemo.axf.issue_685'))
     st = p.factory.call_state(0x000013ce+1)
     b = st.block().vex
-    simgr = p.factory.simgr(st)
+    simgr = p.factory.simulation_manager(st)
     simgr.step()
     nose.tools.assert_equal(b.jumpkind, 'Ijk_Sys_syscall')
     nose.tools.assert_equal(simgr.active[0].addr, 0x13fb)

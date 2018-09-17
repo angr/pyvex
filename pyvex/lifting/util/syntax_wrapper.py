@@ -137,7 +137,7 @@ class VexValue(object):
 
     @checkparams()
     def __floordiv__(self, right): # Note: nonprimitive
-        return self // right
+        return self.__div__(right)
 
     @checkparams()
     def __rfloordiv__(self, left):
