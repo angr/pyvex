@@ -1,3 +1,3 @@
-from arm_spotter import ARMSpotter
+from .arm_spotter import ARMSpotter
 
 __all__ = [ARMSpotter]
