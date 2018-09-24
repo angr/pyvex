@@ -26,7 +26,7 @@ def test_memory():
 
     for _ in xrange(10000):
         try:
-            s = hex(random.randint(2**100,2**100*16))[2:]
+            s = bytes(hex(random.randint(2**100,2**100*16))[2:], "utf-8")
             a = random.choice(arches)
             p = pyvex.IRSB(data=s, mem_addr=0, arch=a)
         except pyvex.PyVEXError:
@@ -508,7 +508,8 @@ def test_irexpr_ccall():
 
 
 if __name__ == '__main__':
-    _g = globals().copy()
-    for k, v in _g.items():
-        if k.startswith("test_") and hasattr(v, "__call__"):
-            v()
+    test_memory()
+    #_g = globals().copy()
+    #for k, v in _g.items():
+    #    if k.startswith("test_") and hasattr(v, "__call__"):
+    #        v()
