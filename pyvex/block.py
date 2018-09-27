@@ -477,23 +477,6 @@ class IRSB(VEXObject):
         target = self.default_exit_target
         return target is not None
 
-    def py_collect_exits(self):
-        exits = []
-        ins_addr = None
-        size = 0
-        ins_addrs = []
-        for i, stmt in enumerate(self.statements):
-            if stmt.tag == 'Ist_Exit':
-                exits.append((ins_addr, i, stmt))
-            elif stmt.tag == 'Ist_IMark':
-                ins_addr = stmt.addr
-                size += stmt.len
-                ins_addrs.append(ins_addr)
-        self._instructions = len(ins_addrs)
-        self._instruction_addresses = ins_addrs
-        self._size = size
-        self._exit_statements = exits
-
     #
     # internal "constructors" to fill this block out with data from various sources
     #
@@ -533,9 +516,6 @@ class IRSB(VEXObject):
         else:
             self.default_exit_target = None
 
-        if self.statements and not self.instruction_addresses:
-            # BUG: FIXME: Something funky in VEX regarding some ARM blocks makes that part not work in C
-            self.py_collect_exits()
         # Data references
         self.data_refs = None
         if lift_r.data_ref_count > 0:
