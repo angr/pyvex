@@ -8,13 +8,10 @@ from ..errors import PyVEXError, NeedStatementsNotification, LiftingException, S
 from .lifter import Lifter
 from .post_processor import Postprocessor
 
-l = logging.getLogger('pyvex.lift')
+l = logging.getLogger('pyvex.lifting')
 
 lifters = defaultdict(list)
 postprocessors = defaultdict(list)
-
-if bytes is not str:
-    unicode = str
 
 def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_level=1, traceflags=0,
          strict_block_end=True, inner=False, skip_stmts=False, collect_data_refs=False):
@@ -33,7 +30,10 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
     :param max_bytes:       The maximum number of bytes to lift. If set to None, no byte limit is used.
     :param max_inst:        The maximum number of instructions to lift. If set to None, no instruction limit is used.
     :param bytes_offset:    The offset into `data` to start lifting at.
-    :param opt_level:       The level of optimization to apply to the IR, 0-2. 2 is maximum optimization, 0 is no optimization.
+:param opt_level:           The level of optimization to apply to the IR, -1 through 2. -1 is the strictest
+                            unoptimized level, 0 is unoptimized but will perform some lookahead/lookbehind
+                            optimizations, 1 performs constant propogation, and 2 performs loop unrolling,
+                            which honestly doesn't make much sense in the context of pyvex. The default is 1.
     :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
 
     .. note:: Explicitly specifying the number of instructions to lift (`max_inst`) may not always work
@@ -45,12 +45,6 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
 
     .. note:: If no instruction and byte limit is used, pyvex will continue lifting the block until the block
               ends properly or until it runs out of data to lift.
-
-    .. note:: If you specify an opt_level of 0, this will also disable many arch-specific optimizations
-              that VEX for some reason does not gate behind opt_level normally.  This specifically
-              includes the THUMB lookback optimization, which can cause the same code to be lifted to wildly
-              different results.
-
     """
     if max_bytes is not None and max_bytes <= 0:
         raise PyVEXError("cannot lift block with no data (max_bytes <= 0)")
@@ -58,8 +52,8 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
     if not data:
         raise PyVEXError("cannot lift block with no data (data is empty)")
 
-    if isinstance(data, unicode):
-        raise TypeError("Cannot pass unicode as data string to lifter")
+    if isinstance(data, str):
+        raise TypeError("Cannot pass unicode string as data to lifter")
 
     if isinstance(data, bytes):
         py_data = data
@@ -70,13 +64,14 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
         py_data = None
         allow_arch_optimizations = True
 
-    ## HACK: WARNING: In order to attempt to preserve the property that
-    ## VEX lifts the same bytes to the same IR at all times when optimizations are disabled
-    ## we hack off all of VEX's non-IROpt optimizations when opt_level == 0.
-    ## This is intended to enable comparisons of the lifted IR between code that happens to be
-    ## found in different contexts.
-    if opt_level <= 0:
+    # In order to attempt to preserve the property that
+    # VEX lifts the same bytes to the same IR at all times when optimizations are disabled
+    # we hack off all of VEX's non-IROpt optimizations when opt_level == -1.
+    # This is intended to enable comparisons of the lifted IR between code that happens to be
+    # found in different contexts.
+    if opt_level < 0:
         allow_arch_optimizations = False
+        opt_level = 0
 
     for lifter in lifters[arch.name]:
         try:
