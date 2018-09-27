@@ -56,6 +56,7 @@ void arm_post_processor_determine_calls(
 	Int has_exit = 0;
 	IRStmt *other_exit = NULL;
 	Addr next_irsb_addr = (irsb_addr & (~1)) + irsb_size; // Clear the least significant bit
+	Int is_thumb_mode = irsb_addr & 1;
 	Int i;
 
     // if we pop {..,lr,...}; b xxx, I bet this isn't a boring jump!
@@ -235,17 +236,19 @@ void arm_post_processor_determine_calls(
 	}
 
 	if (lr_store_pc) {
-		if (has_exit) {
-		    if (other_exit->Ist.Exit.jk == Ijk_Boring) {
-		        //Fix the not-default exit
-		        other_exit->Ist.Exit.jk = Ijk_Call;
-		    }
+		if (has_exit &&  // It has a non-default exit
+			other_exit->Ist.Exit.jk == Ijk_Boring &&  // The non-default exit is a Boring jump
+			get_value_from_const_expr(other_exit->Ist.Exit.dst) != next_irsb_addr + is_thumb_mode // The non-defualt exit is not skipping
+																			  // the last instruction
+		) {
+			// Fix the not-default exit
+			other_exit->Ist.Exit.jk = Ijk_Call;
 		}
 		else {
-		    //Fix the default exit
-		    irsb->jumpkind = Ijk_Call;
-	    }
-	   }
+			//Fix the default exit
+			irsb->jumpkind = Ijk_Call;
+		}
+	}
 
 	if (popped_lr && irsb->jumpkind == Ijk_Boring) {
 		irsb->jumpkind = Ijk_Call;
