@@ -30,11 +30,12 @@ void get_exits_and_inst_addrs(
 		IRSB *irsb,
 		VEXLiftResult *lift_r) {
 	Int i, exit_ctr = 0, inst_count = 0;
-	Addr ins_addr;
+	Addr ins_addr = -1;
 	UInt size = 0;
 	for (i = 0; i < irsb->stmts_used; ++i) {
 		IRStmt* stmt = irsb->stmts[i];
 		if (stmt->tag == Ist_Exit) {
+			assert(ins_addr != -1);
 			if (exit_ctr < MAX_EXITS) {
 				lift_r->exits[exit_ctr].ins_addr = ins_addr;
 				lift_r->exits[exit_ctr].stmt_idx = i;
@@ -241,7 +242,7 @@ void collect_data_references(
 	VEXLiftResult *lift_r) {
 
 	Int i;
-	Addr inst_addr, next_inst_addr;
+	Addr inst_addr = -1, next_inst_addr = -1;
 
 	for (i = 0; i < irsb->stmts_used; ++i) {
 		IRStmt *stmt = irsb->stmts[i];
@@ -251,15 +252,15 @@ void collect_data_references(
 			next_inst_addr = inst_addr + stmt->Ist.IMark.len;
 			break;
 		case Ist_WrTmp:
+			assert(inst_addr != -1 && next_inst_addr != -1);
 			{
 				IRExpr *data = stmt->Ist.WrTmp.data;
 				switch (data->tag) {
 				case Iex_Load:
 					// load
-                    // e.g. t7 = LDle:I64(0x0000000000600ff8)
+					// e.g. t7 = LDle:I64(0x0000000000600ff8)
 					if (data->Iex.Load.addr->tag == Iex_Const) {
 						Int size;
-						Addr addr;
 						size = sizeofIRType(typeOfIRTemp(irsb->tyenv, stmt->Ist.WrTmp.tmp));
 						record_const(lift_r, data->Iex.Load.addr, size, Dt_Integer, i, inst_addr, next_inst_addr);
 					}
@@ -310,6 +311,7 @@ void collect_data_references(
 		case Ist_Put:
 			// put
 			// e.g. PUT(rdi) = 0x0000000000400714
+			assert(inst_addr != -1 && next_inst_addr != -1);
 			{
 				IRExpr *data = stmt->Ist.Put.data;
 				if (data->tag == Iex_Const) {
@@ -319,6 +321,7 @@ void collect_data_references(
 			break;
 		case Ist_Store:
 			// Store
+			assert(inst_addr != -1 && next_inst_addr != -1);
 			{
 				IRExpr *store_dst = stmt->Ist.Store.addr;
 				IRExpr *store_data = stmt->Ist.Store.data;
@@ -332,6 +335,7 @@ void collect_data_references(
 			break;
 		case Ist_Dirty:
 			// Dirty
+			assert(inst_addr != -1 && next_inst_addr != -1);
 			if (stmt->Ist.Dirty.details->mAddr != NULL &&
 				stmt->Ist.Dirty.details->mAddr->tag == Iex_Const) {
 				IRExpr *m_addr = stmt->Ist.Dirty.details->mAddr;
