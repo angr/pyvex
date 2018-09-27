@@ -204,7 +204,7 @@ setup(
         'cffi==1.7.0',
         'archinfo==7.8.9.26',
         'bitstring==3.1.5',
-        'future==3.2.0',
+        'future==0.16.0',
     ],
     setup_requires=[ 'pycparser==2.18', 'cffi==1.7.0' ],
     include_package_data=True,
