@@ -231,7 +231,10 @@ class Instruction(object):
 
     def lookup_register(self, arch, reg):
         if isinstance(reg, int):
-            reg = arch.register_index[reg]
+            if hasattr(arch, 'register_index'):
+                reg = arch.register_index[reg]
+            else:
+                reg = arch.register_list[reg].name
         return arch.get_register_offset(reg)
 
     def get(self, reg, ty):
@@ -283,23 +286,44 @@ class Instruction(object):
             aren't normal jumps (e.g., calls, interrupts, program exits, etc etc)
         :return: None
         """
-        if not isinstance(to_addr, VexValue):
+        to_addr_ty = None
+        if isinstance(to_addr, VexValue):
+            # Unpack a VV
+            to_addr_rdt = to_addr.rdt
+            to_addr_ty = to_addr.ty
+        elif isinstance(to_addr, int):
+            # Direct jump to an int, make an RdT and Ty
             to_addr_ty = vex_int_class(self.irsb_c.irsb.arch.bits).type
             to_addr = self.constant(to_addr, to_addr_ty) # TODO archinfo may be changing
+            to_addr_rdt = to_addr.rdt
+        elif isInstance(to_addr, RdTmp):
+            # An RdT; just get the Ty of the arch's pointer type
+            to_addr_ty = vex_int_class(self.irsb_c.irsb.arch.bits).type
+            to_addr_rdt = to_addr
+        else:
+            raise ValueError("Jump destination has unknown type: " + repr(type(to_addr)))
         if not condition:
             # This is the default exit.
             self.irsb_c.irsb.jumpkind = jumpkind
-            self.irsb_c.irsb.next = to_addr.rdt
+            self.irsb_c.irsb.next = to_addr_rdt
         else:
             # add another exit
             # EDG says: We should make sure folks set ArchXYZ.ip_offset like they're supposed to
             if ip_offset is None:
                 ip_offset = self.arch.ip_offset
             assert ip_offset is not None
-            self.irsb_c.add_exit(condition.rdt, to_addr.rdt.con, jumpkind, ip_offset)
-            # and then set the default
+
+            # HACK: VEX does not allow conditional jumps to non-constant addresses.
+            # We invert the condition here.
+            not_condition = ~condition
+            # Conditionally go to the next instruction
+            self.irsb_c.add_exit(not_condition.rdt, self.constant(self.addr + (self.bitwidth // 8), to_addr_ty).rdt.con, JumpKind.Boring, ip_offset)
+            # ...otherwise do the jump
             self.irsb_c.irsb.jumpkind = jumpkind
-            self.irsb_c.irsb.next = self.constant(self.addr + (self.bitwidth // 8), to_addr.ty).rdt
+            self.irsb_c.irsb.next = to_addr_rdt
+
+    def ite(self, cond, t, f):
+        self.irsb_c.ite(cond.rdt, t.rdt, f.rdt)
 
     def ccall(self, ret_type, func_obj, args):
         """
@@ -319,7 +343,22 @@ class Instruction(object):
 
         from angr.engines.vex import ccall
 
-        if not hasattr(ccall, func_obj.__name__):
-            setattr(ccall, func_obj.__name__, func_obj)
+        # Check the args to make sure they're the right type
+        list_args = list(args)
+        new_args = []
+        for arg in list_args:
+            if isinstance(arg, VexValue):
+                arg = arg.rdt
+            new_args.append(arg)
+        args = tuple(new_args)
+
+
+        # Support calling ccalls via string name
+        if isinstance(func_obj, str):
+            func_obj = getattr(ccall, func_obj)
+        else:
+            # ew, monkey-patch in the user-provided CCall
+            if not hasattr(ccall, func_obj.__name__):
+                setattr(ccall, func_obj.__name__, func_obj)
         cc = self.irsb_c.op_ccall(ret_type, func_obj.__name__, args)
         return VexValue(self.irsb_c, cc)

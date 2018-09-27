@@ -295,7 +295,7 @@ VEXLiftResult *vex_lift(
 		unsigned int max_bytes,
 		int opt_level,
 		int traceflags,
-		int allow_lookback,
+		int allow_arch_optimizations,
 		int strict_block_end,
 		int collect_data_refs) {
 	VexRegisterUpdates pxControl;
@@ -317,7 +317,12 @@ VEXLiftResult *vex_lift(
 	vc.guest_max_bytes     = max_bytes;
 	vc.guest_max_insns     = max_insns;
 	vc.iropt_level         = opt_level;
-	vc.arm_allow_optimizing_lookback = allow_lookback;
+
+	// Gate all of these on one flag, they depend on the arch
+	vc.arm_allow_optimizing_lookback = allow_arch_optimizations;
+	vc.arm64_allow_reordered_writeback = allow_arch_optimizations;
+	vc.x86_optimize_callpop_idiom = allow_arch_optimizations;
+
 	vc.strict_block_end = strict_block_end;
 
 	clear_log();
