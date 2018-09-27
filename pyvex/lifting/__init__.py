@@ -30,7 +30,7 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
     :param max_bytes:       The maximum number of bytes to lift. If set to None, no byte limit is used.
     :param max_inst:        The maximum number of instructions to lift. If set to None, no instruction limit is used.
     :param bytes_offset:    The offset into `data` to start lifting at.
-:param opt_level:           The level of optimization to apply to the IR, -1 through 2. -1 is the strictest
+    :param opt_level:       The level of optimization to apply to the IR, -1 through 2. -1 is the strictest
                             unoptimized level, 0 is unoptimized but will perform some lookahead/lookbehind
                             optimizations, 1 performs constant propogation, and 2 performs loop unrolling,
                             which honestly doesn't make much sense in the context of pyvex. The default is 1.
