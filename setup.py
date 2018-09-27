@@ -54,7 +54,7 @@ if not os.path.exists(VEX_PATH):
     VEX_PATH = os.path.join(PROJECT_DIR, 'vex')
 
 if not os.path.exists(VEX_PATH):
-    VEX_PATH = os.path.join(PROJECT_DIR, 'vex-master')
+    VEX_PATH = os.path.join(PROJECT_DIR, 'vex-py2k')
 
 if not os.path.exists(VEX_PATH):
     sys.__stderr__.write('###########################################################################\n')
@@ -65,10 +65,10 @@ if not os.path.exists(VEX_PATH):
     sys.__stderr__.flush()
     time.sleep(10)
 
-    VEX_URL = 'https://github.com/angr/vex/archive/master.tar.gz'
-    with open('vex-master.tar.gz', 'wb') as v:
+    VEX_URL = 'https://github.com/angr/vex/archive/py2k.tar.gz'
+    with open('vex-py2k.tar.gz', 'wb') as v:
         v.write(urlopen(VEX_URL).read())
-    with tarfile.open('vex-master.tar.gz') as tar:
+    with tarfile.open('vex-py2k.tar.gz') as tar:
         tar.extractall()
 
 def _build_vex():
