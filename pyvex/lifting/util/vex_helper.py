@@ -137,7 +137,7 @@ class IRSBCustomizer(object):
         :param jk: the JumpKind of this exit (probably Ijk_Boring)
         :param ip: The address of this exit's source
         """
-        self.irsb.statements.append(Exit(guard, dst, jk, ip))
+        self.irsb.statements.append(Exit(guard, dst.con, jk, ip))
     # end statements
 
     def goto(self, addr):
