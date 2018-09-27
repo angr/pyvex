@@ -1,14 +1,15 @@
+import logging
 
 from ..util.lifter_helper import GymratLifter
 from ..util.instr_helper import Instruction, ParseError
 from ..util import JumpKind, Type
 from .. import register
-from ...expr import *
+#from ...expr import *
 
 l = logging.getLogger(__name__)
 
 
-class ARMInstruction(Instruction):
+class ARMInstruction(Instruction): # pylint: disable=abstract-method
 
     # NOTE: WARNING: There is no CPSR in VEX's ARM implementation
     # You must use straight nasty hacks instead.
@@ -108,7 +109,7 @@ class Instruction_MRC(ARMInstruction):
     # O = Offset
     # p = CP#
 
-    def compute_result(self):
+    def compute_result(self): # pylint: disable=arguments-differ
         # TODO at least look at the conditionals
         # TODO Clobber the dst reg of MCR
         # TODO maybe treat coproc regs as simple storage (even though they are very much not)
@@ -125,7 +126,7 @@ class Instruction_MCR(ARMInstruction):
     # O = Offset
     # p = CP#
 
-    def compute_result(self):
+    def compute_result(self): # pylint: disable=arguments-differ
         # TODO at least look at the conditionals
         # TODO Clobber the dst reg of MCR
         # TODO maybe treat coproc regs as simple storage (even though they are very much not)
@@ -138,7 +139,7 @@ class Instruction_MSR(ARMInstruction):
     #             11100011001000011111000010010001
     #             11100001011011111111000000000001
 
-    def compute_result(self):
+    def compute_result(self): # pylint: disable=arguments-differ
         l.debug("Ignoring MSR instruction at %#x. VEX cannot support this instruction. See pyvex/lifting/gym/arm_spotter.py", self.addr)
 
 
@@ -146,7 +147,7 @@ class Instruction_MRS(ARMInstruction):
     name = "MRS"
     bin_format = "cccc00010s001111dddd000000000000"
 
-    def compute_result(self):
+    def compute_result(self): # pylint: disable=arguments-differ
         l.debug("Ignoring MRS instruction at %#x. VEX cannot support this instruction. See pyvex/lifting/gym/arm_spotter.py", self.addr)
 
 
@@ -160,7 +161,7 @@ class Instruction_STM(ARMInstruction):
             raise ParseError("Invalid STM instruction")
         return True
 
-    def compute_result(self):
+    def compute_result(self): # pylint: disable=arguments-differ
         l.warning("Ignoring STMxx ^ instruction at %#x. This mode is not implemented by VEX! See pyvex/lifting/gym/arm_spotter.py", self.addr)
 
 
@@ -174,15 +175,15 @@ class Instruction_LDM(ARMInstruction):
             raise ParseError("Invalid LDM instruction")
         return True
 
-    def compute_result(self):
+    def compute_result(self): # pylint: disable=arguments-differ
         # test if PC will be set. If so, the jumpkind of this block should be Ijk_Ret
-        l.warning("Spotting an LDM instruction at %#x.  This is not fully tested.  Prepare for errors." % self.addr)
+        l.warning("Spotting an LDM instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr)
         #l.warning(repr(self.rawbits))
         #l.warning(repr(self.data))
 
         src_n = int(self.data['b'], 2)
         src = self.get(src_n, Type.int_32)
-    
+
         for reg_num, bit in enumerate(self.data['r']):
             reg_num = 15 - reg_num
             if bit == '1':
@@ -214,7 +215,7 @@ class Instruction_STC(ARMInstruction):
     name = 'STC'
     bin_format = 'cccc110PUNW0nnnnddddppppOOOOOOOO'
 
-    def compute_result(self):
+    def compute_result(self): # pylint: disable=arguments-differ
         # TODO At least look at the conditionals
         l.debug("Ignoring STC instruction at %#x.", self.addr)
 
@@ -223,7 +224,7 @@ class Instruction_LDC(ARMInstruction):
     name = 'STC'
     bin_format = 'cccc110PUNW1nnnnddddppppOOOOOOOO'
 
-    def compute_result(self):
+    def compute_result(self): # pylint: disable=arguments-differ
         # TODO At least look at the conditionals
         # TODO Clobber the dest reg of LDC
         # TODO Maybe clobber the dst reg of CDP, if we're really adventurous
@@ -237,7 +238,7 @@ class Instruction_CDP(Instruction):
     # O = Offset
     # p = CP#
 
-    def compute_result(self):
+    def compute_result(self): # pylint: disable=arguments-differ
         # TODO At least look at the conditionals
         # TODO Maybe clobber the dst reg of CDP, if we're really adventurous
         l.debug("Ignoring CDP instruction at %#x.", self.addr)
@@ -247,18 +248,17 @@ class Instruction_CDP(Instruction):
 ## Thumb! (ugh)
 ##
 
-class ThumbInstruction(Instruction):
+class ThumbInstruction(Instruction): # pylint: disable=abstract-method
 
     def mark_instruction_start(self):
         self.irsb_c.imark(self.addr-1, self.bytewidth, 1)
-
 
 
 class Instruction_tCPSID(ThumbInstruction):
     name = 'CPSID'
     bin_format = '101101x0011x0010'
 
-    def compute_result(self):
+    def compute_result(self): # pylint: disable=arguments-differ
         # TODO haha lol yeah right
         l.debug("[thumb] Ignoring CPS instruction at %#x.", self.addr)
 
@@ -266,7 +266,7 @@ class Instruction_tMSR(ThumbInstruction):
     name = 'MSR'
     bin_format = '10x0mmmmxxxxxxxx11110011100Rrrrr'
 
-    def compute_result(self):
+    def compute_result(self): # pylint: disable=arguments-differ
         # TODO haha lol yeah right
         l.debug("[thumb] Ignoring MSR instruction at %#x.", self.addr)
 
@@ -276,7 +276,7 @@ class Instruction_WFI(ThumbInstruction):
     bin_format = "10111111001a0000"
                  #1011111100110000
 
-    def compute_result(self):
+    def compute_result(self): # pylint: disable=arguments-differ
         l.debug("[thumb] Ignoring WFI instruction at %#x.", self.addr)
 
 
