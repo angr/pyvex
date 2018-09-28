@@ -311,11 +311,15 @@ class Instruction:
             if ip_offset is None:
                 ip_offset = self.arch.ip_offset
             assert ip_offset is not None
-            self.irsb_c.add_exit(condition.rdt, to_addr_rdt, jumpkind, ip_offset)
+
+            negated_condition_rdt = self.ite(condition, self.constant(0, condition.ty), self.constant(1, condition.ty))
+            direct_exit_target = self.constant(self.addr + (self.bitwidth // 8), to_addr_ty)
+            self.irsb_c.add_exit(negated_condition_rdt, direct_exit_target.rdt, jumpkind, ip_offset)
             self.irsb_c.irsb.jumpkind = jumpkind
-            self.irsb_c.irsb.next = self.constant(self.addr + (self.bitwidth // 8), to_addr_ty).rdt
+            self.irsb_c.irsb.next = to_addr_rdt
+
     def ite(self, cond, t, f):
-        self.irsb_c.ite(cond.rdt, t.rdt, f.rdt)
+        return self.irsb_c.ite(cond.rdt, t.rdt, f.rdt)
 
     def ccall(self, ret_type, func_obj, args):
         """
