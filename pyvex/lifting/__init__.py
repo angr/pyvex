@@ -230,3 +230,5 @@ def register(lifter, arch_name):
 from ..const import vex_int_class
 from .libvex import LibVEXLifter
 from .zerodivision import ZeroDivisionPostProcessor
+
+from . import gym
