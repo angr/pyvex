@@ -411,7 +411,6 @@ void zero_division_side_exits(IRSB *irsb) {
 				failAddr->tag = addrConst;
 				irsb_insert(irsb, IRStmt_Exit(IRExpr_RdTmp(cmptmp), Ijk_SigFPE_IntDiv, failAddr, irsb->offsIP), i);
 				i++;
-				ppIRSB(irsb);
 				break;
 
 		default:
