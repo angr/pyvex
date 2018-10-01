@@ -1,4 +1,3 @@
-
 import abc
 import string
 import bitstring
@@ -6,14 +5,14 @@ import logging
 
 from .lifter_helper import ParseError
 from .syntax_wrapper import VexValue
-from ...expr import IRExpr
+from ...expr import IRExpr, RdTmp
 from .vex_helper import JumpKind, vex_int_class
 
 
 l = logging.getLogger("instr")
 
 
-class Instruction(object):
+class Instruction:
     """
     Base class for an Instruction.
     You should make a subclass of this for each instruction you want to lift.
@@ -77,7 +76,7 @@ class Instruction(object):
         """
         self.addr = addr
         self.arch = arch
-        self.bitwidth = len(self.bin_format)
+        self.bitwidth = len(self.bin_format) # pylint: disable=no-member
         self.data = self.parse(bitstrm)
 
     def __call__(self, irsb_c, past_instructions, future_instructions):
@@ -86,14 +85,14 @@ class Instruction(object):
     def mark_instruction_start(self):
         self.irsb_c.imark(self.addr, self.bytewidth, 0)
 
-    def fetch_operands(self):
+    def fetch_operands(self): # pylint: disable=no-self-use
         """
         Get the operands out of memory or registers
         Return a tuple of operands for the instruction
         """
         return []
 
-    def lift(self, irsb_c, past_instructions, future_instructions):
+    def lift(self, irsb_c, past_instructions, future_instructions): # pylint: disable=unused-argument
         """
         This is the main body of the "lifting" for the instruction.
         This can/should be overriden to provide the general flow of how instructions in your arch work.
@@ -149,7 +148,7 @@ class Instruction(object):
         """
         pass
 
-    def match_instruction(self, data, bitstrm):
+    def match_instruction(self, data, bitstrm): # pylint: disable=unused-argument,no-self-use
         """
         Override this to extend the parsing functionality.
         This is great for if your arch has instruction "formats" that have an opcode that has to match.
@@ -160,7 +159,7 @@ class Instruction(object):
         return data
 
     def parse(self, bitstrm):
-        numbits = len(self.bin_format)
+        numbits = len(self.bin_format) # pylint: disable=no-member
         if self.arch.instruction_endness == 'Iend_LE':
             # This arch stores its instructions in memory endian-flipped compared to the ISA.
             # To enable natural lifter-writing, we let the user write them like in the manual, and correct for
@@ -168,8 +167,8 @@ class Instruction(object):
             instr_bits = bitstring.Bits(uint=bitstrm.peek("uintle:%d" % numbits), length=numbits).bin
         else:
             instr_bits = bitstrm.peek("bin:%d" % numbits)
-        data = {c : '' for c in self.bin_format if c in string.ascii_letters}
-        for c, b in zip(self.bin_format, instr_bits):
+        data = {c : '' for c in self.bin_format if c in string.ascii_letters} # pylint: disable=no-member
+        for c, b in zip(self.bin_format, instr_bits): # pylint: disable=no-member
             if c in '01':
                 if b != c:
                     raise ParseError('Mismatch between format bit %c and instruction bit %c' % (c, b))
@@ -185,7 +184,7 @@ class Instruction(object):
         self.rawbits = bitstrm.read('hex:%d' % numbits)
         # Hook here for extra parsing functionality (e.g., trailers)
         if hasattr(self, '_extra_parsing'):
-            data = self._extra_parsing(data, bitstrm)
+            data = self._extra_parsing(data, bitstrm) # pylint: disable=no-member
         return data
 
     @property
@@ -229,9 +228,12 @@ class Instruction(object):
         rdt = self.irsb_c.mkconst(val, ty)
         return VexValue(self.irsb_c, rdt)
 
-    def lookup_register(self, arch, reg):
+    def lookup_register(self, arch, reg): # pylint: disable=no-self-use
         if isinstance(reg, int):
-            reg = arch.register_index[reg]
+            if hasattr(arch, 'register_index'):
+                reg = arch.register_index[reg]
+            else:
+                reg = arch.register_list[reg].name
         return arch.get_register_offset(reg)
 
     def get(self, reg, ty):
@@ -283,23 +285,41 @@ class Instruction(object):
             aren't normal jumps (e.g., calls, interrupts, program exits, etc etc)
         :return: None
         """
-        if not isinstance(to_addr, VexValue):
+        to_addr_ty = None
+        if isinstance(to_addr, VexValue):
+            # Unpack a VV
+            to_addr_rdt = to_addr.rdt
+            to_addr_ty = to_addr.ty
+        elif isinstance(to_addr, int):
+            # Direct jump to an int, make an RdT and Ty
             to_addr_ty = vex_int_class(self.irsb_c.irsb.arch.bits).type
             to_addr = self.constant(to_addr, to_addr_ty) # TODO archinfo may be changing
+            to_addr_rdt = to_addr.rdt
+        elif isinstance(to_addr, RdTmp):
+            # An RdT; just get the Ty of the arch's pointer type
+            to_addr_ty = vex_int_class(self.irsb_c.irsb.arch.bits).type
+            to_addr_rdt = to_addr
+        else:
+            raise ValueError("Jump destination has unknown type: " + repr(type(to_addr)))
         if not condition:
             # This is the default exit.
             self.irsb_c.irsb.jumpkind = jumpkind
-            self.irsb_c.irsb.next = to_addr.rdt
+            self.irsb_c.irsb.next = to_addr_rdt
         else:
             # add another exit
             # EDG says: We should make sure folks set ArchXYZ.ip_offset like they're supposed to
             if ip_offset is None:
                 ip_offset = self.arch.ip_offset
             assert ip_offset is not None
-            self.irsb_c.add_exit(condition.rdt, to_addr.rdt.con, jumpkind, ip_offset)
-            # and then set the default
+
+            negated_condition_rdt = self.ite(condition, self.constant(0, condition.ty), self.constant(1, condition.ty))
+            direct_exit_target = self.constant(self.addr + (self.bitwidth // 8), to_addr_ty)
+            self.irsb_c.add_exit(negated_condition_rdt, direct_exit_target.rdt, jumpkind, ip_offset)
             self.irsb_c.irsb.jumpkind = jumpkind
-            self.irsb_c.irsb.next = self.constant(self.addr + (self.bitwidth // 8), to_addr.ty).rdt
+            self.irsb_c.irsb.next = to_addr_rdt
+
+    def ite(self, cond, t, f):
+        return self.irsb_c.ite(cond.rdt, t.rdt, f.rdt)
 
     def ccall(self, ret_type, func_obj, args):
         """
@@ -319,7 +339,22 @@ class Instruction(object):
 
         from angr.engines.vex import ccall
 
-        if not hasattr(ccall, func_obj.__name__):
-            setattr(ccall, func_obj.__name__, func_obj)
+        # Check the args to make sure they're the right type
+        list_args = list(args)
+        new_args = []
+        for arg in list_args:
+            if isinstance(arg, VexValue):
+                arg = arg.rdt
+            new_args.append(arg)
+        args = tuple(new_args)
+
+
+        # Support calling ccalls via string name
+        if isinstance(func_obj, str):
+            func_obj = getattr(ccall, func_obj)
+        else:
+            # ew, monkey-patch in the user-provided CCall
+            if not hasattr(ccall, func_obj.__name__):
+                setattr(ccall, func_obj.__name__, func_obj)
         cc = self.irsb_c.op_ccall(ret_type, func_obj.__name__, args)
         return VexValue(self.irsb_c, cc)

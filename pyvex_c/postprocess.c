@@ -32,6 +32,7 @@ void arm_post_processor_determine_calls(
 
 // Offset to the link register
 #define ARM_OFFB_LR      offsetof(VexGuestARMState,guest_R14)
+#define ARM_OFFB_SP      offsetof(VexGuestARMState,guest_R13)
 // The maximum number of tmps
 #define MAX_TMP 		 1000
 // The maximum offset of registers
@@ -48,16 +49,54 @@ void arm_post_processor_determine_calls(
 	Addr regs[MAX_REG_OFFSET + 1] = { DUMMY };
 
 	Int lr_store_pc = 0;
+	Int lr_written = 0;
+	Int sp_written = 0;
+	Int popped_lr = 0;
 	Int inst_ctr = 0;
+	Int has_exit = 0;
+	IRStmt *other_exit = NULL;
 	Addr next_irsb_addr = (irsb_addr & (~1)) + irsb_size; // Clear the least significant bit
+	Int is_thumb_mode = irsb_addr & 1;
 	Int i;
+
+    // if we pop {..,lr,...}; b xxx, I bet this isn't a boring jump!
+    for (i = 0; i < irsb->stmts_used; ++i) {
+		IRStmt *stmt = irsb->stmts[i];
+
+		if (stmt->tag == Ist_Put) {
+			if (stmt->Ist.Put.offset == ARM_OFFB_LR) {
+				lr_written = 1;
+			}
+		    else if (stmt->Ist.Put.offset == ARM_OFFB_SP) {
+		        //TODO: Look for an actual 'pop'
+		        sp_written = 1;
+		    }
+        }
+        else if (stmt->tag == Ist_IMark) {
+            if (lr_written && sp_written)
+                popped_lr = 1;
+            lr_written = 0;
+            sp_written = 0;
+        }
+        else if (stmt->tag == Ist_Exit){
+		    // HACK: FIXME: BLCC and friends set the default exit to Ijk_Boring
+		    // Yet, the call is there, and it's just fine.
+		    // We assume if the block has an exit AND lr stores PC, we're probably
+		    // doing one of those fancy BL-ish things.
+		    // Should work for BCC and friends though
+		    has_exit = 1;
+		    other_exit = stmt;
+		}
+    }
+
 
 	for (i = 0; i < irsb->stmts_used; ++i) {
 		IRStmt *stmt = irsb->stmts[i];
 
 		if (stmt->tag == Ist_Put) {
 			// LR is modified just before the last instruction of the block...
-			if (stmt->Ist.Put.offset == ARM_OFFB_LR && inst_ctr == irsb_insts - 1) {
+			if (stmt->Ist.Put.offset == ARM_OFFB_LR /*&& inst_ctr == irsb_insts - 1*/) {
+				lr_written = 1;
 				// ... by a constant, so test whether it is the address of the next IRSB
 				if (stmt->Ist.Put.data->tag == Iex_Const) {
 					IRConst *con = stmt->Ist.Put.data->Iex.Const.con;
@@ -71,7 +110,8 @@ void arm_post_processor_determine_calls(
 					}
 				}
 				break;
-			} else {
+			}
+		    else {
 				Int reg_offset = stmt->Ist.Put.offset;
 				if (reg_offset <= MAX_REG_OFFSET) {
 					IRExpr *data = stmt->Ist.Put.data;
@@ -196,11 +236,27 @@ void arm_post_processor_determine_calls(
 	}
 
 	if (lr_store_pc) {
+		if (has_exit &&  // It has a non-default exit
+			other_exit->Ist.Exit.jk == Ijk_Boring &&  // The non-default exit is a Boring jump
+			get_value_from_const_expr(other_exit->Ist.Exit.dst) != next_irsb_addr + is_thumb_mode // The non-defualt exit is not skipping
+																			  // the last instruction
+		) {
+			// Fix the not-default exit
+			other_exit->Ist.Exit.jk = Ijk_Call;
+		}
+		else {
+			//Fix the default exit
+			irsb->jumpkind = Ijk_Call;
+		}
+	}
+
+	if (popped_lr && irsb->jumpkind == Ijk_Boring) {
 		irsb->jumpkind = Ijk_Call;
 	}
 
 // Undefine all defined values
 #undef ARM_OFFB_LR
+#undef ARM_OFFB_SP
 #undef MAX_TMP
 #undef MAX_REG_OFFSET
 #undef DUMMY
@@ -269,5 +325,98 @@ void mips32_post_processor_fix_unconditional_exit(
 	}
 
 #undef INVALID
+}
+
+void irsb_insert(IRSB *irsb, IRStmt* stmt, Int i) {
+    addStmtToIRSB(irsb, stmt);
+
+	IRStmt *in_air = irsb->stmts[irsb->stmts_used - 1];
+	for (Int j = irsb->stmts_used - 1; j > i; j--) {
+        irsb->stmts[j] = irsb->stmts[j-1];
+	}
+	irsb->stmts[i] = in_air;
+}
+
+void zero_division_side_exits(IRSB *irsb) {
+	Int i;
+	Addr lastIp = -1;
+	IRType addrTy = typeOfIRExpr(irsb->tyenv, irsb->next);
+	IRConstTag addrConst = addrTy == Ity_I32 ? Ico_U32 : addrTy == Ity_I16 ? Ico_U16 : Ico_U64;
+	IRType argty;
+	IRTemp cmptmp;
+
+	for (i = 0; i < irsb->stmts_used; i++) {
+		IRStmt *stmt = irsb->stmts[i];
+		switch (stmt->tag) {
+			case Ist_IMark:
+				lastIp = stmt->Ist.IMark.addr;
+				continue;
+			case Ist_WrTmp:
+				if (stmt->Ist.WrTmp.data->tag != Iex_Binop) {
+					continue;
+				}
+
+				switch (stmt->Ist.WrTmp.data->Iex.Binop.op) {
+					case Iop_DivU32:
+					case Iop_DivS32:
+					case Iop_DivU32E:
+					case Iop_DivS32E:
+					case Iop_DivModU64to32:
+					case Iop_DivModS64to32:
+						argty = Ity_I32;
+						break;
+
+					case Iop_DivU64:
+					case Iop_DivS64:
+					case Iop_DivU64E:
+					case Iop_DivS64E:
+					case Iop_DivModU128to64:
+					case Iop_DivModS128to64:
+					case Iop_DivModS64to64:
+						argty = Ity_I64;
+						break;
+
+					// TODO YIKES
+					//case Iop_DivF32:
+					//	argty = Ity_F32;
+
+					//case Iop_DivF64:
+					//case Iop_DivF64r32:
+					//	argty = Ity_F64;
+
+					//case Iop_DivF128:
+					//	argty = Ity_F128;
+
+					//case Iop_DivD64:
+					//	argty = Ity_D64;
+
+					//case Iop_DivD128:
+					//	argty = Ity_D128;
+
+					//case Iop_Div32Fx4:
+					//case Iop_Div32F0x4:
+					//case Iop_Div64Fx2:
+					//case Iop_Div64F0x2:
+					//case Iop_Div64Fx4:
+					//case Iop_Div32Fx8:
+
+					default:
+						continue;
+				}
+
+				cmptmp = newIRTemp(irsb->tyenv, Ity_I1);
+				irsb_insert(irsb, IRStmt_WrTmp(cmptmp, IRExpr_Binop(argty == Ity_I32 ? Iop_CmpEQ32 : Iop_CmpEQ64, stmt->Ist.WrTmp.data->Iex.Binop.arg2, IRExpr_Const(argty == Ity_I32 ? IRConst_U32(0) : IRConst_U64(0)))), i);
+				i++;
+				IRConst *failAddr = IRConst_U64(lastIp); // ohhhhh boy this is a hack
+				failAddr->tag = addrConst;
+				irsb_insert(irsb, IRStmt_Exit(IRExpr_RdTmp(cmptmp), Ijk_SigFPE_IntDiv, failAddr, irsb->offsIP), i);
+				i++;
+				ppIRSB(irsb);
+				break;
+
+		default:
+			continue;
+		}
+	}
 }
 

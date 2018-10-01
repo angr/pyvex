@@ -70,7 +70,10 @@ class IRSB(VEXObject):
         :param bytes_offset:        The offset into `data` to start lifting at. Note that for ARM THUMB mode, both
                                     `mem_addr` and `bytes_offset` must be odd (typically `bytes_offset` is set to 1).
         :param traceflags:          The libVEX traceflags, controlling VEX debug prints.
-        :param opt_level:           The level of optimization to apply to the IR, 0-2. 2 is highest, 0 is no optimization.
+        :param opt_level:           The level of optimization to apply to the IR, -1 through 2. -1 is the strictest
+                                    unoptimized level, 0 is unoptimized but will perform some lookahead/lookbehind
+                                    optimizations, 1 performs constant propogation, and 2 performs loop unrolling,
+                                    which honestly doesn't make much sense in the context of pyvex. The default is 1.
         :param strict_block_end:    Should the LibVEX arm-thumb split block at some instructions, for example CB{N}Z.
 
         .. note:: Explicitly specifying the number of instructions to lift (`max_inst`) may not always work
@@ -510,7 +513,6 @@ class IRSB(VEXObject):
             self._exit_statements = tuple(self._exit_statements)
         else:
             self._exit_statements = None  # It will be generated when self.exit_statements is called
-
         # The default exit
         if lift_r.is_default_exit_constant == 1:
             self.default_exit_target = lift_r.default_exit

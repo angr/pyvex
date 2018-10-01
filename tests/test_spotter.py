@@ -34,11 +34,11 @@ IRSB {
 """
 
 def test_basic():
-    b = pyvex.block.IRSB('\x0f\x0b', 1, archinfo.ArchX86())
+    b = pyvex.block.IRSB(b'\x0f\x0b', 1, archinfo.ArchX86())
     nose.tools.assert_equal(str(b).strip(), basic_goal.strip())
 
 def test_embedded():
-    b = pyvex.block.IRSB('\x50' * 3 + '\x0f\x0b' + '\x50' * 6, 1, archinfo.ArchX86())
+    b = pyvex.block.IRSB(b'\x50' * 3 + b'\x0f\x0b' + b'\x50' * 6, 1, archinfo.ArchX86())
     for i, stmt in enumerate(b.statements):
         if type(stmt) is pyvex.stmt.IMark and stmt.addr == 0x4 and stmt.len == 2 and stmt.delta == 0:
             imaginary_trans_stmt = b.statements[i+1]
@@ -90,7 +90,7 @@ def test_full_binary():
     p = angr.Project(os.path.join(test_location, 'armel', 'RTOSDemo.axf.issue_685'))
     st = p.factory.call_state(0x000013ce+1)
     b = st.block().vex
-    simgr = p.factory.simgr(st)
+    simgr = p.factory.simulation_manager(st)
     simgr.step()
     nose.tools.assert_equal(b.jumpkind, 'Ijk_Sys_syscall')
     nose.tools.assert_equal(simgr.active[0].addr, 0x13fb)

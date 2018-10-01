@@ -1,8 +1,8 @@
 from __future__ import print_function
-from past.builtins import xrange
 import pyvex
 import nose
 import random
+import os
 import gc
 import copy
 import logging
@@ -24,9 +24,9 @@ def test_memory():
     # disable logging, as that may fill up log buffers somewhere
     logging.disable(logging.ERROR)
 
-    for _ in xrange(10000):
+    for _ in range(10000):
         try:
-            s = hex(random.randint(2**100,2**100*16))[2:]
+            s = os.urandom(32)
             a = random.choice(arches)
             p = pyvex.IRSB(data=s, mem_addr=0, arch=a)
         except pyvex.PyVEXError:
@@ -34,9 +34,9 @@ def test_memory():
 
     kb_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
-    for _ in xrange(20000):
+    for _ in range(20000):
         try:
-            s = hex(random.randint(2**100,2**100*16))[2:]
+            s = os.urandom(32)
             a = random.choice(arches)
             p = pyvex.IRSB(data=s, mem_addr=0, arch=a)
         except pyvex.PyVEXError:
@@ -508,7 +508,8 @@ def test_irexpr_ccall():
 
 
 if __name__ == '__main__':
-    _g = globals().copy()
-    for k, v in _g.items():
-        if k.startswith("test_") and hasattr(v, "__call__"):
-            v()
+    test_memory()
+    #_g = globals().copy()
+    #for k, v in _g.items():
+    #    if k.startswith("test_") and hasattr(v, "__call__"):
+    #        v()
