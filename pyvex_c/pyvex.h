@@ -77,6 +77,7 @@ void arm_post_processor_determine_calls(Addr irsb_addr, Int irsb_size, Int irsb_
 void mips32_post_processor_fix_unconditional_exit(IRSB *irsb);
 
 void remove_noops(IRSB* irsb);
+void zero_division_side_exits(IRSB* irsb);
 void get_exits_and_inst_addrs(IRSB *irsb, VEXLiftResult *lift_r);
 void get_default_exit_target(IRSB *irsb, VEXLiftResult *lift_r );
 void collect_data_references(IRSB *irsb, VEXLiftResult *lift_r);

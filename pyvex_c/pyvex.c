@@ -347,6 +347,7 @@ VEXLiftResult *vex_lift(
 		if (guest == VexArchARM && _lift_r.insts > 0) {
 			arm_post_processor_determine_calls(_lift_r.inst_addrs[0], _lift_r.size, _lift_r.insts, _lift_r.irsb);
 		}
+		zero_division_side_exits(_lift_r.irsb);
 		if (collect_data_refs) {
 			collect_data_references(_lift_r.irsb, &_lift_r);
 		}

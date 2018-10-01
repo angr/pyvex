@@ -68,8 +68,8 @@ class ZeroDivisionPostProcessor(Postprocessor):
             self.irsb.statements.insert(i,s)
 
 
-for arch_name in libvex.SUPPORTED:
-    register(ZeroDivisionPostProcessor, arch_name)
+#for arch_name in libvex.SUPPORTED:
+#    register(ZeroDivisionPostProcessor, arch_name)
 
 
 from .. import stmt, expr, const

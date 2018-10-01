@@ -327,3 +327,96 @@ void mips32_post_processor_fix_unconditional_exit(
 #undef INVALID
 }
 
+void irsb_insert(IRSB *irsb, IRStmt* stmt, Int i) {
+    addStmtToIRSB(irsb, stmt);
+
+	IRStmt *in_air = irsb->stmts[irsb->stmts_used - 1];
+	for (Int j = irsb->stmts_used - 1; j > i; j--) {
+        irsb->stmts[j] = irsb->stmts[j-1];
+	}
+	irsb->stmts[i] = in_air;
+}
+
+void zero_division_side_exits(IRSB *irsb) {
+	Int i;
+	Addr lastIp = -1;
+	IRType addrTy = typeOfIRExpr(irsb->tyenv, irsb->next);
+	IRConstTag addrConst = addrTy == Ity_I32 ? Ico_U32 : addrTy == Ity_I16 ? Ico_U16 : Ico_U64;
+	IRType argty;
+	IRTemp cmptmp;
+
+	for (i = 0; i < irsb->stmts_used; i++) {
+		IRStmt *stmt = irsb->stmts[i];
+		switch (stmt->tag) {
+			case Ist_IMark:
+				lastIp = stmt->Ist.IMark.addr;
+				continue;
+			case Ist_WrTmp:
+				if (stmt->Ist.WrTmp.data->tag != Iex_Binop) {
+					continue;
+				}
+
+				switch (stmt->Ist.WrTmp.data->Iex.Binop.op) {
+					case Iop_DivU32:
+					case Iop_DivS32:
+					case Iop_DivU32E:
+					case Iop_DivS32E:
+					case Iop_DivModU64to32:
+					case Iop_DivModS64to32:
+						argty = Ity_I32;
+						break;
+
+					case Iop_DivU64:
+					case Iop_DivS64:
+					case Iop_DivU64E:
+					case Iop_DivS64E:
+					case Iop_DivModU128to64:
+					case Iop_DivModS128to64:
+					case Iop_DivModS64to64:
+						argty = Ity_I64;
+						break;
+
+					// TODO YIKES
+					//case Iop_DivF32:
+					//	argty = Ity_F32;
+
+					//case Iop_DivF64:
+					//case Iop_DivF64r32:
+					//	argty = Ity_F64;
+
+					//case Iop_DivF128:
+					//	argty = Ity_F128;
+
+					//case Iop_DivD64:
+					//	argty = Ity_D64;
+
+					//case Iop_DivD128:
+					//	argty = Ity_D128;
+
+					//case Iop_Div32Fx4:
+					//case Iop_Div32F0x4:
+					//case Iop_Div64Fx2:
+					//case Iop_Div64F0x2:
+					//case Iop_Div64Fx4:
+					//case Iop_Div32Fx8:
+
+					default:
+						continue;
+				}
+
+				cmptmp = newIRTemp(irsb->tyenv, Ity_I1);
+				irsb_insert(irsb, IRStmt_WrTmp(cmptmp, IRExpr_Binop(argty == Ity_I32 ? Iop_CmpEQ32 : Iop_CmpEQ64, stmt->Ist.WrTmp.data->Iex.Binop.arg2, IRExpr_Const(argty == Ity_I32 ? IRConst_U32(0) : IRConst_U64(0)))), i);
+				i++;
+				IRConst *failAddr = IRConst_U64(lastIp); // ohhhhh boy this is a hack
+				failAddr->tag = addrConst;
+				irsb_insert(irsb, IRStmt_Exit(IRExpr_RdTmp(cmptmp), Ijk_SigFPE_IntDiv, failAddr, irsb->offsIP), i);
+				i++;
+				ppIRSB(irsb);
+				break;
+
+		default:
+			continue;
+		}
+	}
+}
+
