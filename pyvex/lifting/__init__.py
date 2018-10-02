@@ -52,7 +52,7 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
     if not data:
         raise PyVEXError("cannot lift block with no data (data is empty)")
 
-    if isinstance(data, str):
+    if str != bytes and isinstance(data, str):
         raise TypeError("Cannot pass unicode string as data to lifter")
 
     if isinstance(data, bytes):
