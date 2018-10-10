@@ -16,11 +16,11 @@ class IRCallee(VEXObject):
 
     __slots__ = ['regparms', 'name', 'mcx_mask', 'addr']
 
-    def __init__(self, regparms, name, addr, mcx_mask):
+    def __init__(self, regparms, name, mcx_mask):
         VEXObject.__init__(self)
         self.regparms = regparms
         self.name = name
-        self.addr = addr
+        #self.addr = addr
         self.mcx_mask = mcx_mask
 
     def __str__(self):
@@ -30,7 +30,7 @@ class IRCallee(VEXObject):
     def _from_c(c_callee):
         return IRCallee(c_callee.regparms,
                         ffi.string(c_callee.name).decode(),
-                        int(ffi.cast("unsigned long long", c_callee.addr)),
+                        # NO. #int(ffi.cast("unsigned long long", c_callee.addr)),
                         c_callee.mcx_mask)
 
     @staticmethod
