@@ -1,7 +1,7 @@
 from . import pvc, ffi
 
 
-class VEXObject(object):
+class VEXObject:
     """
     The base class for Vex types.
     """
