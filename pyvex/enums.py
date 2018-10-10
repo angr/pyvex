@@ -14,13 +14,12 @@ class IRCallee(VEXObject):
     Describes a helper function to call.
     """
 
-    __slots__ = ['regparms', 'name', 'mcx_mask', 'addr']
+    __slots__ = ['regparms', 'name', 'mcx_mask']
 
     def __init__(self, regparms, name, mcx_mask):
         VEXObject.__init__(self)
         self.regparms = regparms
         self.name = name
-        #self.addr = addr
         self.mcx_mask = mcx_mask
 
     def __str__(self):
@@ -35,11 +34,12 @@ class IRCallee(VEXObject):
 
     @staticmethod
     def _to_c(callee):
-        c_callee = pvc.mkIRCallee(callee.regparms,
-                                  callee.name.encode(),
-                                  ffi.cast("void *", callee.addr))
-        c_callee.mcx_mask = callee.mcx_mask
-        return c_callee
+        raise Exception("This doesn't work! Please invent a way to get the correct address for the named function from pyvex_c.")
+        #c_callee = pvc.mkIRCallee(callee.regparms,
+        #                          callee.name.encode(),
+        #                          ffi.cast("void *", callee.addr))
+        #c_callee.mcx_mask = callee.mcx_mask
+        #return c_callee
 
 
 class IRRegArray(VEXObject):
