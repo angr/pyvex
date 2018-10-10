@@ -33,7 +33,7 @@ class IRCallee(VEXObject):
                         c_callee.mcx_mask)
 
     @staticmethod
-    def _to_c(callee):
+    def _to_c(callee): # pylint: disable=unused-argument
         raise Exception("This doesn't work! Please invent a way to get the correct address for the named function from pyvex_c.")
         #c_callee = pvc.mkIRCallee(callee.regparms,
         #                          callee.name.encode(),
