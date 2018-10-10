@@ -1,7 +1,7 @@
 from . import pvc, ffi
 
 
-class VEXObject(object):
+class VEXObject:
     """
     The base class for Vex types.
     """
@@ -14,13 +14,12 @@ class IRCallee(VEXObject):
     Describes a helper function to call.
     """
 
-    __slots__ = ['regparms', 'name', 'mcx_mask', 'addr']
+    __slots__ = ['regparms', 'name', 'mcx_mask']
 
-    def __init__(self, regparms, name, addr, mcx_mask):
+    def __init__(self, regparms, name, mcx_mask):
         VEXObject.__init__(self)
         self.regparms = regparms
         self.name = name
-        self.addr = addr
         self.mcx_mask = mcx_mask
 
     def __str__(self):
@@ -30,16 +29,17 @@ class IRCallee(VEXObject):
     def _from_c(c_callee):
         return IRCallee(c_callee.regparms,
                         ffi.string(c_callee.name).decode(),
-                        int(ffi.cast("unsigned long long", c_callee.addr)),
+                        # NO. #int(ffi.cast("unsigned long long", c_callee.addr)),
                         c_callee.mcx_mask)
 
     @staticmethod
-    def _to_c(callee):
-        c_callee = pvc.mkIRCallee(callee.regparms,
-                                  callee.name.encode(),
-                                  ffi.cast("void *", callee.addr))
-        c_callee.mcx_mask = callee.mcx_mask
-        return c_callee
+    def _to_c(callee): # pylint: disable=unused-argument
+        raise Exception("This doesn't work! Please invent a way to get the correct address for the named function from pyvex_c.")
+        #c_callee = pvc.mkIRCallee(callee.regparms,
+        #                          callee.name.encode(),
+        #                          ffi.cast("void *", callee.addr))
+        #c_callee.mcx_mask = callee.mcx_mask
+        #return c_callee
 
 
 class IRRegArray(VEXObject):

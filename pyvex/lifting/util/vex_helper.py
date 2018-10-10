@@ -171,7 +171,7 @@ class IRSBCustomizer(object):
         return self._settmp(Load(self.arch.memory_endness, ty, copy.copy(addr)))
 
     def op_ccall(self, retty, funcstr, args):
-        return self._settmp(CCall(retty, IRCallee(len(args), funcstr, 1234, 0xffff), args))
+        return self._settmp(CCall(retty, IRCallee(len(args), funcstr, 0xffff), args))
 
     def ite(self, condrdt, iftruerdt, iffalserdt):
         return self._settmp(ITE(copy.copy(condrdt), copy.copy(iffalserdt), copy.copy(iftruerdt)))
