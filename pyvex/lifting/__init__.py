@@ -79,7 +79,7 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
             if lifter.REQUIRE_DATA_C:
                 if c_data is None:
                     u_data = ffi.new('unsigned char [%d]' % (len(py_data) + 8), py_data + b'\0' * 8)
-                    max_bytes = len(py_data)
+                    max_bytes = min(len(py_data), max_bytes) if max_bytes is not None else len(py_data)
                 else:
                     u_data = c_data
             elif lifter.REQUIRE_DATA_PY:
