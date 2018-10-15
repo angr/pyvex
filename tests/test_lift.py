@@ -1,7 +1,8 @@
 import nose
 import archinfo
-from pyvex import IRSB
+from pyvex import IRSB, lift, ffi
 from pyvex.lifting.util import Instruction, GymratLifter, JumpKind
+from pyvex.errors import PyVEXError
 
 def test_partial_lift():
     """This tests that gymrat correctly handles the case where an
@@ -48,7 +49,19 @@ def test_skipstmts_toomanyexits():
     # Restore the setting
     IRSB.MAX_EXITS = old_exit_limit
 
+def test_max_bytes():
+    data = bytes.fromhex('909090909090c3')
+    arch = archinfo.ArchX86()
+    nose.tools.assert_equal(lift(data, 0x1000, arch, max_bytes=None).size, len(data))
+    nose.tools.assert_equal(lift(data, 0x1000, arch, max_bytes=len(data) - 1).size, len(data) - 1)
+    nose.tools.assert_equal(lift(data, 0x1000, arch, max_bytes=len(data) + 1).size, len(data))
+
+    data2 = ffi.from_buffer(data)
+    nose.tools.assert_raises(PyVEXError, lift, data2, 0x1000, arch)
+    nose.tools.assert_equal(lift(data2, 0x1000, arch, max_bytes=len(data)).size, len(data))
+    nose.tools.assert_equal(lift(data2, 0x1000, arch, max_bytes=len(data) - 1).size, len(data) - 1)
 
 if __name__ == '__main__':
-    # test_partial_lift()
+    test_partial_lift()
     test_skipstmts_toomanyexits()
+    test_max_bytes()
