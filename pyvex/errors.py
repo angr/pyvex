@@ -3,9 +3,14 @@ class PyVEXError(Exception):
     pass
 
 
+class SkipStatementsError(PyVEXError):
+    pass
+
+
 #
 # Exceptions and notifications that post-processors can raise
 #
+
 
 class LiftingException(Exception):
     pass

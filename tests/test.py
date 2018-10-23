@@ -1,8 +1,8 @@
 from __future__ import print_function
-from past.builtins import xrange
 import pyvex
 import nose
 import random
+import os
 import gc
 import copy
 import logging
@@ -24,9 +24,9 @@ def test_memory():
     # disable logging, as that may fill up log buffers somewhere
     logging.disable(logging.ERROR)
 
-    for _ in xrange(10000):
+    for _ in range(10000):
         try:
-            s = hex(random.randint(2**100,2**100*16))[2:]
+            s = os.urandom(32)
             a = random.choice(arches)
             p = pyvex.IRSB(data=s, mem_addr=0, arch=a)
         except pyvex.PyVEXError:
@@ -34,9 +34,9 @@ def test_memory():
 
     kb_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
-    for _ in xrange(20000):
+    for _ in range(20000):
         try:
-            s = hex(random.randint(2**100,2**100*16))[2:]
+            s = os.urandom(32)
             a = random.choice(arches)
             p = pyvex.IRSB(data=s, mem_addr=0, arch=a)
         except pyvex.PyVEXError:
@@ -60,10 +60,9 @@ def test_memory():
 ################
 
 def test_ircallee():
-    callee = pyvex.IRCallee(3, "test_name", 1234, 0xFFFFFF)
+    callee = pyvex.IRCallee(3, "test_name", 0xFFFFFF)
     nose.tools.assert_equals(callee.name, "test_name")
     nose.tools.assert_equals(callee.regparms, 3)
-    nose.tools.assert_equals(callee.addr, 1234)
     nose.tools.assert_equals(callee.mcx_mask, 0xFFFFFF)
 
 ############
@@ -491,14 +490,13 @@ def test_irexpr_ite():
     nose.tools.assert_equal(m.iftrue.con.value, iftrue.con.value)
 
 def test_irexpr_ccall():
-    callee = pyvex.IRCallee(3, "test_name", 1234, 0xFFFFFF)
+    callee = pyvex.IRCallee(3, "test_name", 0xFFFFFF)
     args = [ pyvex.IRExpr.RdTmp.get_instance(i) for i in range(10) ]
 
     m = pyvex.IRExpr.CCall("Ity_I64", callee, args)
 
     nose.tools.assert_equal(len(m.args), len(args))
     nose.tools.assert_equal(m.ret_type, "Ity_I64")
-    nose.tools.assert_equal(m.callee.addr, 1234)
 
     for n,a in enumerate(m.args):
         nose.tools.assert_equals(a.tmp, args[n].tmp)
@@ -508,7 +506,8 @@ def test_irexpr_ccall():
 
 
 if __name__ == '__main__':
-    _g = globals().copy()
-    for k, v in _g.items():
-        if k.startswith("test_") and hasattr(v, "__call__"):
-            v()
+    test_memory()
+    #_g = globals().copy()
+    #for k, v in _g.items():
+    #    if k.startswith("test_") and hasattr(v, "__call__"):
+    #        v()

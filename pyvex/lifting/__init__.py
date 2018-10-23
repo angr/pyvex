@@ -4,17 +4,14 @@ import logging
 from .. import const, ffi
 from ..expr import Const
 from ..block import IRSB
-from ..errors import PyVEXError, NeedStatementsNotification, LiftingException
+from ..errors import PyVEXError, NeedStatementsNotification, LiftingException, SkipStatementsError
 from .lifter import Lifter
 from .post_processor import Postprocessor
 
-l = logging.getLogger('pyvex.lift')
+l = logging.getLogger('pyvex.lifting')
 
 lifters = defaultdict(list)
 postprocessors = defaultdict(list)
-
-if bytes is not str:
-    unicode = str
 
 def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_level=1, traceflags=0,
          strict_block_end=True, inner=False, skip_stmts=False, collect_data_refs=False):
@@ -33,7 +30,10 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
     :param max_bytes:       The maximum number of bytes to lift. If set to None, no byte limit is used.
     :param max_inst:        The maximum number of instructions to lift. If set to None, no instruction limit is used.
     :param bytes_offset:    The offset into `data` to start lifting at.
-    :param opt_level:       The level of optimization to apply to the IR, 0-2. 2 is maximum optimization, 0 is no optimization.
+    :param opt_level:       The level of optimization to apply to the IR, -1 through 2. -1 is the strictest
+                            unoptimized level, 0 is unoptimized but will perform some lookahead/lookbehind
+                            optimizations, 1 performs constant propogation, and 2 performs loop unrolling,
+                            which honestly doesn't make much sense in the context of pyvex. The default is 1.
     :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
 
     .. note:: Explicitly specifying the number of instructions to lift (`max_inst`) may not always work
@@ -47,22 +47,33 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
               ends properly or until it runs out of data to lift.
     """
     if max_bytes is not None and max_bytes <= 0:
-        raise PyVEXError("cannot lift block with no data (max_bytes <= 0)")
+        raise PyVEXError("Cannot lift block with no data (max_bytes <= 0)")
 
     if not data:
-        raise PyVEXError("cannot lift block with no data (data is empty)")
+        raise PyVEXError("Cannot lift block with no data (data is empty)")
 
-    if isinstance(data, unicode):
-        raise TypeError("Cannot pass unicode as data string to lifter")
+    if isinstance(data, str):
+        raise TypeError("Cannot pass unicode string as data to lifter")
 
     if isinstance(data, bytes):
         py_data = data
         c_data = None
-        allow_lookback = False
+        allow_arch_optimizations = False
     else:
+        if max_bytes is None:
+            raise PyVEXError("Cannot lift block with ffi pointer and no size (max_bytes is None)")
         c_data = data
         py_data = None
-        allow_lookback = True
+        allow_arch_optimizations = True
+
+    # In order to attempt to preserve the property that
+    # VEX lifts the same bytes to the same IR at all times when optimizations are disabled
+    # we hack off all of VEX's non-IROpt optimizations when opt_level == -1.
+    # This is intended to enable comparisons of the lifted IR between code that happens to be
+    # found in different contexts.
+    if opt_level < 0:
+        allow_arch_optimizations = False
+        opt_level = 0
 
     for lifter in lifters[arch.name]:
         try:
@@ -70,7 +81,7 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
             if lifter.REQUIRE_DATA_C:
                 if c_data is None:
                     u_data = ffi.new('unsigned char [%d]' % (len(py_data) + 8), py_data + b'\0' * 8)
-                    max_bytes = len(py_data)
+                    max_bytes = min(len(py_data), max_bytes) if max_bytes is not None else len(py_data)
                 else:
                     u_data = c_data
             elif lifter.REQUIRE_DATA_PY:
@@ -81,8 +92,16 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                     u_data = ffi.buffer(c_data, max_bytes)[:]
                 else:
                     u_data = py_data
-            final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
-                                                      allow_lookback, strict_block_end, skip_stmts, collect_data_refs
+
+            try:
+                final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
+                                                      allow_arch_optimizations, strict_block_end, skip_stmts, collect_data_refs,
+                                                      )
+            except SkipStatementsError:
+                assert skip_stmts is True
+                final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
+                                                      allow_arch_optimizations, strict_block_end, skip_stmts=False,
+                                                      collect_data_refs=collect_data_refs,
                                                       )
             #l.debug('block lifted by %s' % str(lifter))
             #l.debug(str(final_irsb))
@@ -213,3 +232,5 @@ def register(lifter, arch_name):
 from ..const import vex_int_class
 from .libvex import LibVEXLifter
 from .zerodivision import ZeroDivisionPostProcessor
+
+from . import gym

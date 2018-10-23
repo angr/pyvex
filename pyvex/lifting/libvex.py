@@ -10,7 +10,7 @@ from ..enums import default_vex_archinfo, vex_endness_from_string
 
 _libvex_lock = threading.Lock()
 
-SUPPORTED = {'X86', 'AMD64', 'MIPS32', 'MIPS64', 'ARM', 'ARMEL', 'ARMHF', 'AARCH64', 'PPC32', 'PPC64'}
+SUPPORTED = {'X86', 'AMD64', 'MIPS32', 'MIPS64', 'ARM', 'ARMEL', 'ARMHF', 'AARCH64', 'PPC32', 'PPC64', 'S390X'}
 
 VEX_MAX_INSTRUCTIONS = 99
 VEX_MAX_BYTES = 5000
@@ -66,7 +66,7 @@ class LibVEXLifter(Lifter):
                                   max_bytes,
                                   self.opt_level,
                                   self.traceflags,
-                                  self.allow_lookback,
+                                  self.allow_arch_optimizations,
                                   strict_block_end,
                                   collect_data_refs,
                                   )

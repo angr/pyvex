@@ -23,7 +23,7 @@ endif
 CC=gcc
 AR=ar
 INCFLAGS=-I $(VEX_INCLUDE_PATH)
-CFLAGS=-g -O2 -shared -fPIC -std=c99 $(INCFLAGS)
+CFLAGS=-g -O2 -Wall -shared -fPIC -std=c99 $(INCFLAGS)
 
 OBJECTS=pyvex.o logging.o analysis.o postprocess.o
 HEADERS=pyvex.h

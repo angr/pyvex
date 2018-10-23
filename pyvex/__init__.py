@@ -3,6 +3,9 @@ PyVEX provides an interface that translates binary code into the VEX intermediat
 For an introduction to VEX, take a look here: https://docs.angr.io/docs/ir.html
 """
 
+if bytes is str:
+    raise Exception("This module is designed for python 3 only. Please install an older version to use python 2.")
+
 import os
 import sys
 import cffi

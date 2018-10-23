@@ -3,7 +3,7 @@ import functools
 
 from .vex_helper import Type
 from ...expr import IRExpr, Const, RdTmp
-from ... import get_type_size
+from ...const import get_type_size
 
 
 def checkparams(rhstype=None):
@@ -137,7 +137,7 @@ class VexValue(object):
 
     @checkparams()
     def __floordiv__(self, right): # Note: nonprimitive
-        return self // right
+        return self.__div__(right)
 
     @checkparams()
     def __rfloordiv__(self, left):
@@ -287,4 +287,3 @@ class VexValue(object):
         assert not (isinstance(val, VexValue) or isinstance(val, IRExpr))
         rdt = irsb_c.mkconst(val, ty)
         return cls(irsb_c, rdt)
-

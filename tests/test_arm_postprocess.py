@@ -27,7 +27,7 @@ def test_arm_postprocess_call():
                           num_inst=6,
                           bytes_offset=1,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # mov   lr, pc
         # b.w   10408
@@ -38,7 +38,7 @@ def test_arm_postprocess_call():
                           num_inst=2,
                           bytes_offset=1,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # add   r2, pc, #0
         # add.w lr, r2, #4
@@ -51,7 +51,7 @@ def test_arm_postprocess_call():
                           num_inst=3,
                           bytes_offset=1,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # ldr   r0, [pc, #48]
         # mov   r1, pc
@@ -72,7 +72,7 @@ def test_arm_postprocess_call():
                           num_inst=7,
                           bytes_offset=1,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # eor.w r0, r0, r0
         # mov   lr, pc
@@ -85,7 +85,7 @@ def test_arm_postprocess_call():
                           num_inst=3,
                           bytes_offset=1,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Boring')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Boring')
 
         # Thumb compiled with optimizations (gcc -O2)
 
@@ -102,7 +102,7 @@ def test_arm_postprocess_call():
                           num_inst=4,
                           bytes_offset=1,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # ldr   r0, [pc, #56]
         # mov   r1, pc
@@ -123,7 +123,7 @@ def test_arm_postprocess_call():
                           num_inst=7,
                           bytes_offset=1,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # add   r2, pc, #0
         # add.w lr, r2, #6
@@ -136,7 +136,7 @@ def test_arm_postprocess_call():
                           num_inst=3,
                           bytes_offset=1,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # mov   lr, pc
         # b.w   104bc
@@ -147,7 +147,7 @@ def test_arm_postprocess_call():
                           num_inst=2,
                           bytes_offset=1,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # eor.w r0, r0, r0
         # mov   lr, pc
@@ -160,7 +160,7 @@ def test_arm_postprocess_call():
                           num_inst=3,
                           bytes_offset=1,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Boring')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Boring')
 
         # ARM compiled with optimizations (gcc -O2)
 
@@ -176,7 +176,7 @@ def test_arm_postprocess_call():
                           arch=archinfo.ArchARMEL(),
                           num_inst=4,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # add   r1, pc, #0
         # add   r2, r1, #4
@@ -194,7 +194,7 @@ def test_arm_postprocess_call():
                           arch=archinfo.ArchARMEL(),
                           num_inst=6,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # mov   lr, pc
         # b     10414
@@ -204,7 +204,7 @@ def test_arm_postprocess_call():
                           arch=archinfo.ArchARMEL(),
                           num_inst=2,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # eor   r0, r0, r0
         # mov   lr, r0
@@ -216,7 +216,7 @@ def test_arm_postprocess_call():
                           arch=archinfo.ArchARMEL(),
                           num_inst=3,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Boring')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Boring')
 
         # ARM
 
@@ -236,7 +236,7 @@ def test_arm_postprocess_call():
                           arch=archinfo.ArchARMEL(),
                           num_inst=6,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # add   r1, pc, #0
         # add   r2, r1, #4
@@ -254,7 +254,7 @@ def test_arm_postprocess_call():
                           arch=archinfo.ArchARMEL(),
                           num_inst=6,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # mov   lr, pc
         # b     103c4
@@ -264,7 +264,7 @@ def test_arm_postprocess_call():
                           arch=archinfo.ArchARMEL(),
                           num_inst=2,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Call')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
         # eor   r0, r0, r0
         # mov   lr, r0
@@ -276,7 +276,22 @@ def test_arm_postprocess_call():
                           arch=archinfo.ArchARMEL(),
                           num_inst=3,
                           opt_level=i)
-        nose.tools.assert_equals(irsb.jumpkind, 'Ijk_Boring')
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Boring')
+
+        # From a "real thing" compiled with armc
+        # ARM:
+        #
+        irsb = pyvex.IRSB(data=(b'H\x10\x9b\xe5'
+                                b'\x0b\x00\xa0\xe1'
+                                b'\x04 \x91\xe5'
+                                b'\x04\xe0\x8f\xe2'
+                                b'\x01\x10\x82\xe0'
+                                b'\x01\xf0\xa0\xe1'),
+                          mem_addr=0x264b4c,
+                          arch=archinfo.ArchARMEL(),
+                          num_inst=6,
+                          opt_level=i)
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Call')
 
 
 def test_arm_postprocess_ret():
@@ -301,7 +316,6 @@ def test_arm_postprocess_ret():
                           opt_level=i
                           )
         nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Ret')
-
 
 if __name__ == "__main__":
     test_arm_postprocess_call()

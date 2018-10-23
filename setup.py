@@ -7,14 +7,11 @@ import glob
 import tarfile
 import multiprocessing
 import time
-
-IS_PYTHON2 = sys.version_info < (3, 0)
-if IS_PYTHON2:
-    from urllib2 import urlopen
-else:
-    from urllib.request import urlopen
-
+from urllib.request import urlopen
 import platform
+
+if bytes is str:
+    raise Exception("This module is designed for python 3 only. Please install an older version to use python 2.")
 
 PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
 LIB_DIR = os.path.join(PROJECT_DIR, 'pyvex', 'lib')
@@ -194,14 +191,15 @@ if 'bdist_wheel' in sys.argv and '--plat-name' not in sys.argv:
         sys.argv.append(name.replace('.', '_').replace('-', '_'))
 
 setup(
-    name="pyvex", version='7.8.8.1', description="A Python interface to libVEX and VEX IR",
+    name="pyvex", version='8.18.10.5', description="A Python interface to libVEX and VEX IR",
+    python_requires='>=3.5',
     url='https://github.com/angr/pyvex',
     packages=packages,
     cmdclass=cmdclass,
     install_requires=[
         'pycparser',
         'cffi>=1.0.3',
-        'archinfo>=7.8.8.1',
+        'archinfo==8.18.10.5',
         'bitstring',
         'future',
     ],
