@@ -71,7 +71,7 @@ void get_default_exit_target(
 
 	lift_r->is_default_exit_constant = 0;
 
-	if (irsb->jumpkind != Ijk_Boring && irsb->jumpkind != Ijk_Call) {
+	if (irsb->jumpkind != Ijk_InvalICache && irsb->jumpkind != Ijk_Boring && irsb->jumpkind != Ijk_Call) {
 		return;
 	}
 

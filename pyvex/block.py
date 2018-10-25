@@ -474,7 +474,7 @@ class IRSB(VEXObject):
         """
         Checks if the default of this IRSB a direct jump or not.
         """
-        if not (self.jumpkind == 'Ijk_Boring' or self.jumpkind == 'Ijk_Call'):
+        if not (self.jumpkind == 'Ijk_InvalICache' or self.jumpkind == 'Ijk_Boring' or self.jumpkind == 'Ijk_Call'):
             return False
 
         target = self.default_exit_target
