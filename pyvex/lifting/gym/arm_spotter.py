@@ -317,3 +317,5 @@ class ARMSpotter(GymratLifter):
 
 register(ARMSpotter, "ARM")
 register(ARMSpotter, "ARMEL")
+register(ARMSpotter, "ARMHF")
+register(ARMSpotter, "ARMCortexM")
