@@ -10,7 +10,7 @@ from ..enums import default_vex_archinfo, vex_endness_from_string
 
 _libvex_lock = threading.Lock()
 
-SUPPORTED = {'X86', 'AMD64', 'MIPS32', 'MIPS64', 'ARM', 'ARMEL', 'ARMHF', 'AARCH64', 'PPC32', 'PPC64', 'S390X'}
+SUPPORTED = {'X86', 'AMD64', 'MIPS32', 'MIPS64', 'ARM', 'ARMEL', 'ARMHF', 'ARMCortexM', 'AARCH64', 'PPC32', 'PPC64', 'S390X'}
 
 VEX_MAX_INSTRUCTIONS = 99
 VEX_MAX_BYTES = 5000
