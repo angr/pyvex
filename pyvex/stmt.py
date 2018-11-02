@@ -64,6 +64,18 @@ class IRStmt(VEXObject):
                 setattr(self, k, replacement)
             elif isinstance(v, IRExpr):
                 v.replace_expression(expr, replacement)
+            elif type(v) is tuple:
+                # Rebuild the tuple
+                _lst = [ ]
+                replaced = False
+                for i, expr_ in enumerate(v):
+                    if expr_ is expr:
+                        _lst.append(replacement)
+                        replaced = True
+                    else:
+                        _lst.append(expr_)
+                if replaced:
+                    setattr(self, k, tuple(_lst))
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
         raise NotImplementedError()
