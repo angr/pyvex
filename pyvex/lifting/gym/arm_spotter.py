@@ -279,6 +279,15 @@ class Instruction_tMRS(ThumbInstruction):
         l.debug("[thumb] Ignoring MRS instruction at %#x.", self.addr)
 
 
+class Instruction_tDMB(ThumbInstruction):
+    name = 'DMB'
+    bin_format = '100011110101xxxx1111001110111111'
+    def compute_result(self):  # pylint: disable=arguments-differ
+        # TODO haha lol yeah right
+        l.debug("[thumb] Ignoring DMB instruction at %#x.", self.addr)
+
+
+
 class Instruction_WFI(ThumbInstruction):
     name = "WFI"
     bin_format = "10111111001a0000"
@@ -304,6 +313,7 @@ class ARMSpotter(GymratLifter):
                     Instruction_tMSR,
                     Instruction_tMRS,
                     Instruction_WFI,
+                    Instruction_tDMB,
                     ]
     instrs = None
 
