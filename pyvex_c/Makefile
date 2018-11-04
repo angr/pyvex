@@ -20,9 +20,16 @@ ifeq ($(findstring MINGW,$(UNAME)), MINGW)
 	LDFLAGS=
 endif
 
+# deeply evil
+# https://www.cmcrossroads.com/article/gnu-make-meets-file-names-spaces-them
+sp :=
+sp +=
+qs = $(subst ?,$(sp),$1)
+sq = $(subst $(sp),?,$1)
+
 CC=gcc
 AR=ar
-INCFLAGS=-I $(VEX_INCLUDE_PATH)
+INCFLAGS=-I "$(VEX_INCLUDE_PATH)"
 CFLAGS=-g -O2 -Wall -shared -fPIC -std=c99 $(INCFLAGS)
 
 OBJECTS=pyvex.o logging.o analysis.o postprocess.o
@@ -33,10 +40,10 @@ all: $(LIBRARY_FILE) $(STATIC_LIBRARY_FILE)
 %.o: %.c
 	$(CC) -c $(CFLAGS) $<
 
-$(LIBRARY_FILE): $(OBJECTS) $(HEADERS) $(VEX_LIB_PATH)/libvex.a
-	$(CC) $(CFLAGS) -o $(LIBRARY_FILE) $(OBJECTS) $(VEX_LIB_PATH)/libvex.a $(LDFLAGS)
+$(LIBRARY_FILE): $(OBJECTS) $(HEADERS) $(call sq,$(VEX_LIB_PATH)/libvex.a)
+	$(CC) $(CFLAGS) -o $(LIBRARY_FILE) $(OBJECTS) $(call sq,$(VEX_LIB_PATH)/libvex.a) $(LDFLAGS)
 
-$(STATIC_LIBRARY_FILE): $(OBJECTS) $(HEADERS) $(VEX_LIB_PATH)/libvex.a
+$(STATIC_LIBRARY_FILE): $(OBJECTS) $(HEADERS) $(call sq,$(VEX_LIB_PATH)/libvex.a)
 	$(AR) rcs $(STATIC_LIBRARY_FILE) $(OBJECTS)
 
 clean:
