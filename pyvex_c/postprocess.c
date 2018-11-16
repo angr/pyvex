@@ -32,7 +32,6 @@ void arm_post_processor_determine_calls(
 
 // Offset to the link register
 #define ARM_OFFB_LR      offsetof(VexGuestARMState,guest_R14)
-#define ARM_OFFB_SP      offsetof(VexGuestARMState,guest_R13)
 // The maximum number of tmps
 #define MAX_TMP 		 1000
 // The maximum offset of registers
@@ -49,9 +48,6 @@ void arm_post_processor_determine_calls(
 	Addr regs[MAX_REG_OFFSET + 1] = { DUMMY };
 
 	Int lr_store_pc = 0;
-	Int lr_written = 0;
-	Int sp_written = 0;
-	Int popped_lr = 0;
 	Int inst_ctr = 0;
 	Int has_exit = 0;
 	IRStmt *other_exit = NULL;
@@ -62,23 +58,7 @@ void arm_post_processor_determine_calls(
     // if we pop {..,lr,...}; b xxx, I bet this isn't a boring jump!
     for (i = 0; i < irsb->stmts_used; ++i) {
 		IRStmt *stmt = irsb->stmts[i];
-
-		if (stmt->tag == Ist_Put) {
-			if (stmt->Ist.Put.offset == ARM_OFFB_LR) {
-				lr_written = 1;
-			}
-		    else if (stmt->Ist.Put.offset == ARM_OFFB_SP) {
-		        //TODO: Look for an actual 'pop'
-		        sp_written = 1;
-		    }
-        }
-        else if (stmt->tag == Ist_IMark) {
-            if (lr_written && sp_written)
-                popped_lr = 1;
-            lr_written = 0;
-            sp_written = 0;
-        }
-        else if (stmt->tag == Ist_Exit){
+		if (stmt->tag == Ist_Exit){
 		    // HACK: FIXME: BLCC and friends set the default exit to Ijk_Boring
 		    // Yet, the call is there, and it's just fine.
 		    // We assume if the block has an exit AND lr stores PC, we're probably
@@ -96,7 +76,6 @@ void arm_post_processor_determine_calls(
 		if (stmt->tag == Ist_Put) {
 			// LR is modified just before the last instruction of the block...
 			if (stmt->Ist.Put.offset == ARM_OFFB_LR /*&& inst_ctr == irsb_insts - 1*/) {
-				lr_written = 1;
 				// ... by a constant, so test whether it is the address of the next IRSB
 				if (stmt->Ist.Put.data->tag == Iex_Const) {
 					IRConst *con = stmt->Ist.Put.data->Iex.Const.con;
@@ -250,13 +229,8 @@ void arm_post_processor_determine_calls(
 		}
 	}
 
-	if (popped_lr && irsb->jumpkind == Ijk_Boring) {
-		irsb->jumpkind = Ijk_Call;
-	}
-
 // Undefine all defined values
 #undef ARM_OFFB_LR
-#undef ARM_OFFB_SP
 #undef MAX_TMP
 #undef MAX_REG_OFFSET
 #undef DUMMY
