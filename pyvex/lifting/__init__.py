@@ -161,7 +161,7 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
             data_left = data + final_irsb.size
         if max_inst is not None:
             max_inst -= final_irsb.instructions
-        if max_bytes > 0 and (max_inst is None or max_inst > 0):
+        if (max_bytes is None or max_bytes > 0) and (max_inst is None or max_inst > 0) and data_left:
             more_irsb = lift(data_left, next_addr, arch,
                              max_bytes=max_bytes,
                              max_inst=max_inst,
