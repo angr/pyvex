@@ -267,9 +267,12 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai) {
 // Prepare the VexAbiInfo
 static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 	// only setting the guest_stack_redzone_size for now
-	// this attribute is only specified by the PPC64 and AMD64 ABIs
+	// this attribute is only specified by the X86, AMD64 and PPC64 ABIs
 
 	switch (arch) {
+		case VexArchX86:
+			vbi->guest_stack_redzone_size = 0;
+			break;
 		case VexArchAMD64:
 			vbi->guest_stack_redzone_size = 128;
 			break;
