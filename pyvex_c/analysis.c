@@ -326,7 +326,15 @@ void collect_data_references(
 				IRExpr *store_dst = stmt->Ist.Store.addr;
 				IRExpr *store_data = stmt->Ist.Store.data;
 				if (store_dst->tag == Iex_Const) {
-					record_const(lift_r, store_dst, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+					// Writing to a memory destination. We can get its size by analyzing the size of store_data
+					IRType data_type = typeOfIRExpr(irsb->tyenv, stmt->Ist.Put.data);
+					Int data_size = 0;
+					if (data_type != Ity_INVALID) {
+						data_size = sizeofIRType(data_type);
+					}
+					record_const(lift_r, store_dst, data_size,
+						data_size == 0? Dt_Unknown : Dt_Integer,
+						i, inst_addr, next_inst_addr);
 				}
 				if (store_data->tag == Iex_Const) {
 					record_const(lift_r, store_data, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
