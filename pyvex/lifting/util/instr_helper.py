@@ -265,11 +265,11 @@ class Instruction:
         self.irsb_c.put(val.rdt, offset)
         
         
-	def put_conditional(self, cond, valiftrue, valiffalse, reg):
+    def put_conditional(self, cond, valiftrue, valiffalse, reg):
         """
         Like put, except it checks a condition
         to decide what to put in the destination register.
-        
+
         :param cond: The VexValue representing the logical expression for the condition
             (if your expression only has constants, don't use this method!)
         :param valiftrue: the VexValue to put in reg if cond evals as true
@@ -277,10 +277,10 @@ class Instruction:
         :param reg: The integer register number to store into, or register name	
         :return: None
         """
-    
-		val = self.irsb_c.ite(cond.rdt , valiftrue.rdt, valiffalse.rdt)
-		offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
-		self.irsb_c.put(val, offset)
+
+        val = self.irsb_c.ite(cond.rdt , valiftrue.rdt, valiffalse.rdt)
+        offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
+        self.irsb_c.put(val, offset)
 
     def store(self, val, addr):
         """
