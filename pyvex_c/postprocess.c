@@ -44,8 +44,17 @@ void arm_post_processor_determine_calls(
 	}
 
 	// Emulated CPU context
-	Addr tmps[MAX_TMP + 1] = { DUMMY };
-	Addr regs[MAX_REG_OFFSET + 1] = { DUMMY };
+	Addr tmps[MAX_TMP + 1];
+	Addr regs[MAX_REG_OFFSET + 1];
+
+    // Initialize context
+    for (i = 0; i <= MAX_TMP; ++i) {
+        tmps[i] = DUMMY;
+    }
+
+    for (i = 0; i <= MAX_REG_OFFSET; ++i) {
+        regs[i] = DUMMY;
+    }
 
 	Int lr_store_pc = 0;
 	Int inst_ctr = 0;
