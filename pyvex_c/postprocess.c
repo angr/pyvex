@@ -90,11 +90,15 @@ void arm_post_processor_determine_calls(
 					IRConst *con = stmt->Ist.Put.data->Iex.Const.con;
 					if (get_value_from_const_expr(con) == next_irsb_addr) {
 						lr_store_pc = 1;
+					} else {
+						lr_store_pc = 0;
 					}
 				} else if (stmt->Ist.Put.data->tag == Iex_RdTmp) {
 					Int tmp = stmt->Ist.Put.data->Iex.RdTmp.tmp;
 					if (tmp <= MAX_TMP && next_irsb_addr == tmps[tmp]) {
 						lr_store_pc = 1;
+					} else {
+						lr_store_pc = 0;
 					}
 				}
 				break;
