@@ -47,14 +47,16 @@ void arm_post_processor_determine_calls(
 	Addr tmps[MAX_TMP + 1];
 	Addr regs[MAX_REG_OFFSET + 1];
 
-    // Initialize context
-    for (i = 0; i <= MAX_TMP; ++i) {
-        tmps[i] = DUMMY;
-    }
+	// Initialize context
+	Int i;
 
-    for (i = 0; i <= MAX_REG_OFFSET; ++i) {
-        regs[i] = DUMMY;
-    }
+	for (i = 0; i <= MAX_TMP; ++i) {
+		tmps[i] = DUMMY;
+	}
+
+	for (i = 0; i <= MAX_REG_OFFSET; ++i) {
+		regs[i] = DUMMY;
+	}
 
 	Int lr_store_pc = 0;
 	Int inst_ctr = 0;
@@ -62,7 +64,6 @@ void arm_post_processor_determine_calls(
 	IRStmt *other_exit = NULL;
 	Addr next_irsb_addr = (irsb_addr & (~1)) + irsb_size; // Clear the least significant bit
 	Int is_thumb_mode = irsb_addr & 1;
-	Int i;
 
     // if we pop {..,lr,...}; b xxx, I bet this isn't a boring jump!
     for (i = 0; i < irsb->stmts_used; ++i) {
