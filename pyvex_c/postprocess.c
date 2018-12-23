@@ -44,8 +44,19 @@ void arm_post_processor_determine_calls(
 	}
 
 	// Emulated CPU context
-	Addr tmps[MAX_TMP + 1] = { DUMMY };
-	Addr regs[MAX_REG_OFFSET + 1] = { DUMMY };
+	Addr tmps[MAX_TMP + 1];
+	Addr regs[MAX_REG_OFFSET + 1];
+
+	// Initialize context
+	Int i;
+
+	for (i = 0; i <= MAX_TMP; ++i) {
+		tmps[i] = DUMMY;
+	}
+
+	for (i = 0; i <= MAX_REG_OFFSET; ++i) {
+		regs[i] = DUMMY;
+	}
 
 	Int lr_store_pc = 0;
 	Int inst_ctr = 0;
@@ -53,7 +64,6 @@ void arm_post_processor_determine_calls(
 	IRStmt *other_exit = NULL;
 	Addr next_irsb_addr = (irsb_addr & (~1)) + irsb_size; // Clear the least significant bit
 	Int is_thumb_mode = irsb_addr & 1;
-	Int i;
 
     // if we pop {..,lr,...}; b xxx, I bet this isn't a boring jump!
     for (i = 0; i < irsb->stmts_used; ++i) {
@@ -81,11 +91,15 @@ void arm_post_processor_determine_calls(
 					IRConst *con = stmt->Ist.Put.data->Iex.Const.con;
 					if (get_value_from_const_expr(con) == next_irsb_addr) {
 						lr_store_pc = 1;
+					} else {
+						lr_store_pc = 0;
 					}
 				} else if (stmt->Ist.Put.data->tag == Iex_RdTmp) {
 					Int tmp = stmt->Ist.Put.data->Iex.RdTmp.tmp;
 					if (tmp <= MAX_TMP && next_irsb_addr == tmps[tmp]) {
 						lr_store_pc = 1;
+					} else {
+						lr_store_pc = 0;
 					}
 				}
 				break;
