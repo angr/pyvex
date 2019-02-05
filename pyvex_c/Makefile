@@ -41,7 +41,7 @@ all: $(LIBRARY_FILE) $(STATIC_LIBRARY_FILE)
 	$(CC) -c $(CFLAGS) $<
 
 $(LIBRARY_FILE): $(OBJECTS) $(HEADERS) $(call sq,$(VEX_LIB_PATH)/libvex.a)
-	$(CC) $(CFLAGS) -o $(LIBRARY_FILE) $(OBJECTS) $(call sq,$(VEX_LIB_PATH)/libvex.a) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $(LIBRARY_FILE) $(OBJECTS) "$(VEX_LIB_PATH)/libvex.a" $(LDFLAGS)
 
 $(STATIC_LIBRARY_FILE): $(OBJECTS) $(HEADERS) $(call sq,$(VEX_LIB_PATH)/libvex.a)
 	$(AR) rcs $(STATIC_LIBRARY_FILE) $(OBJECTS)
