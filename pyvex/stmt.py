@@ -14,6 +14,7 @@ class IRStmt(VEXObject):
     """
 
     tag = None
+    tag_int = 0  # set automatically at bottom of file
 
     __slots__ = [ ]
 
@@ -678,11 +679,14 @@ _globals = globals().copy()
 #
 tag_to_stmt_mapping = { }
 enum_to_stmt_mapping = { }
+tag_count = 0
 for cls in _globals.values():
     if hasattr(cls, 'tag') and cls.tag is not None:
         tag_to_stmt_mapping[cls.tag] = cls
         enum_to_stmt_mapping[get_int_from_enum(cls.tag)] = cls
-
+        cls.tag_int = tag_count
+        tag_count += 1
+del cls
 
 def tag_to_stmt_class(tag):
     try:

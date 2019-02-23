@@ -17,6 +17,7 @@ class IRExpr(VEXObject):
     __slots__ = [ ]
 
     tag = None
+    tag_int = 0  # set automatically at bottom of file
 
     def pp(self):
         print(self.__str__())
@@ -892,11 +893,14 @@ _globals = globals().copy()
 #
 tag_to_expr_mapping = { }
 enum_to_expr_mapping = { }
+tag_count = 0
 for cls in _globals.values():
     if hasattr(cls, 'tag') and cls.tag is not None:
         tag_to_expr_mapping[cls.tag] = cls
         enum_to_expr_mapping[get_int_from_enum(cls.tag)] = cls
-
+        cls.tag_int = tag_count
+        tag_count += 1
+del cls
 
 def tag_to_expr_class(tag):
     """
