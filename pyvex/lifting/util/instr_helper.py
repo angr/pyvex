@@ -2,11 +2,12 @@ import abc
 import string
 import bitstring
 import logging
+import sys
 
 from .lifter_helper import ParseError
 from .syntax_wrapper import VexValue
 from ...expr import IRExpr, RdTmp
-from .vex_helper import JumpKind, vex_int_class
+from .vex_helper import JumpKind, vex_int_class, Type
 
 
 l = logging.getLogger("instr")
@@ -212,7 +213,8 @@ class Instruction:
         :param ty: The Type of the resulting data
         :return: a VexValue
         """
-        rdt = self.irsb_c.load(addr.rdt, ty)
+        newthing = addr.cast_to(Type.int_64) + 0x1000
+        rdt = self.irsb_c.load(newthing.rdt, ty)
         return VexValue(self.irsb_c, rdt)
 
     def constant(self, val, ty):
@@ -290,7 +292,8 @@ class Instruction:
         :param addr: The VexValue of the address to store into
         :return: None
         """
-        self.irsb_c.store(addr.rdt, val.rdt)
+        newthing = addr.cast_to(Type.int_64) + 0x1000
+        self.irsb_c.store(newthing.rdt, val.rdt)
 
     def jump(self, condition, to_addr, jumpkind=JumpKind.Boring, ip_offset=None):
         """
@@ -330,14 +333,14 @@ class Instruction:
                 ip_offset = self.arch.ip_offset
             assert ip_offset is not None
 
-            negated_condition_rdt = self.ite(condition, self.constant(0, condition.ty), self.constant(1, condition.ty))
+            negated_condition_rdt = self.ite(condition, self.constant(0, condition.ty), self.constant(1, condition.ty)).rdt
             direct_exit_target = self.constant(self.addr + (self.bitwidth // 8), to_addr_ty)
             self.irsb_c.add_exit(negated_condition_rdt, direct_exit_target.rdt, jumpkind, ip_offset)
             self.irsb_c.irsb.jumpkind = jumpkind
             self.irsb_c.irsb.next = to_addr_rdt
 
     def ite(self, cond, t, f):
-        return self.irsb_c.ite(cond.rdt, t.rdt, f.rdt)
+        return VexValue(self.irsb_c, self.irsb_c.ite(cond.rdt, t.rdt, f.rdt), Type.int_1)
 
     def ccall(self, ret_type, func_obj, args):
         """

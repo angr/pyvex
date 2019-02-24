@@ -79,13 +79,13 @@ class GymratLifter(Lifter):
             l.exception("Error decoding block at offset {:#x} (address {:#x}):".format(bytepos, addr))
             raise
 
-    def lift(self, disassemble=False, dump_irsb=False):
+    def lift(self, disassemble=True, dump_irsb=False):
         self.thedata = self.data[:self.max_bytes] if isinstance(self.data, bytes) else self.data[:self.max_bytes].encode()
         l.debug(repr(self.thedata))
         instructions = self.decode()
 
         if disassemble:
-            return [instr.disassemble() for instr in instructions]
+            print([instr.disassemble() for instr in instructions])
         self.irsb.jumpkind = JumpKind.Invalid
         irsb_c = IRSBCustomizer(self.irsb)
         l.debug("Decoding complete.")
