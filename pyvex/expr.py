@@ -17,6 +17,7 @@ class IRExpr(VEXObject):
     __slots__ = [ ]
 
     tag = None
+    tag_int = 0  # set automatically at bottom of file
 
     def pp(self):
         print(self.__str__())
@@ -744,23 +745,28 @@ class CCall(IRExpr):
     def result_type(self, tyenv):
         return self.retty
 
-def get_op_retty(op, *args):
+
+def get_op_retty(op):
     return op_arg_types(op)[0]
+
 
 op_signatures = {}
 def _request_op_type_from_cache(op):
     return op_signatures[op]
 
 def _request_op_type_from_libvex(op):
+    Ity_INVALID = 0x1100  # as defined in enum IRType in VEX
+
     res_ty = ffi.new('IRType *')
     arg_tys = [ffi.new('IRType *') for _ in range(4)]
+    # initialize all IRTypes to Ity_INVALID
     for arg in arg_tys:
-        arg = 0x1100
+        arg[0] = Ity_INVALID
     pvc.typeOfPrimop(get_int_from_enum(op), res_ty, *arg_tys)
     arg_ty_vals = [a[0] for a in arg_tys]
 
     try:
-        numargs = arg_ty_vals.index(0x1100)
+        numargs = arg_ty_vals.index(Ity_INVALID)
     except ValueError:
         numargs = 4
     args_tys_list = [get_enum_from_int(arg_ty_vals[i]) for i in range(numargs)]
@@ -892,11 +898,15 @@ _globals = globals().copy()
 #
 tag_to_expr_mapping = { }
 enum_to_expr_mapping = { }
+tag_count = 0
+cls = None
 for cls in _globals.values():
     if hasattr(cls, 'tag') and cls.tag is not None:
         tag_to_expr_mapping[cls.tag] = cls
         enum_to_expr_mapping[get_int_from_enum(cls.tag)] = cls
-
+        cls.tag_int = tag_count
+        tag_count += 1
+del cls
 
 def tag_to_expr_class(tag):
     """
