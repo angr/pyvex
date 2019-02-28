@@ -745,8 +745,10 @@ class CCall(IRExpr):
     def result_type(self, tyenv):
         return self.retty
 
-def get_op_retty(op, *args):
+
+def get_op_retty(op):
     return op_arg_types(op)[0]
+
 
 op_signatures = {}
 def _request_op_type_from_cache(op):
@@ -894,6 +896,7 @@ _globals = globals().copy()
 tag_to_expr_mapping = { }
 enum_to_expr_mapping = { }
 tag_count = 0
+cls = None
 for cls in _globals.values():
     if hasattr(cls, 'tag') and cls.tag is not None:
         tag_to_expr_mapping[cls.tag] = cls

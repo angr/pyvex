@@ -1,5 +1,4 @@
 from __future__ import print_function
-import re
 import logging
 
 from . import VEXObject
@@ -50,27 +49,27 @@ class IRStmt(VEXObject):
     def typecheck(self, tyenv): # pylint: disable=unused-argument,no-self-use
         return True
 
-    def replace_expression(self, expr, replacement):
+    def replace_expression(self, expression, replacement):
         """
         Replace child expressions in-place.
 
-        :param IRExpr expr:         The expression to look for.
+        :param IRExpr expression:         The expression to look for.
         :param IRExpr replacement:  The expression to replace with.
         :return:                    None
         """
 
         for k in self.__slots__:
             v = getattr(self, k)
-            if v is expr:
+            if v is expression:
                 setattr(self, k, replacement)
             elif isinstance(v, IRExpr):
-                v.replace_expression(expr, replacement)
+                v.replace_expression(expression, replacement)
             elif type(v) is tuple:
                 # Rebuild the tuple
                 _lst = [ ]
                 replaced = False
-                for i, expr_ in enumerate(v):
-                    if expr_ is expr:
+                for expr_ in v:
+                    if expr_ is expression:
                         _lst.append(replacement)
                         replaced = True
                     else:
@@ -680,6 +679,7 @@ _globals = globals().copy()
 tag_to_stmt_mapping = { }
 enum_to_stmt_mapping = { }
 tag_count = 0
+cls = None
 for cls in _globals.values():
     if hasattr(cls, 'tag') and cls.tag is not None:
         tag_to_stmt_mapping[cls.tag] = cls
