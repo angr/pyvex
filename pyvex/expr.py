@@ -755,15 +755,18 @@ def _request_op_type_from_cache(op):
     return op_signatures[op]
 
 def _request_op_type_from_libvex(op):
+    Ity_INVALID = 0x1100  # as defined in enum IRType in VEX
+
     res_ty = ffi.new('IRType *')
     arg_tys = [ffi.new('IRType *') for _ in range(4)]
+    # initialize all IRTypes to Ity_INVALID
     for arg in arg_tys:
-        arg = 0x1100
+        arg[0] = Ity_INVALID
     pvc.typeOfPrimop(get_int_from_enum(op), res_ty, *arg_tys)
     arg_ty_vals = [a[0] for a in arg_tys]
 
     try:
-        numargs = arg_ty_vals.index(0x1100)
+        numargs = arg_ty_vals.index(Ity_INVALID)
     except ValueError:
         numargs = 4
     args_tys_list = [get_enum_from_int(arg_ty_vals[i]) for i in range(numargs)]
