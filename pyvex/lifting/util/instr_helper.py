@@ -6,7 +6,7 @@ import logging
 from .lifter_helper import ParseError
 from .syntax_wrapper import VexValue
 from ...expr import IRExpr, RdTmp
-from .vex_helper import JumpKind, vex_int_class
+from .vex_helper import JumpKind, vex_int_class, Type
 
 
 l = logging.getLogger("instr")
@@ -274,11 +274,11 @@ class Instruction:
             (if your expression only has constants, don't use this method!)
         :param valiftrue: the VexValue to put in reg if cond evals as true
         :param validfalse: the VexValue to put in reg if cond evals as false
-        :param reg: The integer register number to store into, or register name	
+        :param reg: The integer register number to store into, or register name
         :return: None
         """
 
-        val = self.irsb_c.ite(cond.rdt , valiftrue.rdt, valiffalse.rdt)
+        val = self.irsb_c.ite(cond.rdt, valiftrue.rdt, valiffalse.rdt)
         offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
         self.irsb_c.put(val, offset)
 
@@ -319,24 +319,25 @@ class Instruction:
             to_addr_rdt = to_addr
         else:
             raise ValueError("Jump destination has unknown type: " + repr(type(to_addr)))
-        if not condition:
+        if condition is None:
             # This is the default exit.
             self.irsb_c.irsb.jumpkind = jumpkind
             self.irsb_c.irsb.next = to_addr_rdt
         else:
+            assert condition.ty == Type.int_1
             # add another exit
             # EDG says: We should make sure folks set ArchXYZ.ip_offset like they're supposed to
             if ip_offset is None:
                 ip_offset = self.arch.ip_offset
             assert ip_offset is not None
 
-            negated_condition_rdt = self.ite(condition, self.constant(0, condition.ty), self.constant(1, condition.ty))
             direct_exit_target = self.constant(self.addr + (self.bitwidth // 8), to_addr_ty)
-            self.irsb_c.add_exit(negated_condition_rdt, direct_exit_target.rdt, jumpkind, ip_offset)
+            self.irsb_c.add_exit((~condition).rdt, direct_exit_target.rdt, jumpkind, ip_offset)
             self.irsb_c.irsb.jumpkind = jumpkind
             self.irsb_c.irsb.next = to_addr_rdt
 
     def ite(self, cond, t, f):
+        assert cond.ty == Type.int_1
         return self.irsb_c.ite(cond.rdt, t.rdt, f.rdt)
 
     def ccall(self, ret_type, func_obj, args):
