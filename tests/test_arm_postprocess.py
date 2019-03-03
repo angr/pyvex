@@ -317,6 +317,17 @@ def test_arm_postprocess_ret():
                           )
         nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Ret')
 
+        # 00a89de8
+        # ldmfd SP, {R11,SP,PC}
+        # Fixed by Fish in the VEX fork, commit 43c78f608490f9a5c71c7fca87c04759c1b93741
+        irsb = pyvex.IRSB(data=b'\x00\xa8\x9d\xe8',
+                          mem_addr=0xc800b57c,
+                          arch=archinfo.ArchARMEL(endness=archinfo.Endness.LE),
+                          num_inst=1,
+                          opt_level=1
+                          )
+        nose.tools.assert_equal(irsb.jumpkind, 'Ijk_Ret')
+
 if __name__ == "__main__":
     test_arm_postprocess_call()
     test_arm_postprocess_ret()
