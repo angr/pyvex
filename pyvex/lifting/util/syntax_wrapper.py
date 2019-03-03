@@ -92,7 +92,7 @@ class VexValue(object):
     @vvifyresults
     def set_bit(self, idx, bval):
         typedidx = idx.cast_to(Type.int_8)
-        return self.irsb_c.set_bit(self.rdt, idx.rdt, bval.rdt)
+        return self.irsb_c.set_bit(self.rdt, typedidx.rdt, bval.rdt)
 
     @checkparams()
     @vvifyresults
