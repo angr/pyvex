@@ -13,8 +13,9 @@ def test_s390x_exrl():
         0x400400,
         arch)
     irsb_str = str(irsb)
-    
-    nose.tools.assert_in('0xd700200030007da7', irsb_str)
+
+    # check last_execute_target, only top 6 bytes are relevant
+    nose.tools.assert_in('0xd700200030000000', irsb_str)
     nose.tools.assert_in('s390x_dirtyhelper_EX', irsb_str)
     nose.tools.assert_in('{ PUT(ia) = 0x400400; Ijk_Boring }', irsb_str)
     nose.tools.assert_in('------ IMark(0x400406, 2, 0) ------', irsb_str)
