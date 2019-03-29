@@ -87,7 +87,7 @@ class CortexSpotter(GymratLifter):
 register(CortexSpotter, 'ARMEL')
 
 def test_full_binary():
-    p = angr.Project(os.path.join(test_location, 'armel', 'RTOSDemo.axf.issue_685'))
+    p = angr.Project(os.path.join(test_location, 'armel', 'RTOSDemo.axf.issue_685'), arch="ARMEL")
     st = p.factory.call_state(0x000013ce+1)
     b = st.block().vex
     simgr = p.factory.simulation_manager(st)
