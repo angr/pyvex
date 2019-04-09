@@ -4,6 +4,7 @@ import bitstring
 
 from .vex_helper import *
 from ..lifter import Lifter
+from ...const import vex_int_class
 
 l = logging.getLogger(__name__)
 
@@ -101,6 +102,9 @@ class GymratLifter(Lifter):
             if len(irsb_c.irsb.statements) == 0:
                 raise LiftingException('Could not decode any instructions')
             irsb_c.irsb.jumpkind = JumpKind.NoDecode
+            dst = irsb_c.irsb.addr + irsb_c.irsb.size
+            dst_ty = vex_int_class(irsb_c.irsb.arch.bits).type
+            irsb_c.irsb.next = irsb_c.mkconst(dst, dst_ty)
         l.debug(self.irsb._pp_str())
         if dump_irsb:
             self.irsb.pp()
