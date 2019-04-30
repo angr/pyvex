@@ -1,6 +1,6 @@
 """
 PyVEX provides an interface that translates binary code into the VEX intermediate represenation (IR).
-For an introduction to VEX, take a look here: https://docs.angr.io/docs/ir.html
+For an introduction to VEX, take a look here: https://docs.angr.io/advanced-topics/ir
 """
 
 __version__ = (8, 19, 4, 5)
