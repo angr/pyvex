@@ -80,7 +80,7 @@ class LibVEXLifter(Lifter):
             self.irsb._from_c(lift_r, skip_stmts=self.skip_stmts)
             if self.irsb.size == 0:
                 l.debug('raising lifting exception')
-                raise LiftingException("libvex: could not decode any instructions")
+                raise LiftingException("libvex: could not decode any instructions @ 0x%x" % self.addr)
         finally:
             _libvex_lock.release()
             self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = None
