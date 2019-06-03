@@ -266,15 +266,14 @@ void collect_data_references(
 					}
 					break;
 				case Iex_Binop:
-					if (data->Iex.Binop.op == Iop_Add32 || data->Iex.Binop.op == Iop_Add64) {
-						if (data->Iex.Binop.arg1->tag == Iex_Const && data->Iex.Binop.arg2->tag == Iex_Const) {
-							// ip-related addressing
-							Addr addr;
-							addr = get_value_from_const_expr(data->Iex.Binop.arg1->Iex.Const.con) +
-								get_value_from_const_expr(data->Iex.Binop.arg2->Iex.Const.con);
-							if (addr != next_inst_addr) {
-								record_data_reference(lift_r, addr, 0, Dt_Unknown, i, inst_addr);
-							}
+					if ((data->Iex.Binop.op == Iop_Add32 || data->Iex.Binop.op == Iop_Add64) &&
+							(data->Iex.Binop.arg1->tag == Iex_Const && data->Iex.Binop.arg2->tag == Iex_Const)) {
+						// ip-related addressing
+						Addr addr;
+						addr = get_value_from_const_expr(data->Iex.Binop.arg1->Iex.Const.con) +
+							get_value_from_const_expr(data->Iex.Binop.arg2->Iex.Const.con);
+						if (addr != next_inst_addr) {
+							record_data_reference(lift_r, addr, 0, Dt_Unknown, i, inst_addr);
 						}
 					}
 					else {
