@@ -1,4 +1,3 @@
-from past.builtins import xrange
 import pyvex
 import archinfo
 import nose
@@ -7,7 +6,7 @@ import nose
 ### ARM Postprocessing ###
 ##########################
 def test_arm_postprocess_call():
-    for i in xrange(3):
+    for i in range(3):
         # Thumb
 
         # push  {r7}
@@ -296,7 +295,7 @@ def test_arm_postprocess_call():
 
 def test_arm_postprocess_ret():
 
-    for i in xrange(3):
+    for i in range(3):
         # e91ba8f0
         # ldmdb  R11, {R4,R11,SP,PC}
         irsb = pyvex.IRSB(data=b'\xe9\x1b\xa8\xf0',

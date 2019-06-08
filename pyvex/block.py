@@ -12,14 +12,6 @@ from .data_ref import DataRef
 from .errors import SkipStatementsError
 
 
-# Some Python 3 compatibility shims
-if sys.version_info.major < 3:
-    STRING_TYPES = (str, unicode)
-else:
-    STRING_TYPES = str
-    xrange = range  # pylint:disable=redefined-builtin
-
-
 import logging
 l = logging.getLogger("pyvex.block")
 
@@ -505,7 +497,7 @@ class IRSB(VEXObject):
             if lift_r.exit_count > self.MAX_EXITS:
                 # There are more exits than the default size of the exits array. We will need all statements
                 raise SkipStatementsError("exit_count exceeded MAX_EXITS (%d)" % self.MAX_EXITS)
-            for i in xrange(lift_r.exit_count):
+            for i in range(lift_r.exit_count):
                 ex = lift_r.exits[i]
                 exit_stmt = stmt.IRStmt._from_c(ex.stmt)
                 self._exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt))
@@ -524,7 +516,7 @@ class IRSB(VEXObject):
         if lift_r.data_ref_count > 0:
             if lift_r.data_ref_count > self.MAX_DATA_REFS:
                 raise SkipStatementsError("data_ref_count exceeded MAX_DATA_REFS (%d)" % self.MAX_DATA_REFS)
-            self.data_refs = [DataRef.from_c(lift_r.data_refs[i]) for i in xrange(lift_r.data_ref_count)]
+            self.data_refs = [DataRef.from_c(lift_r.data_refs[i]) for i in range(lift_r.data_ref_count)]
 
     def _set_attributes(self, statements=None, nxt=None, tyenv=None, jumpkind=None, direct_next=None, size=None,
                         instructions=None, instruction_addresses=None, exit_statements=None, default_exit_target=None):

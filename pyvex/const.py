@@ -1,5 +1,4 @@
 from __future__ import print_function
-from past.builtins import xrange
 import re
 
 from . import VEXObject, ffi, pvc
@@ -294,7 +293,7 @@ class V128(IRConst):
     def _from_c(c_const):
         base_const = c_const.Ico.V128
         real_const = 0
-        for i in xrange(16):
+        for i in range(16):
             if (base_const >> i) & 1 == 1:
                 real_const |= 0xff << (8 * i)
         return V128(real_const)
@@ -319,7 +318,7 @@ class V256(IRConst):
     def _from_c(c_const):
         base_const = c_const.Ico.V256
         real_const = 0
-        for i in xrange(32):
+        for i in range(32):
             if (base_const >> i) & 1 == 1:
                 real_const |= 0xff << (8 * i)
         return V256(real_const)
