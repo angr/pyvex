@@ -14,7 +14,7 @@ lifters = defaultdict(list)
 postprocessors = defaultdict(list)
 
 def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_level=1, traceflags=0,
-         strict_block_end=True, inner=False, skip_stmts=False, collect_data_refs=False):
+         strict_block_end=True, inner=False, skip_stmts=False, collect_data_refs=False, force_optimize=False):
     """
     Recursively lifts blocks using the registered lifters and postprocessors. Tries each lifter in the order in
     which they are registered on the data to lift.
@@ -35,6 +35,7 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                             optimizations, 1 performs constant propogation, and 2 performs loop unrolling,
                             which honestly doesn't make much sense in the context of pyvex. The default is 1.
     :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
+    :param force_optimize   Set the allow_arch_optimizations to be True  
 
     .. note:: Explicitly specifying the number of instructions to lift (`max_inst`) may not always work
               exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
@@ -74,6 +75,9 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
     if opt_level < 0:
         allow_arch_optimizations = False
         opt_level = 0
+
+    if force_optimize:
+        allow_arch_optimizations = True
 
     for lifter in lifters[arch.name]:
         try:
