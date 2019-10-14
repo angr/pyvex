@@ -1,4 +1,5 @@
 import re
+from typing import Optional, List
 
 from . import VEXObject, ffi, pvc
 from .enums import get_enum_from_int
@@ -10,8 +11,8 @@ class IRConst(VEXObject):
 
     __slots__ = ['_value']
 
-    type = None
-    tag = None
+    type = None # type: Optional[str]
+    tag = None # type: Optional[str]
     c_constructor = None
 
     def pp(self):
@@ -22,7 +23,7 @@ class IRConst(VEXObject):
         return get_type_size(self.type)
 
     @property
-    def value(self):
+    def value(self) -> int:
         return self._value
 
     @staticmethod
@@ -51,7 +52,7 @@ class IRConst(VEXObject):
 
 
 class U1(IRConst):
-    __slots__ = [ ]
+    __slots__ = [ ] # type: List
 
     type = 'Ity_I1'
     tag = 'Ico_U1'
@@ -70,7 +71,7 @@ class U1(IRConst):
 
 
 class U8(IRConst):
-    __slots__ = [ ]
+    __slots__ = [ ] # type: List
 
     type = 'Ity_I8'
     tag = 'Ico_U8'
@@ -92,7 +93,7 @@ _U8_POOL = [ U8(i) for i in range(256) ]
 
 
 class U16(IRConst):
-    __slots__ = [ ]
+    __slots__ = [ ] # type: List
 
     type = 'Ity_I16'
     tag = 'Ico_U16'
@@ -119,14 +120,14 @@ _U16_POOL = [ U16(i) for i in range(1024) ] + [ U16(i) for i in range(0xfc00, 0x
 
 
 class U32(IRConst):
-    __slots__ = [ ]
+    __slots__ = [ ] # type: List
 
     type = 'Ity_I32'
     tag = 'Ico_U32'
     op_format = '32'
     c_constructor = pvc.IRConst_U32
 
-    def __init__(self, value):
+    def __init__(self, value: int):
         self._value = value
 
     def __str__(self):
@@ -146,7 +147,7 @@ _U32_POOL = [ U32(i) for i in range(1024) ] + [ U32(i) for i in range(0xfffffc00
 
 
 class U64(IRConst):
-    __slots__ = [ ]
+    __slots__ = [ ] # type: List
 
     type = 'Ity_I64'
     tag = 'Ico_U64'
@@ -197,7 +198,7 @@ def vex_int_class(size):
 
 
 class F32(IRConst):
-    __slots__ = [ ]
+    __slots__ = [ ] # type: List
 
     type = 'Ity_F32'
     tag = 'Ico_F32'
@@ -216,7 +217,7 @@ class F32(IRConst):
 
 
 class F32i(IRConst):
-    __slots__ = [ ]
+    __slots__ = [ ] # type: List
 
     type = 'Ity_F32'
     tag = 'Ico_F32i'
@@ -235,7 +236,7 @@ class F32i(IRConst):
 
 
 class F64(IRConst):
-    __slots__ = [ ]
+    __slots__ = [ ] # type: List
 
     type = 'Ity_F64'
     tag = 'Ico_F64'
@@ -254,7 +255,7 @@ class F64(IRConst):
 
 
 class F64i(IRConst):
-    __slots__ = [ ]
+    __slots__ = [ ] # type: List
 
     type = 'Ity_F64'
     tag = 'Ico_F64i'
@@ -273,7 +274,7 @@ class F64i(IRConst):
 
 
 class V128(IRConst):
-    __slots__ = [ ]
+    __slots__ = [ ] # type: List
 
     type = 'Ity_V128'
     tag = 'Ico_V128'
@@ -299,7 +300,7 @@ class V128(IRConst):
 
 
 class V256(IRConst):
-    __slots__ = [ ]
+    __slots__ = [ ] # type: List
 
     type = 'Ity_V256'
     tag = 'Ico_V256'

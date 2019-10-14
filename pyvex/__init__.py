@@ -2,6 +2,7 @@
 PyVEX provides an interface that translates binary code into the VEX intermediate represenation (IR).
 For an introduction to VEX, take a look here: https://docs.angr.io/advanced-topics/ir
 """
+from typing import NewType, Any
 
 __version__ = (8, 20, 1, 7)
 
@@ -12,10 +13,9 @@ import os
 import sys
 import cffi
 import pkg_resources
-
+RegisterOffset = NewType('RegisterOffset', int)
 from .vex_ffi import ffi_str as _ffi_str
 ffi = cffi.FFI()
-
 
 import logging
 logging.getLogger("pyvex").addHandler(logging.NullHandler())
@@ -40,7 +40,7 @@ def _find_c_lib():
     dir(lib)
     return lib
 
-pvc = _find_c_lib()
+pvc = _find_c_lib() # type: Any # This should be properly typed, but this seems non trivial
 
 # pylint: disable=wildcard-import
 from .enums import *

@@ -1,17 +1,21 @@
 import logging
+from typing import NewType, Iterable, Iterator, Optional
 
-from . import VEXObject
+from . import VEXObject, RegisterOffset
 from .enums import get_enum_from_int, get_int_from_enum
 
+from .expr import IRExpr
 l = logging.getLogger('pyvex.stmt')
 
+
+TmpVar = NewType('TmpVar', int)
 
 class IRStmt(VEXObject):
     """
     IR statements in VEX represents operations with side-effects.
     """
 
-    tag = None
+    tag = None # type: Optional[str]
     tag_int = 0  # set automatically at bottom of file
 
     __slots__ = [ ]
@@ -20,7 +24,7 @@ class IRStmt(VEXObject):
         print(self.__str__())
 
     @property
-    def expressions(self):
+    def expressions(self) -> Iterator[IRExpr]:
         for k in self.__slots__:
             v = getattr(self, k)
             if isinstance(v, IRExpr):
@@ -108,7 +112,7 @@ class IMark(IRStmt):
 
     tag = 'Ist_IMark'
 
-    def __init__(self, addr, length, delta):
+    def __init__(self, addr: int, length: int, delta: int):
         self.addr = addr
         self.len = length
         self.delta = delta
@@ -155,7 +159,7 @@ class Put(IRStmt):
 
     tag = 'Ist_Put'
 
-    def __init__(self, data, offset):
+    def __init__(self, data: IRExpr, offset: RegisterOffset):
         self.data = data
         self.offset = offset
 
@@ -223,7 +227,7 @@ class WrTmp(IRStmt):
 
     tag = 'Ist_WrTmp'
 
-    def __init__(self, tmp, data):
+    def __init__(self, tmp: TmpVar, data: IRExpr):
         self.tmp = tmp
         self.data = data
 
@@ -701,7 +705,7 @@ def enum_to_stmt_class(tag_enum):
         raise KeyError('No statement class for tag %s.' % get_enum_from_int((tag_enum)))
 
 
-from .expr import IRExpr, Get
+from .expr import IRExpr, Get, IRExpr, IRExpr
 from .const import IRConst
 from .enums import IRRegArray, IRCallee
 from .errors import PyVEXError
