@@ -91,7 +91,7 @@ class IRExpr(VEXObject):
                 v.replace_expression(expr, replacement)
 
     @staticmethod
-    def _from_c(c_expr):
+    def _from_c(c_expr) -> 'IRExpr':
         if c_expr == ffi.NULL or c_expr[0] == ffi.NULL:
             return None
 
