@@ -14,6 +14,7 @@ import sys
 import cffi
 import pkg_resources
 RegisterOffset = NewType('RegisterOffset', int)
+RegisterName = NewType('RegisterName', str)
 TmpVar = NewType('TmpVar', int)
 from .vex_ffi import ffi_str as _ffi_str
 ffi = cffi.FFI()
