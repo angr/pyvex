@@ -3,14 +3,12 @@ import logging
 from typing import List, Optional, NewType
 
 
-from . import VEXObject
+from . import VEXObject, RegisterOffset, TmpVar
 from .enums import IRCallee, IRRegArray, get_int_from_enum, get_enum_from_int
 from .const import get_type_size, U8, U16, U32, U64, IRConst
 
 l = logging.getLogger("pyvex.expr")
 
-TmpVar = NewType('TmpVar', int)
-RegisterOffset = NewType('RegisterOffset', int)
 
 
 class IRExpr(VEXObject):
@@ -604,14 +602,14 @@ class Const(IRExpr):
 
     tag = 'Iex_Const'
 
-    def __init__(self, con: IRConst):
+    def __init__(self, con: 'IRConst'):
         self._con = con
 
     def __str__(self):
         return str(self.con)
 
     @property
-    def con(self) -> IRConst:
+    def con(self) -> 'IRConst':
         return self._con
 
     @staticmethod

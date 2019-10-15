@@ -1,14 +1,13 @@
 import logging
 from typing import NewType, Iterable, Iterator, Optional
 
-from . import VEXObject, RegisterOffset
+from . import VEXObject, RegisterOffset, TmpVar
 from .enums import get_enum_from_int, get_int_from_enum
 
 from .expr import IRExpr
 l = logging.getLogger('pyvex.stmt')
 
 
-TmpVar = NewType('TmpVar', int)
 
 class IRStmt(VEXObject):
     """
