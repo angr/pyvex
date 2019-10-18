@@ -355,7 +355,7 @@ class Instruction:
         """
         # HACK: FIXME: If you're reading this, I'm sorry. It's truly a crime against Python...
 
-        from angr.engines.vex import ccall
+        from angr.engines.vex.claripy import ccall
 
         # Check the args to make sure they're the right type
         list_args = list(args)
