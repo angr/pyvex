@@ -680,7 +680,7 @@ enum_to_stmt_mapping = { }
 tag_count = 0
 cls = None
 for cls in _globals.values():
-    if hasattr(cls, 'tag') and cls.tag is not None:
+    if type(cls) is type and issubclass(cls, IRStmt) and cls is not IRStmt:
         tag_to_stmt_mapping[cls.tag] = cls
         enum_to_stmt_mapping[get_int_from_enum(cls.tag)] = cls
         cls.tag_int = tag_count

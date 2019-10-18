@@ -900,7 +900,7 @@ enum_to_expr_mapping = { }
 tag_count = 0
 cls = None
 for cls in _globals.values():
-    if hasattr(cls, 'tag') and cls.tag is not None:
+    if type(cls) is type and issubclass(cls, IRExpr) and cls is not IRExpr:
         tag_to_expr_mapping[cls.tag] = cls
         enum_to_expr_mapping[get_int_from_enum(cls.tag)] = cls
         cls.tag_int = tag_count
