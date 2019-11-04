@@ -265,7 +265,7 @@ class Store(IRStmt):
 
     tag = 'Ist_Store'
 
-    def __init__(self, addr: IRExpr, data: IRExpr, end):
+    def __init__(self, addr: IRExpr, data: IRExpr, end: str):
         self.addr = addr
         self.data = data
         self.end = end

@@ -278,7 +278,7 @@ class Get(IRExpr):
 
     tag = 'Iex_Get'
 
-    def __init__(self, offset: RegisterOffset, ty):
+    def __init__(self, offset: RegisterOffset, ty: str):
         self.offset = offset
         self.ty = ty
 
