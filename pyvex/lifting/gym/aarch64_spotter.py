@@ -16,14 +16,14 @@ class Instruction_SYSL(Aarch64Instruction):
     bin_format = "1101010100101qqqnnnnmmmmppprrrrr"
 
     def compute_result(self): # pylint: disable=arguments-differ
-        l.debug("Ignoring SYSL instruction at %#x." % self.addr)
+        l.debug("Ignoring SYSL instruction at %#x.", self.addr)
 
 class Instruction_MSR(Aarch64Instruction):
     name = "MSR"
     bin_format = "11010101000ioqqqnnnnmmmmppprrrrr"
 
     def compute_result(self): # pylint: disable=arguments-differ
-        l.debug("Ignoring MSR instruction at %#x." % self.addr)
+        l.debug("Ignoring MSR instruction at %#x.", self.addr)
 
 
 class Instruction_MRS(Aarch64Instruction):
@@ -31,7 +31,7 @@ class Instruction_MRS(Aarch64Instruction):
     bin_format = "110101010011opppnnnnmmmmppprrrrr"
 
     def compute_result(self): # pylint: disable=arguments-differ
-        l.debug("Ignoring MRS instruction at %#x." %  self.addr)
+        l.debug("Ignoring MRS instruction at %#x.", self.addr)
 
 class AARCH64Spotter(GymratLifter):
     instrs = [
