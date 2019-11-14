@@ -1,5 +1,4 @@
 import logging
-
 from ..util.lifter_helper import GymratLifter
 from ..util.instr_helper import Instruction
 from .. import register
@@ -24,7 +23,6 @@ class Instruction_MSR(Aarch64Instruction):
 
     def compute_result(self): # pylint: disable=arguments-differ
         l.debug("Ignoring MSR instruction at %#x.", self.addr)
-
 
 class Instruction_MRS(Aarch64Instruction):
     name = "MRS"
