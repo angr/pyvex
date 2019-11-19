@@ -1,11 +1,11 @@
 import re
 import logging
-from typing import List, Optional, NewType
+from typing import List, Optional
 
 
 from . import VEXObject, RegisterOffset, TmpVar
 from .enums import IRCallee, IRRegArray, get_int_from_enum, get_enum_from_int
-from .const import get_type_size, U8, U16, U32, U64, IRConst
+from .const import get_type_size, U8, U16, U32, U64
 
 l = logging.getLogger("pyvex.expr")
 

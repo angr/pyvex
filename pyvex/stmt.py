@@ -1,10 +1,9 @@
 import logging
-from typing import NewType, Iterable, Iterator, Optional
+from typing import Iterator, Optional
 
 from . import VEXObject, RegisterOffset, TmpVar
 from .enums import get_enum_from_int, get_int_from_enum
 
-from .expr import IRExpr
 l = logging.getLogger('pyvex.stmt')
 
 
@@ -23,7 +22,7 @@ class IRStmt(VEXObject):
         print(self.__str__())
 
     @property
-    def expressions(self) -> Iterator[IRExpr]:
+    def expressions(self) -> Iterator['IRExpr']:
         for k in self.__slots__:
             v = getattr(self, k)
             if isinstance(v, IRExpr):
@@ -158,7 +157,7 @@ class Put(IRStmt):
 
     tag = 'Ist_Put'
 
-    def __init__(self, data: IRExpr, offset: RegisterOffset):
+    def __init__(self, data: 'IRExpr', offset: RegisterOffset):
         self.data = data
         self.offset = offset
 
@@ -226,7 +225,7 @@ class WrTmp(IRStmt):
 
     tag = 'Ist_WrTmp'
 
-    def __init__(self, tmp: TmpVar, data: IRExpr):
+    def __init__(self, tmp: TmpVar, data: 'IRExpr'):
         self.tmp = tmp
         self.data = data
 
@@ -265,7 +264,7 @@ class Store(IRStmt):
 
     tag = 'Ist_Store'
 
-    def __init__(self, addr: IRExpr, data: IRExpr, end: str):
+    def __init__(self, addr: 'IRExpr', data: 'IRExpr', end: str):
         self.addr = addr
         self.data = data
         self.end = end
@@ -704,7 +703,7 @@ def enum_to_stmt_class(tag_enum):
         raise KeyError('No statement class for tag %s.' % get_enum_from_int((tag_enum)))
 
 
-from .expr import IRExpr, Get, IRExpr, IRExpr
+from .expr import IRExpr, Get
 from .const import IRConst
 from .enums import IRRegArray, IRCallee
 from .errors import PyVEXError
