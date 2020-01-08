@@ -3,7 +3,7 @@ PyVEX provides an interface that translates binary code into the VEX intermediat
 For an introduction to VEX, take a look here: https://docs.angr.io/advanced-topics/ir
 """
 
-__version__ = (8, 19, 10, 30)
+__version__ = (8, 20, 1, 7)
 
 if bytes is str:
     raise Exception("This module is designed for python 3 only. Please install an older version to use python 2.")
