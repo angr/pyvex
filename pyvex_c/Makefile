@@ -2,7 +2,7 @@ UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
 	LIBRARY_FILE=libpyvex.dylib
 	STATIC_LIBRARY_FILE=libpyvex.a
-	LDFLAGS=-Wl,-install_name,@rpath/$(LIBRARY_FILE)
+	LDFLAGS=-Wl,-install_name,$(LIBRARY_FILE)
 endif
 ifeq ($(UNAME), Linux)
 	LIBRARY_FILE=libpyvex.so
