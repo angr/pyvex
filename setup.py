@@ -206,6 +206,6 @@ setup(
     setup_requires=[ 'pycparser', 'cffi>=1.0.3' ],
     include_package_data=True,
     package_data={
-        'pyvex': ['lib/*', 'include/*']
+        'pyvex': ['lib/*', 'include/*', 'py.typed']
     }
 )

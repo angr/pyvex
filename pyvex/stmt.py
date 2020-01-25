@@ -1,9 +1,12 @@
 import logging
+from typing import Iterator, Optional
 
 from . import VEXObject
+from archinfo import RegisterOffset, TmpVar
 from .enums import get_enum_from_int, get_int_from_enum
 
 l = logging.getLogger('pyvex.stmt')
+
 
 
 class IRStmt(VEXObject):
@@ -11,7 +14,7 @@ class IRStmt(VEXObject):
     IR statements in VEX represents operations with side-effects.
     """
 
-    tag = None
+    tag = None # type: Optional[str]
     tag_int = 0  # set automatically at bottom of file
 
     __slots__ = [ ]
@@ -20,7 +23,7 @@ class IRStmt(VEXObject):
         print(self.__str__())
 
     @property
-    def expressions(self):
+    def expressions(self) -> Iterator['IRExpr']:
         for k in self.__slots__:
             v = getattr(self, k)
             if isinstance(v, IRExpr):
@@ -108,7 +111,7 @@ class IMark(IRStmt):
 
     tag = 'Ist_IMark'
 
-    def __init__(self, addr, length, delta):
+    def __init__(self, addr: int, length: int, delta: int):
         self.addr = addr
         self.len = length
         self.delta = delta
@@ -155,7 +158,7 @@ class Put(IRStmt):
 
     tag = 'Ist_Put'
 
-    def __init__(self, data, offset):
+    def __init__(self, data: 'IRExpr', offset: RegisterOffset):
         self.data = data
         self.offset = offset
 
@@ -223,7 +226,7 @@ class WrTmp(IRStmt):
 
     tag = 'Ist_WrTmp'
 
-    def __init__(self, tmp, data):
+    def __init__(self, tmp: TmpVar, data: 'IRExpr'):
         self.tmp = tmp
         self.data = data
 
@@ -262,7 +265,7 @@ class Store(IRStmt):
 
     tag = 'Ist_Store'
 
-    def __init__(self, addr, data, end):
+    def __init__(self, addr: 'IRExpr', data: 'IRExpr', end: str):
         self.addr = addr
         self.data = data
         self.end = end

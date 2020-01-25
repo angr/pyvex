@@ -1,11 +1,15 @@
 import re
 import logging
+from typing import List, Optional
+
 
 from . import VEXObject
+from archinfo import RegisterOffset, TmpVar
 from .enums import IRCallee, IRRegArray, get_int_from_enum, get_enum_from_int
 from .const import get_type_size, U8, U16, U32, U64
 
 l = logging.getLogger("pyvex.expr")
+
 
 
 class IRExpr(VEXObject):
@@ -15,14 +19,14 @@ class IRExpr(VEXObject):
 
     __slots__ = [ ]
 
-    tag = None
+    tag = None # type: Optional[str]
     tag_int = 0  # set automatically at bottom of file
 
     def pp(self):
         print(self.__str__())
 
     @property
-    def child_expressions(self):
+    def child_expressions(self) -> List['IRExpr']:
         """
         A list of all of the expressions that this expression ends up evaluating.
         """
@@ -88,7 +92,7 @@ class IRExpr(VEXObject):
                 v.replace_expression(expr, replacement)
 
     @staticmethod
-    def _from_c(c_expr):
+    def _from_c(c_expr) -> 'IRExpr':
         if c_expr == ffi.NULL or c_expr[0] == ffi.NULL:
             return None
 
@@ -229,14 +233,14 @@ class RdTmp(IRExpr):
 
     tag = 'Iex_RdTmp'
 
-    def __init__(self, tmp):
+    def __init__(self, tmp: TmpVar):
         self._tmp = tmp
 
     def __str__(self):
         return "t%d" % self.tmp
 
     @property
-    def tmp(self):
+    def tmp(self) -> TmpVar:
         return self._tmp
 
     @staticmethod
@@ -275,7 +279,7 @@ class Get(IRExpr):
 
     tag = 'Iex_Get'
 
-    def __init__(self, offset, ty):
+    def __init__(self, offset: RegisterOffset, ty: str):
         self.offset = offset
         self.ty = ty
 
@@ -599,14 +603,14 @@ class Const(IRExpr):
 
     tag = 'Iex_Const'
 
-    def __init__(self, con):
+    def __init__(self, con: 'IRConst'):
         self._con = con
 
     def __str__(self):
         return str(self.con)
 
     @property
-    def con(self):
+    def con(self) -> 'IRConst':
         return self._con
 
     @staticmethod

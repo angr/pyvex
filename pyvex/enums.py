@@ -1,3 +1,5 @@
+from typing import List
+
 from . import pvc, ffi
 
 
@@ -6,7 +8,7 @@ class VEXObject:
     The base class for Vex types.
     """
 
-    __slots__ = [ ]
+    __slots__ = [ ] # type: List
 
 
 class IRCallee(VEXObject):

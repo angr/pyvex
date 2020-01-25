@@ -1,6 +1,10 @@
 import copy
 import sys
 import itertools
+from typing import List, Optional
+
+from pyvex.expr import IRExpr
+from pyvex.stmt import IRStmt
 
 from . import VEXObject
 from . import expr, stmt
@@ -83,10 +87,10 @@ class IRSB(VEXObject):
         self.addr = mem_addr
         self.arch = arch
 
-        self.statements = []
-        self.next = None
+        self.statements = [] # type: List[IRStmt]
+        self.next = None # type: Optional[IRExpr]
         self._tyenv = None
-        self.jumpkind = None
+        self.jumpkind = None # type: Optional[str]
         self._direct_next = None
         self._size = None
         self._instructions = None
