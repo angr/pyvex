@@ -1,7 +1,8 @@
 import logging
 from typing import Iterator, Optional
 
-from . import VEXObject, RegisterOffset, TmpVar
+from . import VEXObject
+from archinfo import RegisterOffset, TmpVar
 from .enums import get_enum_from_int, get_int_from_enum
 
 l = logging.getLogger('pyvex.stmt')
