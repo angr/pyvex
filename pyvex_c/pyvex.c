@@ -23,7 +23,6 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <setjmp.h>
 #include <stddef.h>
 #include <libvex.h>
-#include <stdbool.h>
 
 #include "pyvex.h"
 #include "logging.h"
@@ -105,13 +104,13 @@ static void *dispatch(void) {
 // Initializes VEX
 // It must be called before using VEX for translation to Valgrind IR
 //----------------------------------------------------------------------
-bool vex_init() {
+int vex_init() {
 	static int initialized = 0;
 	pyvex_debug("Initializing VEX.\n");
 
 	if (initialized) {
 		pyvex_debug("VEX already initialized.\n");
-		return true;
+		return 1;
 	}
 	initialized = 1;
 
@@ -137,7 +136,7 @@ bool vex_init() {
         pyvex_debug("LibVEX_Init() done....\n");
     } else {
         pyvex_debug("LibVEX_Init() failed catastrophically...\n");
-        return false;
+        return 0;
     }
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -207,7 +206,7 @@ bool vex_init() {
 	// doesn't exist? vta.do_self_check       = False;
 	vta.traceflags          = 0;                // Debug verbosity
 	//vta.traceflags          = -1;                // Debug verbosity
-    return true;
+    return 1;
 }
 
 // Prepare the VexArchInfo struct
