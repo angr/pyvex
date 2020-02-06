@@ -17,7 +17,7 @@ void clear_log(void);
 // Initializes VEX. This function must be called before vex_lift
 // can be used. 
 //
-void vex_init(void);
+bool vex_init(void);
 
 typedef struct _ExitInfo {
 	Int stmt_idx;

@@ -23,6 +23,7 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <setjmp.h>
 #include <stddef.h>
 #include <libvex.h>
+#include <stdbool.h>
 
 #include "pyvex.h"
 #include "logging.h"
@@ -104,13 +105,13 @@ static void *dispatch(void) {
 // Initializes VEX
 // It must be called before using VEX for translation to Valgrind IR
 //----------------------------------------------------------------------
-void vex_init() {
+bool vex_init() {
 	static int initialized = 0;
 	pyvex_debug("Initializing VEX.\n");
 
 	if (initialized) {
 		pyvex_debug("VEX already initialized.\n");
-		return;
+		return true;
 	}
 	initialized = 1;
 
@@ -130,9 +131,14 @@ void vex_init() {
 	vc.strict_block_end = 0;
 
 	pyvex_debug("Calling LibVEX_Init()....\n");
-	// the 0 is the debug level
-	LibVEX_Init(&failure_exit, &log_bytes, 0, &vc);
-	pyvex_debug("LibVEX_Init() done....\n");
+	if (setjmp(jumpout) == 0) {
+        // the 0 is the debug level
+        LibVEX_Init(&failure_exit, &log_bytes, 0, &vc);
+        pyvex_debug("LibVEX_Init() done....\n");
+    } else {
+        pyvex_debug("LibVEX_Init() failed catastrophically...\n");
+        return false;
+    }
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	vai_host.endness = VexEndnessLE;
@@ -201,6 +207,7 @@ void vex_init() {
 	// doesn't exist? vta.do_self_check       = False;
 	vta.traceflags          = 0;                // Debug verbosity
 	//vta.traceflags          = -1;                // Debug verbosity
+    return true;
 }
 
 // Prepare the VexArchInfo struct
