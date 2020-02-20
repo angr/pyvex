@@ -40,10 +40,10 @@ all: $(LIBRARY_FILE) $(STATIC_LIBRARY_FILE)
 %.o: %.c
 	$(CC) -c $(CFLAGS) $<
 
-$(LIBRARY_FILE): $(OBJECTS) $(HEADERS) $(VEX_LIB_PATH)/libvex.a
+$(LIBRARY_FILE): $(OBJECTS) $(HEADERS) $(call sq,$(VEX_LIB_PATH)/libvex.a)
 	$(CC) $(CFLAGS) -o $(LIBRARY_FILE) $(OBJECTS) "$(VEX_LIB_PATH)/libvex.a" $(LDFLAGS)
 
-$(STATIC_LIBRARY_FILE): $(OBJECTS) $(HEADERS) $(VEX_LIB_PATH)/libvex.a
+$(STATIC_LIBRARY_FILE): $(OBJECTS) $(HEADERS) $(call sq,$(VEX_LIB_PATH)/libvex.a)
 	$(AR) rcs $(STATIC_LIBRARY_FILE) $(OBJECTS)
 
 clean:
