@@ -306,9 +306,8 @@ VEXLiftResult *vex_lift(
 		int traceflags,
 		int allow_arch_optimizations,
 		int strict_block_end,
-		int collect_data_refs) {
-	VexRegisterUpdates pxControl;
-
+		int collect_data_refs,
+		VexRegisterUpdates *pxControl) {
 	vex_prepare_vai(guest, &archinfo);
 	vex_prepare_vbi(guest, &vbi);
 
@@ -340,7 +339,7 @@ VEXLiftResult *vex_lift(
 	if (setjmp(jumpout) == 0) {
 		LibVEX_Update_Control(&vc);
 		_lift_r.data_ref_count = 0;
-		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl);
+		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, pxControl);
 		if (!_lift_r.irsb) {
 			// Lifting failed
 			return NULL;
