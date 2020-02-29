@@ -71,7 +71,7 @@ class LibVEXLifter(Lifter):
                 collect_data_refs = False
 
             if self.cross_insn_opt:
-                self._px_control[0] = VexRegisterUpdates.VexRegUpdSpAtMemAccess
+                self._px_control[0] = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
             else:
                 self._px_control[0] = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
 
