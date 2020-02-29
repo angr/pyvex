@@ -27,6 +27,8 @@ class VexRegisterUpdates:
 
 class LibVEXLifter(Lifter):
 
+    __slots__ = ()
+
     REQUIRE_DATA_C = True
 
     @staticmethod
