@@ -27,13 +27,7 @@ class VexRegisterUpdates:
 
 class LibVEXLifter(Lifter):
 
-    __slots__ = ('_px_control', )
-
     REQUIRE_DATA_C = True
-
-    def __init__(self, arch, addr):
-        super().__init__(arch, addr)
-        self._px_control = ffi.new("VexRegisterUpdates *")
 
     @staticmethod
     def get_vex_log():
@@ -71,9 +65,9 @@ class LibVEXLifter(Lifter):
                 collect_data_refs = False
 
             if self.cross_insn_opt:
-                self._px_control[0] = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
+                px_control = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
             else:
-                self._px_control[0] = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
+                px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
 
             self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
             lift_r = pvc.vex_lift(vex_arch,
@@ -87,7 +81,7 @@ class LibVEXLifter(Lifter):
                                   self.allow_arch_optimizations,
                                   strict_block_end,
                                   collect_data_refs,
-                                  self._px_control,
+                                  px_control,
                                   )
             log_str = self.get_vex_log()
             if lift_r == ffi.NULL:

@@ -71,7 +71,7 @@ VEXLiftResult *vex_lift(
 		int allow_arch_optimizations,
 		int strict_block_end,
 		int collect_data_refs,
-		VexRegisterUpdates *pxControl);
+		VexRegisterUpdates pxControl);
 
 // internal analyses and postprocessors
 void arm_post_processor_determine_calls(Addr irsb_addr, Int irsb_size, Int irsb_insts, IRSB *irsb);
