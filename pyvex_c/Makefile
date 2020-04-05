@@ -22,8 +22,7 @@ endif
 
 # deeply evil
 # https://www.cmcrossroads.com/article/gnu-make-meets-file-names-spaces-them
-sp :=
-sp +=
+sp =$(null) $(null)
 qs = $(subst ?,$(sp),$1)
 sq = $(subst $(sp),?,$1)
 
