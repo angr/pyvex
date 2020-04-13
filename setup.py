@@ -192,7 +192,7 @@ if 'bdist_wheel' in sys.argv and '--plat-name' not in sys.argv:
 
 setup(
     name="pyvex", version='8.20.1.7', description="A Python interface to libVEX and VEX IR",
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     url='https://github.com/angr/pyvex',
     packages=packages,
     cmdclass=cmdclass,
