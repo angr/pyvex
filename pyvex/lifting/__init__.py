@@ -55,7 +55,7 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
     if isinstance(data, str):
         raise TypeError("Cannot pass unicode string as data to lifter")
 
-    if isinstance(data, bytes):
+    if isinstance(data, (bytes, bytearray, memoryview)):
         py_data = data
         c_data = None
         allow_arch_optimizations = False
@@ -80,7 +80,7 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
             u_data = data
             if lifter.REQUIRE_DATA_C:
                 if c_data is None:
-                    u_data = ffi.new('unsigned char [%d]' % (len(py_data) + 8), py_data + b'\0' * 8)
+                    u_data = ffi.from_buffer(ffi.BVoidP, py_data + b'\0' * 8 if type(py_data) is bytes else py_data)
                     max_bytes = min(len(py_data), max_bytes) if max_bytes is not None else len(py_data)
                 else:
                     u_data = c_data
