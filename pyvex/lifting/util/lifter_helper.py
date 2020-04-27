@@ -81,7 +81,7 @@ class GymratLifter(Lifter):
             raise
 
     def lift(self, disassemble=False, dump_irsb=False):
-        self.thedata = self.data[:self.max_bytes] if isinstance(self.data, bytes) else self.data[:self.max_bytes].encode()
+        self.thedata = self.data[:self.max_bytes] if isinstance(self.data, (bytes, bytearray, memoryview)) else self.data[:self.max_bytes].encode()
         l.debug(repr(self.thedata))
         instructions = self.decode()
 

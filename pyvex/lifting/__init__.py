@@ -155,7 +155,7 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
         next_addr = addr + final_irsb.size
         if max_bytes is not None:
             max_bytes -= final_irsb.size
-        if isinstance(data, (str, bytes)):
+        if isinstance(data, (bytes, bytearray, memoryview)):
             data_left = data[final_irsb.size:]
         else:
             data_left = data + final_irsb.size
