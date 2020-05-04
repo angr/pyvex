@@ -4,10 +4,10 @@ from ..block import IRSB
 # pylint:disable=attribute-defined-outside-init
 
 
-class Lifter(object):
+class Lifter:
 
     __slots__ = ('data', 'bytes_offset', 'opt_level', 'traceflags', 'allow_arch_optimizations', 'strict_block_end',
-                 'collect_data_refs', 'max_inst', 'max_bytes', 'skip_stmts', 'irsb', 'arch', 'addr', )
+                 'collect_data_refs', 'max_inst', 'max_bytes', 'skip_stmts', 'irsb', 'arch', 'addr', 'cross_insn_opt', )
 
     """
     A lifter is a class of methods for processing a block.
@@ -43,7 +43,8 @@ class Lifter(object):
               allow_arch_optimizations=None,
               strict_block_end=None,
               skip_stmts=False,
-              collect_data_refs=False):
+              collect_data_refs=False,
+              cross_insn_opt=True):
         """
         Wrapper around the `lift` method on Lifters. Should not be overridden in child classes.
 
@@ -61,6 +62,7 @@ class Lifter(object):
         :param strict_block_end:    Should the LibVEX arm-thumb split block at some instructions, for example CB{N}Z.
         :param skip_stmts:          Should the lifter skip transferring IRStmts from C to Python.
         :param collect_data_refs:   Should the LibVEX lifter collect data references in C.
+        :param cross_insn_opt:      If cross-instruction-boundary optimizations are allowed or not.
         """
         irsb = IRSB.empty_block(self.arch, self.addr)
         self.data = data
@@ -74,6 +76,7 @@ class Lifter(object):
         self.max_bytes = max_bytes
         self.skip_stmts = skip_stmts
         self.irsb = irsb
+        self.cross_insn_opt = cross_insn_opt
         self.lift()
         return self.irsb
 

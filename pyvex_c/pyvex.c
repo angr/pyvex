@@ -306,8 +306,9 @@ VEXLiftResult *vex_lift(
 		int traceflags,
 		int allow_arch_optimizations,
 		int strict_block_end,
-		int collect_data_refs) {
-	VexRegisterUpdates pxControl;
+		int collect_data_refs,
+		VexRegisterUpdates px_control) {
+	VexRegisterUpdates pxControl = px_control;
 
 	vex_prepare_vai(guest, &archinfo);
 	vex_prepare_vbi(guest, &vbi);

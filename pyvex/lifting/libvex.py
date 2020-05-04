@@ -16,6 +16,15 @@ VEX_MAX_INSTRUCTIONS = 99
 VEX_MAX_BYTES = 5000
 
 
+class VexRegisterUpdates:
+    VexRegUpd_INVALID = 0x700
+    VexRegUpdSpAtMemAccess = 0x701
+    VexRegUpdUnwindregsAtMemAccess = 0x702
+    VexRegUpdAllregsAtMemAccess = 0x703
+    VexRegUpdAllregsAtEachInsn = 0x704
+    VexRegUpdLdAllregsAtEachInsn = 0x705
+
+
 class LibVEXLifter(Lifter):
 
     __slots__ = ()
@@ -57,6 +66,11 @@ class LibVEXLifter(Lifter):
             if collect_data_refs is None:
                 collect_data_refs = False
 
+            if self.cross_insn_opt:
+                px_control = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
+            else:
+                px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
+
             self.irsb.arch.vex_archinfo['hwcache_info']['caches'] = ffi.NULL
             lift_r = pvc.vex_lift(vex_arch,
                                   self.irsb.arch.vex_archinfo,
@@ -69,6 +83,7 @@ class LibVEXLifter(Lifter):
                                   self.allow_arch_optimizations,
                                   strict_block_end,
                                   collect_data_refs,
+                                  px_control,
                                   )
             log_str = self.get_vex_log()
             if lift_r == ffi.NULL:

@@ -14,7 +14,7 @@ lifters = defaultdict(list)
 postprocessors = defaultdict(list)
 
 def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_level=1, traceflags=0,
-         strict_block_end=True, inner=False, skip_stmts=False, collect_data_refs=False):
+         strict_block_end=True, inner=False, skip_stmts=False, collect_data_refs=False, cross_insn_opt=True):
     """
     Recursively lifts blocks using the registered lifters and postprocessors. Tries each lifter in the order in
     which they are registered on the data to lift.
@@ -95,13 +95,15 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
 
             try:
                 final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
-                                                      allow_arch_optimizations, strict_block_end, skip_stmts, collect_data_refs,
+                                                      allow_arch_optimizations, strict_block_end, skip_stmts,
+                                                      collect_data_refs, cross_insn_opt=cross_insn_opt,
                                                       )
             except SkipStatementsError:
                 assert skip_stmts is True
                 final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
                                                       allow_arch_optimizations, strict_block_end, skip_stmts=False,
                                                       collect_data_refs=collect_data_refs,
+                                                      cross_insn_opt=cross_insn_opt,
                                                       )
             #l.debug('block lifted by %s' % str(lifter))
             #l.debug(str(final_irsb))

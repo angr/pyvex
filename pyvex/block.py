@@ -50,7 +50,7 @@ class IRSB(VEXObject):
 
     def __init__(self, data, mem_addr, arch, max_inst=None, max_bytes=None,
                  bytes_offset=0, traceflags=0, opt_level=1, num_inst=None, num_bytes=None, strict_block_end=False,
-                 skip_stmts=False, collect_data_refs=False):
+                 skip_stmts=False, collect_data_refs=False, cross_insn_opt=True):
         """
         :param data:                The bytes to lift. Can be either a string of bytes or a cffi buffer object.
                                     You may also pass None to initialize an empty IRSB.
@@ -112,6 +112,7 @@ class IRSB(VEXObject):
                         strict_block_end=strict_block_end,
                         skip_stmts=skip_stmts,
                         collect_data_refs=collect_data_refs,
+                        cross_insn_opt=cross_insn_opt,
                         )
             self._from_py(irsb)
 
