@@ -4,7 +4,6 @@ from typing import List, Optional
 
 
 from . import VEXObject
-from archinfo import RegisterOffset, TmpVar
 from .enums import IRCallee, IRRegArray, get_int_from_enum, get_enum_from_int
 from .const import get_type_size, U8, U16, U32, U64
 
@@ -233,14 +232,14 @@ class RdTmp(IRExpr):
 
     tag = 'Iex_RdTmp'
 
-    def __init__(self, tmp: TmpVar):
+    def __init__(self, tmp: int):
         self._tmp = tmp
 
     def __str__(self):
         return "t%d" % self.tmp
 
     @property
-    def tmp(self) -> TmpVar:
+    def tmp(self) -> int:
         return self._tmp
 
     @staticmethod
@@ -279,7 +278,7 @@ class Get(IRExpr):
 
     tag = 'Iex_Get'
 
-    def __init__(self, offset: RegisterOffset, ty: str):
+    def __init__(self, offset: int, ty: str):
         self.offset = offset
         self.ty = ty
 

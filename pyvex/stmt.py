@@ -2,7 +2,6 @@ import logging
 from typing import Iterator, Optional
 
 from . import VEXObject
-from archinfo import RegisterOffset, TmpVar
 from .enums import get_enum_from_int, get_int_from_enum
 
 l = logging.getLogger('pyvex.stmt')
@@ -158,7 +157,7 @@ class Put(IRStmt):
 
     tag = 'Ist_Put'
 
-    def __init__(self, data: 'IRExpr', offset: RegisterOffset):
+    def __init__(self, data: 'IRExpr', offset: int):
         self.data = data
         self.offset = offset
 
@@ -226,7 +225,7 @@ class WrTmp(IRStmt):
 
     tag = 'Ist_WrTmp'
 
-    def __init__(self, tmp: TmpVar, data: 'IRExpr'):
+    def __init__(self, tmp: int, data: 'IRExpr'):
         self.tmp = tmp
         self.data = data
 
