@@ -73,7 +73,7 @@ def _build_vex():
     e['MULTIARCH'] = '1'
     e['DEBUG'] = '1'
 
-    cmd1 = ['nmake', '/f', 'Makefile-msvc', 'all']
+    cmd1 = ['nmake', '/f', 'Makefile-msvc', r'pub\libvex_guest_offsets.h', 'all']
     cmd2 = ['make', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
     cmd3 = ['gmake', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
     for cmd in (cmd1, cmd2, cmd3):
