@@ -4,7 +4,7 @@ For an introduction to VEX, take a look here: https://docs.angr.io/advanced-topi
 """
 from typing import NewType, Any
 
-__version__ = (8, 20, 6, 1)
+__version__ = (8, 20, 6, 8)
 
 if bytes is str:
     raise Exception("This module is designed for python 3 only. Please install an older version to use python 2.")
