@@ -288,11 +288,10 @@ class Instruction_tMRS(ThumbInstruction):
                 src = self.get(13, Type.int_32)
                 self.put(src, dest_reg)
             else:
-                l.warning("[thumb] MRS is using the unsupported special register %#x. Ignoring the instruction. FixMe.", spec_reg)    
+                l.warning("[thumb] MRS is using the unsupported special register %#x. Ignoring the instruction. FixMe.", spec_reg)
         else:
             l.warning("[thumb] MRS is reading from SPSR. Ignoring the instruction. FixMe.")
             l.debug("[thumb] Ignoring MRS instruction at %#x.", self.addr)
-        
         l.warning("[thumb] Spotting an MRS instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr)
 
 
