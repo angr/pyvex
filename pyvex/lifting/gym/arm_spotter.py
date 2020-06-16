@@ -275,8 +275,25 @@ class Instruction_tMRS(ThumbInstruction):
     bin_format = '10x0mmmmxxxxxxxx11110011111Rrrrr'
 
     def compute_result(self): # pylint: disable=arguments-differ
-        # TODO haha lol yeah right
-        l.debug("[thumb] Ignoring MRS instruction at %#x.", self.addr)
+
+        spec_reg = int(self.data['x'], 2)
+        dest_reg = int(self.data['m'], 2)
+
+        # Reading from CPSR
+        if self.data['R'] == '0':
+            # According to Capstone 0x8 is msp
+            # https://github.com/aquynh/capstone/blob/45bec1a691e455b864f7e4d394711a467e5493dc/arch/ARM/ARMInstPrinter.c#L1654
+            if spec_reg == 8:
+                # We move the SP and call it a day.
+                src = self.get(13, Type.int_32)
+                self.put(src, dest_reg)
+            else:
+                l.warning("[thumb] MRS is using the unsupported special register %#x. Ignoring the instruction. FixMe.", spec_reg)    
+        else:
+            l.warning("[thumb] MRS is reading from SPSR. Ignoring the instruction. FixMe.")
+            l.debug("[thumb] Ignoring MRS instruction at %#x.", self.addr)
+        
+        l.warning("[thumb] Spotting an MRS instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr)
 
 
 class Instruction_tDMB(ThumbInstruction):
