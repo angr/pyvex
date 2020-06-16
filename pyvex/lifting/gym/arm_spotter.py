@@ -285,7 +285,7 @@ class Instruction_tMRS(ThumbInstruction):
             # https://github.com/aquynh/capstone/blob/45bec1a691e455b864f7e4d394711a467e5493dc/arch/ARM/ARMInstPrinter.c#L1654
             if spec_reg == 8:
                 # We move the SP and call it a day.
-                src = self.get(13, Type.int_32)
+                src = self.get("sp", Type.int_32)
                 self.put(src, dest_reg)
             else:
                 l.warning("[thumb] MRS is using the unsupported special register %#x. Ignoring the instruction. FixMe.", spec_reg)
