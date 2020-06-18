@@ -282,7 +282,6 @@ class Instruction_tMSR(ThumbInstruction):
                l.warning("[thumb] MSR at %#x is writing into an unsupported special register %#x. Ignoring the instruction. FixMe.", self.addr, dest_spec_reg)
         else:
             l.warning("[thumb] MSR at %#x is writing SPSR. Ignoring the instruction. FixMe.", self.addr)
-        
         l.warning("[thumb] Spotting an MSS instruction at %#x.  This is not fully tested.  Prepare for errors." , self.addr)
 
 class Instruction_tMRS(ThumbInstruction):
@@ -310,7 +309,6 @@ class Instruction_tMRS(ThumbInstruction):
         else:
             l.warning("[thumb] MRS at %#x is reading from SPSR. Ignoring the instruction. FixMe." , self.addr)
             l.debug("[thumb] Ignoring MRS instruction at %#x.", self.addr)
-        
         l.warning("[thumb] Spotting an MRS instruction at %#x.  This is not fully tested.  Prepare for errors." , self.addr)
 
 class Instruction_tDMB(ThumbInstruction):
