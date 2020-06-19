@@ -100,10 +100,10 @@ def test_tmrs():
     p = angr.Project(os.path.join(test_location, 'armel', 'helloworld'), arch="ARMEL")
     ins = b'\xef\xf3\x08\x82'
     b = pyvex.block.IRSB(ins, 1, p.arch)
-    nose.tools.assert_equal(b.jumpkind, "Ijk_Boring")
-    nose.tools.assert_equal(b.statements[1].data,pyvex.expr.Get)
+    nose.tools.assert_equal(type(b.jumpkind), "Ijk_Boring")
+    nose.tools.assert_equal(type(b.statements[1].data),pyvex.expr.Get)
     nose.tools.assert_equal(p.arch.register_names.get(b.statements[1].data.offset , ''),"sp")
-    nose.tools.assert_equal(b.statements[2],pyvex.stmt.Put)
+    nose.tools.assert_equal(type(b.statements[2]),pyvex.stmt.Put)
 
 if __name__ == '__main__':
     test_basic()
