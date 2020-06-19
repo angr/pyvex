@@ -98,7 +98,7 @@ def test_full_binary():
 def test_tmrs():
     test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../binaries/tests'))
     p = angr.Project(os.path.join(test_location, 'armel', 'helloworld'), arch="ARMEL")
-    ins = b'\xef\xf3\x08\x82' 
+    ins = b'\xef\xf3\x08\x82'
     b = pyvex.block.IRSB(ins, 1, p.arch)
     nose.tools.assert_equal(b.jumpkind, "Ijk_Boring")
     nose.tools.assert_equal(b.statements[1].data,pyvex.expr.Get)
