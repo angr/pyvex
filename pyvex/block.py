@@ -251,6 +251,18 @@ class IRSB(VEXObject):
     def __str__(self):
         return self._pp_str()
 
+    def __eq__(self, other):
+        return (isinstance(other, IRSB) and
+                self.addr == other.addr and
+                self.arch.name == other.arch.name and
+                self.statements == other.statements and
+                self.next == other.next and
+                self.jumpkind == other.jumpkind
+                )
+
+    def __hash__(self):
+        return hash((IRSB, self.addr, self.arch.name, tuple(self.statements), self.next, self.jumpkind))
+
     def typecheck(self):
         try:
             # existence assertions
