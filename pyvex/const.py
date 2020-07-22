@@ -50,6 +50,14 @@ class IRConst(VEXObject):
         except KeyError:
             raise PyVEXError('Unknown/unsupported IRConstTag %s]n' % const.tag)
 
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        return self._value == other._value
+
+    def __hash__(self):
+        return hash((type(self), self._value))
+
 
 class U1(IRConst):
     __slots__ = [ ] # type: List
