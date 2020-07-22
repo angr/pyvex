@@ -10,6 +10,22 @@ class VEXObject:
 
     __slots__ = [ ] # type: List
 
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        # compare values in slots
+        for slot in self.__slots__:
+            if getattr(self, slot) != getattr(other, slot):
+                return False
+        return True
+
+    def __hash__(self):
+        values = [ getattr(self, slot) for slot in self.__slots__ ]
+        for i in range(len(values)):
+            if isinstance(values[i], list):
+                values[i] = tuple(values[i])
+        return hash(tuple([type(self)] + values))
+
 
 class IRCallee(VEXObject):
     """
