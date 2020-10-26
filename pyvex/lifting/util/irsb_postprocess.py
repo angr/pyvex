@@ -1,3 +1,4 @@
+from typing import Optional
 
 from ...block import IRSB
 from ...stmt import WrTmp, Put, IMark, Store, NoOp
@@ -18,15 +19,12 @@ def _flatten_and_get_expr(irsb_old, irsb_c, old_to_new_tmp, expr):
         return RdTmp.get_instance(irsb_c.mktmp(expr.__class__(expr.op, expr_args)))
 
 
-def irsb_postproc_flatten(irsb_old, irsb_new=None):
+def irsb_postproc_flatten(irsb_old: IRSB, irsb_new: Optional[IRSB]=None) -> IRSB:
     """
 
     :param irsb_old: The IRSB to be flattened
-    :type irsb_old: IRSB
     :param irsb_new: the IRSB to rewrite the instructions of irsb_old to. If it is None a new empty IRSB will be created
-    :type irsb_new: IRSB
     :return: the flattened IRSB
-    :rtype: IRSB
     """
     irsb_new = irsb_new if irsb_new is not None else IRSB(None, irsb_old.addr, irsb_old.arch)
     irsb_c = IRSBCustomizer(irsb_new)
