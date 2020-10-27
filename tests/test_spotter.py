@@ -120,4 +120,4 @@ if __name__ == '__main__':
     test_embedded()
     test_full_binary()
     test_tmrs()
-    test_msr()
+    test_tmsr()
