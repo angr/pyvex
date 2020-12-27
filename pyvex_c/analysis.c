@@ -1,6 +1,7 @@
 #include <libvex.h>
 #include <stddef.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "pyvex.h"
 
@@ -195,6 +196,110 @@ Addr get_value_from_const_expr(
 //
 
 
+/* General map. Shamelessly stolen from ir_opt.c in libVEX */
+
+typedef
+   struct {
+      Bool*  inuse;
+      HWord* key;
+      HWord* val;
+      Int    size;
+      Int    used;
+   }
+   HashHW;
+
+static HashHW* newHHW()
+{
+   HashHW* h = malloc(sizeof(HashHW));
+   h->size   = 8;
+   h->used   = 0;
+   h->inuse  = (Bool*)malloc(h->size * sizeof(Bool));
+   h->key    = (HWord*)malloc(h->size * sizeof(HWord));
+   h->val    = (HWord*)malloc(h->size * sizeof(HWord));
+   return h;
+}
+
+static void freeHHW(HashHW* h)
+{
+	free(h->inuse);
+	free(h->key);
+	free(h->val);
+	free(h);
+}
+
+
+/* Look up key in the map. */
+
+static Bool lookupHHW(HashHW* h, /*OUT*/HWord* val, HWord key)
+{
+   Int i;
+
+   for (i = 0; i < h->used; i++) {
+      if (h->inuse[i] && h->key[i] == key) {
+         if (val)
+            *val = h->val[i];
+         return True;
+      }
+   }
+   return False;
+}
+
+
+/* Add key->val to the map.  Replaces any existing binding for key. */
+
+static void addToHHW(HashHW* h, HWord key, HWord val)
+{
+   Int i, j;
+
+   /* Find and replace existing binding, if any. */
+   for (i = 0; i < h->used; i++) {
+      if (h->inuse[i] && h->key[i] == key) {
+         h->val[i] = val;
+         return;
+      }
+   }
+
+   /* Ensure a space is available. */
+   if (h->used == h->size) {
+      /* Copy into arrays twice the size. */
+      Bool*  inuse2 = malloc(2 * h->size * sizeof(Bool));
+      HWord* key2   = malloc(2 * h->size * sizeof(HWord));
+      HWord* val2   = malloc(2 * h->size * sizeof(HWord));
+      for (i = j = 0; i < h->size; i++) {
+         if (!h->inuse[i]) continue;
+         inuse2[j] = True;
+         key2[j] = h->key[i];
+         val2[j] = h->val[i];
+         j++;
+      }
+      h->used = j;
+      h->size *= 2;
+	  free(h->inuse);
+      h->inuse = inuse2;
+	  free(h->key);
+      h->key = key2;
+	  free(h->val);
+      h->val = val2;
+   }
+
+   /* Finally, add it. */
+   h->inuse[h->used] = True;
+   h->key[h->used] = key;
+   h->val[h->used] = val;
+   h->used++;
+}
+
+/* Create keys, of the form ((minoffset << 16) | maxoffset). */
+
+static UInt mk_key_GetPut ( Int offset, IRType ty )
+{
+   /* offset should fit in 16 bits. */
+   UInt minoff = offset;
+   UInt maxoff = minoff + sizeofIRType(ty) - 1;
+   return (minoff << 16) | maxoff;
+}
+
+
 void record_data_reference(
 	VEXLiftResult *lift_r,
 	Addr data_addr,
@@ -237,12 +342,28 @@ void record_const(
 }
 
 
+typedef struct {
+	int used;
+	ULong value;
+} TmpValue;
+
+
 void collect_data_references(
 	IRSB *irsb,
 	VEXLiftResult *lift_r) {
 
 	Int i;
 	Addr inst_addr = -1, next_inst_addr = -1;
+	HashHW* env = newHHW();
+	TmpValue *tmps = NULL;
+	TmpValue tmp_backingstore[1024];
+	if (irsb->tyenv->types_used > 1024) {
+		tmps = malloc(irsb->tyenv->types_used * sizeof(TmpValue));
+	} else {
+		tmps = tmp_backingstore;  // Use the local backing store to save a malloc
+	}
+
+	memset(tmps, 0, irsb->tyenv->types_used * sizeof(TmpValue));
 
 	for (i = 0; i < irsb->stmts_used; ++i) {
 		IRStmt *stmt = irsb->stmts[i];
@@ -266,14 +387,35 @@ void collect_data_references(
 					}
 					break;
 				case Iex_Binop:
-					if ((data->Iex.Binop.op == Iop_Add32 || data->Iex.Binop.op == Iop_Add64) &&
-							(data->Iex.Binop.arg1->tag == Iex_Const && data->Iex.Binop.arg2->tag == Iex_Const)) {
-						// ip-related addressing
-						Addr addr;
-						addr = get_value_from_const_expr(data->Iex.Binop.arg1->Iex.Const.con) +
-							get_value_from_const_expr(data->Iex.Binop.arg2->Iex.Const.con);
-						if (addr != next_inst_addr) {
-							record_data_reference(lift_r, addr, 0, Dt_Unknown, i, inst_addr);
+					if (data->Iex.Binop.op == Iop_Add32 || data->Iex.Binop.op == Iop_Add64) {
+						IRExpr *arg1 = data->Iex.Binop.arg1, *arg2 = data->Iex.Binop.arg2;
+						if (arg1->tag == Iex_Const && arg2->tag == Iex_Const) {
+							// ip-related addressing
+							Addr addr = get_value_from_const_expr(arg1->Iex.Const.con) +
+								get_value_from_const_expr(arg2->Iex.Const.con);
+							if (data->Iex.Binop.op == Iop_Add32) {
+									addr &= 0xffffffff;
+								}
+							if (addr != next_inst_addr) {
+								record_data_reference(lift_r, addr, 0, Dt_Unknown, i, inst_addr);
+							}
+						} else {
+							// Do the calculation
+							if (arg1->tag == Iex_RdTmp
+								&& tmps[arg1->Iex.RdTmp.tmp].used
+								&& arg2->tag == Iex_Const) {
+								ULong arg1_value = tmps[arg1->Iex.RdTmp.tmp].value;
+								ULong arg2_value = get_value_from_const_expr(arg2->Iex.Const.con);
+								ULong value = arg1_value + arg2_value;
+								if (data->Iex.Binop.op == Iop_Add32) {
+									value &= 0xffffffff;
+								}
+								record_data_reference(lift_r, value, 0, Dt_Unknown, i, inst_addr);
+							}
+							if (arg2->tag == Iex_Const) {
+								ULong arg2_value = get_value_from_const_expr(arg2->Iex.Const.con);
+								record_data_reference(lift_r, arg2_value, 0, Dt_Unknown, i, inst_addr);
+							}
 						}
 					}
 					else {
@@ -289,6 +431,8 @@ void collect_data_references(
 				case Iex_Const:
 					{
 						record_const(lift_r, data, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+						tmps[stmt->Ist.WrTmp.tmp].used = 1;
+						tmps[stmt->Ist.WrTmp.tmp].value = get_value_from_const_expr(data->Iex.Const.con);
 					}
 					break;
 				case Iex_ITE:
@@ -301,6 +445,15 @@ void collect_data_references(
 						}
 					}
 					break;
+				case Iex_Get:
+					{
+						UInt key = mk_key_GetPut(data->Iex.Get.offset, data->Iex.Get.ty);
+						ULong val;
+						if (lookupHHW(env, &val, key) == True) {
+							tmps[stmt->Ist.WrTmp.tmp].used = 1;
+							tmps[stmt->Ist.WrTmp.tmp].value = val;
+						}
+					}
 				default:
 					// Unsupported for now
 					break;
@@ -315,6 +468,8 @@ void collect_data_references(
 				IRExpr *data = stmt->Ist.Put.data;
 				if (data->tag == Iex_Const) {
 					record_const(lift_r, data, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+					UInt key = mk_key_GetPut(stmt->Ist.Put.offset, typeOfIRExpr(irsb->tyenv, data));
+					addToHHW(env, key, get_value_from_const_expr(data->Iex.Const.con));
 				}
 			}
 			break;
@@ -352,5 +507,10 @@ void collect_data_references(
 		default:
 			break;
 		} // end switch (stmt->tag)
+	}
+
+	freeHHW(env);
+	if (tmps != tmp_backingstore) {
+		free(tmps);
 	}
 }
