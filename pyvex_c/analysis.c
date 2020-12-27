@@ -391,9 +391,11 @@ void collect_data_references(
 						IRExpr *arg1 = data->Iex.Binop.arg1, *arg2 = data->Iex.Binop.arg2;
 						if (arg1->tag == Iex_Const && arg2->tag == Iex_Const) {
 							// ip-related addressing
-							Addr addr;
-							addr = get_value_from_const_expr(data->Iex.Binop.arg1->Iex.Const.con) +
-								get_value_from_const_expr(data->Iex.Binop.arg2->Iex.Const.con);
+							Addr addr = get_value_from_const_expr(arg1->Iex.Const.con) +
+								get_value_from_const_expr(arg2->Iex.Const.con);
+							if (data->Iex.Binop.op == Iop_Add32) {
+									addr &= 0xffffffff;
+								}
 							if (addr != next_inst_addr) {
 								record_data_reference(lift_r, addr, 0, Dt_Unknown, i, inst_addr);
 							}
@@ -409,6 +411,10 @@ void collect_data_references(
 									value &= 0xffffffff;
 								}
 								record_data_reference(lift_r, value, 0, Dt_Unknown, i, inst_addr);
+							}
+							if (arg2->tag == Iex_Const) {
+								ULong arg2_value = get_value_from_const_expr(arg2->Iex.Const.con);
+								record_data_reference(lift_r, arg2_value, 0, Dt_Unknown, i, inst_addr);
 							}
 						}
 					}
