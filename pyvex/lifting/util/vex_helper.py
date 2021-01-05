@@ -28,6 +28,8 @@ class TypeMeta(type):
         if match:
             width = int(match.group('size'))
             return vex_int_class(width).type
+        else:
+            return type.__getattr__(name)
 
 class Type(with_metaclass(TypeMeta, object)):
     __metaclass__ = TypeMeta
