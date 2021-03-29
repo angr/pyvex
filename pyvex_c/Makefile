@@ -14,6 +14,10 @@ ifeq ($(UNAME), NetBSD)
 	STATIC_LIBRARY_FILE=libpyvex.a
 	LDFLAGS=-Wl,-soname,$(LIBRARY_FILE)
 endif
+ifeq ($(UNAME), OpenBSD)
+	LIBRARY_FILE=libpyvex.so
+	LDFLAGS=-Wl,-soname,$(LIBRARY_FILE) -L/usr/local/lib -lvex
+endif
 ifeq ($(findstring MINGW,$(UNAME)), MINGW)
 	LIBRARY_FILE=pyvex.dll
 	STATIC_LIBRARY_FILE=libpyvex.a
@@ -26,7 +30,7 @@ sp =$(null) $(null)
 qs = $(subst ?,$(sp),$1)
 sq = $(subst $(sp),?,$1)
 
-CC=gcc
+CC?=gcc
 AR=ar
 INCFLAGS=-I "$(VEX_INCLUDE_PATH)"
 CFLAGS=-g -O2 -Wall -shared -fPIC -std=c99 $(INCFLAGS)
