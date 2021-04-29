@@ -128,6 +128,7 @@ int vex_init() {
 	vc.arm64_allow_reordered_writeback = 0;
 	vc.x86_optimize_callpop_idiom = 0;
 	vc.strict_block_end = 0;
+	vc.special_instruction_support = 0;
 
 	pyvex_debug("Calling LibVEX_Init()....\n");
 	if (setjmp(jumpout) == 0) {
