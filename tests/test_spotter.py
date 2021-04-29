@@ -93,7 +93,7 @@ def test_full_binary():
     simgr = p.factory.simulation_manager(st)
     simgr.step()
     nose.tools.assert_equal(b.jumpkind, 'Ijk_Sys_syscall')
-    nose.tools.assert_equal(simgr.active[0].addr, 0x13fb)
+    nose.tools.assert_equal(simgr.active[0].regs.ip_at_syscall.args[0], 0x13fb)
 
 if __name__ == '__main__':
     test_basic()
