@@ -360,7 +360,7 @@ VEXLiftResult *vex_lift(
 		}
 		zero_division_side_exits(_lift_r.irsb);
 		if (collect_data_refs) {
-			collect_data_references(_lift_r.irsb, &_lift_r);
+			collect_data_references(_lift_r.irsb, &_lift_r, guest);
 		}
 		return &_lift_r;
 	} else {
