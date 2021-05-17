@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <libvex_guest_arm.h>
 
 #include "pyvex.h"
 
@@ -351,7 +352,8 @@ typedef struct {
 
 void collect_data_references(
 	IRSB *irsb,
-	VEXLiftResult *lift_r) {
+	VEXLiftResult *lift_r,
+	VexArch guest) {
 
 	Int i;
 	Addr inst_addr = -1, next_inst_addr = -1;
@@ -466,6 +468,11 @@ void collect_data_references(
 			// e.g. PUT(rdi) = 0x0000000000400714
 			assert(inst_addr != -1 && next_inst_addr != -1);
 			{
+				// Ignore itstate on ARM
+				if (guest == VexArchARM && stmt->Ist.Put.offset == offsetof(VexGuestARMState,guest_ITSTATE)) {
+					break;
+				}
+
 				IRExpr *data = stmt->Ist.Put.data;
 				if (data->tag == Iex_Const) {
 					record_const(lift_r, data, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
@@ -503,6 +510,20 @@ void collect_data_references(
 				stmt->Ist.Dirty.details->mAddr->tag == Iex_Const) {
 				IRExpr *m_addr = stmt->Ist.Dirty.details->mAddr;
 				record_const(lift_r, m_addr, stmt->Ist.Dirty.details->mSize, Dt_FP, i, inst_addr, next_inst_addr);
+			}
+			break;
+		case Ist_LoadG:
+			// LoadG
+			// e.g., t7 = if (t70) ILGop_Ident32(LDle(0x00032f50)) else t69
+			if (stmt->Ist.LoadG.details->addr != NULL &&
+				stmt->Ist.LoadG.details->addr->tag == Iex_Const) {
+				IRExpr *addr = stmt->Ist.LoadG.details->addr;
+				IRType data_type = typeOfIRExpr(irsb->tyenv, addr);
+				Int data_size = 0;
+				if (data_type != Ity_INVALID) {
+					data_size = sizeofIRType(data_type);
+				}
+				record_const(lift_r, addr, data_size, Dt_Unknown, i, inst_addr, next_inst_addr);
 			}
 			break;
 		default:

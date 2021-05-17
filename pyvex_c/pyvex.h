@@ -81,7 +81,7 @@ void remove_noops(IRSB* irsb);
 void zero_division_side_exits(IRSB* irsb);
 void get_exits_and_inst_addrs(IRSB *irsb, VEXLiftResult *lift_r);
 void get_default_exit_target(IRSB *irsb, VEXLiftResult *lift_r );
-void collect_data_references(IRSB *irsb, VEXLiftResult *lift_r);
+void collect_data_references(IRSB *irsb, VEXLiftResult *lift_r, VexArch guest);
 Addr get_value_from_const_expr(IRConst* con);
 
 #endif
