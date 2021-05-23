@@ -164,7 +164,7 @@ class Instruction:
             # This arch stores its instructions in memory endian-flipped compared to the ISA.
             # To enable natural lifter-writing, we let the user write them like in the manual, and correct for
             # endness here.
-            instr_bits = bitstring.Bits(uint=bitstrm.peek("uintle:%d" % numbits), length=numbits).bin
+            instr_bits = self._load_le_instr(bitstrm, numbits)
         else:
             instr_bits = bitstrm.peek("bin:%d" % numbits)
         data = {c : '' for c in self.bin_format if c in string.ascii_letters} # pylint: disable=no-member
@@ -263,7 +263,6 @@ class Instruction:
         """
         offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
         self.irsb_c.put(val.rdt, offset)
-        
         
     def put_conditional(self, cond, valiftrue, valiffalse, reg):
         """
@@ -376,3 +375,6 @@ class Instruction:
                 setattr(ccall, func_obj.__name__, func_obj)
         cc = self.irsb_c.op_ccall(ret_type, func_obj.__name__, args)
         return VexValue(self.irsb_c, cc)
+
+    def _load_le_instr(self, bitstream: bitstring.ConstBitStream, numbits: int) -> str:
+        return bitstring.Bits(uint=bitstream.peek("uintle:%d" % numbits), length=numbits).bin

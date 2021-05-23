@@ -1,10 +1,10 @@
+import bitstring
 import logging
 
 from ..util.lifter_helper import GymratLifter
 from ..util.instr_helper import Instruction, ParseError
 from ..util import JumpKind, Type
 from .. import register
-#from ...expr import *
 
 l = logging.getLogger(__name__)
 
@@ -97,6 +97,18 @@ class ARMInstruction(Instruction): # pylint: disable=abstract-method
         else:
             # No condition
             return None
+
+    def _load_le_instr(self, bitstream: bitstring.ConstBitStream, numbits: int) -> str:
+        # THUMB mode instructions swap endianness every two bytes!
+        if (self.addr & 1) == 1 and numbits > 16:
+            chunk = ""
+            oldpos = bitstream.pos
+            for startpos in range(0, numbits, 16):
+                chunk += bitstring.Bits(uint=bitstream.peek("uintle:%d" % 16), length=16).bin
+                bitstream.pos += 16
+            bitstream.pos = oldpos
+            return chunk
+        return super()._load_le_instr(bitstream, numbits)
 
 
 class Instruction_MRC(ARMInstruction):
@@ -314,6 +326,8 @@ class ARMSpotter(GymratLifter):
                     Instruction_tMRS,
                     Instruction_WFI,
                     Instruction_tDMB,
+                    Instruction_STC,
+                    Instruction_LDC,
                     ]
     instrs = None
 
@@ -321,9 +335,11 @@ class ARMSpotter(GymratLifter):
         if self.irsb.addr & 1:
             # Thumb!
             self.instrs = self.thumb_instrs
+            self.thumb = True
         else:
             self.instrs = self.arm_instrs
-        super(ARMSpotter, self).lift(disassemble, dump_irsb)
+            self.thumb = False
+        super().lift(disassemble, dump_irsb)
 
 register(ARMSpotter, "ARM")
 register(ARMSpotter, "ARMEL")
