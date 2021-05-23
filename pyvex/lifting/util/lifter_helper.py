@@ -31,14 +31,14 @@ class GymratLifter(Lifter):
     of the lifted code.
     """
 
-    __slots__ = ('bitstrm', 'instrs', 'errors', 'thedata', )
+    __slots__ = ('bitstrm', 'errors', 'thedata', )
 
     REQUIRE_DATA_PY = True
+    instrs = None
 
     def __init__(self, *args):
         super().__init__(*args)
         self.bitstrm = None
-        self.instrs = None
         self.errors = None
         self.thedata = None
 

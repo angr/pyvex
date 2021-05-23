@@ -351,8 +351,6 @@ class ARMSpotter(GymratLifter):
                     Instruction_LDC_THUMB,
                     ]
 
-    __slots__ = ('thumb', )
-
     def __init__(self, *args):
         super().__init__(*args)
         self.thumb: bool = False
