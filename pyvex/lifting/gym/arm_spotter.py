@@ -232,8 +232,17 @@ class Instruction_STC(ARMInstruction):
         l.debug("Ignoring STC instruction at %#x.", self.addr)
 
 
-class Instruction_LDC(ARMInstruction):
+class Instruction_STC_THUMB(ARMInstruction):
     name = 'STC'
+    bin_format = '111c110PUNW0nnnnddddppppOOOOOOOO'
+
+    def compute_result(self): # pylint: disable=arguments-differ
+        # TODO At least look at the conditionals
+        l.debug("Ignoring STC instruction at %#x.", self.addr)
+
+
+class Instruction_LDC(ARMInstruction):
+    name = 'LDC'
     bin_format = 'cccc110PUNW1nnnnddddppppOOOOOOOO'
 
     def compute_result(self): # pylint: disable=arguments-differ
@@ -241,6 +250,18 @@ class Instruction_LDC(ARMInstruction):
         # TODO Clobber the dest reg of LDC
         # TODO Maybe clobber the dst reg of CDP, if we're really adventurous
         l.debug("Ignoring LDC instruction at %#x.", self.addr)
+
+
+class Instruction_LDC_THUMB(ARMInstruction):
+    name = 'LDC'
+    bin_format = '111c110PUNW1nnnnddddppppOOOOOOOO'
+
+    def compute_result(self): # pylint: disable=arguments-differ
+        # TODO At least look at the conditionals
+        # TODO Clobber the dest reg of LDC
+        # TODO Maybe clobber the dst reg of CDP, if we're really adventurous
+        l.debug("Ignoring LDC instruction at %#x.", self.addr)
+
 
 class Instruction_CDP(Instruction):
     name = "CDP"
@@ -326,8 +347,8 @@ class ARMSpotter(GymratLifter):
                     Instruction_tMRS,
                     Instruction_WFI,
                     Instruction_tDMB,
-                    Instruction_STC,
-                    Instruction_LDC,
+                    Instruction_STC_THUMB,
+                    Instruction_LDC_THUMB,
                     ]
 
     __slots__ = ('thumb', )
