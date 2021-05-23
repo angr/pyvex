@@ -103,7 +103,7 @@ class ARMInstruction(Instruction): # pylint: disable=abstract-method
         if (self.addr & 1) == 1 and numbits > 16:
             chunk = ""
             oldpos = bitstream.pos
-            for startpos in range(0, numbits, 16):
+            for _ in range(0, numbits, 16):
                 chunk += bitstring.Bits(uint=bitstream.peek("uintle:%d" % 16), length=16).bin
                 bitstream.pos += 16
             bitstream.pos = oldpos
@@ -329,7 +329,12 @@ class ARMSpotter(GymratLifter):
                     Instruction_STC,
                     Instruction_LDC,
                     ]
-    instrs = None
+
+    __slots__ = ('thumb', )
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.thumb: bool = False
 
     def lift(self, disassemble=False, dump_irsb=False):
         if self.irsb.addr & 1:

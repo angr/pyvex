@@ -30,7 +30,17 @@ class GymratLifter(Lifter):
     pyvex, when lifting a block of code for this architecture, will call the method "lift", which will produce the IRSB
     of the lifted code.
     """
+
+    __slots__ = ('bitstrm', 'instrs', 'errors', 'thedata', )
+
     REQUIRE_DATA_PY = True
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.bitstrm = None
+        self.instrs = None
+        self.errors = None
+        self.thedata = None
 
     def create_bitstrm(self):
         self.bitstrm = bitstring.ConstBitStream(bytes=self.thedata)
