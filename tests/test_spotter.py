@@ -114,7 +114,8 @@ def test_tmsr():
     nose.tools.assert_equal(type(b.statements[1].data),pyvex.expr.Get)
     nose.tools.assert_equal(p.arch.register_names.get(b.statements[1].data.offset , ''),"r2")
     nose.tools.assert_equal(type(b.statements[2]),pyvex.stmt.Put)
-    
+
+
 if __name__ == '__main__':
     test_basic()
     test_embedded()
