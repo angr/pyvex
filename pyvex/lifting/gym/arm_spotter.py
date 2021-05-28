@@ -296,20 +296,53 @@ class Instruction_tCPSID(ThumbInstruction):
         l.debug("[thumb] Ignoring CPS instruction at %#x.", self.addr)
 
 class Instruction_tMSR(ThumbInstruction):
-    name = 'MSR'
+    name = 'tMSR'
     bin_format = '10x0mmmmxxxxxxxx11110011100Rrrrr'
 
     def compute_result(self): # pylint: disable=arguments-differ
-        # TODO haha lol yeah right
-        l.debug("[thumb] Ignoring MSR instruction at %#x.", self.addr)
+        dest_spec_reg = int(self.data['x'], 2)
+        src_reg = int(self.data['r'], 2)
+
+        # If 0, do not write the SPSR
+        if self.data['R'] == '0':
+            if dest_spec_reg == 8: #msp
+                src = self.get(src_reg, Type.int_32)
+                self.put(src, 'sp')
+            elif dest_spec_reg == 16: #primask
+                src = self.get(src_reg, Type.int_32)
+                self.put(src, 'primask')
+            else:
+               l.warning("[thumb] tMSR at %#x is writing into an unsupported special register %#x. Ignoring the instruction. FixMe.", self.addr, dest_spec_reg)
+        else:
+            l.warning("[thumb] tMSR at %#x is writing SPSR. Ignoring the instruction. FixMe.", self.addr)
+        l.warning("[thumb] Spotting an tMSR instruction at %#x.  This is not fully tested.  Prepare for errors." , self.addr)
 
 class Instruction_tMRS(ThumbInstruction):
-    name = 'MRS'
+    name = 'tMRS'
     bin_format = '10x0mmmmxxxxxxxx11110011111Rrrrr'
 
     def compute_result(self): # pylint: disable=arguments-differ
-        # TODO haha lol yeah right
-        l.debug("[thumb] Ignoring MRS instruction at %#x.", self.addr)
+
+        spec_reg = int(self.data['x'], 2)
+        dest_reg = int(self.data['m'], 2)
+
+        # Reading from CPSR
+        if self.data['R'] == '0':
+            # See special registers constants here:
+            # https://github.com/aquynh/capstone/blob/45bec1a691e455b864f7e4d394711a467e5493dc/arch/ARM/ARMInstPrinter.c#L1654
+            if spec_reg == 8:
+                # We move the SP and call it a day.
+                src = self.get("sp", Type.int_32)
+                self.put(src, dest_reg)
+            elif spec_reg == 16:
+                src = self.get("primask", Type.int_32)
+                self.put(src, dest_reg)
+            else:
+                l.warning("[thumb] tMRS at %#x is using the unsupported special register %#x. Ignoring the instruction. FixMe." , self.addr, spec_reg)
+        else:
+            l.warning("[thumb] tMRS at %#x is reading from SPSR. Ignoring the instruction. FixMe." , self.addr)
+            l.debug("[thumb] Ignoring tMRS instruction at %#x.", self.addr)
+        l.warning("[thumb] Spotting an tMRS instruction at %#x.  This is not fully tested.  Prepare for errors." , self.addr)
 
 
 class Instruction_tDMB(ThumbInstruction):
