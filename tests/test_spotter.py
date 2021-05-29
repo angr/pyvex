@@ -95,7 +95,29 @@ def test_full_binary():
     nose.tools.assert_equal(b.jumpkind, 'Ijk_Sys_syscall')
     nose.tools.assert_equal(simgr.active[0].regs.ip_at_syscall.args[0], 0x13fb)
 
+def test_tmrs():
+    test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../binaries/tests'))
+    p = angr.Project(os.path.join(test_location, 'armel', 'helloworld'), arch="ARMEL")
+    ins = b'\xef\xf3\x08\x82'
+    b = pyvex.block.IRSB(ins, 1, p.arch)
+    nose.tools.assert_equal(b.jumpkind, "Ijk_Boring")
+    nose.tools.assert_equal(type(b.statements[1].data),pyvex.expr.Get)
+    nose.tools.assert_equal(p.arch.register_names.get(b.statements[1].data.offset , ''),"sp")
+    nose.tools.assert_equal(type(b.statements[2]),pyvex.stmt.Put)
+
+def test_tmsr():
+    test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../binaries/tests'))
+    p = angr.Project(os.path.join(test_location, 'armel', 'helloworld'), arch="ARMEL")
+    inss = b'\x82\xf3\x08\x88'
+    b = pyvex.block.IRSB(inss, 1, p.arch, opt_level=3)
+    nose.tools.assert_equal(b.jumpkind, "Ijk_Boring")
+    nose.tools.assert_equal(type(b.statements[1].data),pyvex.expr.Get)
+    nose.tools.assert_equal(p.arch.register_names.get(b.statements[1].data.offset , ''),"r2")
+    nose.tools.assert_equal(type(b.statements[2]),pyvex.stmt.Put)
+
 if __name__ == '__main__':
     test_basic()
     test_embedded()
     test_full_binary()
+    test_tmrs()
+    test_tmsr()
