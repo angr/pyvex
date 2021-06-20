@@ -1,6 +1,8 @@
 from collections import defaultdict
 import logging
 
+import archinfo
+
 from .. import const, ffi
 from ..expr import Const
 from ..block import IRSB
@@ -85,13 +87,17 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                 else:
                     u_data = c_data
             elif lifter.REQUIRE_DATA_PY:
+                if bytes_offset and archinfo.arch_arm.is_arm_arch(arch) and (addr & 1) == 1:
+                    skip = bytes_offset - 1
+                else:
+                    skip = bytes_offset
                 if py_data is None:
                     if max_bytes is None:
                         l.debug('Cannot create py_data from c_data when no max length is given')
                         continue
-                    u_data = ffi.buffer(c_data, max_bytes)[:]
+                    u_data = ffi.buffer(c_data + skip, max_bytes)[:]
                 else:
-                    u_data = py_data
+                    u_data = py_data[skip : skip + max_bytes]
 
             try:
                 final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
