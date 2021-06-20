@@ -84,6 +84,7 @@ class LibVEXLifter(Lifter):
                                   strict_block_end,
                                   collect_data_refs,
                                   px_control,
+                                  self.bytes_offset,
                                   )
             log_str = self.get_vex_log()
             if lift_r == ffi.NULL:
