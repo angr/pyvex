@@ -86,6 +86,7 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                     max_bytes = min(len(py_data), max_bytes) if max_bytes is not None else len(py_data)
                 else:
                     u_data = c_data
+                skip = 0
             elif lifter.REQUIRE_DATA_PY:
                 if bytes_offset and archinfo.arch_arm.is_arm_arch(arch) and (addr & 1) == 1:
                     skip = bytes_offset - 1
@@ -98,15 +99,18 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                     u_data = ffi.buffer(c_data + skip, max_bytes)[:]
                 else:
                     u_data = py_data[skip : skip + max_bytes]
+            else:
+                raise RuntimeError("Incorrect lifter configuration. What type of data does %s expect?"
+                                   % lifter.__class__)
 
             try:
-                final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
+                final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset - skip, max_bytes, max_inst, opt_level, traceflags,
                                                       allow_arch_optimizations, strict_block_end, skip_stmts,
                                                       collect_data_refs, cross_insn_opt=cross_insn_opt,
                                                       )
             except SkipStatementsError:
                 assert skip_stmts is True
-                final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset, max_bytes, max_inst, opt_level, traceflags,
+                final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset - skip, max_bytes, max_inst, opt_level, traceflags,
                                                       allow_arch_optimizations, strict_block_end, skip_stmts=False,
                                                       collect_data_refs=collect_data_refs,
                                                       cross_insn_opt=cross_insn_opt,
