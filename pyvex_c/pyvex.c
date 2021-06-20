@@ -308,7 +308,8 @@ VEXLiftResult *vex_lift(
 		int allow_arch_optimizations,
 		int strict_block_end,
 		int collect_data_refs,
-		VexRegisterUpdates px_control) {
+		VexRegisterUpdates px_control,
+		unsigned int lookback) {
 	VexRegisterUpdates pxControl = px_control;
 
 	vex_prepare_vai(guest, &archinfo);
@@ -328,6 +329,7 @@ VEXLiftResult *vex_lift(
 	vc.guest_max_bytes     = max_bytes;
 	vc.guest_max_insns     = max_insns;
 	vc.iropt_level         = opt_level;
+	vc.lookback_amount     = lookback;
 
 	// Gate all of these on one flag, they depend on the arch
 	vc.arm_allow_optimizing_lookback = allow_arch_optimizations;
