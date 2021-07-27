@@ -200,7 +200,7 @@ setup(
         'pycparser',
         'cffi>=1.0.3',
         'archinfo==9.0.gitrolling',
-        'bitstring<3.1.8',
+        'bitstring',
         'future',
     ],
     setup_requires=[ 'pycparser', 'cffi>=1.0.3' ],
