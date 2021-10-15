@@ -11,6 +11,9 @@ if bytes is str:
 
 import os
 import sys
+import hashlib
+import pickle
+import tempfile
 import cffi
 from .vex_ffi import ffi_str as _ffi_str
 ffi = cffi.FFI()
@@ -35,6 +38,27 @@ def _locate_lib(module: str, library: str) -> str:
     return pkg_resources.resource_filename(module, os.path.join('lib', library))
 
 
+def _parse_ffi_str():
+    hash = hashlib.md5(_ffi_str.encode("utf-8")).hexdigest()
+    cache_location = os.path.join(tempfile.gettempdir(), f"pyvex_ffi_parser_cache.{hash}")
+
+    if os.path.isfile(cache_location):
+        # load the cache
+        with open(cache_location, "rb") as f:
+            cache = pickle.loads(f.read())
+        ffi._parser._declarations = cache['_declarations']
+        ffi._parser._int_constants = cache['_int_constants']
+    else:
+        ffi.cdef(_ffi_str)
+        # cache the result
+        cache = {
+            '_declarations': ffi._parser._declarations,
+            '_int_constants': ffi._parser._int_constants,
+        }
+        with open(cache_location, "wb") as f:
+            f.write(pickle.dumps(cache))
+
+
 def _find_c_lib():
     # Load the c library for calling into VEX
     if sys.platform in ('win32', 'cygwin'):
@@ -45,8 +69,8 @@ def _find_c_lib():
         library_file = "libpyvex.so"
 
     pyvex_path = _locate_lib(__name__, os.path.join("lib", library_file))
-
-    ffi.cdef(_ffi_str)
+    # parse _ffi_str and use cache if possible
+    _parse_ffi_str()
     # RTLD_GLOBAL used for sim_unicorn.so
     lib = ffi.dlopen(pyvex_path)
     if not lib.vex_init():
