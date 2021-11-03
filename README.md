@@ -93,7 +93,7 @@ An IR abstracts away several architecture differences when dealing with differen
 There are lots of choices for an IR. We use VEX, since the uplifting of binary code into VEX is quite well supported.
 VEX is an architecture-agnostic, side-effects-free representation of a number of target machine languages.
 It abstracts machine code into a representation designed to make program analysis easier.
-This representation has four main classes of objects:
+This representation has five main classes of objects:
 
 - **Expressions.** IR Expressions represent a calculated or constant value. This includes memory loads, register reads, and results of arithmetic operations.
 - **Operations.** IR Operations describe a *modification* of IR Expressions. This includes integer arithmetic, floating-point arithmetic, bit operations, and so forth. An IR Operation applied to IR Expressions yields an IR Expression as a result.
