@@ -19,47 +19,60 @@ class Instruction:
     These classes will contain the "semantics" of the instruction, that is, what it _does_, in terms of the VEX IR.
 
     You may want to subclass this for your architecture, and add arch-specific handling
-    for parsing, argument resolution, etc, and have instructions subclass that instead.
+    for parsing, argument resolution, etc., and have instructions subclass that instead.
 
-    The core parsing functionality is done via a "bit format".  Each instruction should be a subclass of Instruction,
-    and will be parsed by comparing bits in the provided bitstream to symbols in the bit_format member of the class.
-    Bit formats are strings of symbols, like those you'd find in an ISA document, such as "0010rrrrddddffmm"
+    The core parsing functionality is done via a `bin_format`.  Each instruction should be a subclass of Instruction,
+    and will be parsed by comparing bits in the provided bitstream to symbols in the `bin_format` member of the class.
+    "Bin formats" are strings of symbols, like those you'd find in an ISA document, such as "0010rrrrddddffmm"
     0 or 1 specify hard-coded bits that must match for an instruction to match.
-    Any letters specify arguments, grouped by letter, which will be parsed and provided as bitstrings in the "data"
+    Any letters specify arguments, grouped by letter, which will be parsed and provided as bitstrings in the `data`
     member of the class as a dictionary.
-    So, in our example, the bits 0010110101101001, applied to format string 0010rrrrddddffmm
-    will result in the following in self.data:
+    So, in our example, the bits `0010110101101001`, applied to format string `0010rrrrddddffmm`
+    will result in the following in `self.data`:
 
-        {'r': '1101',
-         'd': '0110',
-         'f': '10',
-         'm': '01'}
+    ```
+    {'r': '1101',
+     'd': '0110',
+     'f': '10',
+     'm': '01'}
+    ```
 
     Implement compute_result to provide the "meat" of what your instruction does.
-    You can also implement it in your arch-specific subclass of Instruction, to handle things common to all
-    instructions, and provide instruction implementations elsewhere..
+    You can also implement it in your arch-specific subclass of `Instruction`, to handle things common to all
+    instructions, and provide instruction implementations elsewhere.
 
-    We provide the VexValue syntax wrapper to make expressing instruction semantics easy.
-    You first convert the bitstring arguments into VexValues using the provided convenience methods (self.get/put/load)
-    store/etc. This loads the register from the actual registers into a temporary value we can work with.
+    We provide the `VexValue` syntax wrapper to make expressing instruction semantics easy.
+    You first convert the bitstring arguments into `VexValue`s using the provided convenience methods
+    (`self.get/put/load/store/etc.`)
+    This loads the register from the actual registers into a temporary value we can work with.
     You can then write it back to a register when you're done.
-    For example, if you have the register in 'r', as above, you can make a VexValue like this:
-    r_vv = self.get(int(self.data['r'], 2), Type.int_32)
-    If you then had an instruction to increment r, you could simply:
+    For example, if you have the register in `r`, as above, you can make a `VexValue` like this:
 
-        return r_vv += 1
+    ```
+    r = int(self.data['r'], 2) # we get bits corresponding to `r` bits and convert it to an int
+    r_vv = self.get(r, Type.int_32)
+    ```
+
+    If you then had an instruction to increment `r`, you could simply:
+
+    ```
+    return r_vv += 1
+    ```
 
     You could then write it back to the register like this:
 
-        self.put(r_vv, int(self.data['r', 2))
+    ```
+    self.put(r_vv, r)
+    ```
 
     Note that most architectures have special flags that get set differently for each instruction, make sure to
-    implement those as well. (override set_flags() )
+    implement those as well (override `set_flags()` )
 
-    Override parse() to extend parsing; for example, in MSP430, this allows us to grab extra words from the bitstream
+    Override `parse()` to extend parsing.
+    For example, in MSP430, this allows us to grab extra words from the bitstream
     when extra immediate words are present.
 
-    All architectures are different enough that there's no magic recipe for how to write a lifter;
+    All architectures are different enough that there's no magic recipe for how to write a lifter.
     See the examples provided by gymrat for ideas of how to use this to build your own lifters quickly and easily.
     """
 
