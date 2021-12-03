@@ -138,7 +138,6 @@ class Instruction:
         """
         pass
 
-    @abc.abstractmethod
     def compute_result(self, *args):
         """
         This is where the actual operation performed by your instruction, excluding the calculation of flags, should be
