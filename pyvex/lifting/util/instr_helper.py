@@ -12,7 +12,7 @@ from .vex_helper import JumpKind, vex_int_class
 l = logging.getLogger("instr")
 
 
-class Instruction:
+class Instruction(metaclass=abc.ABCMeta):
     """
     Base class for an Instruction.
     You should make a subclass of this for each instruction you want to lift.
@@ -89,8 +89,13 @@ class Instruction:
         """
         self.addr = addr
         self.arch = arch
-        self.bitwidth = len(self.bin_format) # pylint: disable=no-member
+        self.bitwidth = len(self.bin_format)
         self.data = self.parse(bitstrm)
+
+    @property
+    @abc.abstractmethod
+    def bin_format(self):
+        pass
 
     def __call__(self, irsb_c, past_instructions, future_instructions):
         self.lift(irsb_c, past_instructions, future_instructions)
@@ -179,7 +184,7 @@ class Instruction:
         else:
             instr_bits = bitstrm.peek("bin:%d" % self.bitwidth)
         data = {c : '' for c in self.bin_format if c in string.ascii_letters}
-        for c, b in zip(self.bin_format, instr_bits): # pylint: disable=no-member
+        for c, b in zip(self.bin_format, instr_bits):
             if c in '01':
                 if b != c:
                     raise ParseError('Mismatch between format bit %c and instruction bit %c' % (c, b))
@@ -274,7 +279,7 @@ class Instruction:
         """
         offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
         self.irsb_c.put(val.rdt, offset)
-        
+
     def put_conditional(self, cond, valiftrue, valiffalse, reg):
         """
         Like put, except it checks a condition
