@@ -171,15 +171,14 @@ class Instruction:
         return data
 
     def parse(self, bitstrm):
-        numbits = len(self.bin_format) # pylint: disable=no-member
         if self.arch.instruction_endness == 'Iend_LE':
             # This arch stores its instructions in memory endian-flipped compared to the ISA.
             # To enable natural lifter-writing, we let the user write them like in the manual, and correct for
             # endness here.
-            instr_bits = self._load_le_instr(bitstrm, numbits)
+            instr_bits = self._load_le_instr(bitstrm, self.bitwidth)
         else:
-            instr_bits = bitstrm.peek("bin:%d" % numbits)
-        data = {c : '' for c in self.bin_format if c in string.ascii_letters} # pylint: disable=no-member
+            instr_bits = bitstrm.peek("bin:%d" % self.bitwidth)
+        data = {c : '' for c in self.bin_format if c in string.ascii_letters}
         for c, b in zip(self.bin_format, instr_bits): # pylint: disable=no-member
             if c in '01':
                 if b != c:
@@ -193,7 +192,7 @@ class Instruction:
             # Should raise if it's not right
             self.match_instruction(data, bitstrm)
         # Use up the bits once we're sure it's right
-        self.rawbits = bitstrm.read('hex:%d' % numbits)
+        self.rawbits = bitstrm.read('hex:%d' % self.bitwidth)
         # Hook here for extra parsing functionality (e.g., trailers)
         if hasattr(self, '_extra_parsing'):
             data = self._extra_parsing(data, bitstrm) # pylint: disable=no-member
