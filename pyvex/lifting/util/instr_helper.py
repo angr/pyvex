@@ -8,7 +8,6 @@ from .syntax_wrapper import VexValue
 from ...expr import IRExpr, RdTmp
 from .vex_helper import JumpKind, vex_int_class
 
-
 l = logging.getLogger("instr")
 
 
@@ -103,14 +102,14 @@ class Instruction(metaclass=abc.ABCMeta):
     def mark_instruction_start(self):
         self.irsb_c.imark(self.addr, self.bytewidth, 0)
 
-    def fetch_operands(self): # pylint: disable=no-self-use
+    def fetch_operands(self):  # pylint: disable=no-self-use
         """
         Get the operands out of memory or registers
         Return a tuple of operands for the instruction
         """
         return []
 
-    def lift(self, irsb_c, past_instructions, future_instructions): # pylint: disable=unused-argument
+    def lift(self, irsb_c, past_instructions, future_instructions):  # pylint: disable=unused-argument
         """
         This is the main body of the "lifting" for the instruction.
         This can/should be overridden to provide the general flow of how instructions in your arch work.
@@ -165,7 +164,7 @@ class Instruction(metaclass=abc.ABCMeta):
         """
         pass
 
-    def match_instruction(self, data, bitstrm): # pylint: disable=unused-argument,no-self-use
+    def match_instruction(self, data, bitstrm):  # pylint: disable=unused-argument,no-self-use
         """
         Override this to extend the parsing functionality.
         This is great for if your arch has instruction "formats" that have an opcode that has to match.
@@ -183,7 +182,7 @@ class Instruction(metaclass=abc.ABCMeta):
             instr_bits = self._load_le_instr(bitstrm, self.bitwidth)
         else:
             instr_bits = bitstrm.peek("bin:%d" % self.bitwidth)
-        data = {c : '' for c in self.bin_format if c in string.ascii_letters}
+        data = {c: '' for c in self.bin_format if c in string.ascii_letters}
         for c, b in zip(self.bin_format, instr_bits):
             if c in '01':
                 if b != c:
@@ -200,7 +199,7 @@ class Instruction(metaclass=abc.ABCMeta):
         self.rawbits = bitstrm.read('hex:%d' % self.bitwidth)
         # Hook here for extra parsing functionality (e.g., trailers)
         if hasattr(self, '_extra_parsing'):
-            data = self._extra_parsing(data, bitstrm) # pylint: disable=no-member
+            data = self._extra_parsing(data, bitstrm)  # pylint: disable=no-member
         return data
 
     @property
@@ -294,7 +293,7 @@ class Instruction(metaclass=abc.ABCMeta):
         :return: None
         """
 
-        val = self.irsb_c.ite(cond.rdt , valiftrue.rdt, valiffalse.rdt)
+        val = self.irsb_c.ite(cond.rdt, valiftrue.rdt, valiffalse.rdt)
         offset = self._lookup_register(self.irsb_c.irsb.arch, reg)
         self.irsb_c.put(val, offset)
 
@@ -327,7 +326,7 @@ class Instruction(metaclass=abc.ABCMeta):
         elif isinstance(to_addr, int):
             # Direct jump to an int, make an RdT and Ty
             to_addr_ty = vex_int_class(self.irsb_c.irsb.arch.bits).type
-            to_addr = self.constant(to_addr, to_addr_ty) # TODO archinfo may be changing
+            to_addr = self.constant(to_addr, to_addr_ty)  # TODO archinfo may be changing
             to_addr_rdt = to_addr.rdt
         elif isinstance(to_addr, RdTmp):
             # An RdT; just get the Ty of the arch's pointer type
@@ -381,7 +380,6 @@ class Instruction(metaclass=abc.ABCMeta):
                 arg = arg.rdt
             new_args.append(arg)
         args = tuple(new_args)
-
 
         # Support calling ccalls via string name
         if isinstance(func_obj, str):
