@@ -3,7 +3,6 @@ import string
 import bitstring
 import logging
 
-from archinfo import Arch
 from .lifter_helper import ParseError
 from .syntax_wrapper import VexValue
 from ...expr import IRExpr, RdTmp
@@ -79,15 +78,15 @@ class Instruction(metaclass=abc.ABCMeta):
     data = None
     irsb_c = None
 
-    def __init__(self, bitstrm, arch: Arch, instr_addr):
+    def __init__(self, bitstrm, arch, addr):
         """
         Create an instance of the instruction
 
+        :param irsb_c: The IRSBCustomizer to put VEX instructions into
         :param bitstrm: The bitstream to decode instructions from
-        :param arch: The architecture that this instruction belongs to
-        :param instr_addr: The address of the instruction to be lifted, used only for jumps and branches
+        :param addr: The address of the instruction to be lifted, used only for jumps and branches
         """
-        self.addr = instr_addr
+        self.addr = addr
         self.arch = arch
         self._bitwidth = len(self.bin_format)
         self.data = self.parse(bitstrm)
