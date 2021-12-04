@@ -244,7 +244,7 @@ class Instruction(metaclass=abc.ABCMeta):
         rdt = self.irsb_c.mkconst(val, ty)
         return VexValue(self.irsb_c, rdt)
 
-    def lookup_register(self, arch, reg): # pylint: disable=no-self-use
+    def _lookup_register(self, arch, reg): # pylint: disable=no-self-use
         if isinstance(reg, int):
             if hasattr(arch, 'register_index'):
                 reg = arch.register_index[reg]
@@ -262,7 +262,7 @@ class Instruction(metaclass=abc.ABCMeta):
         :param ty: The Type to use.
         :return: A VexValue of the gotten value.
         """
-        offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
+        offset = self._lookup_register(self.irsb_c.irsb.arch, reg)
         if offset == self.irsb_c.irsb.arch.ip_offset:
             return self.constant(self.addr, ty)
         rdt = self.irsb_c.rdreg(offset, ty)
@@ -277,7 +277,7 @@ class Instruction(metaclass=abc.ABCMeta):
         :param reg: The integer register number to store into, or register name
         :return: None
         """
-        offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
+        offset = self._lookup_register(self.irsb_c.irsb.arch, reg)
         self.irsb_c.put(val.rdt, offset)
 
     def put_conditional(self, cond, valiftrue, valiffalse, reg):
@@ -294,7 +294,7 @@ class Instruction(metaclass=abc.ABCMeta):
         """
 
         val = self.irsb_c.ite(cond.rdt , valiftrue.rdt, valiffalse.rdt)
-        offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
+        offset = self._lookup_register(self.irsb_c.irsb.arch, reg)
         self.irsb_c.put(val, offset)
 
     def store(self, val, addr):
