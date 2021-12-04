@@ -244,7 +244,8 @@ class Instruction(metaclass=abc.ABCMeta):
         rdt = self.irsb_c.mkconst(val, ty)
         return VexValue(self.irsb_c, rdt)
 
-    def _lookup_register(self, arch, reg): # pylint: disable=no-self-use
+    @staticmethod
+    def _lookup_register(arch, reg):
         if isinstance(reg, int):
             if hasattr(arch, 'register_index'):
                 reg = arch.register_index[reg]
