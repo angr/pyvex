@@ -107,7 +107,7 @@ class Instruction(metaclass=abc.ABCMeta):
         Get the operands out of memory or registers
         Return a tuple of operands for the instruction
         """
-        return []
+        return ()
 
     def lift(self, irsb_c, past_instructions, future_instructions):  # pylint: disable=unused-argument
         """
