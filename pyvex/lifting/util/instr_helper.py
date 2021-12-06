@@ -125,9 +125,9 @@ class Instruction(metaclass=abc.ABCMeta):
         # Then do the actual stuff.
         inputs = self.fetch_operands()
         retval = self.compute_result(*inputs)
-        vals = list(inputs) + [retval]
         if retval is not None:
             self.commit_result(retval)
+        vals = list(inputs) + [retval]
         self.compute_flags(*vals)
 
     def commit_result(self, res):
