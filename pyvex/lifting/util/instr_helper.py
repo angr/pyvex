@@ -88,7 +88,7 @@ class Instruction(metaclass=abc.ABCMeta):
         """
         self.addr = addr
         self.arch = arch
-        self._bitwidth = len(self.bin_format)
+        self.bitwidth = len(self.bin_format)
         self.data = self.parse(bitstrm)
 
     @property
@@ -180,9 +180,9 @@ class Instruction(metaclass=abc.ABCMeta):
             # This arch stores its instructions in memory endian-flipped compared to the ISA.
             # To enable natural lifter-writing, we let the user write them like in the manual, and correct for
             # endness here.
-            instr_bits = self._load_le_instr(bitstrm, self._bitwidth)
+            instr_bits = self._load_le_instr(bitstrm, self.bitwidth)
         else:
-            instr_bits = bitstrm.peek("bin:%d" % self._bitwidth)
+            instr_bits = bitstrm.peek("bin:%d" % self.bitwidth)
 
         data = {c: '' for c in self.bin_format if c in string.ascii_letters}
         for c, b in zip(self.bin_format, instr_bits):
@@ -200,7 +200,7 @@ class Instruction(metaclass=abc.ABCMeta):
             self.match_instruction(data, bitstrm)
 
         # Use up the bits once we're sure it's right
-        self.rawbits = bitstrm.read('hex:%d' % self._bitwidth)
+        self.rawbits = bitstrm.read('hex:%d' % self.bitwidth)
 
         # Hook here for extra parsing functionality (e.g., trailers)
         if hasattr(self, '_extra_parsing'):
@@ -210,9 +210,9 @@ class Instruction(metaclass=abc.ABCMeta):
 
     @property
     def bytewidth(self):
-        if self._bitwidth % self.arch.byte_width != 0:
+        if self.bitwidth % self.arch.byte_width != 0:
             raise ValueError("Instruction is not a multiple of bytes wide!")
-        return self._bitwidth // self.arch.byte_width
+        return self.bitwidth // self.arch.byte_width
 
     def disassemble(self):
         """
@@ -352,7 +352,7 @@ class Instruction(metaclass=abc.ABCMeta):
             assert ip_offset is not None
 
             negated_condition_rdt = self.ite(condition, self.constant(0, condition.ty), self.constant(1, condition.ty))
-            direct_exit_target = self.constant(self.addr + (self._bitwidth // 8), to_addr_ty)
+            direct_exit_target = self.constant(self.addr + (self.bitwidth // 8), to_addr_ty)
             self.irsb_c.add_exit(negated_condition_rdt, direct_exit_target.rdt, jumpkind, ip_offset)
             self.irsb_c.irsb.jumpkind = jumpkind
             self.irsb_c.irsb.next = to_addr_rdt
