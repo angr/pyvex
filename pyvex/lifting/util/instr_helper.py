@@ -168,6 +168,7 @@ class Instruction(metaclass=abc.ABCMeta):
         """
         Override this to extend the parsing functionality.
         This is great for if your arch has instruction "formats" that have an opcode that has to match.
+
         :param data:
         :param bitstrm:
         :return: data
@@ -182,6 +183,7 @@ class Instruction(metaclass=abc.ABCMeta):
             instr_bits = self._load_le_instr(bitstrm, self._bitwidth)
         else:
             instr_bits = bitstrm.peek("bin:%d" % self._bitwidth)
+
         data = {c: '' for c in self.bin_format if c in string.ascii_letters}
         for c, b in zip(self.bin_format, instr_bits):
             if c in '01':
@@ -191,15 +193,19 @@ class Instruction(metaclass=abc.ABCMeta):
                 data[c] += b
             else:
                 raise ValueError('Invalid bin_format character %c' % c)
+
         # Hook here for extra matching functionality
         if hasattr(self, 'match_instruction'):
             # Should raise if it's not right
             self.match_instruction(data, bitstrm)
+
         # Use up the bits once we're sure it's right
         self.rawbits = bitstrm.read('hex:%d' % self._bitwidth)
+
         # Hook here for extra parsing functionality (e.g., trailers)
         if hasattr(self, '_extra_parsing'):
             data = self._extra_parsing(data, bitstrm)  # pylint: disable=no-member
+
         return data
 
     @property
