@@ -495,7 +495,7 @@ void collect_data_references(
 						data_size = sizeofIRType(data_type);
 					}
 					record_const(lift_r, store_dst, data_size,
-						data_size == 0? Dt_Unknown : Dt_Integer,
+						data_size == 0? Dt_Unknown : Dt_StoreInteger,
 						i, inst_addr, next_inst_addr);
 				}
 				if (store_data->tag == Iex_Const) {
