@@ -387,6 +387,14 @@ void collect_data_references(
 						Int size;
 						size = sizeofIRType(typeOfIRTemp(irsb->tyenv, stmt->Ist.WrTmp.tmp));
 						record_const(lift_r, data->Iex.Load.addr, size, Dt_Integer, i, inst_addr, next_inst_addr);
+					} else if (data->Iex.Load.addr->tag == Iex_RdTmp) {
+						IRTemp rdtmp = data->Iex.Load.addr->Iex.RdTmp.tmp;
+						if (tmps[rdtmp].used == 1) {
+							// The source tmp exists
+							Int size;
+							size = sizeofIRType(typeOfIRTemp(irsb->tyenv, stmt->Ist.WrTmp.tmp));
+							record_data_reference(lift_r, tmps[rdtmp].value, size, Dt_Integer, i, inst_addr);
+						}
 					}
 					break;
 				case Iex_Binop:
@@ -414,6 +422,8 @@ void collect_data_references(
 									value &= 0xffffffff;
 								}
 								record_data_reference(lift_r, value, 0, Dt_Unknown, i, inst_addr);
+								tmps[stmt->Ist.WrTmp.tmp].used = 1;
+								tmps[stmt->Ist.WrTmp.tmp].value = value;
 							}
 							if (arg2->tag == Iex_Const) {
 								ULong arg2_value = get_value_from_const_expr(arg2->Iex.Const.con);
