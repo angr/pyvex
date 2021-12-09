@@ -28,7 +28,8 @@ typedef struct _ExitInfo {
 typedef enum {
 	Dt_Unknown = 0x9000,
 	Dt_Integer,
-	Dt_FP
+	Dt_FP,
+	Dt_StoreInteger
 } DataRefTypes;
 
 typedef struct _DataRef {

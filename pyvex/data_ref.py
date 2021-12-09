@@ -8,6 +8,8 @@ def data_ref_type_str(dref_enum):
         return 'integer'
     elif dref_enum == 0x9002:
         return 'fp'
+    elif dref_enum == 0x9003:
+        return 'integer(store)'
     else:
         return 'INVALID'
 
