@@ -96,6 +96,11 @@ class Instruction(metaclass=abc.ABCMeta):
     def bin_format(self):
         pass
 
+    @property
+    @abc.abstractmethod
+    def name(self):
+        pass
+
     def __call__(self, irsb_c, past_instructions, future_instructions):
         self.lift(irsb_c, past_instructions, future_instructions)
 
