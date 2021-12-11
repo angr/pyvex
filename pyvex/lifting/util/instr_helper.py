@@ -30,12 +30,10 @@ class Instruction(metaclass=abc.ABCMeta):
     So, in our example, the bits ``0010110101101001``, applied to format string ``0010rrrrddddffmm``
     will result in the following in ``self.data``:
 
-    ```
-    {'r': '1101',
-     'd': '0110',
-     'f': '10',
-     'm': '01'}
-    ```
+        {'r': '1101',
+         'd': '0110',
+         'f': '10',
+         'm': '01'}
 
     Implement compute_result to provide the "meat" of what your instruction does.
     You can also implement it in your arch-specific subclass of ``Instruction``, to handle things common to all
@@ -48,22 +46,16 @@ class Instruction(metaclass=abc.ABCMeta):
     You can then write it back to a register when you're done.
     For example, if you have the register in ``r``, as above, you can make a ``VexValue`` like this:
 
-    ```
-    r = int(self.data['r'], 2) # we get bits corresponding to `r` bits and convert it to an int
-    r_vv = self.get(r, Type.int_32)
-    ```
+        r = int(self.data['r'], 2) # we get bits corresponding to `r` bits and convert it to an int
+        r_vv = self.get(r, Type.int_32)
 
     If you then had an instruction to increment ``r``, you could simply:
 
-    ```
-    return r_vv += 1
-    ```
+        return r_vv += 1
 
     You could then write it back to the register like this:
 
-    ```
-    self.put(r_vv, r)
-    ```
+        self.put(r_vv, r)
 
     Note that most architectures have special flags that get set differently for each instruction, make sure to
     implement those as well (override ``set_flags()`` )
