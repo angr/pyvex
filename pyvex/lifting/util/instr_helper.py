@@ -93,13 +93,21 @@ class Instruction(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def bin_format(self):
-        pass
+    def bin_format(self) -> str:
+        """
+        Read the documentation of the class to understand what a bin format string is
+
+        :return: str bin format string
+        """
 
     @property
     @abc.abstractmethod
-    def name(self):
-        pass
+    def name(self) -> str:
+        """
+        Name of the instruction
+
+        Can be useful to name the instruction when there's an error related to it
+        """
 
     def __call__(self, irsb_c, past_instructions, future_instructions):
         self.lift(irsb_c, past_instructions, future_instructions)
@@ -145,7 +153,6 @@ class Instruction(metaclass=abc.ABCMeta):
 
         :param args: A tuple of the results of fetch_operands and compute_result
         """
-        pass
 
     def compute_result(self, *args):
         """
@@ -159,7 +166,6 @@ class Instruction(metaclass=abc.ABCMeta):
         :param args:
         :return: A VexValue containing the "result" of the operation.
         """
-        pass
 
     def compute_flags(self, *args):
         """
@@ -167,7 +173,6 @@ class Instruction(metaclass=abc.ABCMeta):
         Override this to specify how that happens.  One common pattern is to define this method to call specifi methods
         to update each flag, which can then be overriden in the actual classes for each instruction.
         """
-        pass
 
     def match_instruction(self, data, bitstrm):  # pylint: disable=unused-argument,no-self-use
         """
