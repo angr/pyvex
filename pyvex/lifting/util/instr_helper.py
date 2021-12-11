@@ -138,7 +138,7 @@ class Instruction(metaclass=abc.ABCMeta):
         self.mark_instruction_start()
         # Then do the actual stuff.
         inputs = self.fetch_operands()
-        retval = self.compute_result(*inputs)
+        retval = self.compute_result(*inputs)  # pylint: disable=assignment-from-none
         if retval is not None:
             self.commit_result(retval)
         vals = list(inputs) + [retval]
@@ -155,7 +155,7 @@ class Instruction(metaclass=abc.ABCMeta):
         :param args: A tuple of the results of fetch_operands and compute_result
         """
 
-    def compute_result(self, *args):
+    def compute_result(self, *args):  # pylint: disable=unused-argument,no-self-use
         """
         This is where the actual operation performed by your instruction, excluding the calculation of flags, should be
         performed.  Return the VexValue of the "result" of the instruction, which may
@@ -167,6 +167,7 @@ class Instruction(metaclass=abc.ABCMeta):
         :param args:
         :return: A VexValue containing the "result" of the operation.
         """
+        return None
 
     def compute_flags(self, *args):
         """
