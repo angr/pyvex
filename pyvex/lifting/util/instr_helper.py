@@ -349,7 +349,7 @@ class Instruction(metaclass=abc.ABCMeta):
             to_addr_ty = vex_int_class(self.irsb_c.irsb.arch.bits).type
             to_addr_rdt = to_addr
         else:
-            raise ValueError("Jump destination has unknown type: " + repr(type(to_addr)))
+            raise TypeError("Jump destination has unknown type: " + repr(type(to_addr)))
         if not condition:
             # This is the default exit.
             self.irsb_c.irsb.jumpkind = jumpkind
