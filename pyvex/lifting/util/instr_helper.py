@@ -21,7 +21,7 @@ class Instruction(metaclass=abc.ABCMeta):
     You may want to subclass this for your architecture, and add arch-specific handling for parsing, argument
     resolution, etc., and have instructions subclass that instead.
 
-    The core parsing functionality is done via a ``bin_format``.  Each instruction should be a subclass of Instruction,
+    The core parsing functionality is done via ``bin_format``. Each instruction should be a subclass of ``Instruction``
     and will be parsed by comparing bits in the provided bitstream to symbols in the ``bin_format`` member of the class.
     "Bin formats" are strings of symbols, like those you'd find in an ISA document, such as "0010rrrrddddffmm"
     0 or 1 specify hard-coded bits that must match for an instruction to match.
