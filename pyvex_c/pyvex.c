@@ -25,6 +25,7 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include <libvex.h>
 
 #include "pyvex.h"
+#include "pyvex_internal.h"
 #include "logging.h"
 
 //======================================================================
@@ -292,6 +293,7 @@ static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 }
 
 VEXLiftResult _lift_r;
+#define LOAD_FROM_RO_REGIONS_MASK 2
 
 //----------------------------------------------------------------------
 // Main entry point. Do a lift.
@@ -362,7 +364,7 @@ VEXLiftResult *vex_lift(
 		}
 		zero_division_side_exits(_lift_r.irsb);
 		if (collect_data_refs) {
-			collect_data_references(_lift_r.irsb, &_lift_r, guest);
+			collect_data_references(_lift_r.irsb, &_lift_r, guest, collect_data_refs & LOAD_FROM_RO_REGIONS_MASK);
 		}
 		return &_lift_r;
 	} else {

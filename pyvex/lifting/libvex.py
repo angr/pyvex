@@ -62,9 +62,9 @@ class LibVEXLifter(Lifter):
             if strict_block_end is None:
                 strict_block_end = True
 
-            collect_data_refs = self.collect_data_refs
-            if collect_data_refs is None:
-                collect_data_refs = False
+            collect_data_refs = 1 if self.collect_data_refs else 0
+            if collect_data_refs != 0 and self.load_from_ro_regions:
+                collect_data_refs |= 2  # the second bit stores load_from_ro_regions
 
             if self.cross_insn_opt:
                 px_control = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
