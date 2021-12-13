@@ -473,9 +473,11 @@ Bool load_value(ULong addr, int size, int endness, void *value) {
 				*(ULong*)value = *(ULong*)ptr;
 				break;
 			default:
-				UChar* begin = (UChar*)value;
-				for (int n = 0; n < size; ++n) {
-					*(begin + n) = *(ptr + n);
+				{
+					UChar* begin = (UChar*)value;
+					for (int n = 0; n < size; ++n) {
+						*(begin + n) = *(ptr + n);
+					}
 				}
 				break;
 		}
@@ -619,7 +621,7 @@ void collect_data_references(
 				case Iex_Get:
 					{
 						UInt key = mk_key_GetPut(data->Iex.Get.offset, data->Iex.Get.ty);
-						ULong val;
+						HWord val;
 						if (lookupHHW(env, &val, key) == True) {
 							tmps[stmt->Ist.WrTmp.tmp].used = 1;
 							tmps[stmt->Ist.WrTmp.tmp].value = val;
