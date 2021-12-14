@@ -7,7 +7,8 @@ from ..block import IRSB
 class Lifter:
 
     __slots__ = ('data', 'bytes_offset', 'opt_level', 'traceflags', 'allow_arch_optimizations', 'strict_block_end',
-                 'collect_data_refs', 'max_inst', 'max_bytes', 'skip_stmts', 'irsb', 'arch', 'addr', 'cross_insn_opt', )
+                 'collect_data_refs', 'max_inst', 'max_bytes', 'skip_stmts', 'irsb', 'arch', 'addr', 'cross_insn_opt',
+                 'load_from_ro_regions', )
 
     """
     A lifter is a class of methods for processing a block.
@@ -44,7 +45,8 @@ class Lifter:
               strict_block_end=None,
               skip_stmts=False,
               collect_data_refs=False,
-              cross_insn_opt=True):
+              cross_insn_opt=True,
+              load_from_ro_regions=False):
         """
         Wrapper around the `lift` method on Lifters. Should not be overridden in child classes.
 
@@ -77,6 +79,7 @@ class Lifter:
         self.skip_stmts = skip_stmts
         self.irsb = irsb
         self.cross_insn_opt = cross_insn_opt
+        self.load_from_ro_regions = load_from_ro_regions
         self.lift()
         return self.irsb
 

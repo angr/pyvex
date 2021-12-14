@@ -75,15 +75,7 @@ VEXLiftResult *vex_lift(
 		VexRegisterUpdates px_control,
 		unsigned int lookback_amount);
 
-// internal analyses and postprocessors
-void arm_post_processor_determine_calls(Addr irsb_addr, Int irsb_size, Int irsb_insts, IRSB *irsb);
-void mips32_post_processor_fix_unconditional_exit(IRSB *irsb);
-
-void remove_noops(IRSB* irsb);
-void zero_division_side_exits(IRSB* irsb);
-void get_exits_and_inst_addrs(IRSB *irsb, VEXLiftResult *lift_r);
-void get_default_exit_target(IRSB *irsb, VEXLiftResult *lift_r );
-void collect_data_references(IRSB *irsb, VEXLiftResult *lift_r, VexArch guest);
-Addr get_value_from_const_expr(IRConst* con);
+Bool register_readonly_region(ULong start, ULong size, unsigned char* content);
+void deregister_all_readonly_regions();
 
 #endif
