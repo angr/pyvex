@@ -8,27 +8,27 @@ from .syntax_wrapper import VexValue
 from ...expr import IRExpr, RdTmp
 from .vex_helper import JumpKind, vex_int_class
 
-
 l = logging.getLogger("instr")
 
 
-class Instruction:
+class Instruction(metaclass=abc.ABCMeta):
     """
     Base class for an Instruction.
-    You should make a subclass of this for each instruction you want to lift.
-    These classes will contain the "semantics" of the instruction, that is, what it _does_, in terms of the VEX IR.
 
-    You may want to subclass this for your architecture, and add arch-specific handling
-    for parsing, argument resolution, etc, and have instructions subclass that instead.
+    You should make a subclass of this for each instruction you want to lift. These classes will contain the "semantics"
+    of the instruction, that is, what it _does_, in terms of the VEX IR.
 
-    The core parsing functionality is done via a "bit format".  Each instruction should be a subclass of Instruction,
-    and will be parsed by comparing bits in the provided bitstream to symbols in the bit_format member of the class.
-    Bit formats are strings of symbols, like those you'd find in an ISA document, such as "0010rrrrddddffmm"
+    You may want to subclass this for your architecture, and add arch-specific handling for parsing, argument
+    resolution, etc., and have instructions subclass that instead.
+
+    The core parsing functionality is done via ``bin_format``. Each instruction should be a subclass of ``Instruction``
+    and will be parsed by comparing bits in the provided bitstream to symbols in the ``bin_format`` member of the class.
+    "Bin formats" are strings of symbols, like those you'd find in an ISA document, such as "0010rrrrddddffmm"
     0 or 1 specify hard-coded bits that must match for an instruction to match.
-    Any letters specify arguments, grouped by letter, which will be parsed and provided as bitstrings in the "data"
+    Any letters specify arguments, grouped by letter, which will be parsed and provided as bitstrings in the ``data``
     member of the class as a dictionary.
-    So, in our example, the bits 0010110101101001, applied to format string 0010rrrrddddffmm
-    will result in the following in self.data:
+    So, in our example, the bits ``0010110101101001``, applied to format string ``0010rrrrddddffmm``
+    will result in the following in ``self.data``:
 
         {'r': '1101',
          'd': '0110',
@@ -36,30 +36,35 @@ class Instruction:
          'm': '01'}
 
     Implement compute_result to provide the "meat" of what your instruction does.
-    You can also implement it in your arch-specific subclass of Instruction, to handle things common to all
-    instructions, and provide instruction implementations elsewhere..
+    You can also implement it in your arch-specific subclass of ``Instruction``, to handle things common to all
+    instructions, and provide instruction implementations elsewhere.
 
-    We provide the VexValue syntax wrapper to make expressing instruction semantics easy.
-    You first convert the bitstring arguments into VexValues using the provided convenience methods (self.get/put/load)
-    store/etc. This loads the register from the actual registers into a temporary value we can work with.
+    We provide the ``VexValue`` syntax wrapper to make expressing instruction semantics easy.
+    You first convert the bitstring arguments into ``VexValue``s using the provided convenience methods
+    (``self.get/put/load/store/etc.``)
+    This loads the register from the actual registers into a temporary value we can work with.
     You can then write it back to a register when you're done.
-    For example, if you have the register in 'r', as above, you can make a VexValue like this:
-    r_vv = self.get(int(self.data['r'], 2), Type.int_32)
-    If you then had an instruction to increment r, you could simply:
+    For example, if you have the register in ``r``, as above, you can make a ``VexValue`` like this:
+
+        r = int(self.data['r'], 2) # we get bits corresponding to `r` bits and convert it to an int
+        r_vv = self.get(r, Type.int_32)
+
+    If you then had an instruction to increment ``r``, you could simply:
 
         return r_vv += 1
 
     You could then write it back to the register like this:
 
-        self.put(r_vv, int(self.data['r', 2))
+        self.put(r_vv, r)
 
     Note that most architectures have special flags that get set differently for each instruction, make sure to
-    implement those as well. (override set_flags() )
+    implement those as well (override ``set_flags()`` )
 
-    Override parse() to extend parsing; for example, in MSP430, this allows us to grab extra words from the bitstream
+    Override ``parse()`` to extend parsing.
+    For example, in MSP430, this allows us to grab extra words from the bitstream
     when extra immediate words are present.
 
-    All architectures are different enough that there's no magic recipe for how to write a lifter;
+    All architectures are different enough that there's no magic recipe for how to write a lifter.
     See the examples provided by gymrat for ideas of how to use this to build your own lifters quickly and easily.
     """
 
@@ -76,8 +81,26 @@ class Instruction:
         """
         self.addr = addr
         self.arch = arch
-        self.bitwidth = len(self.bin_format) # pylint: disable=no-member
+        self.bitwidth = len(self.bin_format)
         self.data = self.parse(bitstrm)
+
+    @property
+    @abc.abstractmethod
+    def bin_format(self) -> str:
+        """
+        Read the documentation of the class to understand what a bin format string is
+
+        :return: str bin format string
+        """
+
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        """
+        Name of the instruction
+
+        Can be useful to name the instruction when there's an error related to it
+        """
 
     def __call__(self, irsb_c, past_instructions, future_instructions):
         self.lift(irsb_c, past_instructions, future_instructions)
@@ -85,17 +108,17 @@ class Instruction:
     def mark_instruction_start(self):
         self.irsb_c.imark(self.addr, self.bytewidth, 0)
 
-    def fetch_operands(self): # pylint: disable=no-self-use
+    def fetch_operands(self):  # pylint: disable=no-self-use
         """
         Get the operands out of memory or registers
         Return a tuple of operands for the instruction
         """
-        return []
+        return ()
 
-    def lift(self, irsb_c, past_instructions, future_instructions): # pylint: disable=unused-argument
+    def lift(self, irsb_c, past_instructions, future_instructions):  # pylint: disable=unused-argument
         """
         This is the main body of the "lifting" for the instruction.
-        This can/should be overriden to provide the general flow of how instructions in your arch work.
+        This can/should be overridden to provide the general flow of how instructions in your arch work.
         For example, in MSP430, this is:
 
         - Figure out what your operands are by parsing the addressing, and load them into temporary registers
@@ -107,10 +130,10 @@ class Instruction:
         self.mark_instruction_start()
         # Then do the actual stuff.
         inputs = self.fetch_operands()
-        retval = self.compute_result(*inputs)
-        vals = list(inputs) + [retval]
+        retval = self.compute_result(*inputs)  # pylint: disable=assignment-from-none
         if retval is not None:
             self.commit_result(retval)
+        vals = list(inputs) + [retval]
         self.compute_flags(*vals)
 
     def commit_result(self, res):
@@ -123,10 +146,8 @@ class Instruction:
 
         :param args: A tuple of the results of fetch_operands and compute_result
         """
-        pass
 
-    @abc.abstractmethod
-    def compute_result(self, *args):
+    def compute_result(self, *args):  # pylint: disable=unused-argument,no-self-use
         """
         This is where the actual operation performed by your instruction, excluding the calculation of flags, should be
         performed.  Return the VexValue of the "result" of the instruction, which may
@@ -138,7 +159,7 @@ class Instruction:
         :param args:
         :return: A VexValue containing the "result" of the operation.
         """
-        pass
+        return None
 
     def compute_flags(self, *args):
         """
@@ -146,12 +167,12 @@ class Instruction:
         Override this to specify how that happens.  One common pattern is to define this method to call specifi methods
         to update each flag, which can then be overriden in the actual classes for each instruction.
         """
-        pass
 
-    def match_instruction(self, data, bitstrm): # pylint: disable=unused-argument,no-self-use
+    def match_instruction(self, data, bitstrm):  # pylint: disable=unused-argument,no-self-use
         """
         Override this to extend the parsing functionality.
         This is great for if your arch has instruction "formats" that have an opcode that has to match.
+
         :param data:
         :param bitstrm:
         :return: data
@@ -159,16 +180,16 @@ class Instruction:
         return data
 
     def parse(self, bitstrm):
-        numbits = len(self.bin_format) # pylint: disable=no-member
         if self.arch.instruction_endness == 'Iend_LE':
             # This arch stores its instructions in memory endian-flipped compared to the ISA.
             # To enable natural lifter-writing, we let the user write them like in the manual, and correct for
             # endness here.
-            instr_bits = self._load_le_instr(bitstrm, numbits)
+            instr_bits = self._load_le_instr(bitstrm, self.bitwidth)
         else:
-            instr_bits = bitstrm.peek("bin:%d" % numbits)
-        data = {c : '' for c in self.bin_format if c in string.ascii_letters} # pylint: disable=no-member
-        for c, b in zip(self.bin_format, instr_bits): # pylint: disable=no-member
+            instr_bits = bitstrm.peek("bin:%d" % self.bitwidth)
+
+        data = {c: '' for c in self.bin_format if c in string.ascii_letters}
+        for c, b in zip(self.bin_format, instr_bits):
             if c in '01':
                 if b != c:
                     raise ParseError('Mismatch between format bit %c and instruction bit %c' % (c, b))
@@ -176,15 +197,19 @@ class Instruction:
                 data[c] += b
             else:
                 raise ValueError('Invalid bin_format character %c' % c)
+
         # Hook here for extra matching functionality
         if hasattr(self, 'match_instruction'):
             # Should raise if it's not right
             self.match_instruction(data, bitstrm)
+
         # Use up the bits once we're sure it's right
-        self.rawbits = bitstrm.read('hex:%d' % numbits)
+        self.rawbits = bitstrm.read('hex:%d' % self.bitwidth)
+
         # Hook here for extra parsing functionality (e.g., trailers)
         if hasattr(self, '_extra_parsing'):
-            data = self._extra_parsing(data, bitstrm) # pylint: disable=no-member
+            data = self._extra_parsing(data, bitstrm)  # pylint: disable=no-member
+
         return data
 
     @property
@@ -228,7 +253,8 @@ class Instruction:
         rdt = self.irsb_c.mkconst(val, ty)
         return VexValue(self.irsb_c, rdt)
 
-    def lookup_register(self, arch, reg): # pylint: disable=no-self-use
+    @staticmethod
+    def _lookup_register(arch, reg):
         if isinstance(reg, int):
             if hasattr(arch, 'register_index'):
                 reg = arch.register_index[reg]
@@ -246,7 +272,7 @@ class Instruction:
         :param ty: The Type to use.
         :return: A VexValue of the gotten value.
         """
-        offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
+        offset = self._lookup_register(self.irsb_c.irsb.arch, reg)
         if offset == self.irsb_c.irsb.arch.ip_offset:
             return self.constant(self.addr, ty)
         rdt = self.irsb_c.rdreg(offset, ty)
@@ -261,9 +287,9 @@ class Instruction:
         :param reg: The integer register number to store into, or register name
         :return: None
         """
-        offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
+        offset = self._lookup_register(self.irsb_c.irsb.arch, reg)
         self.irsb_c.put(val.rdt, offset)
-        
+
     def put_conditional(self, cond, valiftrue, valiffalse, reg):
         """
         Like put, except it checks a condition
@@ -277,8 +303,8 @@ class Instruction:
         :return: None
         """
 
-        val = self.irsb_c.ite(cond.rdt , valiftrue.rdt, valiffalse.rdt)
-        offset = self.lookup_register(self.irsb_c.irsb.arch, reg)
+        val = self.irsb_c.ite(cond.rdt, valiftrue.rdt, valiffalse.rdt)
+        offset = self._lookup_register(self.irsb_c.irsb.arch, reg)
         self.irsb_c.put(val, offset)
 
     def store(self, val, addr):
@@ -310,14 +336,14 @@ class Instruction:
         elif isinstance(to_addr, int):
             # Direct jump to an int, make an RdT and Ty
             to_addr_ty = vex_int_class(self.irsb_c.irsb.arch.bits).type
-            to_addr = self.constant(to_addr, to_addr_ty) # TODO archinfo may be changing
+            to_addr = self.constant(to_addr, to_addr_ty)  # TODO archinfo may be changing
             to_addr_rdt = to_addr.rdt
         elif isinstance(to_addr, RdTmp):
             # An RdT; just get the Ty of the arch's pointer type
             to_addr_ty = vex_int_class(self.irsb_c.irsb.arch.bits).type
             to_addr_rdt = to_addr
         else:
-            raise ValueError("Jump destination has unknown type: " + repr(type(to_addr)))
+            raise TypeError("Jump destination has unknown type: " + repr(type(to_addr)))
         if not condition:
             # This is the default exit.
             self.irsb_c.irsb.jumpkind = jumpkind
@@ -364,7 +390,6 @@ class Instruction:
                 arg = arg.rdt
             new_args.append(arg)
         args = tuple(new_args)
-
 
         # Support calling ccalls via string name
         if isinstance(func_obj, str):
