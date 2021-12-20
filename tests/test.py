@@ -10,7 +10,7 @@ from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
 import pyvex
 from pyvex.lifting import LibVEXLifter
 
-#pylint: disable=R0201
+# pylint: disable=R0201
 class TestPyvex(unittest.TestCase):
     @staticmethod
     def test_memory():

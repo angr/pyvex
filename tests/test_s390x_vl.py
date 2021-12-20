@@ -9,11 +9,11 @@ def test_s390x_vl():
     irsb_str = str(irsb)
 
     assert "GET:I64(r9)" in irsb_str
-    assert 'Add64(0x00000000000000a8' == irsb_str
-    assert 'LDbe:V128' == irsb_str
-    assert 'PUT(v4) =' == irsb_str
-    assert irsb.jumpkind == 'Ijk_Boring'
+    assert "Add64(0x00000000000000a8" == irsb_str
+    assert "LDbe:V128" == irsb_str
+    assert "PUT(v4) =" == irsb_str
+    assert irsb.jumpkind == "Ijk_Boring"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_s390x_vl()

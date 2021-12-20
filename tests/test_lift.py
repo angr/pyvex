@@ -5,6 +5,7 @@ from pyvex.lifting.util import Instruction, GymratLifter, JumpKind
 from pyvex.errors import PyVEXError
 
 
+# pylint: disable=R0201
 class TestLift(unittest.TestCase):
     def test_partial_lift(self):
         """This tests that gymrat correctly handles the case where an
@@ -28,7 +29,6 @@ class TestLift(unittest.TestCase):
         assert block.instructions == 1
         assert block.jumpkind == JumpKind.NoDecode
 
-
     def test_skipstmts_toomanyexits(self):
         # https://github.com/angr/pyvex/issues/153
 
@@ -40,7 +40,9 @@ class TestLift(unittest.TestCase):
         )
         arch = archinfo.arch_from_id("ARMEL")
         # Lifting the first four bytes will not cause any problem. Statements should be skipped as expected
-        b = IRSB(bytes_[:34], 0xC6951, arch, opt_level=1, bytes_offset=5, skip_stmts=True)
+        b = IRSB(
+            bytes_[:34], 0xC6951, arch, opt_level=1, bytes_offset=5, skip_stmts=True
+        )
         assert len(b.exit_statements) > 0
         assert not b.has_statements
 
@@ -53,7 +55,6 @@ class TestLift(unittest.TestCase):
         # Restore the setting
         IRSB.MAX_EXITS = old_exit_limit
 
-
     def test_max_bytes(self):
         data = bytes.fromhex("909090909090c3")
         arch = archinfo.ArchX86()
@@ -62,6 +63,7 @@ class TestLift(unittest.TestCase):
         assert lift(data, 0x1000, arch, max_bytes=len(data) + 1).size == len(data)
 
         data2 = ffi.from_buffer(data)
+        self.assertRaises(PyVEXError, lift, data2, 0x1000, arch)
         assert lift(data2, 0x1000, arch, max_bytes=len(data)).size == len(data)
         assert lift(data2, 0x1000, arch, max_bytes=len(data) - 1).size == len(data) - 1
 
