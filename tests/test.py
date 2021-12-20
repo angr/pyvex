@@ -1,4 +1,3 @@
-import pyvex
 import random
 import os
 import gc
@@ -7,6 +6,8 @@ import logging
 import unittest
 
 from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
+
+import pyvex
 from pyvex.lifting import LibVEXLifter
 
 
@@ -379,17 +380,17 @@ class TestPyvex(unittest.TestCase):
         assert c.type == d.type
 
     def test_irconst(self):
-        helper_const_subtype(pyvex.IRConst.U1, "Ico_U1", 1)
-        helper_const_subtype(pyvex.IRConst.U8, "Ico_U8", 233)
-        helper_const_subtype(pyvex.IRConst.U16, "Ico_U16", 39852)
-        helper_const_subtype(pyvex.IRConst.U32, "Ico_U32", 3442312356)
-        helper_const_subtype(pyvex.IRConst.U64, "Ico_U64", 823452334523623455)
-        helper_const_subtype(pyvex.IRConst.F32, "Ico_F32", 13453.234375)
-        helper_const_subtype(pyvex.IRConst.F32i, "Ico_F32i", 3442312356)
-        helper_const_subtype(pyvex.IRConst.F64, "Ico_F64", 13453.234525)
-        helper_const_subtype(pyvex.IRConst.F64i, "Ico_F64i", 823457234523623455)
-        helper_const_subtype(pyvex.IRConst.V128, "Ico_V128", 39852)
-        helper_const_subtype(pyvex.IRConst.V256, "Ico_V256", 3442312356)
+        self.helper_const_subtype(pyvex.IRConst.U1, "Ico_U1", 1)
+        self.helper_const_subtype(pyvex.IRConst.U8, "Ico_U8", 233)
+        self.helper_const_subtype(pyvex.IRConst.U16, "Ico_U16", 39852)
+        self.helper_const_subtype(pyvex.IRConst.U32, "Ico_U32", 3442312356)
+        self.helper_const_subtype(pyvex.IRConst.U64, "Ico_U64", 823452334523623455)
+        self.helper_const_subtype(pyvex.IRConst.F32, "Ico_F32", 13453.234375)
+        self.helper_const_subtype(pyvex.IRConst.F32i, "Ico_F32i", 3442312356)
+        self.helper_const_subtype(pyvex.IRConst.F64, "Ico_F64", 13453.234525)
+        self.helper_const_subtype(pyvex.IRConst.F64i, "Ico_F64i", 823457234523623455)
+        self.helper_const_subtype(pyvex.IRConst.V128, "Ico_V128", 39852)
+        self.helper_const_subtype(pyvex.IRConst.V256, "Ico_V256", 3442312356)
 
     ###################
     ### Expressions ###
