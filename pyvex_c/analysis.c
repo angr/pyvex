@@ -7,6 +7,11 @@
 
 #include "pyvex.h"
 
+const int _endian = 0xfe;
+#define BE_HOST (*((unsigned char*)&_endian) == 0)
+#define LE_HOST (*((unsigned char*)&_endian) != 0)
+
+
 void remove_noops(
 	IRSB* irsb
 	) {
@@ -350,10 +355,150 @@ typedef struct {
 } TmpValue;
 
 
+typedef struct {
+	Bool in_use;
+	ULong start;
+	ULong size;
+	unsigned char* content;
+} Region;
+
+int next_unused_region_id = 0;
+#define MAX_REGION_COUNT 1024
+Region regions[MAX_REGION_COUNT] = {0};
+
+static int find_region(ULong start)
+{
+	if (next_unused_region_id > 0 && regions[next_unused_region_id - 1].start < start) {
+		if (next_unused_region_id >= MAX_REGION_COUNT) {
+			return -1;
+		}
+		return next_unused_region_id;
+	}
+
+	int lo = 0, hi = next_unused_region_id, mid;
+	while (lo != hi) {
+		mid = (lo + hi) / 2;
+		Region* region = &regions[mid];
+		if (region->start >= start) {
+			hi = mid;
+		} else {
+			lo = mid + 1;
+		}
+	}
+	return lo;
+}
+
+Bool register_readonly_region(ULong start, ULong size, unsigned char* content)
+{
+	// Where do we insert the region?
+	if (next_unused_region_id >= MAX_REGION_COUNT) {
+		// Regions are full
+		return False;
+	}
+
+	int pos = find_region(start);
+	if (pos < 0) {
+		// Regions are full
+		return False;
+	}
+
+	if (!regions[pos].in_use) {
+		// it's likely to be the end - store here
+		regions[pos].in_use = True;
+		regions[pos].start = start;
+		regions[pos].size = size;
+		regions[pos].content = content;
+		next_unused_region_id++;
+		return True;
+	}
+
+	if (regions[pos].start == start) {
+		// overwrite the current region with new data
+		regions[pos].in_use = True;
+		regions[pos].start = start;
+		regions[pos].size = size;
+		regions[pos].content = content;
+		return True;
+	}
+
+	// Move everything forward by one slot
+	memmove(&regions[pos + 1], &regions[pos], sizeof(Region) * (next_unused_region_id - pos));
+	// Insert the new region
+	regions[pos].in_use = True;
+	regions[pos].start = start;
+	regions[pos].size = size;
+	regions[pos].content = content;
+	next_unused_region_id++;
+	return True;
+}
+
+void deregister_all_readonly_regions()
+{
+	next_unused_region_id = 0;
+	regions[next_unused_region_id].in_use = 0;
+}
+
+Bool load_value(ULong addr, int size, int endness, void *value) {
+	int pos = find_region(addr);
+	if (pos < 0 || pos >= next_unused_region_id) {
+		// Does not exist
+		return False;
+	}
+	unsigned char* ptr = NULL;
+	if (regions[pos].in_use && regions[pos].start == addr &&
+			regions[pos].start + regions[pos].size >= addr + size) {
+		ptr = regions[pos].content;
+	} else if (pos > 0 &&
+			regions[pos - 1].in_use &&
+			regions[pos - 1].start <= addr &&
+			regions[pos - 1].start + regions[pos - 1].size >= addr + size) {
+		ptr = regions[pos - 1].content + (addr - regions[pos - 1].start);
+	} else {
+		return False;
+	}
+
+	// Do the load!
+	if ((endness == Iend_LE && LE_HOST) || (endness == Iend_BE && BE_HOST)) {
+		switch (size) {
+			case 1:
+				*(UChar*)value = *(UChar*)ptr;
+				break;
+			case 2:
+				*(UShort*)value = *(UShort*)ptr;
+				break;
+			case 4:
+				*(UInt*)value = *(UInt*)ptr;
+				break;
+			case 8:
+				*(ULong*)value = *(ULong*)ptr;
+				break;
+			default:
+				{
+					UChar* begin = (UChar*)value;
+					for (int n = 0; n < size; ++n) {
+						*(begin + n) = *(ptr + n);
+					}
+				}
+				break;
+		}
+	} else {
+		// we need to swap data...
+		UChar* begin = (UChar*)value;
+		for (int n = 0; n < size; ++n) {
+			*(begin + size - n - 1) = *(ptr + n);
+		}
+	}
+	return True;
+}
+
+#undef MAX_REGION_COUNT
+
+
 void collect_data_references(
 	IRSB *irsb,
 	VEXLiftResult *lift_r,
-	VexArch guest) {
+	VexArch guest,
+	Bool load_from_ro_regions) {
 
 	Int i;
 	Addr inst_addr = -1, next_inst_addr = -1;
@@ -387,6 +532,29 @@ void collect_data_references(
 						Int size;
 						size = sizeofIRType(typeOfIRTemp(irsb->tyenv, stmt->Ist.WrTmp.tmp));
 						record_const(lift_r, data->Iex.Load.addr, size, Dt_Integer, i, inst_addr, next_inst_addr);
+						// Load the value if it might be a constant pointer...
+						if (load_from_ro_regions && guest == VexArchARM && size == 4) {
+							UInt value;
+							if (load_value(data->Iex.Load.addr->Iex.Const.con->Ico.U32, size, data->Iex.Load.end, &value)) {
+								tmps[stmt->Ist.WrTmp.tmp].used = 1;
+								tmps[stmt->Ist.WrTmp.tmp].value = value;
+							}
+						}
+					} else if (data->Iex.Load.addr->tag == Iex_RdTmp) {
+						IRTemp rdtmp = data->Iex.Load.addr->Iex.RdTmp.tmp;
+						if (tmps[rdtmp].used == 1) {
+							// The source tmp exists
+							Int size;
+							size = sizeofIRType(typeOfIRTemp(irsb->tyenv, stmt->Ist.WrTmp.tmp));
+							record_data_reference(lift_r, tmps[rdtmp].value, size, Dt_Integer, i, inst_addr);
+							if (load_from_ro_regions && guest == VexArchARM && size == 4) {
+								UInt value;
+								if (load_value(tmps[rdtmp].value, size, data->Iex.Load.end, &value)) {
+									tmps[stmt->Ist.WrTmp.tmp].used = 1;
+									tmps[stmt->Ist.WrTmp.tmp].value = value;
+								}
+							}
+						}
 					}
 					break;
 				case Iex_Binop:
@@ -414,6 +582,8 @@ void collect_data_references(
 									value &= 0xffffffff;
 								}
 								record_data_reference(lift_r, value, 0, Dt_Unknown, i, inst_addr);
+								tmps[stmt->Ist.WrTmp.tmp].used = 1;
+								tmps[stmt->Ist.WrTmp.tmp].value = value;
 							}
 							if (arg2->tag == Iex_Const) {
 								ULong arg2_value = get_value_from_const_expr(arg2->Iex.Const.con);
@@ -451,7 +621,7 @@ void collect_data_references(
 				case Iex_Get:
 					{
 						UInt key = mk_key_GetPut(data->Iex.Get.offset, data->Iex.Get.ty);
-						ULong val;
+						HWord val;
 						if (lookupHHW(env, &val, key) == True) {
 							tmps[stmt->Ist.WrTmp.tmp].used = 1;
 							tmps[stmt->Ist.WrTmp.tmp].value = val;
@@ -478,6 +648,12 @@ void collect_data_references(
 					record_const(lift_r, data, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
 					UInt key = mk_key_GetPut(stmt->Ist.Put.offset, typeOfIRExpr(irsb->tyenv, data));
 					addToHHW(env, key, get_value_from_const_expr(data->Iex.Const.con));
+				} else if (data->tag == Iex_RdTmp) {
+					if (tmps[data->Iex.RdTmp.tmp].used == 1) {
+						// tmp is available
+						UInt key = mk_key_GetPut(stmt->Ist.Put.offset, typeOfIRExpr(irsb->tyenv, data));
+						addToHHW(env, key, tmps[data->Iex.RdTmp.tmp].value);
+					}
 				}
 			}
 			break;
@@ -495,7 +671,7 @@ void collect_data_references(
 						data_size = sizeofIRType(data_type);
 					}
 					record_const(lift_r, store_dst, data_size,
-						data_size == 0? Dt_Unknown : Dt_Integer,
+						data_size == 0? Dt_Unknown : Dt_StoreInteger,
 						i, inst_addr, next_inst_addr);
 				}
 				if (store_data->tag == Iex_Const) {

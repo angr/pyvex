@@ -104,10 +104,8 @@ register(CortexSpotter, "ARMEL")
 
 
 def test_full_binary():
-    p = angr.Project(
-        os.path.join(test_location, "armel", "RTOSDemo.axf.issue_685"), arch="ARMEL"
-    )
-    st = p.factory.call_state(0x000013CE + 1)
+    p = angr.Project(os.path.join(test_location, 'armel', 'RTOSDemo.axf.issue_685'), arch="ARMEL", auto_load_libs=False)
+    st = p.factory.call_state(0x000013ce+1)
     b = st.block().vex
     simgr = p.factory.simulation_manager(st)
     simgr.step()
@@ -116,13 +114,9 @@ def test_full_binary():
 
 
 def test_tmrs():
-    test_location = str(
-        os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "../../binaries/tests"
-        )
-    )
-    p = angr.Project(os.path.join(test_location, "armel", "helloworld"), arch="ARMEL")
-    ins = b"\xef\xf3\x08\x82"
+    test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../binaries/tests'))
+    p = angr.Project(os.path.join(test_location, 'armel', 'helloworld'), arch="ARMEL", auto_load_libs=False)
+    ins = b'\xef\xf3\x08\x82'
     b = pyvex.block.IRSB(ins, 1, p.arch)
     assert b.jumpkind == "Ijk_Boring"
     assert type(b.statements[1].data) == pyvex.expr.Get
@@ -131,13 +125,9 @@ def test_tmrs():
 
 
 def test_tmsr():
-    test_location = str(
-        os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "../../binaries/tests"
-        )
-    )
-    p = angr.Project(os.path.join(test_location, "armel", "helloworld"), arch="ARMEL")
-    inss = b"\x82\xf3\x08\x88"
+    test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../binaries/tests'))
+    p = angr.Project(os.path.join(test_location, 'armel', 'helloworld'), arch="ARMEL", auto_load_libs=False)
+    inss = b'\x82\xf3\x08\x88'
     b = pyvex.block.IRSB(inss, 1, p.arch, opt_level=3)
     assert b.jumpkind == "Ijk_Boring"
     assert type(b.statements[1].data) == pyvex.expr.Get

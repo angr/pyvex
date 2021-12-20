@@ -49,4 +49,6 @@ EXPORTS
   clear_log
   vex_lift
   vex_init
+  register_readonly_region
+  deregister_all_readonly_regions
   sizeofIRType
