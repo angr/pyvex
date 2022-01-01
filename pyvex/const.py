@@ -12,15 +12,12 @@ class IRConst(VEXObject):
     __slots__ = ['_value']
 
     type = None # type: Optional[str]
+    size = None
     tag = None # type: Optional[str]
     c_constructor = None
 
     def pp(self):
         print(self.__str__())
-
-    @property
-    def size(self):
-        return get_type_size(self.type)
 
     @property
     def value(self) -> int:
@@ -63,6 +60,7 @@ class U1(IRConst):
     __slots__ = [ ] # type: List
 
     type = 'Ity_I1'
+    size = 1
     tag = 'Ico_U1'
     op_format = '1'
     c_constructor = pvc.IRConst_U1
@@ -82,6 +80,7 @@ class U8(IRConst):
     __slots__ = [ ] # type: List
 
     type = 'Ity_I8'
+    size = 8
     tag = 'Ico_U8'
     op_format = '8'
     c_constructor = pvc.IRConst_U8
@@ -104,6 +103,7 @@ class U16(IRConst):
     __slots__ = [ ] # type: List
 
     type = 'Ity_I16'
+    size = 16
     tag = 'Ico_U16'
     op_format = '16'
     c_constructor = pvc.IRConst_U16
@@ -131,6 +131,7 @@ class U32(IRConst):
     __slots__ = [ ] # type: List
 
     type = 'Ity_I32'
+    size = 32
     tag = 'Ico_U32'
     op_format = '32'
     c_constructor = pvc.IRConst_U32
@@ -158,6 +159,7 @@ class U64(IRConst):
     __slots__ = [ ] # type: List
 
     type = 'Ity_I64'
+    size = 64
     tag = 'Ico_U64'
     op_format = '64'
     c_constructor = pvc.IRConst_U64
