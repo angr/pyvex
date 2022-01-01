@@ -1,6 +1,7 @@
 from typing import List
 
 from . import pvc, ffi
+from .utils import stable_hash
 
 
 class VEXObject:
@@ -24,7 +25,7 @@ class VEXObject:
         for i in range(len(values)):
             if isinstance(values[i], list):
                 values[i] = tuple(values[i])
-        return hash(tuple([type(self)] + values))
+        return stable_hash(tuple([type(self)] + values))
 
 
 class IRCallee(VEXObject):
