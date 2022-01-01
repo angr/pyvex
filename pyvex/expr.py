@@ -2,14 +2,13 @@ import re
 import logging
 from typing import List, Optional
 
-
-from . import VEXObject
 from archinfo import RegisterOffset, TmpVar
+from . import VEXObject
 from .enums import IRCallee, IRRegArray, get_int_from_enum, get_enum_from_int
 from .const import get_type_size, U8, U16, U32, U64
+from .utils import stable_hash
 
 l = logging.getLogger("pyvex.expr")
-
 
 
 class IRExpr(VEXObject):
@@ -266,6 +265,9 @@ class RdTmp(IRExpr):
     def result_type(self, tyenv):
         return tyenv.lookup(self.tmp)
 
+    def __hash__(self):
+        return 133700 + self._tmp
+
 
 _RDTMP_POOL = list(RdTmp(i) for i in range(0, 1024))
 
@@ -275,17 +277,24 @@ class Get(IRExpr):
     Read a guest register, at a fixed offset in the guest state.
     """
 
-    __slots__ = ['offset', 'ty']
+    __slots__ = ['offset', 'ty_int']
 
     tag = 'Iex_Get'
 
-    def __init__(self, offset: RegisterOffset, ty: str):
+    def __init__(self, offset: RegisterOffset, ty: str, ty_int: Optional[int]=None):
         self.offset = offset
-        self.ty = ty
+        if ty_int is None:
+            self.ty_int = get_int_from_enum(ty)
+        else:
+            self.ty_int = ty_int
+
+    @property
+    def ty(self):
+        return get_enum_from_int(self.ty_int)
 
     @property
     def type(self):
-        return self.ty
+        return get_enum_from_int(self.ty_int)
 
     def __str__(self, reg_name=None):
         if reg_name:
@@ -295,16 +304,17 @@ class Get(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return Get(c_expr.Iex.Get.offset,
-                   get_enum_from_int(c_expr.Iex.Get.ty))
+        return Get(c_expr.Iex.Get.offset, get_enum_from_int(c_expr.Iex.Get.ty))
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_Get(expr.offset,
-                              get_int_from_enum(expr.ty))
+        return pvc.IRExpr_Get(expr.offset, expr.ty_int)
 
     def result_type(self, tyenv):
         return self.ty
+
+    def __hash__(self):
+        return (self.offset << 8) | self.ty_int
 
 
 class Qop(IRExpr):
