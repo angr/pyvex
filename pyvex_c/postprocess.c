@@ -2,7 +2,7 @@
 #include <libvex_guest_arm.h>
 #include <stddef.h>
 
-#include "pyvex.h"
+#include "pyvex_internal.h"
 
 //
 // Jumpkind fixes for ARM
