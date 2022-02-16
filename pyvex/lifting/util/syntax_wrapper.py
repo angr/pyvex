@@ -1,7 +1,7 @@
 
 import functools
 
-from .vex_helper import Type
+from .vex_helper import Type, IRSBCustomizer
 from ...expr import IRExpr, Const, RdTmp
 from ...const import get_type_size
 
@@ -35,8 +35,8 @@ def vvifyresults(f):
     return decor
 
 
-class VexValue(object):
-    def __init__(self, irsb_c, rdt, signed=False):
+class VexValue:
+    def __init__(self, irsb_c: 'IRSBCustomizer', rdt, signed=False):
         self.irsb_c = irsb_c
         self.ty = self.irsb_c.get_type(rdt)
         self.rdt = rdt
