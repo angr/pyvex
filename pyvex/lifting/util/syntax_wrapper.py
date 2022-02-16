@@ -1,5 +1,6 @@
-
 import functools
+
+from typing import Union
 
 from .vex_helper import Type, IRSBCustomizer
 from ...expr import IRExpr, Const, RdTmp
@@ -22,7 +23,9 @@ def checkparams(rhstype=None):
                     raise Exception('Cannot convert param %s' % str(arg))
             args = tuple(args)
             return fn(self, *args, **kwargs)
+
         return inner_decorator
+
     return decorator
 
 
@@ -32,11 +35,12 @@ def vvifyresults(f):
         returned = f(self, *args, **kwargs)
         assert isinstance(returned, RdTmp) or isinstance(returned, Const)
         return VexValue(self.irsb_c, returned)
+
     return decor
 
 
 class VexValue:
-    def __init__(self, irsb_c: 'IRSBCustomizer', rdt, signed=False):
+    def __init__(self, irsb_c: 'IRSBCustomizer', rdt: 'Union[RdTmp, Const]', signed=False):
         self.irsb_c = irsb_c
         self.ty = self.irsb_c.get_type(rdt)
         self.rdt = rdt
@@ -136,7 +140,7 @@ class VexValue:
         return left // self
 
     @checkparams()
-    def __floordiv__(self, right): # Note: nonprimitive
+    def __floordiv__(self, right):  # Note: nonprimitive
         return self.__div__(right)
 
     @checkparams()
@@ -144,7 +148,7 @@ class VexValue:
         return left // self
 
     @checkparams()
-    def __truediv__(self, right): # Note: nonprimitive
+    def __truediv__(self, right):  # Note: nonprimitive
         return self / right
 
     @checkparams()
@@ -201,7 +205,7 @@ class VexValue:
 
     @checkparams(rhstype=Type.int_8)
     @vvifyresults
-    def __lshift__(self, right): # TODO put better type inference in irsb_c so we can have rlshift
+    def __lshift__(self, right):  # TODO put better type inference in irsb_c so we can have rlshift
         return self.irsb_c.op_shl(self.rdt, right.rdt)
 
     @checkparams()
@@ -214,7 +218,7 @@ class VexValue:
 
     @checkparams()
     @vvifyresults
-    def __mod__(self, right): # Note: nonprimitive
+    def __mod__(self, right):  # Note: nonprimitive
         return self.irsb_c.op_mod(self.rdt, right.rdt)
 
     @checkparams()
@@ -235,7 +239,7 @@ class VexValue:
 
     @checkparams()
     @vvifyresults
-    def __neg__(self): # Note: nonprimitive
+    def __neg__(self):  # Note: nonprimitive
         if not self._is_signed:
             raise Exception('Number is unsigned, cannot change sign!')
         else:
@@ -269,7 +273,7 @@ class VexValue:
 
     @checkparams()
     @vvifyresults
-    def __xor__ (self, right):
+    def __xor__(self, right):
         return self.irsb_c.op_xor(self.rdt, right.rdt)
 
     def __rxor__(self, left):
