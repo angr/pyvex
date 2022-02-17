@@ -111,6 +111,17 @@ class VexValue:
 
     @checkparams()
     @vvifyresults
+    def sar(self, right):
+        '''
+        `v.sar(r)` should do arithmetic shift right of `v` by `r`
+
+        :param right:VexValue value to shift by
+        :return: VexValue - result of a shift
+        '''
+        return self.irsb_c.op_sar(self.rdt, right.rdt)
+
+    @checkparams()
+    @vvifyresults
     def __add__(self, right):
         return self.irsb_c.op_add(self.rdt, right.rdt)
 
