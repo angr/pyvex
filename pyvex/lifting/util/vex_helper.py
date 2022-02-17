@@ -100,6 +100,8 @@ class IRSBCustomizer(object):
     op_shr = mkbinop('Iop_Shr{arg_t[0]}')
     op_shl = mkbinop('Iop_Shl{arg_t[0]}')
 
+    op_sar = mkbinop('Iop_Sar{arg_t[0]}')  # Shift Arithmetic Right operation
+
     op_not = mkunop('Iop_Not{arg_t[0]}')
 
     op_cmp_eq = mkcmpop('EQ')
