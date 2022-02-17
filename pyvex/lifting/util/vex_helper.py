@@ -1,4 +1,3 @@
-
 import re
 import copy
 from ...const import ty_to_const_class, vex_int_class, get_type_size
@@ -6,6 +5,7 @@ from ...expr import Const, RdTmp, Unop, Binop, Load, CCall, Get, ITE
 from ...stmt import WrTmp, Put, IMark, Store, NoOp, Exit
 from ...enums import IRCallee
 from future.utils import with_metaclass
+
 
 class JumpKind(object):
     Boring = 'Ijk_Boring'
@@ -31,6 +31,7 @@ class TypeMeta(type):
         else:
             return type.__getattr__(name)
 
+
 class Type(with_metaclass(TypeMeta, object)):
     __metaclass__ = TypeMeta
 
@@ -44,8 +45,10 @@ class Type(with_metaclass(TypeMeta, object)):
     simd_vector_128 = 'Ity_V128'
     simd_vector_256 = 'Ity_V256'
 
+
 def get_op_format_from_const_ty(ty):
     return ty_to_const_class(ty).op_format
+
 
 def make_format_op_generator(fmt_string):
     """
@@ -53,17 +56,22 @@ def make_format_op_generator(fmt_string):
 
     Functions by formatting the fmt_string with the types of the arguments
     """
+
     def gen(arg_types):
         converted_arg_types = list(map(get_op_format_from_const_ty, arg_types))
         op = fmt_string.format(arg_t=converted_arg_types)
         return op
+
     return gen
+
 
 def mkbinop(fstring):
     return lambda self, expr_a, expr_b: self.op_binary(make_format_op_generator(fstring))(expr_a, expr_b)
 
+
 def mkunop(fstring):
     return lambda self, expr_a: self.op_unary(make_format_op_generator(fstring))(expr_a)
+
 
 def mkcmpop(fstring_fragment, signedness=''):
     def cmpop(self, expr_a, expr_b):
@@ -71,7 +79,9 @@ def mkcmpop(fstring_fragment, signedness=''):
         fstring = 'Iop_Cmp%s{arg_t[0]}%s' % (fstring_fragment, signedness)
         retval = mkbinop(fstring)(self, expr_a, expr_b)
         return self.cast_to(retval, ty)
+
     return cmpop
+
 
 class IRSBCustomizer(object):
     op_add = mkbinop('Iop_Add{arg_t[0]}')
@@ -118,7 +128,7 @@ class IRSBCustomizer(object):
     def imark(self, int_addr, int_length, int_delta=0):
         self._append_stmt(IMark(int_addr, int_length, int_delta))
 
-    def get_reg(self, regname): # TODO move this into the lifter
+    def get_reg(self, regname):  # TODO move this into the lifter
         return self.arch.registers[regname][0]
 
     def put(self, expr_val, tuple_reg):
@@ -140,6 +150,7 @@ class IRSBCustomizer(object):
         :param ip: The address of this exit's source
         """
         self.irsb.statements.append(Exit(guard, dst.con, jk, ip))
+
     # end statements
 
     def goto(self, addr):
@@ -184,7 +195,7 @@ class IRSBCustomizer(object):
 
     # Operations
     def op_generic(self, Operation, op_generator):
-        def instance(*args): # Note: The args here are all RdTmps
+        def instance(*args):  # Note: The args here are all RdTmps
             for arg in args: assert isinstance(arg, RdTmp) or isinstance(arg, Const)
             arg_types = [self.get_type(arg) for arg in args]
             # two operations should never share the same argument instances, copy them here to ensure that
@@ -193,6 +204,7 @@ class IRSBCustomizer(object):
             msg = "operation needs to be well typed: " + str(op)
             assert op.typecheck(self.irsb.tyenv), msg + "\ntypes: " + str(self.irsb.tyenv)
             return self._settmp(op)
+
         return instance
 
     def op_binary(self, op_format_str):
@@ -239,7 +251,7 @@ class IRSBCustomizer(object):
 
     def get_msb(self, tmp, ty):
         width = get_type_size(ty)
-        return self.get_bit(tmp, width-1)
+        return self.get_bit(tmp, width - 1)
 
     def get_bit(self, rdt, idx):
         shifted = self.op_shr(rdt, idx)
