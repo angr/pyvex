@@ -19,12 +19,11 @@ class JumpKind(object):
     NoDecode = 'Ijk_NoDecode'
 
 
-typemeta_re = re.compile(r'int_(?P<size>\d+)$')
-
-
 class TypeMeta(type):
+    typemeta_re = re.compile(r'int_(?P<size>\d+)$')
+
     def __getattr__(self, name):
-        match = typemeta_re.match(name)
+        match = self.typemeta_re.match(name)
         if match:
             width = int(match.group('size'))
             return vex_int_class(width).type
