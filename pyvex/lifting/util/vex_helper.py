@@ -97,8 +97,8 @@ class IRSBCustomizer(object):
     op_and = mkbinop('Iop_And{arg_t[0]}')
     op_xor = mkbinop('Iop_Xor{arg_t[0]}')
 
-    op_shr = mkbinop('Iop_Shr{arg_t[0]}')
-    op_shl = mkbinop('Iop_Shl{arg_t[0]}')
+    op_shr = mkbinop('Iop_Shr{arg_t[0]}')  # Shift Right (logical)
+    op_shl = mkbinop('Iop_Shl{arg_t[0]}')  # Shift Left (logical)
 
     op_sar = mkbinop('Iop_Sar{arg_t[0]}')  # Shift Arithmetic Right operation
 

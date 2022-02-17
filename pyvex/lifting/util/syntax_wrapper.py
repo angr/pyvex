@@ -217,6 +217,9 @@ class VexValue:
     @checkparams(rhstype=Type.int_8)
     @vvifyresults
     def __lshift__(self, right):  # TODO put better type inference in irsb_c so we can have rlshift
+        '''
+        logical shift left
+        '''
         return self.irsb_c.op_shl(self.rdt, right.rdt)
 
     @checkparams()
@@ -272,6 +275,9 @@ class VexValue:
     @checkparams(rhstype=Type.int_8)
     @vvifyresults
     def __rshift__(self, right):
+        '''
+        logical shift right
+        '''
         return self.irsb_c.op_shr(self.rdt, right.rdt)
 
     @checkparams()
