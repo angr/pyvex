@@ -51,4 +51,6 @@ EXPORTS
   vex_init
   register_readonly_region
   deregister_all_readonly_regions
+  register_initial_register_value
+  reset_initial_register_values
   sizeofIRType

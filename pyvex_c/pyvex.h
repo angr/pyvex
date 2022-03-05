@@ -77,5 +77,7 @@ VEXLiftResult *vex_lift(
 
 Bool register_readonly_region(ULong start, ULong size, unsigned char* content);
 void deregister_all_readonly_regions();
+Bool register_initial_register_value(UInt offset, UInt size, ULong value);
+Bool reset_initial_register_values();
 
 #endif

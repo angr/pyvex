@@ -372,7 +372,7 @@ static int find_region(ULong start)
 		if (next_unused_region_id >= MAX_REGION_COUNT) {
 			return -1;
 		}
-		return next_unused_region_id;
+		return next_unused_region_id - 1;
 	}
 
 	int lo = 0, hi = next_unused_region_id, mid;
@@ -493,6 +493,42 @@ Bool load_value(ULong addr, int size, int endness, void *value) {
 
 #undef MAX_REGION_COUNT
 
+typedef struct _InitialReg {
+	ULong offset;
+	UInt size;
+	ULong value;
+} InitialReg;
+UInt initial_reg_count = 0;
+InitialReg initial_regs[1024];
+
+
+Bool register_initial_register_value(UInt offset, UInt size, ULong value)
+{
+	if (initial_reg_count >= 1024) {
+		return False;
+	}
+
+	switch (size) {
+		case 1: case 2: case 4: case 8: case 16:
+			break;
+		default:
+			return False;
+	}
+
+	UInt i = initial_reg_count;
+	initial_regs[i].offset = offset;
+	initial_regs[i].size = size;
+	initial_regs[i].value = value;
+	initial_reg_count++;
+	return True;
+}
+
+Bool reset_initial_register_values()
+{
+	initial_reg_count = 0;
+	return True;
+}
+
 
 void collect_data_references(
 	IRSB *irsb,
@@ -512,6 +548,32 @@ void collect_data_references(
 	}
 
 	memset(tmps, 0, irsb->tyenv->types_used * sizeof(TmpValue));
+
+	// Set initial register values
+	for (i = 0; i < initial_reg_count; ++i) {
+		IRType ty;
+		switch (initial_regs[i].size) {
+			case 1:
+				ty = Ity_I8;
+				break;
+			case 2:
+				ty = Ity_I16;
+				break;
+			case 4:
+				ty = Ity_I32;
+				break;
+			case 8:
+				ty = Ity_I64;
+				break;
+			case 16:
+				ty = Ity_I128;
+				break;
+			default:
+				continue;
+		}
+		UInt key = mk_key_GetPut(initial_regs[i].offset, ty);
+		addToHHW(env, key, initial_regs[i].value);
+	}
 
 	for (i = 0; i < irsb->stmts_used; ++i) {
 		IRStmt *stmt = irsb->stmts[i];
@@ -547,8 +609,10 @@ void collect_data_references(
 							Int size;
 							size = sizeofIRType(typeOfIRTemp(irsb->tyenv, stmt->Ist.WrTmp.tmp));
 							record_data_reference(lift_r, tmps[rdtmp].value, size, Dt_Integer, i, inst_addr);
-							if (load_from_ro_regions && guest == VexArchARM && size == 4) {
-								UInt value;
+							if (load_from_ro_regions)
+								if (guest == VexArchARM && size == 4 ||
+									guest == VexArchMIPS64 && size == 8) {
+								ULong value;
 								if (load_value(tmps[rdtmp].value, size, data->Iex.Load.end, &value)) {
 									tmps[stmt->Ist.WrTmp.tmp].used = 1;
 									tmps[stmt->Ist.WrTmp.tmp].value = value;
@@ -588,6 +652,19 @@ void collect_data_references(
 							if (arg2->tag == Iex_Const) {
 								ULong arg2_value = get_value_from_const_expr(arg2->Iex.Const.con);
 								record_data_reference(lift_r, arg2_value, 0, Dt_Unknown, i, inst_addr);
+							}
+							if (arg1->tag == Iex_RdTmp
+								&& tmps[arg1->Iex.RdTmp.tmp].used
+								&& arg2->tag == Iex_RdTmp
+								&& tmps[arg2->Iex.RdTmp.tmp].used) {
+								ULong arg1_value = tmps[arg1->Iex.RdTmp.tmp].value;
+								ULong arg2_value = tmps[arg2->Iex.RdTmp.tmp].value;
+								ULong value = arg1_value + arg2_value;
+								if (data->Iex.Binop.op == Iop_Add32) {
+									value &= 0xffffffff;
+								}
+								tmps[stmt->Ist.WrTmp.tmp].used = 1;
+								tmps[stmt->Ist.WrTmp.tmp].value = value;
 							}
 						}
 					}
@@ -639,7 +716,7 @@ void collect_data_references(
 			assert(inst_addr != -1 && next_inst_addr != -1);
 			{
 				// Ignore itstate on ARM
-				if (guest == VexArchARM && stmt->Ist.Put.offset == offsetof(VexGuestARMState,guest_ITSTATE)) {
+				if (guest == VexArchARM && stmt->Ist.Put.offset == offsetof(VexGuestARMState, guest_ITSTATE)) {
 					break;
 				}
 
