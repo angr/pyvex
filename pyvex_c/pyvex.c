@@ -173,6 +173,8 @@ int vex_init() {
 #elif __s390x__
 	vta.arch_host = VexArchS390X;
 	vai_host.hwcaps = VEX_HWCAPS_S390X_LDISP;
+#elif defined(__powerpc__)
+        vta.arch_host = VexArchPPC64;
 #else
 #error "Unsupported host arch"
 #endif
