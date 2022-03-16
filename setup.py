@@ -134,13 +134,13 @@ class build_ext(st_build_ext):
         self.execute(_build_pyvex, (), msg="Building libpyvex")
         self.execute(_shuffle_files, (), msg="Copying libraries and headers")
         self.execute(_build_ffi, (), msg="Creating CFFI defs file")
-        super().run()
+        super().run(*args)
 
 class sdist(st_sdist):
     def run(self):
         self.execute(_clean_bins, (), msg="Removing binaries")
         self.execute(_copy_sources, (), msg="Copying VEX sources")
-        super().run()
+        super().run(*args)
 
 cmdclass = {
     'build_ext': build_ext,
