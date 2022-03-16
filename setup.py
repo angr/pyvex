@@ -8,7 +8,9 @@ import tarfile
 import multiprocessing
 from urllib.request import urlopen
 
-import setuptools
+from setuptools import setup, find_packages
+from setuptools.command.build_ext import build_ext as st_build_ext
+from setuptools.command.sdist import sdist as st_sdist
 from setuptools.errors import LibError
 
 PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -125,32 +127,32 @@ def _build_ffi():
     except Exception as e:
         raise
 
-class build_ext(setuptools.command.build_ext):
+class build_ext(st_build_ext):
     def run(self):
         self.execute(_build_vex, (), msg="Building libVEX")
         self.execute(_build_pyvex, (), msg="Building libpyvex")
         self.execute(_shuffle_files, (), msg="Copying libraries and headers")
         self.execute(_build_ffi, (), msg="Creating CFFI defs file")
-        super().run(self)
+        super().run()
 
-class sdist(setuptools.command.sdist):
+class sdist(st_sdist):
     def run(self):
         self.execute(_clean_bins, (), msg="Removing binaries")
         self.execute(_copy_sources, (), msg="Copying VEX sources")
-        super().run(self)
+        super().run()
 
 cmdclass = {
     'build_ext': build_ext,
     'clean': sdist,
 }
 
-setuptools.setup(
+setup(
     name="pyvex",
     version='9.1.gitrolling',
     description="A Python interface to libVEX and VEX IR",
     python_requires='>=3.6',
     url='https://github.com/angr/pyvex',
-    packages=setuptools.find_packages(),
+    packages=find_packages(),
     cmdclass=cmdclass,
     install_requires=[
         'pycparser',
