@@ -129,7 +129,7 @@ def _build_ffi():
         raise
 
 class build_ext(st_build_ext):
-    def run(self):
+    def run(self, *args):
         self.execute(_build_vex, (), msg="Building libVEX")
         self.execute(_build_pyvex, (), msg="Building libpyvex")
         self.execute(_shuffle_files, (), msg="Copying libraries and headers")
@@ -137,7 +137,7 @@ class build_ext(st_build_ext):
         super().run(*args)
 
 class sdist(st_sdist):
-    def run(self):
+    def run(self, *args):
         self.execute(_clean_bins, (), msg="Removing binaries")
         self.execute(_copy_sources, (), msg="Copying VEX sources")
         super().run(*args)
