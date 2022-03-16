@@ -1,4 +1,4 @@
-# pylint: disable=no-name-in-module,import-error
+# pylint: disable=no-name-in-module,import-error,missing-class-docstring
 import os
 import subprocess
 import sys
@@ -6,6 +6,7 @@ import shutil
 import glob
 import tarfile
 import multiprocessing
+import time
 from urllib.request import urlopen
 
 from setuptools import setup, find_packages
