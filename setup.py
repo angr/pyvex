@@ -6,31 +6,15 @@ import shutil
 import glob
 import tarfile
 import multiprocessing
-import time
 from urllib.request import urlopen
-import platform
 
-if bytes is str:
-    raise Exception("This module is designed for python 3 only. Please install an older version to use python 2.")
+import setuptools
+from setuptools.errors import LibError
 
 PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
 LIB_DIR = os.path.join(PROJECT_DIR, 'pyvex', 'lib')
 INCLUDE_DIR = os.path.join(PROJECT_DIR, 'pyvex', 'include')
 
-try:
-    from setuptools import setup
-    from setuptools import find_packages
-    packages = find_packages()
-except ImportError:
-    from distutils.core import setup
-    packages = []
-    for root, _, filenames in os.walk(PROJECT_DIR):
-        if "__init__.py" in filenames:
-            packages.append(root)
-
-from distutils.errors import LibError
-from distutils.command.build import build as _build
-from distutils.command.sdist import sdist as _sdist
 
 if sys.platform in ('win32', 'cygwin'):
     LIBRARY_FILE = 'pyvex.dll'
@@ -139,50 +123,34 @@ def _build_ffi():
     try:
         make_ffi.doit(os.path.join(VEX_PATH, 'pub'))
     except Exception as e:
-        print(repr(e))
         raise
 
-class build(_build):
+class build_ext(setuptools.command.build_ext):
     def run(self):
         self.execute(_build_vex, (), msg="Building libVEX")
         self.execute(_build_pyvex, (), msg="Building libpyvex")
         self.execute(_shuffle_files, (), msg="Copying libraries and headers")
         self.execute(_build_ffi, (), msg="Creating CFFI defs file")
-        _build.run(self)
+        super().run(self)
 
-class sdist(_sdist):
+class sdist(setuptools.command.sdist):
     def run(self):
         self.execute(_clean_bins, (), msg="Removing binaries")
         self.execute(_copy_sources, (), msg="Copying VEX sources")
-        _sdist.run(self)
+        super().run(self)
 
-cmdclass = { 'build': build, 'sdist': sdist }
+cmdclass = {
+    'build_ext': build_ext,
+    'clean': sdist,
+}
 
-try:
-    from setuptools.command.develop import develop as _develop
-    from setuptools.command.bdist_egg import bdist_egg as _bdist_egg
-    class develop(_develop):
-        def run(self):
-            self.execute(_build_vex, (), msg="Building libVEX")
-            self.execute(_build_pyvex, (), msg="Building libpyvex")
-            self.execute(_shuffle_files, (), msg="Copying libraries and headers")
-            self.execute(_build_ffi, (), msg="Creating CFFI defs file")
-            _develop.run(self)
-    cmdclass['develop'] = develop
-
-    class bdist_egg(_bdist_egg):
-        def run(self):
-            self.run_command('build')
-            _bdist_egg.run(self)
-    cmdclass['bdist_egg'] = bdist_egg
-except ImportError:
-    print("Proper 'develop' support unavailable.")
-
-setup(
-    name="pyvex", version='9.1.gitrolling', description="A Python interface to libVEX and VEX IR",
+setuptools.setup(
+    name="pyvex",
+    version='9.1.gitrolling',
+    description="A Python interface to libVEX and VEX IR",
     python_requires='>=3.6',
     url='https://github.com/angr/pyvex',
-    packages=packages,
+    packages=setuptools.find_packages(),
     cmdclass=cmdclass,
     install_requires=[
         'pycparser',
