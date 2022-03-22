@@ -1,9 +1,7 @@
 """
-PyVEX provides an interface that translates binary code into the VEX intermediate represenation (IR).
+PyVEX provides an interface that translates binary code into the VEX intermediate representation (IR).
 For an introduction to VEX, take a look here: https://docs.angr.io/advanced-topics/ir
 """
-from typing import NewType, Any
-
 __version__ = "9.2.0.dev0"
 
 if bytes is str:
@@ -14,6 +12,7 @@ import sys
 import hashlib
 import pickle
 import tempfile
+from typing import Any
 import cffi
 from .vex_ffi import ffi_str as _ffi_str
 ffi = cffi.FFI()
