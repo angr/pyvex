@@ -31,28 +31,8 @@ else:
 
 
 VEX_LIB_NAME = "vex" # can also be vex-amd64-linux
-VEX_PATH = os.path.abspath(os.path.join(PROJECT_DIR, '..', 'vex'))
+VEX_PATH = os.path.abspath(os.path.join(PROJECT_DIR, 'vex'))
 
-if not os.path.exists(VEX_PATH):
-    VEX_PATH = os.path.join(PROJECT_DIR, 'vex')
-
-if not os.path.exists(VEX_PATH):
-    VEX_PATH = os.path.join(PROJECT_DIR, 'vex-master')
-
-if not os.path.exists(VEX_PATH):
-    sys.__stderr__.write('###########################################################################\n')
-    sys.__stderr__.write('WARNING: downloading vex sources directly from github.\n')
-    sys.__stderr__.write('If this strikes you as a bad idea, please abort and clone the angr/vex repo\n')
-    sys.__stderr__.write('into the same folder containing the pyvex repo.\n')
-    sys.__stderr__.write('###########################################################################\n')
-    sys.__stderr__.flush()
-    time.sleep(10)
-
-    VEX_URL = 'https://github.com/angr/vex/archive/master.tar.gz'
-    with open('vex-master.tar.gz', 'wb') as v:
-        v.write(urlopen(VEX_URL).read())
-    with tarfile.open('vex-master.tar.gz') as tar:
-        tar.extractall()
 
 def _build_vex():
     e = os.environ.copy()
