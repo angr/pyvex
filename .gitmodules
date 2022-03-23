@@ -1,0 +1,3 @@
+[submodule "vex"]
+	path = vex
+	url = git@github.com:angr/vex.git
