@@ -129,7 +129,7 @@ cmdclass = {
 
 setup(
     name="pyvex",
-    version='9.1.gitrolling',
+    version='9.2.0.dev0',
     description="A Python interface to libVEX and VEX IR",
     python_requires='>=3.6',
     url='https://github.com/angr/pyvex',
@@ -138,7 +138,7 @@ setup(
     install_requires=[
         'pycparser',
         'cffi>=1.0.3',
-        'archinfo==9.1.gitrolling',
+        'archinfo==9.2.0.dev0',
         'bitstring',
         'future',
     ],
