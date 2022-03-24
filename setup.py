@@ -4,12 +4,9 @@ import subprocess
 import sys
 import shutil
 import glob
-import tarfile
 import multiprocessing
-import time
-from urllib.request import urlopen
 
-from setuptools import setup, find_packages
+from setuptools import setup
 from setuptools.command.build_ext import build_ext as st_build_ext
 from setuptools.command.sdist import sdist as st_sdist
 from setuptools.errors import LibError
@@ -124,27 +121,9 @@ class sdist(st_sdist):
 
 cmdclass = {
     'build_ext': build_ext,
-    'clean': sdist,
+    'sdist': sdist,
 }
 
 setup(
-    name="pyvex",
-    version='9.2.0.dev0',
-    description="A Python interface to libVEX and VEX IR",
-    python_requires='>=3.6',
-    url='https://github.com/angr/pyvex',
-    packages=find_packages(),
     cmdclass=cmdclass,
-    install_requires=[
-        'pycparser',
-        'cffi>=1.0.3',
-        'archinfo==9.2.0.dev0',
-        'bitstring',
-        'future',
-    ],
-    setup_requires=[ 'pycparser', 'cffi>=1.0.3' ],
-    include_package_data=True,
-    package_data={
-        'pyvex': ['lib/*', 'include/*', 'py.typed']
-    }
 )
