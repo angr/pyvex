@@ -5,9 +5,10 @@ import sys
 import shutil
 import glob
 import multiprocessing
+from distutils.command.build import build as st_build
 
 from setuptools import setup
-from setuptools.command.build_ext import build_ext as st_build_ext
+from setuptools.command.develop import develop as st_develop
 from setuptools.command.sdist import sdist as st_sdist
 from setuptools.errors import LibError
 
@@ -84,28 +85,16 @@ def _clean_bins():
     shutil.rmtree(LIB_DIR, ignore_errors=True)
     shutil.rmtree(INCLUDE_DIR, ignore_errors=True)
 
-def _copy_sources():
-    local_vex_path = os.path.join(PROJECT_DIR, 'vex')
-    assert local_vex_path != VEX_PATH
-    shutil.rmtree(local_vex_path, ignore_errors=True)
-    os.mkdir(local_vex_path)
-
-    vex_src = ['LICENSE.GPL', 'LICENSE.README', 'Makefile-gcc', 'Makefile-msvc', 'common.mk', 'pub/*.h', 'priv/*.c', 'priv/*.h', 'auxprogs/*.c']
-    for spec in vex_src:
-        dest_dir = os.path.join(local_vex_path, os.path.dirname(spec))
-        if not os.path.isdir(dest_dir):
-            os.mkdir(dest_dir)
-        for srcfile in glob.glob(os.path.join(VEX_PATH, spec)):
-            shutil.copy(srcfile, dest_dir)
-
 def _build_ffi():
+    sys.path.append(".") # PEP 517 doesn't include . in sys.path
     import make_ffi
+    sys.path.pop()
     try:
         make_ffi.doit(os.path.join(VEX_PATH, 'pub'))
     except Exception as e:
         raise
 
-class build_ext(st_build_ext):
+class build(st_build):
     def run(self, *args):
         self.execute(_build_vex, (), msg="Building libVEX")
         self.execute(_build_pyvex, (), msg="Building libpyvex")
@@ -113,14 +102,19 @@ class build_ext(st_build_ext):
         self.execute(_build_ffi, (), msg="Creating CFFI defs file")
         super().run(*args)
 
+class develop(st_develop):
+    def run(self):
+        self.run_command("build")
+        super().run()
+
 class sdist(st_sdist):
     def run(self, *args):
         self.execute(_clean_bins, (), msg="Removing binaries")
-        self.execute(_copy_sources, (), msg="Copying VEX sources")
         super().run(*args)
 
 cmdclass = {
-    'build_ext': build_ext,
+    'build': build,
+    'develop': develop,
     'sdist': sdist,
 }
 
