@@ -5,9 +5,10 @@ import sys
 import shutil
 import glob
 import multiprocessing
+from distutils.command.build import build as st_build
 
 from setuptools import setup
-from distutils.command.build import build as st_build
+from setuptools.command.develop import develop as st_develop
 from setuptools.command.sdist import sdist as st_sdist
 from setuptools.errors import LibError
 
@@ -101,6 +102,11 @@ class build(st_build):
         self.execute(_build_ffi, (), msg="Creating CFFI defs file")
         super().run(*args)
 
+class develop(st_develop):
+    def run(self):
+        self.run_command("build")
+        super().run()
+
 class sdist(st_sdist):
     def run(self, *args):
         self.execute(_clean_bins, (), msg="Removing binaries")
@@ -108,6 +114,7 @@ class sdist(st_sdist):
 
 cmdclass = {
     'build': build,
+    'develop': develop,
     'sdist': sdist,
 }
 
