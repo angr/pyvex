@@ -7,8 +7,8 @@ import pyvex
 from pyvex.block import IRSB
 
 
-class TestCacheInvalidationOnExtend(unittest.TestCase)
-    def test_cache_invalidation_on_extend():
+class TestCacheInvalidationOnExtend(unittest.TestCase):
+    def test_cache_invalidation_on_extend(self):
         b = pyvex.block.IRSB(b"\x50", 0, archinfo.ArchX86())
         assert b.size == 1
         assert b.instructions == 1
