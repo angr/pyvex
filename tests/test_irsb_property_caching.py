@@ -1,4 +1,4 @@
-# pylint: ignore=missing-class-docstring,no-self-use
+# pylint: disable=missing-class-docstring,no-self-use
 import unittest
 
 import archinfo
