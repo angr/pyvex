@@ -1,10 +1,9 @@
-import sys
+# pylint: ignore=missing-class-docstring,no-self-use
 import unittest
 
 import archinfo
 
 import pyvex
-from pyvex.block import IRSB
 
 
 class TestCacheInvalidationOnExtend(unittest.TestCase):
