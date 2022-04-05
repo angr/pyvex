@@ -1,3 +1,3 @@
 [build-system]
-requires = ["setuptools>=59", "wheel", "cffi >= 1.0.3", "pycparser"]
+requires = ["setuptools>=59", "wheel", "cffi >= 1.0.3"]
 build-backend = "setuptools.build_meta"
