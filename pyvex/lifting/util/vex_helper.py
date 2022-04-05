@@ -4,7 +4,6 @@ from ...const import ty_to_const_class, vex_int_class, get_type_size
 from ...expr import Const, RdTmp, Unop, Binop, Load, CCall, Get, ITE
 from ...stmt import WrTmp, Put, IMark, Store, NoOp, Exit
 from ...enums import IRCallee
-from future.utils import with_metaclass
 
 
 class JumpKind(object):
@@ -31,7 +30,7 @@ class TypeMeta(type):
             return type.__getattr__(name)
 
 
-class Type(with_metaclass(TypeMeta, object)):
+class Type(metaclass=TypeMeta):
     __metaclass__ = TypeMeta
 
     ieee_float_16 = 'Ity_F16'
