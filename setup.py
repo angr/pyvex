@@ -6,6 +6,7 @@ import shutil
 import glob
 import multiprocessing
 from distutils.command.build import build as st_build
+from distutils.util import get_platform
 
 from setuptools import setup
 from setuptools.command.develop import develop as st_develop
@@ -121,6 +122,10 @@ cmdclass = {
     'develop': develop,
     'sdist': sdist,
 }
+
+if "bdist_wheel" in sys.argv and "--plat-name" not in sys.argv:
+    sys.argv.append("--plat-name")
+    sys.argv.append(get_platform())
 
 setup(
     cmdclass=cmdclass,
