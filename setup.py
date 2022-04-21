@@ -5,6 +5,7 @@ import sys
 import shutil
 import glob
 import multiprocessing
+import platform
 from distutils.command.build import build as st_build
 from distutils.util import get_platform
 
