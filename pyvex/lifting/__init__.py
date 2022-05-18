@@ -99,7 +99,10 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                         continue
                     u_data = ffi.buffer(c_data + skip, max_bytes)[:]
                 else:
-                    u_data = py_data[skip : skip + max_bytes]
+                    if max_bytes is None:
+                        u_data = py_data[skip:]
+                    else:
+                        u_data = py_data[skip:skip + max_bytes]
             else:
                 raise RuntimeError("Incorrect lifter configuration. What type of data does %s expect?"
                                    % lifter.__class__)
