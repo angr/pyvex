@@ -23,7 +23,7 @@ class IRStmt(VEXObject):
         print(self.__str__())
 
     @property
-    def expressions(self) -> Iterator['IRExpr']:
+    def child_expressions(self) -> Iterator['IRExpr']:
         for k in self.__slots__:
             v = getattr(self, k)
             if isinstance(v, IRExpr):
@@ -32,6 +32,11 @@ class IRStmt(VEXObject):
                 # return all the child expressions
                 for child in v.child_expressions:
                     yield child
+
+    # ???
+    @property
+    def expressions(self):
+        return self.child_expressions
 
     @property
     def constants(self):
