@@ -1,12 +1,13 @@
 from .. import register
 from ..util import GymratLifter, Instruction, Type
 
+# pylint: disable=missing-class-docstring
 
 class Instruction_RDMSR(Instruction):
     name = "RDMSR"
     bin_format = "0000111100110010"  # 0f 32
 
-    def compute_result(self):
+    def compute_result(self, *args):
         ecx = self.get('ecx', Type.int_32)
         result = self.dirty(Type.int_64, '%sg_dirtyhelper_RDMSR' % self.arch.name.lower(), (ecx,))
         edx = result.narrow_high(Type.int_32)
@@ -22,7 +23,7 @@ class Instruction_XGETBV(Instruction):
     name = "XGETBV"
     bin_format = "000011110000000111010000"  # 0f 01 d0
 
-    def compute_result(self):
+    def compute_result(self, *args):
         ecx = self.get('ecx', Type.int_32)
         result = self.dirty(Type.int_64, '%sg_dirtyhelper_XGETBV' % self.arch.name.lower(), (ecx,))
         edx = result.narrow_high(Type.int_32)
