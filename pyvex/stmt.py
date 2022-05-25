@@ -4,6 +4,7 @@ from typing import Iterator, Optional
 from . import VEXObject
 from archinfo import RegisterOffset, TmpVar
 from .enums import get_enum_from_int, get_int_from_enum
+from .expr import Const
 
 l = logging.getLogger('pyvex.stmt')
 
@@ -536,7 +537,7 @@ class Exit(IRStmt):
 
     @property
     def child_expressions(self):
-        return [self.guard, self.dst] + self.guard.child_expressions
+        return [self.guard] + self.guard.child_expressions + [Const(self.dst)]
 
     @staticmethod
     def _from_c(c_stmt):
