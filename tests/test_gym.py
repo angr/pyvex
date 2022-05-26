@@ -1,7 +1,8 @@
+# pylint: disable=missing-class-docstring
 import unittest
 
-import pyvex
 import archinfo
+import pyvex
 
 class Tests(unittest.TestCase):
     def test_x86_aam(self):
