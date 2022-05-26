@@ -1,5 +1,9 @@
+import logging
+
 from .. import register
 from ..util import GymratLifter, Instruction, Type
+
+l = logging.getLogger(__name__)
 
 # pylint: disable=missing-class-docstring
 
@@ -35,11 +39,53 @@ class Instruction_XGETBV(Instruction):
             self.put(eax.widen_unsigned(Type.int_64), 'rax')
             self.put(edx.widen_unsigned(Type.int_64), 'rdx')
 
+class Instruction_AAM(Instruction):
+    name = "AAM"
+    bin_format = '11010100iiiiiiii'
+    # From https://www.felixcloutier.com/x86/aam
+    def compute_result(self): # pylint: disable=arguments-differ
+        base = self.constant(int(self.data['i'],2), Type.int_8)
+        temp_al = self.get('al', Type.int_8)
+        temp_ah = temp_al // base
+        temp_al = temp_al % base
+        self.put(temp_ah, 'ah')
+        self.put(temp_al, 'al')
+        l.warning("The generalized AAM instruction is not supported by VEX, and is handled specially by pyvex."
+                  " It has no flag handling at present.  See pyvex/lifting/gym/x86_spotter.py for details")
+
+    # TODO: Flags
+
+class Instruction_AAD(Instruction):
+    name = "AAD"
+    bin_format = '11010101iiiiiiii'
+    # From https://www.felixcloutier.com/x86/aad
+    def compute_result(self): # pylint: disable=arguments-differ
+        base = self.constant(int(self.data['i'],2), Type.int_8)
+        temp_al = self.get('al', Type.int_8)
+        temp_ah = self.get('ah', Type.int_8)
+        temp_al = (temp_al + (temp_ah * base)) & 0xff
+        temp_ah = self.constant(0, Type.int_8)
+        self.put(temp_ah, 'ah')
+        self.put(temp_al, 'al')
+        l.warning("The generalized AAM instruction is not supported by VEX, and is handled specially by pyvex."
+                  " It has no flag handling at present.  See pyvex/lifting/gym/x86_spotter.py for details")
+    # TODO: Flags
+
 class AMD64Spotter(GymratLifter):
-    instrs = [Instruction_RDMSR, Instruction_XGETBV]
+    instrs = [
+        Instruction_RDMSR,
+        Instruction_XGETBV,
+        Instruction_AAD,
+        Instruction_AAM,
+    ]
 
 class X86Spotter(GymratLifter):
-    instrs = [Instruction_RDMSR, Instruction_XGETBV]
+    instrs = [
+        Instruction_RDMSR,
+        Instruction_XGETBV,
+        Instruction_AAD,
+        Instruction_AAM,
+    ]
 
 register(AMD64Spotter, 'AMD64')
 register(X86Spotter, 'X86')
