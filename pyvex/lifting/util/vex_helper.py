@@ -1,8 +1,8 @@
 import re
 import copy
-from ...const import ty_to_const_class, vex_int_class, get_type_size
+from ...const import ty_to_const_class, vex_int_class, get_type_size, U1
 from ...expr import Const, RdTmp, Unop, Binop, Load, CCall, Get, ITE
-from ...stmt import WrTmp, Put, IMark, Store, NoOp, Exit
+from ...stmt import WrTmp, Put, IMark, Store, NoOp, Exit, Dirty
 from ...enums import IRCallee
 
 
@@ -185,6 +185,14 @@ class IRSBCustomizer(object):
 
     def op_ccall(self, retty, funcstr, args):
         return self._settmp(CCall(retty, IRCallee(len(args), funcstr, 0xffff), args))
+
+    def dirty(self, retty, funcstr, args):
+        if retty is None:
+            tmp = 0xffffffff
+        else:
+            tmp = self._add_tmp(retty)
+        self._append_stmt(Dirty(IRCallee(len(args), funcstr, 0xffff), Const(U1(1)), args, tmp, None, None, None, None))
+        return self._rdtmp(tmp)
 
     def ite(self, condrdt, iftruerdt, iffalserdt):
         return self._settmp(ITE(copy.copy(condrdt), copy.copy(iffalserdt), copy.copy(iftruerdt)))

@@ -4,6 +4,7 @@ from typing import Iterator, Optional
 from . import VEXObject
 from archinfo import RegisterOffset, TmpVar
 from .enums import get_enum_from_int, get_int_from_enum
+from .expr import Const
 
 l = logging.getLogger('pyvex.stmt')
 
@@ -23,7 +24,7 @@ class IRStmt(VEXObject):
         print(self.__str__())
 
     @property
-    def expressions(self) -> Iterator['IRExpr']:
+    def child_expressions(self) -> Iterator['IRExpr']:
         for k in self.__slots__:
             v = getattr(self, k)
             if isinstance(v, IRExpr):
@@ -32,6 +33,11 @@ class IRStmt(VEXObject):
                 # return all the child expressions
                 for child in v.child_expressions:
                     yield child
+
+    # ???
+    @property
+    def expressions(self):
+        return self.child_expressions
 
     @property
     def constants(self):
@@ -531,7 +537,7 @@ class Exit(IRStmt):
 
     @property
     def child_expressions(self):
-        return [self.guard, self.dst] + self.guard.child_expressions
+        return [self.guard] + self.guard.child_expressions + [Const(self.dst)]
 
     @staticmethod
     def _from_c(c_stmt):

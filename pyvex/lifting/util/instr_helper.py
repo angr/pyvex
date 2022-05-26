@@ -6,7 +6,7 @@ import logging
 from .lifter_helper import ParseError
 from .syntax_wrapper import VexValue
 from ...expr import IRExpr, RdTmp
-from .vex_helper import JumpKind, vex_int_class
+from .vex_helper import JumpKind, vex_int_class, IRSBCustomizer
 
 l = logging.getLogger("instr")
 
@@ -115,7 +115,7 @@ class Instruction(metaclass=abc.ABCMeta):
         """
         return ()
 
-    def lift(self, irsb_c, past_instructions, future_instructions):  # pylint: disable=unused-argument
+    def lift(self, irsb_c: IRSBCustomizer, past_instructions, future_instructions):  # pylint: disable=unused-argument
         """
         This is the main body of the "lifting" for the instruction.
         This can/should be overridden to provide the general flow of how instructions in your arch work.
@@ -364,23 +364,19 @@ class Instruction(metaclass=abc.ABCMeta):
     def ite(self, cond, t, f):
         return self.irsb_c.ite(cond.rdt, t.rdt, f.rdt)
 
-    def ccall(self, ret_type, func_obj, args):
+    def ccall(self, ret_type, func_name, args):
         """
         Creates a CCall operation.
         A CCall is a procedure that calculates a value at *runtime*, not at lift-time.
         You can use these for flags, unresolvable jump targets, etc.
         We caution you to avoid using them when at all possible though.
 
-        For an example of how to write and use a CCall, see gymrat/bf/lift_bf.py
-
         :param ret_type: The return type of the CCall
-        :param func_obj: The function object to eventually call.
+        :param func_obj: The name of the helper function to call. If you're using angr, this should be added (or
+                         monkeypatched) into ``angr.engines.vex.claripy.ccall``.
         :param args: List of arguments to the function
         :return: A VexValue of the result.
         """
-        # HACK: FIXME: If you're reading this, I'm sorry. It's truly a crime against Python...
-
-        from angr.engines.vex.claripy import ccall
 
         # Check the args to make sure they're the right type
         list_args = list(args)
@@ -391,15 +387,36 @@ class Instruction(metaclass=abc.ABCMeta):
             new_args.append(arg)
         args = tuple(new_args)
 
-        # Support calling ccalls via string name
-        if isinstance(func_obj, str):
-            func_obj = getattr(ccall, func_obj)
-        else:
-            # ew, monkey-patch in the user-provided CCall
-            if not hasattr(ccall, func_obj.__name__):
-                setattr(ccall, func_obj.__name__, func_obj)
-        cc = self.irsb_c.op_ccall(ret_type, func_obj.__name__, args)
+        cc = self.irsb_c.op_ccall(ret_type, func_name, args)
         return VexValue(self.irsb_c, cc)
+
+    def dirty(self, ret_type, func_name, args) -> VexValue:
+        """
+        Creates a dirty call operation.
+
+        These are like ccalls (clean calls) but their implementations are theoretically allowed to read or write to or
+        from any part of the state, making them a nightmare for static analysis to reason about. Avoid their use at all
+        costs.
+
+        :param ret_type:   The return type of the dirty call, or None if the dirty call doesn't return anything.
+        :param func_name:  The name of the helper function to call. If you're using angr, this should be added (or
+                           monkeypatched) into ``angr.engines.vex.heavy.dirty``.
+        :param args: List of arguments to the function
+        :return: A VexValue of the result.
+        """
+
+        # Check the args to make sure they're the right type
+        list_args = list(args)
+        new_args = []
+        for arg in list_args:
+            if isinstance(arg, VexValue):
+                arg = arg.rdt
+            new_args.append(arg)
+        args = tuple(new_args)
+
+        rdt = self.irsb_c.dirty(ret_type, func_name, args)
+        return VexValue(self.irsb_c, rdt)
+
 
     def _load_le_instr(self, bitstream: bitstring.ConstBitStream, numbits: int) -> str:
         return bitstring.Bits(uint=bitstream.peek("uintle:%d" % numbits), length=numbits).bin
