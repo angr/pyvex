@@ -43,17 +43,19 @@ def _build_vex():
     e['MULTIARCH'] = '1'
     e['DEBUG'] = '1'
 
-    cmd1 = ['nmake', '/f', 'Makefile-msvc', 'all']
-    cmd2 = ['make', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
-    cmd3 = ['gmake', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
-    for cmd in (cmd1, cmd2, cmd3):
-        try:
-            if subprocess.call(cmd, cwd=VEX_PATH, env=e) == 0:
-                break
-        except OSError:
-            continue
+    if sys.platform == 'win32':
+        cmd = ['nmake', '/f', 'Makefile-msvc', 'all']
+    elif shutil.which('gmake') is not None:
+        cmd = ['gmake', '-f' 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
     else:
-        raise LibError("Unable to build libVEX.")
+        cmd = ['make', '-f' 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
+
+    try:
+        subprocess.run(cmd, cwd=VEX_PATH, env=e, check=True)
+    except FileNotFoundError:
+        raise LibError("Couldn't find " + cmd[0] + " in PATH")
+    except subprocess.CalledProcessError as err:
+        raise LibError("Error while building libvex: " + str(err))
 
 def _build_pyvex():
     e = os.environ.copy()
@@ -61,17 +63,20 @@ def _build_pyvex():
     e['VEX_INCLUDE_PATH'] = os.path.join(VEX_PATH, 'pub')
     e['VEX_LIB_FILE'] = os.path.join(VEX_PATH, 'libvex.lib')
 
-    cmd1 = ['nmake', '/f', 'Makefile-msvc']
-    cmd2 = ['make', '-j', str(multiprocessing.cpu_count())]
-    cmd3 = ['gmake', '-j', str(multiprocessing.cpu_count())]
-    for cmd in (cmd1, cmd2, cmd3):
-        try:
-            if subprocess.call(cmd, cwd='pyvex_c', env=e) == 0:
-                break
-        except OSError as err:
-            continue
+    if sys.platform == 'win32':
+        cmd = ['nmake', '/f', 'Makefile-msvc']
+    elif shutil.which('gmake') is not None:
+        cmd = ['gmake', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count())]
     else:
-        raise LibError("Unable to build libpyvex.")
+        cmd = ['make', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count())]
+
+    try:
+        subprocess.run(cmd, cwd=VEX_PATH, env=e, check=True)
+    except FileNotFoundError:
+        raise LibError("Couldn't find " + cmd[0] + " in PATH")
+    except subprocess.CalledProcessError as err:
+        raise LibError("Error while building libpyvex: " + str(err))
+
 
 def _shuffle_files():
     shutil.rmtree(LIB_DIR, ignore_errors=True)
