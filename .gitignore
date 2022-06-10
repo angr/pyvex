@@ -14,6 +14,7 @@ libpyvex.so
 *.exp
 *.o
 *.a
+*.dylib
 pyvex/lib
 pyvex/include
 vex-master
