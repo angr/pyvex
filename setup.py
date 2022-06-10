@@ -66,12 +66,12 @@ def _build_pyvex():
     if sys.platform == 'win32':
         cmd = ['nmake', '/f', 'Makefile-msvc']
     elif shutil.which('gmake') is not None:
-        cmd = ['gmake', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count())]
+        cmd = ['gmake', '-f', 'Makefile', '-j', str(multiprocessing.cpu_count())]
     else:
-        cmd = ['make', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count())]
+        cmd = ['make', '-f', 'Makefile', '-j', str(multiprocessing.cpu_count())]
 
     try:
-        subprocess.run(cmd, cwd=VEX_PATH, env=e, check=True)
+        subprocess.run(cmd, cwd="pyvex_c", env=e, check=True)
     except FileNotFoundError:
         raise LibError("Couldn't find " + cmd[0] + " in PATH")
     except subprocess.CalledProcessError as err:
