@@ -46,16 +46,16 @@ def _build_vex():
     if sys.platform == 'win32':
         cmd = ['nmake', '/f', 'Makefile-msvc', 'all']
     elif shutil.which('gmake') is not None:
-        cmd = ['gmake', '-f' 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
+        cmd = ['gmake', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
     else:
-        cmd = ['make', '-f' 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
+        cmd = ['make', '-f', 'Makefile-gcc', '-j', str(multiprocessing.cpu_count()), 'all']
 
     try:
         subprocess.run(cmd, cwd=VEX_PATH, env=e, check=True)
-    except FileNotFoundError:
-        raise LibError("Couldn't find " + cmd[0] + " in PATH")
+    except FileNotFoundError as err:
+        raise LibError("Couldn't find " + cmd[0] + " in PATH") from err
     except subprocess.CalledProcessError as err:
-        raise LibError("Error while building libvex: " + str(err))
+        raise LibError("Error while building libvex: " + str(err)) from err
 
 def _build_pyvex():
     e = os.environ.copy()
@@ -72,10 +72,10 @@ def _build_pyvex():
 
     try:
         subprocess.run(cmd, cwd="pyvex_c", env=e, check=True)
-    except FileNotFoundError:
-        raise LibError("Couldn't find " + cmd[0] + " in PATH")
+    except FileNotFoundError as err:
+        raise LibError("Couldn't find " + cmd[0] + " in PATH") from err
     except subprocess.CalledProcessError as err:
-        raise LibError("Error while building libpyvex: " + str(err))
+        raise LibError("Error while building libpyvex: " + str(err)) from err
 
 
 def _shuffle_files():
@@ -98,12 +98,10 @@ def _clean_bins():
 
 def _build_ffi():
     sys.path.append(".") # PEP 517 doesn't include . in sys.path
-    import make_ffi
+    import make_ffi  # pylint: disable=import-outside-toplevel
     sys.path.pop()
-    try:
-        make_ffi.doit(os.path.join(VEX_PATH, 'pub'))
-    except Exception as e:
-        raise
+
+    make_ffi.doit(os.path.join(VEX_PATH, 'pub'))
 
 class build(st_build):
     def run(self, *args):
