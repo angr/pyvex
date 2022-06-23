@@ -173,6 +173,10 @@ int vex_init() {
 #elif __s390x__
 	vta.arch_host = VexArchS390X;
 	vai_host.hwcaps = VEX_HWCAPS_S390X_LDISP;
+#elif defined(__powerpc__) && defined(__NetBSD__)
+#  if defined(__LONG_WIDTH__) && (__LONG_WIDTH__ == 32)
+	vta.arch_host = VexArchPPC32;
+#  endif
 #elif defined(__powerpc__)
         vta.arch_host = VexArchPPC64;
 #else
