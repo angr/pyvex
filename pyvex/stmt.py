@@ -57,28 +57,27 @@ class IRStmt(VEXObject):
     def typecheck(self, tyenv): # pylint: disable=unused-argument,no-self-use
         return True
 
-    def replace_expression(self, expression, replacement):
+    def replace_expression(self, replacements):
         """
         Replace child expressions in-place.
 
-        :param IRExpr expression:         The expression to look for.
-        :param IRExpr replacement:  The expression to replace with.
+        :param Dict[IRExpr, IRExpr] replacements:  A mapping from expression-to-find to expression-to-replace-with
         :return:                    None
         """
 
         for k in self.__slots__:
             v = getattr(self, k)
-            if v is expression:
-                setattr(self, k, replacement)
+            if isinstance(v, IRExpr) and v in replacements:
+                setattr(self, k, replacements.get(v))
             elif isinstance(v, IRExpr):
-                v.replace_expression(expression, replacement)
+                v.replace_expression(replacements)
             elif type(v) is tuple:
                 # Rebuild the tuple
                 _lst = [ ]
                 replaced = False
                 for expr_ in v:
-                    if expr_ is expression:
-                        _lst.append(replacement)
+                    if isinstance(expr_, IRExpr) and expr_ in replacements:
+                        _lst.append(replacements.get(expr_))
                         replaced = True
                     else:
                         _lst.append(expr_)

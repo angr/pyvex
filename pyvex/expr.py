@@ -57,38 +57,37 @@ class IRExpr(VEXObject):
     def result_type(self, tyenv):
         raise NotImplementedError()
 
-    def replace_expression(self, expr, replacement):
+    def replace_expression(self, replacements):
         """
         Replace child expressions in-place.
 
-        :param IRExpr expr:         The expression to look for.
-        :param IRExpr replacement:  The expression to replace with.
+        :param Dict[IRExpr, IRExpr] replacements:  A mapping from expression-to-find to expression-to-replace-with
         :return:                    None
         """
 
         for k in self.__slots__:
             v = getattr(self, k)
-            if v is expr:
-                setattr(self, k, replacement)
+            if isinstance(v, IRExpr) and v in replacements:
+                setattr(self, k, replacements.get(v))
             elif type(v) is list:
                 # Replace the instance in the list
                 for i, expr_ in enumerate(v):
-                    if expr_ is expr:
-                        v[i] = replacement
+                    if isinstance(expr_, IRExpr) and expr_ in replacements:
+                        v[i] = replacements.get(expr_)
             elif type(v) is tuple:
                 # Rebuild the tuple
                 _lst = [ ]
                 replaced = False
                 for i, expr_ in enumerate(v):
-                    if expr_ is expr:
-                        _lst.append(replacement)
+                    if isinstance(expr_, IRExpr) and expr_ in replacements:
+                        _lst.append(replacements.get(expr_))
                         replaced = True
                     else:
                         _lst.append(expr_)
                 if replaced:
                     setattr(self, k, tuple(_lst))
             elif isinstance(v, IRExpr):
-                v.replace_expression(expr, replacement)
+                v.replace_expression(replacements)
 
     @staticmethod
     def _from_c(c_expr) -> 'IRExpr':
@@ -258,7 +257,7 @@ class RdTmp(IRExpr):
             return _RDTMP_POOL[tmp]
         return RdTmp(tmp)
 
-    def replace_expression(self, expr, replacement):
+    def replace_expression(self, replacements):
         # RdTmp is one of the terminal IRExprs, which cannot be replaced.
         pass
 

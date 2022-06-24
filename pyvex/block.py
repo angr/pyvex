@@ -223,8 +223,7 @@ class IRSB(VEXObject):
                 replacement = convert_expr(expr_)
                 if replacement is not expr_:
                     to_replace[expr_] = replacement
-            for expr_, replacement in to_replace.items():
-                stmt_.replace_expression(expr_, replacement)
+            stmt_.replace_expression(to_replace)
             # Add the converted statement to self.statements
             self.statements.append(stmt_)
         extendwith.next = convert_expr(extendwith.next)
