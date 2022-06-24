@@ -257,7 +257,7 @@ class RdTmp(IRExpr):
             return _RDTMP_POOL[tmp]
         return RdTmp(tmp)
 
-    def replace_expression(self, expr, replacement):
+    def replace_expression(self, replacements):
         # RdTmp is one of the terminal IRExprs, which cannot be replaced.
         pass
 
