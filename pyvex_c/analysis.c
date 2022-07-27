@@ -611,6 +611,7 @@ void collect_data_references(
 							record_data_reference(lift_r, tmps[rdtmp].value, size, Dt_Integer, i, inst_addr);
 							if (load_from_ro_regions)
 								if (guest == VexArchARM && size == 4 ||
+									guest == VexArchMIPS32 && size == 4 ||
 									guest == VexArchMIPS64 && size == 8) {
 								ULong value;
 								if (load_value(tmps[rdtmp].value, size, data->Iex.Load.end, &value)) {
