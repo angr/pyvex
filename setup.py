@@ -11,6 +11,7 @@ from distutils.util import get_platform
 
 from setuptools import setup
 from setuptools.command.develop import develop as st_develop
+from setuptools.command.editable_wheel import editable_wheel as st_editable_wheel
 from setuptools.command.sdist import sdist as st_sdist
 from setuptools.errors import LibError
 
@@ -112,6 +113,11 @@ class build(st_build):
         super().run(*args)
 
 class develop(st_develop):
+    def run(self):
+        self.run_command("build")
+        super().run()
+
+class editable_wheel(st_editable_wheel):
     def run(self):
         self.run_command("build")
         super().run()
