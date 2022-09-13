@@ -21,7 +21,7 @@ jobs:
   ci:
     uses: angr/ci-settings/.github/workflows/angr-ci.yml@master
     with:
-      image: ${{ inputs.image }}
+      container_image: ${{ inputs.image }}
       nightly: ${{ inputs.nightly }}
       afl: ${{ inputs.afl }}
 
