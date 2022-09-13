@@ -1,0 +1,28 @@
+name: Custom CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: Container image to run with
+        type: string
+        required: true
+      nightly:
+        description: Run in nightly mode (include slow tests, no dependent projects)
+        type: boolean
+        required: true
+      afl:
+        description: Set parameters for AFL
+        type: boolean
+        required: true
+      
+
+jobs:
+  ci:
+    uses: angr/ci-settings/.github/workflows/angr-ci.yml@master
+    with:
+      image: ${{ inputs.image }}
+      nightly: ${{ inputs.nightly }}
+      afl: ${{ inputs.afl }}
+
+
