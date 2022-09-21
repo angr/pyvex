@@ -1,11 +1,34 @@
 import logging
 
 from .. import register
-from ..util import GymratLifter, Instruction, Type
+from ..util import GymratLifter, Instruction, Type, JumpKind
 
 l = logging.getLogger(__name__)
 
 # pylint: disable=missing-class-docstring
+
+class Instruction_SWAPGS(Instruction):
+    name = "SWAPGS"
+    bin_format = "000011110000000111111000"  # 0f 01 f8
+
+    def compute_result(self, *args):
+        pass  # TODO check for priv mode
+
+class Instruction_SYSRET(Instruction):
+    name = "SYSRET"
+    bin_format = "010010000000111100000111"  # 48 04 07
+
+    def compute_result(self, *args):
+        result = self.dirty(Type.int_64, '%sg_dirtyhelper_SYSRET' % self.arch.name.lower(), ())
+        self.jump(None, result, JumpKind.Ret)
+
+class Instruction_IRETQ(Instruction):
+    name = "IRETQ"
+    bin_format = "0100100011001111"  # 48 cf
+
+    def compute_result(self, *args):
+        result = self.dirty(Type.int_64, '%sg_dirtyhelper_IRETQ' % self.arch.name.lower(), ())
+        self.jump(None, result, JumpKind.Ret)
 
 class Instruction_RDMSR(Instruction):
     name = "RDMSR"
@@ -77,6 +100,9 @@ class AMD64Spotter(GymratLifter):
         Instruction_XGETBV,
         Instruction_AAD,
         Instruction_AAM,
+        Instruction_SWAPGS,
+        Instruction_IRETQ,
+        Instruction_SYSRET,
     ]
 
 class X86Spotter(GymratLifter):
