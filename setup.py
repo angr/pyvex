@@ -11,7 +11,6 @@ from distutils.util import get_platform
 
 from setuptools import setup
 from setuptools.command.develop import develop as st_develop
-from setuptools.command.editable_wheel import editable_wheel as st_editable_wheel
 from setuptools.command.sdist import sdist as st_sdist
 from setuptools.errors import LibError
 
@@ -58,6 +57,7 @@ def _build_vex():
     except subprocess.CalledProcessError as err:
         raise LibError("Error while building libvex: " + str(err)) from err
 
+
 def _build_pyvex():
     e = os.environ.copy()
     e['VEX_LIB_PATH'] = VEX_PATH
@@ -93,9 +93,11 @@ def _shuffle_files():
     for f in glob.glob(os.path.join(VEX_PATH, 'pub', '*')):
         shutil.copy(f, INCLUDE_DIR)
 
+
 def _clean_bins():
     shutil.rmtree(LIB_DIR, ignore_errors=True)
     shutil.rmtree(INCLUDE_DIR, ignore_errors=True)
+
 
 def _build_ffi():
     sys.path.append(".") # PEP 517 doesn't include . in sys.path
@@ -103,6 +105,7 @@ def _build_ffi():
     sys.path.pop()
 
     make_ffi.doit(os.path.join(VEX_PATH, 'pub'))
+
 
 class build(st_build):
     def run(self, *args):
@@ -112,26 +115,36 @@ class build(st_build):
         self.execute(_build_ffi, (), msg="Creating CFFI defs file")
         super().run(*args)
 
+
 class develop(st_develop):
     def run(self):
         self.run_command("build")
         super().run()
 
-class editable_wheel(st_editable_wheel):
-    def run(self):
-        self.run_command("build")
-        super().run()
 
 class sdist(st_sdist):
     def run(self, *args):
         self.execute(_clean_bins, (), msg="Removing binaries")
         super().run(*args)
 
+
 cmdclass = {
     'build': build,
     'develop': develop,
     'sdist': sdist,
 }
+
+try:
+    from setuptools.command.editable_wheel import editable_wheel as st_editable_wheel
+
+    class editable_wheel(st_editable_wheel):
+        def run(self):
+            self.run_command("build")
+            super().run()
+
+    cmdclass["editable_wheel"] = editable_wheel
+except ModuleNotFoundError:
+    pass
 
 if 'bdist_wheel' in sys.argv and '--plat-name' not in sys.argv:
     sys.argv.append('--plat-name')
