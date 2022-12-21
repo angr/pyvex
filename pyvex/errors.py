@@ -1,4 +1,3 @@
-
 class PyVEXError(Exception):
     pass
 

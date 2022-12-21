@@ -128,7 +128,7 @@ The astute reader will observe that the actual subtraction is modeled by the fir
 The following ARM instruction:
 
     subs R2, R2, #8
-	
+
 Becomes this VEX IR:
 
     t0 = GET:I32(16)

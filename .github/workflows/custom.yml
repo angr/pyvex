@@ -15,7 +15,7 @@ on:
         description: Set parameters for AFL
         type: boolean
         required: true
-      
+
 
 jobs:
   ci:

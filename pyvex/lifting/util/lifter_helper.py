@@ -1,4 +1,3 @@
-
 import logging
 import bitstring
 
@@ -49,7 +48,7 @@ class GymratLifter(Lifter):
         # Try every instruction until one works
         for possible_instr in self.instrs:
             try:
-                l.info("Trying " + possible_instr.name)
+                l.info("Trying %s", possible_instr.name)
                 return possible_instr(self.bitstrm, self.irsb.arch, addr)
             # a ParserError signals that this instruction did not match
             # we need to try other instructions, so we ignore this error
@@ -76,9 +75,10 @@ class GymratLifter(Lifter):
             bytepos = self.bitstrm.bytepos
 
 
-            while (not is_empty(self.bitstrm)):
+            while not is_empty(self.bitstrm):
                 instr = self._decode_next_instruction(addr)
-                if not instr: break
+                if not instr:
+                    break
                 disas.append(instr)
                 l.debug("Matched " + instr.name)
                 addr += self.bitstrm.bytepos - bytepos
@@ -87,7 +87,7 @@ class GymratLifter(Lifter):
             return disas
         except Exception as e:
             self.errors = str(e)
-            l.exception("Error decoding block at offset {:#x} (address {:#x}):".format(bytepos, addr))
+            l.exception(f"Error decoding block at offset {bytepos:#x} (address {addr:#x}):")
             raise
 
     def lift(self, disassemble=False, dump_irsb=False):
@@ -101,11 +101,11 @@ class GymratLifter(Lifter):
         irsb_c = IRSBCustomizer(self.irsb)
         l.debug("Decoding complete.")
         for i, instr in enumerate(instructions[:self.max_inst]):
-            l.debug("Lifting instruction " + instr.name)
+            l.debug("Lifting instruction %s", instr.name)
             instr(irsb_c, instructions[:i], instructions[i+1:])
             if irsb_c.irsb.jumpkind != JumpKind.Invalid:
                 break
-            elif (i+1) == self.max_inst: # if we are on our last iteration
+            if (i+1) == self.max_inst: # if we are on our last iteration
                 instr.jump(None, irsb_c.irsb.addr + irsb_c.irsb.size)
                 break
         else:
@@ -125,7 +125,7 @@ class GymratLifter(Lifter):
         insts = self.disassemble()
         for addr, name, args in insts:
             args_str = ",".join(str(a) for a in args)
-            disasstr += "%0#08x:\t%s %s\n" % (addr, name, args_str)
+            disasstr += f"{addr:0#8x}:\t{name} {args_str}\n"
         print(disasstr)
 
     def error(self):

@@ -31,8 +31,7 @@ class IRStmt(VEXObject):
                 # return itself
                 yield v
                 # return all the child expressions
-                for child in v.child_expressions:
-                    yield child
+                yield from v.child_expressions
 
     # ???
     @property
@@ -173,9 +172,9 @@ class Put(IRStmt):
             reg_name = arch.translate_register_name(self.offset, self.data.result_size(tyenv) // 8)
 
         if reg_name is not None:
-            return "PUT(%s) = %s" % (reg_name, self.data)
+            return f"PUT({reg_name}) = {self.data}"
         else:
-            return "PUT(offset=%s) = %s" % (self.offset, self.data)
+            return f"PUT(offset={self.offset}) = {self.data}"
 
     @staticmethod
     def _from_c(c_stmt):
@@ -280,7 +279,7 @@ class Store(IRStmt):
         return self.end
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
-        return "ST%s(%s) = %s" % (self.endness[-2:].lower(), self.addr, self.data)
+        return f"ST{self.endness[-2:].lower()}({self.addr}) = {self.data}"
 
     @staticmethod
     def _from_c(c_stmt):
@@ -328,7 +327,7 @@ class CAS(IRStmt):
         return self.end
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
-        return "t(%s,%s) = CAS%s(%s :: (%s,%s)->(%s,%s))" % (
+        return "t({},{}) = CAS{}({} :: ({},{})->({},{}))".format(
         self.oldLo, self.oldHi, self.end[-2:].lower(), self.addr, self.expdLo, self.expdHi, self.dataLo, self.dataHi)
 
     @staticmethod
@@ -474,7 +473,7 @@ class Dirty(IRStmt):
         self.nFxState = nFxState
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
-        return "t%s = DIRTY %s %s ::: %s(%s)" % (
+        return "t{} = DIRTY {} {} ::: {}({})".format(
         self.tmp, self.guard, "TODO(effects)", self.cee, ','.join(str(a) for a in self.args))
 
     @property
@@ -532,7 +531,7 @@ class Exit(IRStmt):
         if reg_name is None:
             return "if (%s) { PUT(offset=%d) = %#x; %s }" % (self.guard, self.offsIP, self.dst.value, self.jumpkind)
         else:
-            return "if (%s) { PUT(%s) = %#x; %s }" % (self.guard, reg_name, self.dst.value, self.jumpkind)
+            return f"if ({self.guard}) {{ PUT({reg_name}) = {self.dst.value:#x}; {self.jumpkind} }}"
 
     @property
     def child_expressions(self):
@@ -648,7 +647,7 @@ class StoreG(IRStmt):
         return self.end
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
-        return "if (%s) ST%s(%s) = %s" % (self.guard, self.end[-2:].lower(), self.addr, self.data)
+        return f"if ({self.guard}) ST{self.end[-2:].lower()}({self.addr}) = {self.data}"
 
     @staticmethod
     def _from_c(c_stmt):
@@ -706,7 +705,7 @@ def enum_to_stmt_class(tag_enum):
     try:
         return enum_to_stmt_mapping[tag_enum]
     except KeyError:
-        raise KeyError('No statement class for tag %s.' % get_enum_from_int((tag_enum)))
+        raise KeyError('No statement class for tag %s.' % get_enum_from_int(tag_enum))
 
 
 from .expr import IRExpr, Get

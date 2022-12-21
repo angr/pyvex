@@ -14,7 +14,7 @@ def _flatten_and_get_expr(irsb_old, irsb_c, old_to_new_tmp, expr):
     elif isinstance(expr, Get):
         return RdTmp.get_instance(irsb_c.mktmp(expr))
     else:
-        assert expr.__class__ in [Unop, Binop, Triop, Qop], "Flattening expressions of type {} is not supported yet.".format(expr.__class__)
+        assert expr.__class__ in [Unop, Binop, Triop, Qop], f"Flattening expressions of type {expr.__class__} is not supported yet."
         expr_args = [_flatten_and_get_expr(irsb_old, irsb_c, old_to_new_tmp, expr_arg) for expr_arg in expr.args]
         return RdTmp.get_instance(irsb_c.mktmp(expr.__class__(expr.op, expr_args)))
 

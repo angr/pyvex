@@ -110,9 +110,9 @@ def doit(vex_path):
 
     linesep = '\r\n' if '\r\n' in header else '\n'
     ffi_text = linesep.join(line for line in header.split(linesep) if '#' not in line and line.strip() != '' and 'jmp_buf' not in line and not ('=' in line and ';' in line))
-    ffi_text = re.sub('\{\s*\} NoOp;', '{ int DONOTUSE; } NoOp;', ffi_text)
-    ffi_text = re.sub('__attribute__\s*\(.*\)', '', ffi_text)
-    ffi_text = re.sub('__declspec\s*\([^\)]*\)', '', ffi_text)
+    ffi_text = re.sub(r'\{\s*\} NoOp;', '{ int DONOTUSE; } NoOp;', ffi_text)
+    ffi_text = re.sub(r'__attribute__\s*\(.*\)', '', ffi_text)
+    ffi_text = re.sub(r'__declspec\s*\([^\)]*\)', '', ffi_text)
     ffi_text = ffi_text.replace('__const', 'const')
     ffi_text = ffi_text.replace('__inline', '')
     ffi_text = ffi_text.replace('__w64', '')

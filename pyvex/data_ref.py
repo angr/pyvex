@@ -14,7 +14,7 @@ def data_ref_type_str(dref_enum):
         return 'INVALID'
 
 
-class DataRef(object):
+class DataRef:
     """
     A data reference object. Indicates a data access in an IRSB.
 
