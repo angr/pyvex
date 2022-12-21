@@ -1,4 +1,3 @@
-
 import logging
 import bitstring
 
@@ -87,7 +86,7 @@ class GymratLifter(Lifter):
             return disas
         except Exception as e:
             self.errors = str(e)
-            l.exception("Error decoding block at offset {:#x} (address {:#x}):".format(bytepos, addr))
+            l.exception(f"Error decoding block at offset {bytepos:#x} (address {addr:#x}):")
             raise
 
     def lift(self, disassemble=False, dump_irsb=False):
@@ -125,7 +124,7 @@ class GymratLifter(Lifter):
         insts = self.disassemble()
         for addr, name, args in insts:
             args_str = ",".join(str(a) for a in args)
-            disasstr += "%0#08x:\t%s %s\n" % (addr, name, args_str)
+            disasstr += f"{addr:0#8x}:\t{name} {args_str}\n"
         print(disasstr)
 
     def error(self):

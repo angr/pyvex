@@ -203,7 +203,7 @@ class GetI(IRExpr):
         return self.ix
 
     def __str__(self):
-        return "GetI(%s)[%s,%s]" % (self.descr, self.ix, self.bias)
+        return f"GetI({self.descr})[{self.ix},{self.bias}]"
 
     @staticmethod
     def _from_c(c_expr):
@@ -297,9 +297,9 @@ class Get(IRExpr):
 
     def __str__(self, reg_name=None):
         if reg_name:
-            return "GET:%s(%s)" % (self.ty[4:], reg_name)
+            return f"GET:{self.ty[4:]}({reg_name})"
         else:
-            return "GET:%s(offset=%s)" % (self.ty[4:], self.offset)
+            return f"GET:{self.ty[4:]}(offset={self.offset})"
 
     @staticmethod
     def _from_c(c_expr):
@@ -330,7 +330,7 @@ class Qop(IRExpr):
         self.args = args
 
     def __str__(self):
-        return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
+        return "{}({})".format(self.op[4:], ','.join(str(a) for a in self.args))
 
     @property
     def child_expressions(self):
@@ -395,7 +395,7 @@ class Triop(IRExpr):
         self.args = args
 
     def __str__(self):
-        return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
+        return "{}({})".format(self.op[4:], ','.join(str(a) for a in self.args))
 
     @property
     def child_expressions(self):
@@ -456,7 +456,7 @@ class Binop(IRExpr):
         self._op = op if op is not None else None
 
     def __str__(self):
-        return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
+        return "{}({})".format(self.op[4:], ','.join(str(a) for a in self.args))
 
     @property
     def op(self):
@@ -519,7 +519,7 @@ class Unop(IRExpr):
         self.args = args
 
     def __str__(self):
-        return "%s(%s)" % (self.op[4:], ','.join(str(a) for a in self.args))
+        return "{}({})".format(self.op[4:], ','.join(str(a) for a in self.args))
 
     @property
     def child_expressions(self):
@@ -576,7 +576,7 @@ class Load(IRExpr):
         return self.ty
 
     def __str__(self):
-        return "LD%s:%s(%s)" % (self.end[-2:].lower(), self.ty[4:], self.addr)
+        return f"LD{self.end[-2:].lower()}:{self.ty[4:]}({self.addr})"
 
     @staticmethod
     def _from_c(c_expr):
@@ -664,7 +664,7 @@ class ITE(IRExpr):
         self.iftrue = iftrue
 
     def __str__(self):
-        return "ITE(%s,%s,%s)" % (self.cond, self.iftrue, self.iffalse)
+        return f"ITE({self.cond},{self.iftrue},{self.iffalse})"
 
     @staticmethod
     def _from_c(c_expr):
@@ -723,7 +723,7 @@ class CCall(IRExpr):
         return self.cee
 
     def __str__(self):
-        return "%s(%s):%s" % (self.cee, ','.join(str(a) for a in self.args), self.retty)
+        return "{}({}):{}".format(self.cee, ','.join(str(a) for a in self.args), self.retty)
 
     @property
     def child_expressions(self):

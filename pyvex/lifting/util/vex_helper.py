@@ -6,7 +6,7 @@ from ...stmt import WrTmp, Put, IMark, Store, NoOp, Exit, Dirty
 from ...enums import IRCallee
 
 
-class JumpKind(object):
+class JumpKind:
     Boring = 'Ijk_Boring'
     Call = 'Ijk_Call'
     Ret = 'Ijk_Ret'
@@ -74,14 +74,14 @@ def mkunop(fstring):
 def mkcmpop(fstring_fragment, signedness=''):
     def cmpop(self, expr_a, expr_b):
         ty = self.get_type(expr_a)
-        fstring = 'Iop_Cmp%s{arg_t[0]}%s' % (fstring_fragment, signedness)
+        fstring = f'Iop_Cmp{fstring_fragment}{{arg_t[0]}}{signedness}'
         retval = mkbinop(fstring)(self, expr_a, expr_b)
         return self.cast_to(retval, ty)
 
     return cmpop
 
 
-class IRSBCustomizer(object):
+class IRSBCustomizer:
     op_add = mkbinop('Iop_Add{arg_t[0]}')
     op_sub = mkbinop('Iop_Sub{arg_t[0]}')
     op_umul = mkbinop('Iop_Mul{arg_t[0]}')

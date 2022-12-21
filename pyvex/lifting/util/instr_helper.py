@@ -299,7 +299,7 @@ class Instruction(metaclass=abc.ABCMeta):
             (if your expression only has constants, don't use this method!)
         :param valiftrue: the VexValue to put in reg if cond evals as true
         :param validfalse: the VexValue to put in reg if cond evals as false
-        :param reg: The integer register number to store into, or register name	
+        :param reg: The integer register number to store into, or register name
         :return: None
         """
 

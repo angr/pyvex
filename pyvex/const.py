@@ -201,7 +201,7 @@ def vex_int_class(size):
                 self._value = value
 
             def __str__(self):
-                return '(0x%x :: %s)' % (self.value, self.type)
+                return f'(0x{self.value:x} :: {self.type})'
         VexInt.__name__ = 'U%d' % size
         class_cache[size] = VexInt
         return VexInt

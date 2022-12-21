@@ -245,7 +245,7 @@ class IRSB(VEXObject):
         print(self._pp_str())
 
     def __repr__(self):
-        return 'IRSB <0x%x bytes, %s ins., %s> at 0x%x' % (self.size, self.instructions, str(self.arch), self.addr)
+        return f'IRSB <0x{self.size:x} bytes, {self.instructions} ins., {str(self.arch)}> at 0x{self.addr:x}'
 
     def __str__(self):
         return self._pp_str()
@@ -347,8 +347,7 @@ class IRSB(VEXObject):
         Return an iterator of all expressions contained in the IRSB.
         """
         for s in self.statements:
-            for expr_ in s.expressions:
-                yield expr_
+            yield from s.expressions
         yield self.next
 
     @property
@@ -432,7 +431,7 @@ class IRSB(VEXObject):
         """
         A dict of the static jump targets of the basic block to their jumpkind.
         """
-        exits = dict()
+        exits = {}
 
         if self.exit_statements:
             for _, _, stmt_ in self.exit_statements:
@@ -473,7 +472,7 @@ class IRSB(VEXObject):
         else:
             sa.append("   Statements are omitted.")
         sa.append(
-            "   NEXT: PUT(%s) = %s; %s" % (self.arch.translate_register_name(self.offsIP), self.next, self.jumpkind))
+            f"   NEXT: PUT({self.arch.translate_register_name(self.offsIP)}) = {self.next}; {self.jumpkind}")
         sa.append("}")
         return '\n'.join(sa)
 

@@ -1,4 +1,3 @@
-
 from ..block import IRSB
 
 # pylint:disable=attribute-defined-outside-init
