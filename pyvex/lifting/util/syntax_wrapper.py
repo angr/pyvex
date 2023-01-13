@@ -11,16 +11,15 @@ def checkparams(rhstype=None):
     def decorator(fn):
         @functools.wraps(fn)
         def inner_decorator(self, *args, **kwargs):
-            irsb_cs = {a.irsb_c for a in list(args) + [self] if
-                       isinstance(a, VexValue)}  # pylint: disable=no-member
-            assert len(irsb_cs) == 1, 'All VexValues must belong to the same irsb_c'
+            irsb_cs = {a.irsb_c for a in list(args) + [self] if isinstance(a, VexValue)}  # pylint: disable=no-member
+            assert len(irsb_cs) == 1, "All VexValues must belong to the same irsb_c"
             args = list(args)
             for idx, arg in enumerate(args):
                 if isinstance(arg, int):
                     thetype = rhstype if rhstype else self.ty
                     args[idx] = VexValue.Constant(self.irsb_c, arg, thetype)
                 elif not isinstance(arg, VexValue):
-                    raise Exception('Cannot convert param %s' % str(arg))
+                    raise Exception("Cannot convert param %s" % str(arg))
             args = tuple(args)
             return fn(self, *args, **kwargs)
 
@@ -40,7 +39,7 @@ def vvifyresults(f):
 
 
 class VexValue:
-    def __init__(self, irsb_c: 'IRSBCustomizer', rdt: 'Union[RdTmp, Const]', signed=False):
+    def __init__(self, irsb_c: "IRSBCustomizer", rdt: "Union[RdTmp, Const]", signed=False):
         self.irsb_c = irsb_c
         self.ty = self.irsb_c.get_type(rdt)
         self.rdt = rdt
@@ -112,12 +111,12 @@ class VexValue:
     @checkparams()
     @vvifyresults
     def sar(self, right):
-        '''
+        """
         `v.sar(r)` should do arithmetic shift right of `v` by `r`
 
         :param right:VexValue value to shift by
         :return: VexValue - result of a shift
-        '''
+        """
         return self.irsb_c.op_sar(self.rdt, right.rdt)
 
     @checkparams()
@@ -217,9 +216,9 @@ class VexValue:
     @checkparams(rhstype=Type.int_8)
     @vvifyresults
     def __lshift__(self, right):  # TODO put better type inference in irsb_c so we can have rlshift
-        '''
+        """
         logical shift left
-        '''
+        """
         return self.irsb_c.op_shl(self.rdt, right.rdt)
 
     @checkparams()
@@ -255,7 +254,7 @@ class VexValue:
     @vvifyresults
     def __neg__(self):  # Note: nonprimitive
         if not self._is_signed:
-            raise Exception('Number is unsigned, cannot change sign!')
+            raise Exception("Number is unsigned, cannot change sign!")
         else:
             return self.rdt * -1
 
@@ -275,9 +274,9 @@ class VexValue:
     @checkparams(rhstype=Type.int_8)
     @vvifyresults
     def __rshift__(self, right):
-        '''
+        """
         logical shift right
-        '''
+        """
         return self.irsb_c.op_shr(self.rdt, right.rdt)
 
     @checkparams()

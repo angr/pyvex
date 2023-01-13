@@ -1,3 +1,12 @@
 [build-system]
 requires = ["setuptools>=59", "wheel", "cffi >= 1.0.3"]
 build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 120
+target-version = ['py38']
+force-exclude = '''
+/(
+  vex
+)/
+'''

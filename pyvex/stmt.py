@@ -6,8 +6,7 @@ from archinfo import RegisterOffset, TmpVar
 from .enums import get_enum_from_int, get_int_from_enum
 from .expr import Const
 
-l = logging.getLogger('pyvex.stmt')
-
+l = logging.getLogger("pyvex.stmt")
 
 
 class IRStmt(VEXObject):
@@ -15,16 +14,16 @@ class IRStmt(VEXObject):
     IR statements in VEX represents operations with side-effects.
     """
 
-    tag = None # type: Optional[str]
+    tag = None  # type: Optional[str]
     tag_int = 0  # set automatically at bottom of file
 
-    __slots__ = [ ]
+    __slots__ = []
 
     def pp(self):
         print(self.__str__())
 
     @property
-    def child_expressions(self) -> Iterator['IRExpr']:
+    def child_expressions(self) -> Iterator["IRExpr"]:
         for k in self.__slots__:
             v = getattr(self, k)
             if isinstance(v, IRExpr):
@@ -50,10 +49,10 @@ class IRStmt(VEXObject):
         try:
             stmt_class = enum_to_stmt_class(c_stmt.tag)._from_c(c_stmt)
         except KeyError:
-            raise PyVEXError('Unknown/unsupported IRStmtTag %s.\n' % get_enum_from_int(c_stmt.tag))
+            raise PyVEXError("Unknown/unsupported IRStmtTag %s.\n" % get_enum_from_int(c_stmt.tag))
         return stmt_class._from_c(c_stmt)
 
-    def typecheck(self, tyenv): # pylint: disable=unused-argument,no-self-use
+    def typecheck(self, tyenv):  # pylint: disable=unused-argument,no-self-use
         return True
 
     def replace_expression(self, replacements):
@@ -72,7 +71,7 @@ class IRStmt(VEXObject):
                 v.replace_expression(replacements)
             elif type(v) is tuple:
                 # Rebuild the tuple
-                _lst = [ ]
+                _lst = []
                 replaced = False
                 for expr_ in v:
                     if isinstance(expr_, IRExpr) and expr_ in replacements:
@@ -92,9 +91,9 @@ class NoOp(IRStmt):
     A no-operation statement. It is usually the result of an IR optimization.
     """
 
-    __slots__ = [ ]
+    __slots__ = []
 
-    tag = 'Ist_NoOp'
+    tag = "Ist_NoOp"
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "IR-NoOp"
@@ -111,9 +110,9 @@ class IMark(IRStmt):
     instruction.
     """
 
-    __slots__ = ['addr', 'len', 'delta']
+    __slots__ = ["addr", "len", "delta"]
 
-    tag = 'Ist_IMark'
+    tag = "Ist_IMark"
 
     def __init__(self, addr: int, length: int, delta: int):
         self.addr = addr
@@ -125,9 +124,7 @@ class IMark(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return IMark(c_stmt.Ist.IMark.addr,
-                     c_stmt.Ist.IMark.len,
-                     c_stmt.Ist.IMark.delta)
+        return IMark(c_stmt.Ist.IMark.addr, c_stmt.Ist.IMark.len, c_stmt.Ist.IMark.delta)
 
 
 class AbiHint(IRStmt):
@@ -135,9 +132,9 @@ class AbiHint(IRStmt):
     An ABI hint, provides specific information about this platform's ABI.
     """
 
-    __slots__ = ['base', 'len', 'nia']
+    __slots__ = ["base", "len", "nia"]
 
-    tag = 'Ist_AbiHint'
+    tag = "Ist_AbiHint"
 
     def __init__(self, base, length, nia):
         self.base = base
@@ -149,20 +146,21 @@ class AbiHint(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return AbiHint(IRExpr._from_c(c_stmt.Ist.AbiHint.base),
-                       c_stmt.Ist.AbiHint.len,
-                       IRExpr._from_c(c_stmt.Ist.AbiHint.nia))
+        return AbiHint(
+            IRExpr._from_c(c_stmt.Ist.AbiHint.base), c_stmt.Ist.AbiHint.len, IRExpr._from_c(c_stmt.Ist.AbiHint.nia)
+        )
+
 
 class Put(IRStmt):
     """
     Write to a guest register, at a fixed offset in the guest state.
     """
 
-    __slots__ = ['data', 'offset']
+    __slots__ = ["data", "offset"]
 
-    tag = 'Ist_Put'
+    tag = "Ist_Put"
 
-    def __init__(self, data: 'IRExpr', offset: RegisterOffset):
+    def __init__(self, data: "IRExpr", offset: RegisterOffset):
         self.data = data
         self.offset = offset
 
@@ -178,8 +176,7 @@ class Put(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return Put(IRExpr._from_c(c_stmt.Ist.Put.data),
-                   c_stmt.Ist.Put.offset)
+        return Put(IRExpr._from_c(c_stmt.Ist.Put.data), c_stmt.Ist.Put.offset)
 
     def typecheck(self, tyenv):
         return self.data.typecheck(tyenv)
@@ -190,9 +187,9 @@ class PutI(IRStmt):
     Write to a guest register, at a non-fixed offset in the guest state.
     """
 
-    __slots__ = ['descr', 'ix', 'data', 'bias']
+    __slots__ = ["descr", "ix", "data", "bias"]
 
-    tag = 'Ist_PutI'
+    tag = "Ist_PutI"
 
     def __init__(self, descr, ix, data, bias):
         self.descr = descr
@@ -205,10 +202,12 @@ class PutI(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return PutI(IRRegArray._from_c(c_stmt.Ist.PutI.details.descr),
-                    IRExpr._from_c(c_stmt.Ist.PutI.details.ix),
-                    IRExpr._from_c(c_stmt.Ist.PutI.details.data),
-                    c_stmt.Ist.PutI.details.bias)
+        return PutI(
+            IRRegArray._from_c(c_stmt.Ist.PutI.details.descr),
+            IRExpr._from_c(c_stmt.Ist.PutI.details.ix),
+            IRExpr._from_c(c_stmt.Ist.PutI.details.data),
+            c_stmt.Ist.PutI.details.bias,
+        )
 
     def typecheck(self, tyenv):
         dataty = self.data.typecheck(tyenv)
@@ -226,11 +225,11 @@ class WrTmp(IRStmt):
     will reject any block containing a temporary which is not assigned to exactly once.
     """
 
-    __slots__ = ['data', 'tmp']
+    __slots__ = ["data", "tmp"]
 
-    tag = 'Ist_WrTmp'
+    tag = "Ist_WrTmp"
 
-    def __init__(self, tmp: TmpVar, data: 'IRExpr'):
+    def __init__(self, tmp: TmpVar, data: "IRExpr"):
         self.tmp = tmp
         self.data = data
 
@@ -247,8 +246,7 @@ class WrTmp(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return WrTmp(c_stmt.Ist.WrTmp.tmp,
-                     IRExpr._from_c(c_stmt.Ist.WrTmp.data))
+        return WrTmp(c_stmt.Ist.WrTmp.tmp, IRExpr._from_c(c_stmt.Ist.WrTmp.data))
 
     def typecheck(self, tyenv):
         dataty = self.data.typecheck(tyenv)
@@ -265,11 +263,11 @@ class Store(IRStmt):
     Write a value to memory..
     """
 
-    __slots__ = ['addr', 'data', 'end']
+    __slots__ = ["addr", "data", "end"]
 
-    tag = 'Ist_Store'
+    tag = "Ist_Store"
 
-    def __init__(self, addr: 'IRExpr', data: 'IRExpr', end: str):
+    def __init__(self, addr: "IRExpr", data: "IRExpr", end: str):
         self.addr = addr
         self.data = data
         self.end = end
@@ -283,9 +281,11 @@ class Store(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return Store(IRExpr._from_c(c_stmt.Ist.Store.addr),
-                     IRExpr._from_c(c_stmt.Ist.Store.data),
-                     get_enum_from_int(c_stmt.Ist.Store.end))
+        return Store(
+            IRExpr._from_c(c_stmt.Ist.Store.addr),
+            IRExpr._from_c(c_stmt.Ist.Store.data),
+            get_enum_from_int(c_stmt.Ist.Store.end),
+        )
 
     def typecheck(self, tyenv):
         dataty = self.data.typecheck(tyenv)
@@ -297,7 +297,7 @@ class Store(IRStmt):
         if addrty != tyenv.wordty:
             l.debug("addr must be full word for arch")
             return False
-        if self.end not in ('Iend_LE', 'Iend_BE'):
+        if self.end not in ("Iend_LE", "Iend_BE"):
             l.debug("invalid endness enum")
             return False
         return True
@@ -308,9 +308,9 @@ class CAS(IRStmt):
     an atomic compare-and-swap operation.
     """
 
-    __slots__ = ['addr', 'dataLo', 'dataHi', 'expdLo', 'expdHi', 'oldLo', 'oldHi', 'end']
+    __slots__ = ["addr", "dataLo", "dataHi", "expdLo", "expdHi", "oldLo", "oldHi", "end"]
 
-    tag = 'Ist_CAS'
+    tag = "Ist_CAS"
 
     def __init__(self, addr, dataLo, dataHi, expdLo, expdHi, oldLo, oldHi, end):
         self.addr = addr
@@ -328,18 +328,21 @@ class CAS(IRStmt):
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "t({},{}) = CAS{}({} :: ({},{})->({},{}))".format(
-        self.oldLo, self.oldHi, self.end[-2:].lower(), self.addr, self.expdLo, self.expdHi, self.dataLo, self.dataHi)
+            self.oldLo, self.oldHi, self.end[-2:].lower(), self.addr, self.expdLo, self.expdHi, self.dataLo, self.dataHi
+        )
 
     @staticmethod
     def _from_c(c_stmt):
-        return CAS(IRExpr._from_c(c_stmt.Ist.CAS.details.addr),
-                   IRExpr._from_c(c_stmt.Ist.CAS.details.dataLo),
-                   IRExpr._from_c(c_stmt.Ist.CAS.details.dataHi),
-                   IRExpr._from_c(c_stmt.Ist.CAS.details.expdLo),
-                   IRExpr._from_c(c_stmt.Ist.CAS.details.expdHi),
-                   c_stmt.Ist.CAS.details.oldLo,
-                   c_stmt.Ist.CAS.details.oldHi,
-                   get_enum_from_int(c_stmt.Ist.CAS.details.end))
+        return CAS(
+            IRExpr._from_c(c_stmt.Ist.CAS.details.addr),
+            IRExpr._from_c(c_stmt.Ist.CAS.details.dataLo),
+            IRExpr._from_c(c_stmt.Ist.CAS.details.dataHi),
+            IRExpr._from_c(c_stmt.Ist.CAS.details.expdLo),
+            IRExpr._from_c(c_stmt.Ist.CAS.details.expdHi),
+            c_stmt.Ist.CAS.details.oldLo,
+            c_stmt.Ist.CAS.details.oldHi,
+            get_enum_from_int(c_stmt.Ist.CAS.details.end),
+        )
 
     def typecheck(self, tyenv):
         addrty = self.addr.typecheck(tyenv)
@@ -348,7 +351,7 @@ class CAS(IRStmt):
         if addrty != tyenv.wordty:
             l.debug("addr must be full word for arch")
             return False
-        if self.end not in ('Iend_LE', 'Iend_BE'):
+        if self.end not in ("Iend_LE", "Iend_BE"):
             l.debug("invalid endness enum")
             return False
 
@@ -372,9 +375,13 @@ class CAS(IRStmt):
             dataHiTy = self.dataHi.typecheck(tyenv)
             if expdLoTy is None or dataLoTy is None or expdHiTy is None or dataHiTy is None:
                 return False
-            if tyenv.lookup(self.oldLo) != expdLoTy or expdLoTy != dataLoTy or \
-               tyenv.lookup(self.oldHi) != expdHiTy or expdHiTy != dataHiTy or \
-               expdLoTy != expdHiTy:
+            if (
+                tyenv.lookup(self.oldLo) != expdLoTy
+                or expdLoTy != dataLoTy
+                or tyenv.lookup(self.oldHi) != expdHiTy
+                or expdHiTy != dataHiTy
+                or expdLoTy != expdHiTy
+            ):
                 l.debug("oldLo, expdLo, dataLo, oldHi, expdHi, dataHi must all have the same type")
                 return False
 
@@ -383,13 +390,13 @@ class CAS(IRStmt):
 
 class LLSC(IRStmt):
     """
-     Either Load-Linked or Store-Conditional, depending on STOREDATA. If STOREDATA is NULL then this is a Load-Linked,
-     else it is a Store-Conditional.
+    Either Load-Linked or Store-Conditional, depending on STOREDATA. If STOREDATA is NULL then this is a Load-Linked,
+    else it is a Store-Conditional.
     """
 
-    __slots__ = ['addr', 'storedata', 'result', 'end']
+    __slots__ = ["addr", "storedata", "result", "end"]
 
-    tag = 'Ist_LLSC'
+    tag = "Ist_LLSC"
 
     def __init__(self, addr, storedata, result, end):
         self.addr = addr
@@ -409,10 +416,12 @@ class LLSC(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return LLSC(IRExpr._from_c(c_stmt.Ist.LLSC.addr),
-                    IRExpr._from_c(c_stmt.Ist.LLSC.storedata),
-                    c_stmt.Ist.LLSC.result,
-                    get_enum_from_int(c_stmt.Ist.LLSC.end))
+        return LLSC(
+            IRExpr._from_c(c_stmt.Ist.LLSC.addr),
+            IRExpr._from_c(c_stmt.Ist.LLSC.storedata),
+            c_stmt.Ist.LLSC.result,
+            get_enum_from_int(c_stmt.Ist.LLSC.end),
+        )
 
     def typecheck(self, tyenv):
         addrty = self.addr.typecheck(tyenv)
@@ -421,10 +430,9 @@ class LLSC(IRStmt):
         if addrty != tyenv.wordty:
             l.debug("addr must be full word for arch")
             return False
-        if self.end not in ('Iend_LE', 'Iend_BE'):
+        if self.end not in ("Iend_LE", "Iend_BE"):
             l.debug("invalid endness enum")
             return False
-
 
         if self.storedata is not None:
             # load-linked
@@ -432,7 +440,7 @@ class LLSC(IRStmt):
             if storety is None:
                 return False
 
-            if tyenv.lookup(self.result) != 'Ity_I1':
+            if tyenv.lookup(self.result) != "Ity_I1":
                 l.debug("result tmp must be Ity_I1")
                 return False
 
@@ -441,9 +449,9 @@ class LLSC(IRStmt):
 
 class MBE(IRStmt):
 
-    __slots__ = ['event']
+    __slots__ = ["event"]
 
-    tag = 'Ist_MBE'
+    tag = "Ist_MBE"
 
     def __init__(self, event):
         self.event = event
@@ -458,9 +466,9 @@ class MBE(IRStmt):
 
 class Dirty(IRStmt):
 
-    __slots__ = ['cee', 'guard', 'args', 'tmp', 'mFx', 'mAddr', 'mSize', 'nFxState']
+    __slots__ = ["cee", "guard", "args", "tmp", "mFx", "mAddr", "mSize", "nFxState"]
 
-    tag = 'Ist_Dirty'
+    tag = "Ist_Dirty"
 
     def __init__(self, cee, guard, args, tmp, mFx, mAddr, mSize, nFxState):
         self.cee = cee
@@ -474,7 +482,8 @@ class Dirty(IRStmt):
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "t{} = DIRTY {} {} ::: {}({})".format(
-        self.tmp, self.guard, "TODO(effects)", self.cee, ','.join(str(a) for a in self.args))
+            self.tmp, self.guard, "TODO(effects)", self.cee, ",".join(str(a) for a in self.args)
+        )
 
     @property
     def child_expressions(self):
@@ -494,14 +503,16 @@ class Dirty(IRStmt):
 
             args.append(IRExpr._from_c(a))
 
-        return Dirty(IRCallee._from_c(c_stmt.Ist.Dirty.details.cee),
-                     IRExpr._from_c(c_stmt.Ist.Dirty.details.guard),
-                     tuple(args),
-                     c_stmt.Ist.Dirty.details.tmp,
-                     get_enum_from_int(c_stmt.Ist.Dirty.details.mFx),
-                     IRExpr._from_c(c_stmt.Ist.Dirty.details.mAddr),
-                     c_stmt.Ist.Dirty.details.mSize,
-                     c_stmt.Ist.Dirty.details.nFxState)
+        return Dirty(
+            IRCallee._from_c(c_stmt.Ist.Dirty.details.cee),
+            IRExpr._from_c(c_stmt.Ist.Dirty.details.guard),
+            tuple(args),
+            c_stmt.Ist.Dirty.details.tmp,
+            get_enum_from_int(c_stmt.Ist.Dirty.details.mFx),
+            IRExpr._from_c(c_stmt.Ist.Dirty.details.mAddr),
+            c_stmt.Ist.Dirty.details.mSize,
+            c_stmt.Ist.Dirty.details.nFxState,
+        )
 
 
 class Exit(IRStmt):
@@ -509,9 +520,9 @@ class Exit(IRStmt):
     A conditional exit from the middle of an IRSB.
     """
 
-    __slots__ = ['guard', 'dst', 'offsIP', 'jk']
+    __slots__ = ["guard", "dst", "offsIP", "jk"]
 
-    tag = 'Ist_Exit'
+    tag = "Ist_Exit"
 
     def __init__(self, guard, dst, jk, offsIP):
         self.guard = guard
@@ -539,10 +550,12 @@ class Exit(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return Exit(IRExpr._from_c(c_stmt.Ist.Exit.guard),
-                    IRConst._from_c(c_stmt.Ist.Exit.dst),
-                    get_enum_from_int(c_stmt.Ist.Exit.jk),
-                    c_stmt.Ist.Exit.offsIP)
+        return Exit(
+            IRExpr._from_c(c_stmt.Ist.Exit.guard),
+            IRConst._from_c(c_stmt.Ist.Exit.dst),
+            get_enum_from_int(c_stmt.Ist.Exit.jk),
+            c_stmt.Ist.Exit.offsIP,
+        )
 
     def typecheck(self, tyenv):
         if not self.jk.startswith("Ijk_"):
@@ -551,7 +564,7 @@ class Exit(IRStmt):
         guardty = self.guard.typecheck(tyenv)
         if guardty is None:
             return False
-        if guardty != 'Ity_I1':
+        if guardty != "Ity_I1":
             l.debug("guard must be Ity_I1")
             return False
         return True
@@ -562,9 +575,9 @@ class LoadG(IRStmt):
     A guarded load.
     """
 
-    __slots__ = ['addr', 'alt', 'guard', 'dst', 'cvt', 'end', 'cvt_types']
+    __slots__ = ["addr", "alt", "guard", "dst", "cvt", "end", "cvt_types"]
 
-    tag = 'Ist_LoadG'
+    tag = "Ist_LoadG"
 
     def __init__(self, end, cvt, dst, addr, alt, guard):
         self.addr = addr
@@ -574,11 +587,11 @@ class LoadG(IRStmt):
         self.cvt = cvt
         self.end = end
 
-        type_in = ffi.new('IRType *') # TODO separate this from the pyvex C implementation
-        type_out = ffi.new('IRType *')
+        type_in = ffi.new("IRType *")  # TODO separate this from the pyvex C implementation
+        type_out = ffi.new("IRType *")
         pvc.typeOfIRLoadGOp(get_int_from_enum(self.cvt), type_out, type_in)
-        type_in = ffi.cast('int *', type_in)[0]
-        type_out = ffi.cast('int *', type_out)[0]
+        type_in = ffi.cast("int *", type_in)[0]
+        type_out = ffi.cast("int *", type_out)[0]
         self.cvt_types = (get_enum_from_int(type_in), get_enum_from_int(type_out))
 
     @property
@@ -587,16 +600,24 @@ class LoadG(IRStmt):
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
         return "t%d = if (%s) %s(LD%s(%s)) else %s" % (
-        self.dst, self.guard, self.cvt, self.end[-2:].lower(), self.addr, self.alt)
+            self.dst,
+            self.guard,
+            self.cvt,
+            self.end[-2:].lower(),
+            self.addr,
+            self.alt,
+        )
 
     @staticmethod
     def _from_c(c_stmt):
-        return LoadG(get_enum_from_int(c_stmt.Ist.LoadG.details.end),
-                     get_enum_from_int(c_stmt.Ist.LoadG.details.cvt),
-                     c_stmt.Ist.LoadG.details.dst,
-                     IRExpr._from_c(c_stmt.Ist.LoadG.details.addr),
-                     IRExpr._from_c(c_stmt.Ist.LoadG.details.alt),
-                     IRExpr._from_c(c_stmt.Ist.LoadG.details.guard))
+        return LoadG(
+            get_enum_from_int(c_stmt.Ist.LoadG.details.end),
+            get_enum_from_int(c_stmt.Ist.LoadG.details.cvt),
+            c_stmt.Ist.LoadG.details.dst,
+            IRExpr._from_c(c_stmt.Ist.LoadG.details.addr),
+            IRExpr._from_c(c_stmt.Ist.LoadG.details.alt),
+            IRExpr._from_c(c_stmt.Ist.LoadG.details.guard),
+        )
 
     def typecheck(self, tyenv):
         addrty = self.addr.typecheck(tyenv)
@@ -605,7 +626,7 @@ class LoadG(IRStmt):
         if addrty != tyenv.wordty:
             l.debug("addr must be full word for arch")
             return False
-        if self.end not in ('Iend_LE', 'Iend_BE'):
+        if self.end not in ("Iend_LE", "Iend_BE"):
             l.debug("invalid endness enum")
             return False
 
@@ -615,13 +636,13 @@ class LoadG(IRStmt):
 
         if guardty is None or altty is None:
             return False
-        if dstty != 'Ity_I32' or altty != 'Ity_I32':
-            l.debug('dst and alt must be Ity_I32')
+        if dstty != "Ity_I32" or altty != "Ity_I32":
+            l.debug("dst and alt must be Ity_I32")
             return False
-        if guardty != 'Ity_I1':
-            l.debug('guard must be Ity_I1')
+        if guardty != "Ity_I1":
+            l.debug("guard must be Ity_I1")
             return False
-        if not self.cvt.startswith('ILGop_'):
+        if not self.cvt.startswith("ILGop_"):
             l.debug("Invalid cvt enum")
             return False
         return True
@@ -632,9 +653,9 @@ class StoreG(IRStmt):
     A guarded store.
     """
 
-    __slots__ = ['addr', 'data', 'guard', 'end']
+    __slots__ = ["addr", "data", "guard", "end"]
 
-    tag = 'Ist_StoreG'
+    tag = "Ist_StoreG"
 
     def __init__(self, end, addr, data, guard):
         self.addr = addr
@@ -651,10 +672,12 @@ class StoreG(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return StoreG(get_enum_from_int(c_stmt.Ist.StoreG.details.end),
-                      IRExpr._from_c(c_stmt.Ist.StoreG.details.addr),
-                      IRExpr._from_c(c_stmt.Ist.StoreG.details.data),
-                      IRExpr._from_c(c_stmt.Ist.StoreG.details.guard))
+        return StoreG(
+            get_enum_from_int(c_stmt.Ist.StoreG.details.end),
+            IRExpr._from_c(c_stmt.Ist.StoreG.details.addr),
+            IRExpr._from_c(c_stmt.Ist.StoreG.details.data),
+            IRExpr._from_c(c_stmt.Ist.StoreG.details.guard),
+        )
 
     def typecheck(self, tyenv):
         addrty = self.addr.typecheck(tyenv)
@@ -663,7 +686,7 @@ class StoreG(IRStmt):
         if addrty != tyenv.wordty:
             l.debug("addr must be full word for arch")
             return False
-        if self.end not in ('Iend_LE', 'Iend_BE'):
+        if self.end not in ("Iend_LE", "Iend_BE"):
             l.debug("invalid endness enum")
             return False
 
@@ -672,8 +695,8 @@ class StoreG(IRStmt):
 
         if guardty is None or dataty is None:
             return False
-        if guardty != 'Ity_I1':
-            l.debug('guard must be Ity_I1')
+        if guardty != "Ity_I1":
+            l.debug("guard must be Ity_I1")
             return False
         return True
 
@@ -682,8 +705,8 @@ _globals = globals().copy()
 #
 # Mapping from tag strings/enums to IRStmt classes
 #
-tag_to_stmt_mapping = { }
-enum_to_stmt_mapping = { }
+tag_to_stmt_mapping = {}
+enum_to_stmt_mapping = {}
 tag_count = 0
 cls = None
 for cls in _globals.values():
@@ -694,18 +717,19 @@ for cls in _globals.values():
         tag_count += 1
 del cls
 
+
 def tag_to_stmt_class(tag):
     try:
         return tag_to_stmt_mapping[tag]
     except KeyError:
-        raise KeyError('No statement class for tag %s.' % tag)
+        raise KeyError("No statement class for tag %s." % tag)
 
 
 def enum_to_stmt_class(tag_enum):
     try:
         return enum_to_stmt_mapping[tag_enum]
     except KeyError:
-        raise KeyError('No statement class for tag %s.' % get_enum_from_int(tag_enum))
+        raise KeyError("No statement class for tag %s." % get_enum_from_int(tag_enum))
 
 
 from .expr import IRExpr, Get

@@ -13,9 +13,7 @@ class TestCacheInvalidationOnExtend(unittest.TestCase):
         assert b.instructions == 1
         toappend = pyvex.block.IRSB(b"\x51", 0, archinfo.ArchX86())
         toappend.jumpkind = "Ijk_Invalid"
-        toappend._direct_next = (
-            None  # Invalidate the cache because I manually changed the jumpkind
-        )
+        toappend._direct_next = None  # Invalidate the cache because I manually changed the jumpkind
         assert not toappend.direct_next
         b.extend(toappend)
         assert b.size == 2

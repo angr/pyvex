@@ -2,6 +2,7 @@
 # The post-processor base class
 #
 
+
 class Postprocessor:
     def __init__(self, irsb):
         self.irsb = irsb

@@ -5,9 +5,23 @@ from ..block import IRSB
 
 class Lifter:
 
-    __slots__ = ('data', 'bytes_offset', 'opt_level', 'traceflags', 'allow_arch_optimizations', 'strict_block_end',
-                 'collect_data_refs', 'max_inst', 'max_bytes', 'skip_stmts', 'irsb', 'arch', 'addr', 'cross_insn_opt',
-                 'load_from_ro_regions', )
+    __slots__ = (
+        "data",
+        "bytes_offset",
+        "opt_level",
+        "traceflags",
+        "allow_arch_optimizations",
+        "strict_block_end",
+        "collect_data_refs",
+        "max_inst",
+        "max_bytes",
+        "skip_stmts",
+        "irsb",
+        "arch",
+        "addr",
+        "cross_insn_opt",
+        "load_from_ro_regions",
+    )
 
     """
     A lifter is a class of methods for processing a block.
@@ -33,19 +47,21 @@ class Lifter:
         self.arch = arch
         self.addr = addr
 
-    def _lift(self,
-              data,
-              bytes_offset=None,
-              max_bytes=None,
-              max_inst=None,
-              opt_level=1,
-              traceflags=None,
-              allow_arch_optimizations=None,
-              strict_block_end=None,
-              skip_stmts=False,
-              collect_data_refs=False,
-              cross_insn_opt=True,
-              load_from_ro_regions=False):
+    def _lift(
+        self,
+        data,
+        bytes_offset=None,
+        max_bytes=None,
+        max_inst=None,
+        opt_level=1,
+        traceflags=None,
+        allow_arch_optimizations=None,
+        strict_block_end=None,
+        skip_stmts=False,
+        collect_data_refs=False,
+        cross_insn_opt=True,
+        load_from_ro_regions=False,
+    ):
         """
         Wrapper around the `lift` method on Lifters. Should not be overridden in child classes.
 

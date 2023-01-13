@@ -15,9 +15,11 @@ import tempfile
 from typing import Any
 import cffi
 from .vex_ffi import ffi_str as _ffi_str
+
 ffi = cffi.FFI()
 
 import logging
+
 logging.getLogger("pyvex").addHandler(logging.NullHandler())
 
 
@@ -34,7 +36,8 @@ def _locate_lib(module: str, library: str) -> str:
         return attempt
 
     import pkg_resources  # pylint:disable=import-outside-toplevel
-    return pkg_resources.resource_filename(module, os.path.join('lib', library))
+
+    return pkg_resources.resource_filename(module, os.path.join("lib", library))
 
 
 def _parse_ffi_str():
@@ -45,14 +48,14 @@ def _parse_ffi_str():
         # load the cache
         with open(cache_location, "rb") as f:
             cache = pickle.loads(f.read())
-        ffi._parser._declarations = cache['_declarations']
-        ffi._parser._int_constants = cache['_int_constants']
+        ffi._parser._declarations = cache["_declarations"]
+        ffi._parser._int_constants = cache["_int_constants"]
     else:
         ffi.cdef(_ffi_str)
         # cache the result
         cache = {
-            '_declarations': ffi._parser._declarations,
-            '_int_constants': ffi._parser._int_constants,
+            "_declarations": ffi._parser._declarations,
+            "_int_constants": ffi._parser._int_constants,
         }
         with open(cache_location, "wb") as f:
             f.write(pickle.dumps(cache))
@@ -60,9 +63,9 @@ def _parse_ffi_str():
 
 def _find_c_lib():
     # Load the c library for calling into VEX
-    if sys.platform in ('win32', 'cygwin'):
-        library_file = 'pyvex.dll'
-    elif sys.platform == 'darwin':
+    if sys.platform in ("win32", "cygwin"):
+        library_file = "pyvex.dll"
+    elif sys.platform == "darwin":
         library_file = "libpyvex.dylib"
     else:
         library_file = "libpyvex.so"
@@ -78,7 +81,8 @@ def _find_c_lib():
     dir(lib)
     return lib
 
-pvc = _find_c_lib() # type: Any # This should be properly typed, but this seems non trivial
+
+pvc = _find_c_lib()  # type: Any # This should be properly typed, but this seems non trivial
 
 # pylint: disable=wildcard-import
 from .enums import *

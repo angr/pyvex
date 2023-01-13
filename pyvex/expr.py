@@ -16,20 +16,20 @@ class IRExpr(VEXObject):
     IR expressions in VEX represent operations without side effects.
     """
 
-    __slots__ = [ ]
+    __slots__ = []
 
-    tag = None # type: Optional[str]
+    tag = None  # type: Optional[str]
     tag_int = 0  # set automatically at bottom of file
 
     def pp(self):
         print(self.__str__())
 
     @property
-    def child_expressions(self) -> List['IRExpr']:
+    def child_expressions(self) -> List["IRExpr"]:
         """
         A list of all of the expressions that this expression ends up evaluating.
         """
-        expressions = [ ]
+        expressions = []
         for k in self.__slots__:
             v = getattr(self, k)
             if isinstance(v, IRExpr):
@@ -42,7 +42,7 @@ class IRExpr(VEXObject):
         """
         A list of all of the constants that this expression ends up using.
         """
-        constants = [ ]
+        constants = []
         for k in self.__slots__:
             v = getattr(self, k)
             if isinstance(v, IRExpr):
@@ -76,7 +76,7 @@ class IRExpr(VEXObject):
                         v[i] = replacements.get(expr_)
             elif type(v) is tuple:
                 # Rebuild the tuple
-                _lst = [ ]
+                _lst = []
                 replaced = False
                 for i, expr_ in enumerate(v):
                     if isinstance(expr_, IRExpr) and expr_ in replacements:
@@ -90,14 +90,15 @@ class IRExpr(VEXObject):
                 v.replace_expression(replacements)
 
     @staticmethod
-    def _from_c(c_expr) -> 'IRExpr':
+    def _from_c(c_expr) -> "IRExpr":
         if c_expr == ffi.NULL or c_expr[0] == ffi.NULL:
             return None
 
         try:
             return enum_to_expr_class(c_expr.tag)._from_c(c_expr)
         except KeyError:
-            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % get_enum_from_int(c_expr.tag))
+            raise PyVEXError("Unknown/unsupported IRExprTag %s\n" % get_enum_from_int(c_expr.tag))
+
     _translate = _from_c
 
     @staticmethod
@@ -105,7 +106,7 @@ class IRExpr(VEXObject):
         try:
             return tag_to_expr_class(expr.tag)._to_c(expr)
         except KeyError:
-            raise PyVEXError('Unknown/unsupported IRExprTag %s\n' % expr.tag)
+            raise PyVEXError("Unknown/unsupported IRExprTag %s\n" % expr.tag)
 
     def typecheck(self, tyenv):
         return self.result_type(tyenv)
@@ -116,9 +117,9 @@ class Binder(IRExpr):
     Used only in pattern matching within Vex. Should not be seen outside of Vex.
     """
 
-    __slots__ = ['binder']
+    __slots__ = ["binder"]
 
-    tag = 'Iex_Binder'
+    tag = "Iex_Binder"
 
     def __init__(self, binder):
         self.binder = binder
@@ -135,14 +136,14 @@ class Binder(IRExpr):
         return pvc.IRExpr_Binder(expr.binder)
 
     def result_type(self, tyenv):
-        return 'Ity_INVALID'
+        return "Ity_INVALID"
 
 
 class VECRET(IRExpr):
 
-    tag = 'Iex_VECRET'
+    tag = "Iex_VECRET"
 
-    __slots__ = [ ]
+    __slots__ = []
 
     def __str__(self):
         return "VECRET"
@@ -156,14 +157,14 @@ class VECRET(IRExpr):
         return pvc.IRExpr_VECRET()
 
     def result_type(self, tyenv):
-        return 'Ity_INVALID'
+        return "Ity_INVALID"
 
 
 class GSPTR(IRExpr):
 
-    __slots__ = [ ]
+    __slots__ = []
 
-    tag = 'Iex_GSPTR'
+    tag = "Iex_GSPTR"
 
     def __str__(self):
         return "GSPTR"
@@ -177,7 +178,7 @@ class GSPTR(IRExpr):
         return pvc.IRExpr_GSPTR()
 
     def result_type(self, tyenv):
-        return 'Ity_INVALID'
+        return "Ity_INVALID"
 
 
 class GetI(IRExpr):
@@ -185,9 +186,9 @@ class GetI(IRExpr):
     Read a guest register at a non-fixed offset in the guest state.
     """
 
-    __slots__ = ['descr', 'ix', 'bias']
+    __slots__ = ["descr", "ix", "bias"]
 
-    tag = 'Iex_GetI'
+    tag = "Iex_GetI"
 
     def __init__(self, descr, ix, bias):
         self.descr = descr
@@ -214,9 +215,7 @@ class GetI(IRExpr):
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_GetI(IRRegArray._to_c(expr.descr),
-                               IRExpr._to_c(expr.ix),
-                               expr.bias)
+        return pvc.IRExpr_GetI(IRRegArray._to_c(expr.descr), IRExpr._to_c(expr.ix), expr.bias)
 
     def result_type(self, tyenv):
         return self.descr.elemTy
@@ -227,9 +226,9 @@ class RdTmp(IRExpr):
     Read the value held by a temporary.
     """
 
-    __slots__ = ['_tmp']
+    __slots__ = ["_tmp"]
 
-    tag = 'Iex_RdTmp'
+    tag = "Iex_RdTmp"
 
     def __init__(self, tmp: TmpVar):
         self._tmp = tmp
@@ -276,11 +275,11 @@ class Get(IRExpr):
     Read a guest register, at a fixed offset in the guest state.
     """
 
-    __slots__ = ['offset', 'ty_int']
+    __slots__ = ["offset", "ty_int"]
 
-    tag = 'Iex_Get'
+    tag = "Iex_Get"
 
-    def __init__(self, offset: RegisterOffset, ty: str, ty_int: Optional[int]=None):
+    def __init__(self, offset: RegisterOffset, ty: str, ty_int: Optional[int] = None):
         self.offset = offset
         if ty_int is None:
             self.ty_int = get_int_from_enum(ty)
@@ -321,42 +320,46 @@ class Qop(IRExpr):
     A quaternary operation (4 arguments).
     """
 
-    __slots__ = ['op', 'args']
+    __slots__ = ["op", "args"]
 
-    tag = 'Iex_Qop'
+    tag = "Iex_Qop"
 
     def __init__(self, op, args):
         self.op = op
         self.args = args
 
     def __str__(self):
-        return "{}({})".format(self.op[4:], ','.join(str(a) for a in self.args))
+        return "{}({})".format(self.op[4:], ",".join(str(a) for a in self.args))
 
     @property
     def child_expressions(self):
-        expressions = sum((a.child_expressions for a in self.args), [ ])
+        expressions = sum((a.child_expressions for a in self.args), [])
         expressions.extend(self.args)
         return expressions
 
     @staticmethod
     def _from_c(c_expr):
-        return Qop(get_enum_from_int(c_expr.Iex.Qop.details.op),
-                   [IRExpr._from_c(arg)
-                    for arg in [c_expr.Iex.Qop.details.arg1,
-                                c_expr.Iex.Qop.details.arg2,
-                                c_expr.Iex.Qop.details.arg3,
-                                c_expr.Iex.Qop.details.arg4]])
+        return Qop(
+            get_enum_from_int(c_expr.Iex.Qop.details.op),
+            [
+                IRExpr._from_c(arg)
+                for arg in [
+                    c_expr.Iex.Qop.details.arg1,
+                    c_expr.Iex.Qop.details.arg2,
+                    c_expr.Iex.Qop.details.arg3,
+                    c_expr.Iex.Qop.details.arg4,
+                ]
+            ],
+        )
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_Qop(get_int_from_enum(expr.op),
-                              *[IRExpr._to_c(arg)
-                                for arg in expr.args])
+        return pvc.IRExpr_Qop(get_int_from_enum(expr.op), *[IRExpr._to_c(arg) for arg in expr.args])
 
     def result_type(self, tyenv):
         return get_op_retty(self.op)
 
-    def typecheck(self, tyenv): # TODO change all this to use PyvexTypeErrorException
+    def typecheck(self, tyenv):  # TODO change all this to use PyvexTypeErrorException
         resty, (arg1ty, arg2ty, arg3ty, arg4ty) = op_arg_types(self.op)
         arg1ty_real = self.args[0].typecheck(tyenv)
         arg2ty_real = self.args[1].typecheck(tyenv)
@@ -386,36 +389,36 @@ class Triop(IRExpr):
     A ternary operation (3 arguments)
     """
 
-    __slots__ = ['op', 'args']
+    __slots__ = ["op", "args"]
 
-    tag = 'Iex_Triop'
+    tag = "Iex_Triop"
 
     def __init__(self, op, args):
         self.op = op
         self.args = args
 
     def __str__(self):
-        return "{}({})".format(self.op[4:], ','.join(str(a) for a in self.args))
+        return "{}({})".format(self.op[4:], ",".join(str(a) for a in self.args))
 
     @property
     def child_expressions(self):
-        expressions = sum((a.child_expressions for a in self.args), [ ])
+        expressions = sum((a.child_expressions for a in self.args), [])
         expressions.extend(self.args)
         return expressions
 
     @staticmethod
     def _from_c(c_expr):
-        return Triop(get_enum_from_int(c_expr.Iex.Triop.details.op),
-                     [IRExpr._from_c(arg)
-                      for arg in [c_expr.Iex.Triop.details.arg1,
-                                  c_expr.Iex.Triop.details.arg2,
-                                  c_expr.Iex.Triop.details.arg3]])
+        return Triop(
+            get_enum_from_int(c_expr.Iex.Triop.details.op),
+            [
+                IRExpr._from_c(arg)
+                for arg in [c_expr.Iex.Triop.details.arg1, c_expr.Iex.Triop.details.arg2, c_expr.Iex.Triop.details.arg3]
+            ],
+        )
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_Triop(get_int_from_enum(expr.op),
-                                *[IRExpr._to_c(arg)
-                                  for arg in expr.args])
+        return pvc.IRExpr_Triop(get_int_from_enum(expr.op), *[IRExpr._to_c(arg) for arg in expr.args])
 
     def result_type(self, tyenv):
         return get_op_retty(self.op)
@@ -446,9 +449,9 @@ class Binop(IRExpr):
     A binary operation (2 arguments).
     """
 
-    __slots__ = ['_op', 'op_int', 'args']
+    __slots__ = ["_op", "op_int", "args"]
 
-    tag = 'Iex_Binop'
+    tag = "Iex_Binop"
 
     def __init__(self, op, args, op_int=None):
         self.op_int = op_int
@@ -456,7 +459,7 @@ class Binop(IRExpr):
         self._op = op if op is not None else None
 
     def __str__(self):
-        return "{}({})".format(self.op[4:], ','.join(str(a) for a in self.args))
+        return "{}({})".format(self.op[4:], ",".join(str(a) for a in self.args))
 
     @property
     def op(self):
@@ -466,23 +469,21 @@ class Binop(IRExpr):
 
     @property
     def child_expressions(self):
-        expressions = sum((a.child_expressions for a in self.args), [ ])
+        expressions = sum((a.child_expressions for a in self.args), [])
         expressions.extend(self.args)
         return expressions
 
     @staticmethod
     def _from_c(c_expr):
-        return Binop(None,
-                     [IRExpr._from_c(arg)
-                      for arg in [c_expr.Iex.Binop.arg1,
-                                  c_expr.Iex.Binop.arg2]],
-                     op_int=c_expr.Iex.Binop.op)
+        return Binop(
+            None,
+            [IRExpr._from_c(arg) for arg in [c_expr.Iex.Binop.arg1, c_expr.Iex.Binop.arg2]],
+            op_int=c_expr.Iex.Binop.op,
+        )
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_Binop(get_int_from_enum(expr.op),
-                                *[IRExpr._to_c(arg)
-                                  for arg in expr.args])
+        return pvc.IRExpr_Binop(get_int_from_enum(expr.op), *[IRExpr._to_c(arg) for arg in expr.args])
 
     def result_type(self, tyenv):
         return get_op_retty(self.op)
@@ -510,32 +511,30 @@ class Unop(IRExpr):
     A unary operation (1 argument).
     """
 
-    __slots__ = ['op', 'args']
+    __slots__ = ["op", "args"]
 
-    tag = 'Iex_Unop'
+    tag = "Iex_Unop"
 
     def __init__(self, op, args):
         self.op = op
         self.args = args
 
     def __str__(self):
-        return "{}({})".format(self.op[4:], ','.join(str(a) for a in self.args))
+        return "{}({})".format(self.op[4:], ",".join(str(a) for a in self.args))
 
     @property
     def child_expressions(self):
-        expressions = sum((a.child_expressions for a in self.args), [ ])
+        expressions = sum((a.child_expressions for a in self.args), [])
         expressions.extend(self.args)
         return expressions
 
     @staticmethod
     def _from_c(c_expr):
-        return Unop(get_enum_from_int(c_expr.Iex.Unop.op),
-                    [IRExpr._from_c(c_expr.Iex.Unop.arg)])
+        return Unop(get_enum_from_int(c_expr.Iex.Unop.op), [IRExpr._from_c(c_expr.Iex.Unop.arg)])
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_Unop(get_int_from_enum(expr.op),
-                               IRExpr._to_c(expr.args[0]))
+        return pvc.IRExpr_Unop(get_int_from_enum(expr.op), IRExpr._to_c(expr.args[0]))
 
     def result_type(self, tyenv):
         return get_op_retty(self.op)
@@ -558,9 +557,9 @@ class Load(IRExpr):
     A load from memory.
     """
 
-    __slots__ = ['end', 'ty', 'addr']
+    __slots__ = ["end", "ty", "addr"]
 
-    tag = 'Iex_Load'
+    tag = "Iex_Load"
 
     def __init__(self, end, ty, addr):
         self.end = end
@@ -580,15 +579,15 @@ class Load(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return Load(get_enum_from_int(c_expr.Iex.Load.end),
-                    get_enum_from_int(c_expr.Iex.Load.ty),
-                    IRExpr._from_c(c_expr.Iex.Load.addr))
+        return Load(
+            get_enum_from_int(c_expr.Iex.Load.end),
+            get_enum_from_int(c_expr.Iex.Load.ty),
+            IRExpr._from_c(c_expr.Iex.Load.addr),
+        )
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_Load(get_int_from_enum(expr.end),
-                               get_int_from_enum(expr.ty),
-                               IRExpr._to_c(expr.addr))
+        return pvc.IRExpr_Load(get_int_from_enum(expr.end), get_int_from_enum(expr.ty), IRExpr._to_c(expr.addr))
 
     def result_type(self, tyenv):
         return self.ty
@@ -608,18 +607,18 @@ class Const(IRExpr):
     A constant expression.
     """
 
-    __slots__ = ['_con']
+    __slots__ = ["_con"]
 
-    tag = 'Iex_Const'
+    tag = "Iex_Const"
 
-    def __init__(self, con: 'IRConst'):
+    def __init__(self, con: "IRConst"):
         self._con = con
 
     def __str__(self):
         return str(self.con)
 
     @property
-    def con(self) -> 'IRConst':
+    def con(self) -> "IRConst":
         return self._con
 
     @staticmethod
@@ -654,9 +653,9 @@ class ITE(IRExpr):
     An if-then-else expression.
     """
 
-    __slots__ = ['cond', 'iffalse', 'iftrue']
+    __slots__ = ["cond", "iffalse", "iftrue"]
 
-    tag = 'Iex_ITE'
+    tag = "Iex_ITE"
 
     def __init__(self, cond, iffalse, iftrue):
         self.cond = cond
@@ -668,15 +667,15 @@ class ITE(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return ITE(IRExpr._from_c(c_expr.Iex.ITE.cond),
-                   IRExpr._from_c(c_expr.Iex.ITE.iffalse),
-                   IRExpr._from_c(c_expr.Iex.ITE.iftrue))
+        return ITE(
+            IRExpr._from_c(c_expr.Iex.ITE.cond),
+            IRExpr._from_c(c_expr.Iex.ITE.iffalse),
+            IRExpr._from_c(c_expr.Iex.ITE.iftrue),
+        )
 
     @staticmethod
     def _to_c(expr):
-        return pvc.IRExpr_ITE(IRExpr._to_c(expr.cond),
-                              IRExpr._to_c(expr.iftrue),
-                              IRExpr._to_c(expr.iffalse))
+        return pvc.IRExpr_ITE(IRExpr._to_c(expr.cond), IRExpr._to_c(expr.iftrue), IRExpr._to_c(expr.iffalse))
 
     def result_type(self, tyenv):
         return self.iftrue.result_type(tyenv)
@@ -689,7 +688,7 @@ class ITE(IRExpr):
         if condty is None or falsety is None or truety is None:
             return None
 
-        if condty != 'Ity_I1':
+        if condty != "Ity_I1":
             l.debug("guard must be Ity_I1")
             return None
 
@@ -705,9 +704,9 @@ class CCall(IRExpr):
     A call to a pure (no side-effects) helper C function.
     """
 
-    __slots__ = ['retty', 'cee', 'args']
+    __slots__ = ["retty", "cee", "args"]
 
-    tag = 'Iex_CCall'
+    tag = "Iex_CCall"
 
     def __init__(self, retty, cee, args):
         self.retty = retty
@@ -723,11 +722,11 @@ class CCall(IRExpr):
         return self.cee
 
     def __str__(self):
-        return "{}({}):{}".format(self.cee, ','.join(str(a) for a in self.args), self.retty)
+        return "{}({}):{}".format(self.cee, ",".join(str(a) for a in self.args), self.retty)
 
     @property
     def child_expressions(self):
-        expressions = sum((a.child_expressions for a in self.args), [ ])
+        expressions = sum((a.child_expressions for a in self.args), [])
         expressions.extend(self.args)
         return expressions
 
@@ -742,17 +741,13 @@ class CCall(IRExpr):
             args.append(IRExpr._from_c(arg))
             i += 1
 
-        return CCall(get_enum_from_int(c_expr.Iex.CCall.retty),
-                     IRCallee._from_c(c_expr.Iex.CCall.cee),
-                     tuple(args))
+        return CCall(get_enum_from_int(c_expr.Iex.CCall.retty), IRCallee._from_c(c_expr.Iex.CCall.cee), tuple(args))
 
     @staticmethod
     def _to_c(expr):
         args = [IRExpr._to_c(arg) for arg in expr.args]
-        mkIRExprVec = getattr(pvc, 'mkIRExprVec_%d' % len(args))
-        return pvc.IRExpr_CCall(IRCallee._to_c(expr.cee),
-                                get_int_from_enum(expr.retty),
-                                mkIRExprVec(*args))
+        mkIRExprVec = getattr(pvc, "mkIRExprVec_%d" % len(args))
+        return pvc.IRExpr_CCall(IRCallee._to_c(expr.cee), get_int_from_enum(expr.retty), mkIRExprVec(*args))
 
     def result_type(self, tyenv):
         return self.retty
@@ -763,14 +758,17 @@ def get_op_retty(op):
 
 
 op_signatures = {}
+
+
 def _request_op_type_from_cache(op):
     return op_signatures[op]
+
 
 def _request_op_type_from_libvex(op):
     Ity_INVALID = 0x1100  # as defined in enum IRType in VEX
 
-    res_ty = ffi.new('IRType *')
-    arg_tys = [ffi.new('IRType *') for _ in range(4)]
+    res_ty = ffi.new("IRType *")
+    arg_tys = [ffi.new("IRType *") for _ in range(4)]
     # initialize all IRTypes to Ity_INVALID
     for arg in arg_tys:
         arg[0] = Ity_INVALID
@@ -787,51 +785,58 @@ def _request_op_type_from_libvex(op):
     op_signatures[op] = op_ty_sig
     return op_ty_sig
 
+
 class PyvexOpMatchException(Exception):
     pass
+
 
 class PyvexTypeErrorException(Exception):
     pass
 
+
 def int_type_for_size(size):
-    return 'Ity_I%d' % size
+    return "Ity_I%d" % size
+
 
 # precompiled regexes
-unop_signature_re = re.compile(r'Iop_(Not|Ctz|Clz)(?P<size>\d+)$')
-binop_signature_re = re.compile(r'Iop_(Add|Sub|Mul|Xor|Or|And|Div[SU]|Mod)(?P<size>\d+)$')
-shift_signature_re = re.compile(r'Iop_(Shl|Shr|Sar)(?P<size>\d+)$')
-cmp_signature_re_1 = re.compile(r'Iop_Cmp(EQ|NE)(?P<size>\d+)$')
-cmp_signature_re_2 = re.compile(r'Iop_Cmp(GT|GE|LT|LE)(?P<size>\d+)[SU]$')
-mull_signature_re = re.compile(r'Iop_Mull[SU](?P<size>\d+)$')
-half_signature_re = re.compile(r'Iop_DivMod[SU](?P<fullsize>\d+)to(?P<halfsize>\d+)$')
-cast_signature_re = re.compile(r'Iop_(?P<srcsize>\d+)(U|S|HI|HL)?to(?P<dstsize>\d+)')
+unop_signature_re = re.compile(r"Iop_(Not|Ctz|Clz)(?P<size>\d+)$")
+binop_signature_re = re.compile(r"Iop_(Add|Sub|Mul|Xor|Or|And|Div[SU]|Mod)(?P<size>\d+)$")
+shift_signature_re = re.compile(r"Iop_(Shl|Shr|Sar)(?P<size>\d+)$")
+cmp_signature_re_1 = re.compile(r"Iop_Cmp(EQ|NE)(?P<size>\d+)$")
+cmp_signature_re_2 = re.compile(r"Iop_Cmp(GT|GE|LT|LE)(?P<size>\d+)[SU]$")
+mull_signature_re = re.compile(r"Iop_Mull[SU](?P<size>\d+)$")
+half_signature_re = re.compile(r"Iop_DivMod[SU](?P<fullsize>\d+)to(?P<halfsize>\d+)$")
+cast_signature_re = re.compile(r"Iop_(?P<srcsize>\d+)(U|S|HI|HL)?to(?P<dstsize>\d+)")
 
 
 def unop_signature(op):
     m = unop_signature_re.match(op)
     if m is None:
         raise PyvexOpMatchException()
-    size = int(m.group('size'))
+    size = int(m.group("size"))
     size_type = int_type_for_size(size)
     return size_type, (size_type,)
+
 
 def binop_signature(op):
     m = binop_signature_re.match(op)
     if m is None:
         raise PyvexOpMatchException()
-    size = int(m.group('size'))
+    size = int(m.group("size"))
     size_type = int_type_for_size(size)
     return (size_type, (size_type, size_type))
+
 
 def shift_signature(op):
     m = shift_signature_re.match(op)
     if m is None:
         raise PyvexOpMatchException()
-    size = int(m.group('size'))
+    size = int(m.group("size"))
     if size > 255:
-        raise PyvexTypeErrorException('Cannot apply shift operation to %d size int because shift index is 8-bit' % size)
+        raise PyvexTypeErrorException("Cannot apply shift operation to %d size int because shift index is 8-bit" % size)
     size_type = int_type_for_size(size)
     return (size_type, (size_type, int_type_for_size(8)))
+
 
 def cmp_signature(op):
     m = cmp_signature_re_1.match(op)
@@ -839,46 +844,53 @@ def cmp_signature(op):
     if (m is None) == (m2 is None):
         raise PyvexOpMatchException()
     mfound = m if m is not None else m2
-    size = int(mfound.group('size'))
+    size = int(mfound.group("size"))
     size_type = int_type_for_size(size)
     return (int_type_for_size(1), (size_type, size_type))
+
 
 def mull_signature(op):
     m = mull_signature_re.match(op)
     if m is None:
         raise PyvexOpMatchException()
-    size = int(m.group('size'))
+    size = int(m.group("size"))
     size_type = int_type_for_size(size)
     doubled_size_type = int_type_for_size(2 * size)
     return (doubled_size_type, (size_type, size_type))
+
 
 def half_signature(op):
     m = half_signature_re.match(op)
     if m is None:
         raise PyvexOpMatchException()
-    fullsize = int(m.group('fullsize'))
-    halfsize = int(m.group('halfsize'))
+    fullsize = int(m.group("fullsize"))
+    halfsize = int(m.group("halfsize"))
     if halfsize * 2 != fullsize:
-        raise PyvexTypeErrorException('Invalid Instruction %s: Type 1 must be twice the size of type 2' % op)
+        raise PyvexTypeErrorException("Invalid Instruction %s: Type 1 must be twice the size of type 2" % op)
     fullsize_type = int_type_for_size(fullsize)
     halfsize_type = int_type_for_size(halfsize)
     return (fullsize_type, (fullsize_type, halfsize_type))
+
 
 def cast_signature(op):
     m = cast_signature_re.match(op)
     if m is None:
         raise PyvexOpMatchException()
-    src_type = int_type_for_size(int(m.group('srcsize')))
-    dst_type = int_type_for_size(int(m.group('dstsize')))
+    src_type = int_type_for_size(int(m.group("srcsize")))
+    dst_type = int_type_for_size(int(m.group("dstsize")))
     return (dst_type, (src_type,))
 
-polymorphic_op_processors = [ unop_signature,
-                              binop_signature,
-                              shift_signature,
-                              cmp_signature,
-                              mull_signature,
-                              half_signature,
-                              cast_signature ]
+
+polymorphic_op_processors = [
+    unop_signature,
+    binop_signature,
+    shift_signature,
+    cmp_signature,
+    mull_signature,
+    half_signature,
+    cast_signature,
+]
+
 
 def _request_polymorphic_op_type(op):
     for polymorphic_signature in polymorphic_op_processors:
@@ -888,17 +900,17 @@ def _request_polymorphic_op_type(op):
         except PyvexOpMatchException:
             continue
     else:
-        raise PyvexOpMatchException('Op %s not recognized' % op)
+        raise PyvexOpMatchException("Op %s not recognized" % op)
     return op_ty_sig
 
-_request_funcs = [_request_op_type_from_cache,
-                  _request_op_type_from_libvex,
-                  _request_polymorphic_op_type]
+
+_request_funcs = [_request_op_type_from_cache, _request_op_type_from_libvex, _request_polymorphic_op_type]
+
 
 def op_arg_types(op):
     for _request_func in _request_funcs:
         try:
-           return _request_func(op)
+            return _request_func(op)
         except KeyError:
             continue
     raise ValueError("Cannot find type of op %s" % op)
@@ -908,8 +920,8 @@ _globals = globals().copy()
 #
 # Mapping from tag strings/enums to IRExpr classes
 #
-tag_to_expr_mapping = { }
-enum_to_expr_mapping = { }
+tag_to_expr_mapping = {}
+enum_to_expr_mapping = {}
 tag_count = 0
 cls = None
 for cls in _globals.values():
@@ -919,6 +931,7 @@ for cls in _globals.values():
         cls.tag_int = tag_count
         tag_count += 1
 del cls
+
 
 def tag_to_expr_class(tag):
     """
@@ -932,7 +945,7 @@ def tag_to_expr_class(tag):
     try:
         return tag_to_expr_mapping[tag]
     except KeyError:
-        raise KeyError('Cannot find expression class for type %s.' % tag)
+        raise KeyError("Cannot find expression class for type %s." % tag)
 
 
 def enum_to_expr_class(tag_enum):
