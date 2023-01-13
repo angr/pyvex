@@ -45,30 +45,33 @@ class ZeroDivisionPostProcessor(Postprocessor):
             # This is an optimized IRSB. We cannot really post-process it.
             return
 
-        insertions = [ ]
+        insertions = []
         last_ip = 0
-        for i,s in enumerate(self.irsb.statements):
-            if s.tag == 'Ist_IMark':
+        for i, s in enumerate(self.irsb.statements):
+            if s.tag == "Ist_IMark":
                 last_ip = s.addr
-            if s.tag == 'Ist_WrTmp' and s.data.tag == 'Iex_Binop' and ('Div' in s.data.op or 'Mod' in s.data.op):
+            if s.tag == "Ist_WrTmp" and s.data.tag == "Iex_Binop" and ("Div" in s.data.op or "Mod" in s.data.op):
                 arg_size = s.data.args[1].result_size(self.irsb.tyenv)
-                cmp_args = [
-                    copy.copy(s.data.args[1]),
-                    expr.Const(const.vex_int_class(arg_size)(0))
-                ]
+                cmp_args = [copy.copy(s.data.args[1]), expr.Const(const.vex_int_class(arg_size)(0))]
                 cmp_tmp = self.irsb.tyenv.add("Ity_I1")
-                insertions.append((i, stmt.WrTmp(cmp_tmp, expr.Binop('Iop_CmpEQ%d' % arg_size, cmp_args))))
-                insertions.append((i, stmt.Exit(
-                    expr.RdTmp.get_instance(cmp_tmp),
-                    const.vex_int_class(self.irsb.arch.bits)(last_ip),
-                    'Ijk_SigFPE_IntDiv', self.irsb.offsIP
-                )))
+                insertions.append((i, stmt.WrTmp(cmp_tmp, expr.Binop("Iop_CmpEQ%d" % arg_size, cmp_args))))
+                insertions.append(
+                    (
+                        i,
+                        stmt.Exit(
+                            expr.RdTmp.get_instance(cmp_tmp),
+                            const.vex_int_class(self.irsb.arch.bits)(last_ip),
+                            "Ijk_SigFPE_IntDiv",
+                            self.irsb.offsIP,
+                        ),
+                    )
+                )
 
-        for i,s in reversed(insertions):
-            self.irsb.statements.insert(i,s)
+        for i, s in reversed(insertions):
+            self.irsb.statements.insert(i, s)
 
 
-#for arch_name in libvex.SUPPORTED:
+# for arch_name in libvex.SUPPORTED:
 #    register(ZeroDivisionPostProcessor, arch_name)
 
 

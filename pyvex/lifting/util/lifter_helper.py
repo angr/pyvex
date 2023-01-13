@@ -7,6 +7,7 @@ from ...const import vex_int_class
 
 l = logging.getLogger(__name__)
 
+
 def is_empty(bitstrm):
     try:
         bitstrm.peek(1)
@@ -30,7 +31,11 @@ class GymratLifter(Lifter):
     of the lifted code.
     """
 
-    __slots__ = ('bitstrm', 'errors', 'thedata', )
+    __slots__ = (
+        "bitstrm",
+        "errors",
+        "thedata",
+    )
 
     REQUIRE_DATA_PY = True
     instrs = None
@@ -53,7 +58,7 @@ class GymratLifter(Lifter):
             # a ParserError signals that this instruction did not match
             # we need to try other instructions, so we ignore this error
             except ParseError:
-                pass #l.exception(repr(possible_instr))
+                pass  # l.exception(repr(possible_instr))
             # if we are out of input, ignore.
             # there may be other, shorter instructions that still match,
             # so we continue with the loop
@@ -61,7 +66,7 @@ class GymratLifter(Lifter):
                 pass
 
         # If no instruction matches, log an error
-        errorstr = 'Unknown instruction at bit position %d' % self.bitstrm.bitpos
+        errorstr = "Unknown instruction at bit position %d" % self.bitstrm.bitpos
         l.debug(errorstr)
         l.debug("Address: %#08x" % addr)
 
@@ -73,7 +78,6 @@ class GymratLifter(Lifter):
             addr = self.irsb.addr
             l.debug("Starting block at address: " + hex(addr))
             bytepos = self.bitstrm.bytepos
-
 
             while not is_empty(self.bitstrm):
                 instr = self._decode_next_instruction(addr)
@@ -91,7 +95,11 @@ class GymratLifter(Lifter):
             raise
 
     def lift(self, disassemble=False, dump_irsb=False):
-        self.thedata = self.data[:self.max_bytes] if isinstance(self.data, (bytes, bytearray, memoryview)) else self.data[:self.max_bytes].encode()
+        self.thedata = (
+            self.data[: self.max_bytes]
+            if isinstance(self.data, (bytes, bytearray, memoryview))
+            else self.data[: self.max_bytes].encode()
+        )
         l.debug(repr(self.thedata))
         instructions = self.decode()
 
@@ -100,17 +108,17 @@ class GymratLifter(Lifter):
         self.irsb.jumpkind = JumpKind.Invalid
         irsb_c = IRSBCustomizer(self.irsb)
         l.debug("Decoding complete.")
-        for i, instr in enumerate(instructions[:self.max_inst]):
+        for i, instr in enumerate(instructions[: self.max_inst]):
             l.debug("Lifting instruction %s", instr.name)
-            instr(irsb_c, instructions[:i], instructions[i+1:])
+            instr(irsb_c, instructions[:i], instructions[i + 1 :])
             if irsb_c.irsb.jumpkind != JumpKind.Invalid:
                 break
-            if (i+1) == self.max_inst: # if we are on our last iteration
+            if (i + 1) == self.max_inst:  # if we are on our last iteration
                 instr.jump(None, irsb_c.irsb.addr + irsb_c.irsb.size)
                 break
         else:
             if len(irsb_c.irsb.statements) == 0:
-                raise LiftingException('Could not decode any instructions')
+                raise LiftingException("Could not decode any instructions")
             irsb_c.irsb.jumpkind = JumpKind.NoDecode
             dst = irsb_c.irsb.addr + irsb_c.irsb.size
             dst_ty = vex_int_class(irsb_c.irsb.arch.bits).type

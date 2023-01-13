@@ -10,14 +10,28 @@ from ..errors import PyVEXError, NeedStatementsNotification, LiftingException, S
 from .lifter import Lifter
 from .post_processor import Postprocessor
 
-l = logging.getLogger('pyvex.lifting')
+l = logging.getLogger("pyvex.lifting")
 
 lifters = defaultdict(list)
 postprocessors = defaultdict(list)
 
-def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_level=1, traceflags=0,
-         strict_block_end=True, inner=False, skip_stmts=False, collect_data_refs=False, cross_insn_opt=True,
-         load_from_ro_regions=False):
+
+def lift(
+    data,
+    addr,
+    arch,
+    max_bytes=None,
+    max_inst=None,
+    bytes_offset=0,
+    opt_level=1,
+    traceflags=0,
+    strict_block_end=True,
+    inner=False,
+    skip_stmts=False,
+    collect_data_refs=False,
+    cross_insn_opt=True,
+    load_from_ro_regions=False,
+):
     """
     Recursively lifts blocks using the registered lifters and postprocessors. Tries each lifter in the order in
     which they are registered on the data to lift.
@@ -83,7 +97,7 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
             u_data = data
             if lifter.REQUIRE_DATA_C:
                 if c_data is None:
-                    u_data = ffi.from_buffer(ffi.BVoidP, py_data + b'\0' * 8 if type(py_data) is bytes else py_data)
+                    u_data = ffi.from_buffer(ffi.BVoidP, py_data + b"\0" * 8 if type(py_data) is bytes else py_data)
                     max_bytes = min(len(py_data), max_bytes) if max_bytes is not None else len(py_data)
                 else:
                     u_data = c_data
@@ -95,52 +109,68 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                     skip = bytes_offset
                 if py_data is None:
                     if max_bytes is None:
-                        l.debug('Cannot create py_data from c_data when no max length is given')
+                        l.debug("Cannot create py_data from c_data when no max length is given")
                         continue
                     u_data = ffi.buffer(c_data + skip, max_bytes)[:]
                 else:
                     if max_bytes is None:
                         u_data = py_data[skip:]
                     else:
-                        u_data = py_data[skip:skip + max_bytes]
+                        u_data = py_data[skip : skip + max_bytes]
             else:
-                raise RuntimeError("Incorrect lifter configuration. What type of data does %s expect?"
-                                   % lifter.__class__)
+                raise RuntimeError(
+                    "Incorrect lifter configuration. What type of data does %s expect?" % lifter.__class__
+                )
 
             try:
-                final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset - skip, max_bytes, max_inst, opt_level,
-                                                      traceflags, allow_arch_optimizations, strict_block_end,
-                                                      skip_stmts,
-                                                      collect_data_refs=collect_data_refs,
-                                                      cross_insn_opt=cross_insn_opt,
-                                                      load_from_ro_regions=load_from_ro_regions,
-                                                      )
+                final_irsb = lifter(arch, addr)._lift(
+                    u_data,
+                    bytes_offset - skip,
+                    max_bytes,
+                    max_inst,
+                    opt_level,
+                    traceflags,
+                    allow_arch_optimizations,
+                    strict_block_end,
+                    skip_stmts,
+                    collect_data_refs=collect_data_refs,
+                    cross_insn_opt=cross_insn_opt,
+                    load_from_ro_regions=load_from_ro_regions,
+                )
             except SkipStatementsError:
                 assert skip_stmts is True
-                final_irsb = lifter(arch, addr)._lift(u_data, bytes_offset - skip, max_bytes, max_inst, opt_level,
-                                                      traceflags, allow_arch_optimizations, strict_block_end,
-                                                      skip_stmts=False,
-                                                      collect_data_refs=collect_data_refs,
-                                                      cross_insn_opt=cross_insn_opt,
-                                                      load_from_ro_regions=load_from_ro_regions,
-                                                      )
-            #l.debug('block lifted by %s' % str(lifter))
-            #l.debug(str(final_irsb))
+                final_irsb = lifter(arch, addr)._lift(
+                    u_data,
+                    bytes_offset - skip,
+                    max_bytes,
+                    max_inst,
+                    opt_level,
+                    traceflags,
+                    allow_arch_optimizations,
+                    strict_block_end,
+                    skip_stmts=False,
+                    collect_data_refs=collect_data_refs,
+                    cross_insn_opt=cross_insn_opt,
+                    load_from_ro_regions=load_from_ro_regions,
+                )
+            # l.debug('block lifted by %s' % str(lifter))
+            # l.debug(str(final_irsb))
             break
         except LiftingException as ex:
-            l.debug('Lifting Exception: %s', str(ex))
+            l.debug("Lifting Exception: %s", str(ex))
             continue
     else:
-        final_irsb = IRSB.empty_block(arch,
-                                      addr,
-                                      size=0,
-                                      nxt=Const(const.vex_int_class(arch.bits)(addr)),
-                                      jumpkind='Ijk_NoDecode',
-                                      )
+        final_irsb = IRSB.empty_block(
+            arch,
+            addr,
+            size=0,
+            nxt=Const(const.vex_int_class(arch.bits)(addr)),
+            jumpkind="Ijk_NoDecode",
+        )
         final_irsb.invalidate_direct_next()
         return final_irsb
 
-    if final_irsb.size > 0 and final_irsb.jumpkind == 'Ijk_NoDecode':
+    if final_irsb.size > 0 and final_irsb.jumpkind == "Ijk_NoDecode":
         # We have decoded a few bytes before we hit an undecodeable instruction.
 
         # Determine if this is an intentional NoDecode, like the ud2 instruction on AMD64
@@ -151,7 +181,7 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
             if nodecode_addr != next_irsb_start_addr:
                 # The last instruction of the IRSB has a non-zero length. This is an intentional NoDecode.
                 # The very last instruction has been decoded
-                final_irsb.jumpkind = 'Ijk_NoDecode'
+                final_irsb.jumpkind = "Ijk_NoDecode"
                 final_irsb.next = final_irsb.next
                 final_irsb.invalidate_direct_next()
                 return final_irsb
@@ -162,45 +192,51 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
             # statements are usually required.
             # TODO: In the future, we may further optimize it to handle cases where getting statements in gymrat is not
             # TODO: required.
-            return lift(data, addr, arch,
-                        max_bytes=max_bytes,
-                        max_inst=max_inst,
-                        bytes_offset=bytes_offset,
-                        opt_level=opt_level,
-                        traceflags=traceflags,
-                        strict_block_end=strict_block_end,
-                        skip_stmts=False,
-                        collect_data_refs=collect_data_refs,
-                        )
+            return lift(
+                data,
+                addr,
+                arch,
+                max_bytes=max_bytes,
+                max_inst=max_inst,
+                bytes_offset=bytes_offset,
+                opt_level=opt_level,
+                traceflags=traceflags,
+                strict_block_end=strict_block_end,
+                skip_stmts=False,
+                collect_data_refs=collect_data_refs,
+            )
 
         next_addr = addr + final_irsb.size
         if max_bytes is not None:
             max_bytes -= final_irsb.size
         if isinstance(data, (bytes, bytearray, memoryview)):
-            data_left = data[final_irsb.size:]
+            data_left = data[final_irsb.size :]
         else:
             data_left = data + final_irsb.size
         if max_inst is not None:
             max_inst -= final_irsb.instructions
         if (max_bytes is None or max_bytes > 0) and (max_inst is None or max_inst > 0) and data_left:
-            more_irsb = lift(data_left, next_addr, arch,
-                             max_bytes=max_bytes,
-                             max_inst=max_inst,
-                             bytes_offset=bytes_offset,
-                             opt_level=opt_level,
-                             traceflags=traceflags,
-                             strict_block_end=strict_block_end,
-                             inner=True,
-                             skip_stmts=False,
-                             collect_data_refs=collect_data_refs,
-                             )
+            more_irsb = lift(
+                data_left,
+                next_addr,
+                arch,
+                max_bytes=max_bytes,
+                max_inst=max_inst,
+                bytes_offset=bytes_offset,
+                opt_level=opt_level,
+                traceflags=traceflags,
+                strict_block_end=strict_block_end,
+                inner=True,
+                skip_stmts=False,
+                collect_data_refs=collect_data_refs,
+            )
             if more_irsb.size:
                 # Successfully decoded more bytes
                 final_irsb.extend(more_irsb)
         elif max_bytes == 0:
             # We have no more bytes left. Mark the jumpkind of the IRSB as Ijk_Boring
-            if final_irsb.size > 0 and final_irsb.jumpkind == 'Ijk_NoDecode':
-                final_irsb.jumpkind = 'Ijk_Boring'
+            if final_irsb.size > 0 and final_irsb.jumpkind == "Ijk_NoDecode":
+                final_irsb.jumpkind = "Ijk_Boring"
                 final_irsb.next = Const(vex_int_class(arch.bits)(final_irsb.addr + final_irsb.size))
 
     if not inner:
@@ -212,22 +248,26 @@ def lift(data, addr, arch, max_bytes=None, max_inst=None, bytes_offset=0, opt_le
                 if not skip_stmts:
                     # sanity check
                     # Why does the post-processor raise NeedStatementsNotification when skip_stmts is False?
-                    raise TypeError("Bad post-processor %s: "
-                                    "NeedStatementsNotification is raised when statements are available." %
-                                    postprocessor.__class__)
+                    raise TypeError(
+                        "Bad post-processor %s: "
+                        "NeedStatementsNotification is raised when statements are available." % postprocessor.__class__
+                    )
 
                 # Re-lift the current IRSB
-                return lift(data, addr, arch,
-                            max_bytes=max_bytes,
-                            max_inst=max_inst,
-                            bytes_offset=bytes_offset,
-                            opt_level=opt_level,
-                            traceflags=traceflags,
-                            strict_block_end=strict_block_end,
-                            inner=inner,
-                            skip_stmts=False,
-                            collect_data_refs=collect_data_refs,
-                            )
+                return lift(
+                    data,
+                    addr,
+                    arch,
+                    max_bytes=max_bytes,
+                    max_inst=max_inst,
+                    bytes_offset=bytes_offset,
+                    opt_level=opt_level,
+                    traceflags=traceflags,
+                    strict_block_end=strict_block_end,
+                    inner=inner,
+                    skip_stmts=False,
+                    collect_data_refs=collect_data_refs,
+                )
             except LiftingException:
                 continue
 

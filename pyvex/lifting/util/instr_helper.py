@@ -180,7 +180,7 @@ class Instruction(metaclass=abc.ABCMeta):
         return data
 
     def parse(self, bitstrm):
-        if self.arch.instruction_endness == 'Iend_LE':
+        if self.arch.instruction_endness == "Iend_LE":
             # This arch stores its instructions in memory endian-flipped compared to the ISA.
             # To enable natural lifter-writing, we let the user write them like in the manual, and correct for
             # endness here.
@@ -188,26 +188,26 @@ class Instruction(metaclass=abc.ABCMeta):
         else:
             instr_bits = bitstrm.peek("bin:%d" % self.bitwidth)
 
-        data = {c: '' for c in self.bin_format if c in string.ascii_letters}
+        data = {c: "" for c in self.bin_format if c in string.ascii_letters}
         for c, b in zip(self.bin_format, instr_bits):
-            if c in '01':
+            if c in "01":
                 if b != c:
-                    raise ParseError('Mismatch between format bit %c and instruction bit %c' % (c, b))
+                    raise ParseError("Mismatch between format bit %c and instruction bit %c" % (c, b))
             elif c in string.ascii_letters:
                 data[c] += b
             else:
-                raise ValueError('Invalid bin_format character %c' % c)
+                raise ValueError("Invalid bin_format character %c" % c)
 
         # Hook here for extra matching functionality
-        if hasattr(self, 'match_instruction'):
+        if hasattr(self, "match_instruction"):
             # Should raise if it's not right
             self.match_instruction(data, bitstrm)
 
         # Use up the bits once we're sure it's right
-        self.rawbits = bitstrm.read('hex:%d' % self.bitwidth)
+        self.rawbits = bitstrm.read("hex:%d" % self.bitwidth)
 
         # Hook here for extra parsing functionality (e.g., trailers)
-        if hasattr(self, '_extra_parsing'):
+        if hasattr(self, "_extra_parsing"):
             data = self._extra_parsing(data, bitstrm)  # pylint: disable=no-member
 
         return data
@@ -225,7 +225,7 @@ class Instruction(metaclass=abc.ABCMeta):
 
         :return: The address (self.addr), the instruction's name, and a list of its operands, as strings
         """
-        return self.addr, 'UNK', [self.rawbits]
+        return self.addr, "UNK", [self.rawbits]
 
     # These methods should be called in subclasses to do register and memory operations
 
@@ -249,14 +249,14 @@ class Instruction(metaclass=abc.ABCMeta):
         :return: a VexValue
         """
         if isinstance(val, VexValue) and not isinstance(val, IRExpr):
-            raise Exception('Constant cannot be made from VexValue or IRExpr')
+            raise Exception("Constant cannot be made from VexValue or IRExpr")
         rdt = self.irsb_c.mkconst(val, ty)
         return VexValue(self.irsb_c, rdt)
 
     @staticmethod
     def _lookup_register(arch, reg):
         if isinstance(reg, int):
-            if hasattr(arch, 'register_index'):
+            if hasattr(arch, "register_index"):
                 reg = arch.register_index[reg]
             else:
                 reg = arch.register_list[reg].name
@@ -416,7 +416,6 @@ class Instruction(metaclass=abc.ABCMeta):
 
         rdt = self.irsb_c.dirty(ret_type, func_name, args)
         return VexValue(self.irsb_c, rdt)
-
 
     def _load_le_instr(self, bitstream: bitstring.ConstBitStream, numbits: int) -> str:
         return bitstring.Bits(uint=bitstream.peek("uintle:%d" % numbits), length=numbits).bin

@@ -18,9 +18,7 @@ class TestPyvex(unittest.TestCase):
         try:
             import resource
         except ImportError:
-            print(
-                "Cannot import the resource package. Are you using Windows? Skip test_memory()."
-            )
+            print("Cannot import the resource package. Are you using Windows? Skip test_memory().")
             return
 
         arches = [ArchX86(), ArchPPC32(endness=Endness.BE), ArchAMD64(), ArchARM()]
@@ -321,9 +319,7 @@ class TestPyvex(unittest.TestCase):
 
     def test_irstmt_dirty(self):
         args = [pyvex.IRExpr.RdTmp.get_instance(i) for i in range(10)]
-        m = pyvex.IRStmt.Dirty(
-            "test_dirty", pyvex.IRConst.U8(1), args, 15, "Ifx_None", 0, 1, 0
-        )
+        m = pyvex.IRStmt.Dirty("test_dirty", pyvex.IRConst.U8(1), args, 15, "Ifx_None", 0, 1, 0)
         assert m.cee == "test_dirty"
         assert type(m.guard) == pyvex.IRConst.U8
         assert m.tmp == 15
