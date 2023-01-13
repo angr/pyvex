@@ -37,7 +37,7 @@ VEX_PATH = os.path.abspath(os.path.join(PROJECT_DIR, "vex"))
 def _build_vex():
     if len(os.listdir(VEX_PATH)) == 0:
         raise LibError(
-            "vex submodule not cloned correctly, aborting.\n" "This may be fixed with `git submodule update --init`"
+            "vex submodule not cloned correctly, aborting.\nThis may be fixed with `git submodule update --init`"
         )
 
     e = os.environ.copy()
