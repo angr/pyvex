@@ -1,5 +1,4 @@
 import copy
-import sys
 import itertools
 from typing import List, Optional
 
@@ -17,7 +16,7 @@ from .errors import SkipStatementsError
 
 import logging
 
-l = logging.getLogger("pyvex.block")
+log = logging.getLogger("pyvex.block")
 
 
 class IRSB(VEXObject):
@@ -117,10 +116,10 @@ class IRSB(VEXObject):
         self.addr = mem_addr
         self.arch = arch
 
-        self.statements = []  # type: List[IRStmt]
-        self.next = None  # type: Optional[IRExpr]
+        self.statements: List[IRStmt] = []
+        self.next: Optional[IRExpr] = None
         self._tyenv = None
-        self.jumpkind = None  # type: Optional[str]
+        self.jumpkind: Optional[str] = None
         self._direct_next = None
         self._size = None
         self._instructions = None
@@ -304,7 +303,7 @@ class IRSB(VEXObject):
             assert self.next is not None, "Missing next expression"
             assert self.jumpkind is not None, "Missing jumpkind"
 
-            # type assertions
+            # | type assertions
             assert isinstance(self.next, expr.IRExpr), "Next expression is not an expression"
             assert type(self.jumpkind is str), "Jumpkind is not a string"
             assert self.jumpkind.startswith("Ijk_"), "Jumpkind is not a jumpkind enum"
@@ -314,10 +313,7 @@ class IRSB(VEXObject):
             last_imark = None
             for i, st in enumerate(self.statements):
                 assert isinstance(st, stmt.IRStmt), "Statement %d is not an IRStmt" % i
-                try:
-                    assert st.typecheck(self.tyenv), "Statement %d failed to typecheck" % i
-                except:  # pylint: disable=bare-except
-                    assert False, "Statement %d errored in typechecking" % i
+                assert st.typecheck(self.tyenv), "Statement %d failed to typecheck" % i
 
                 if type(st) is stmt.NoOp:
                     continue
@@ -331,7 +327,7 @@ class IRSB(VEXObject):
 
             assert last_imark is not None, "No IMarks present in block"
         except AssertionError as e:
-            l.debug(e.args[0])
+            log.debug(e.args[0])
             return False
         return True
 
@@ -482,11 +478,9 @@ class IRSB(VEXObject):
     # private methods
     #
 
-    def _pp_str(self):
+    def _pp_str(self) -> str:
         """
         Return the pretty-printed IRSB.
-
-        :rtype: str
         """
         sa = []
         sa.append("IRSB {")
@@ -634,7 +628,7 @@ class IRTypeEnv(VEXObject):
         Return the type of temporary variable `tmp` as an enum string
         """
         if tmp < 0 or tmp > self.types_used:
-            l.debug("Invalid temporary number %d", tmp)
+            log.debug("Invalid temporary number %d", tmp)
             raise IndexError(tmp)
         return self.types[tmp]
 

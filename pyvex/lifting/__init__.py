@@ -10,7 +10,7 @@ from ..errors import PyVEXError, NeedStatementsNotification, LiftingException, S
 from .lifter import Lifter
 from .post_processor import Postprocessor
 
-l = logging.getLogger("pyvex.lifting")
+log = logging.getLogger("pyvex.lifting")
 
 lifters = defaultdict(list)
 postprocessors = defaultdict(list)
@@ -109,7 +109,7 @@ def lift(
                     skip = bytes_offset
                 if py_data is None:
                     if max_bytes is None:
-                        l.debug("Cannot create py_data from c_data when no max length is given")
+                        log.debug("Cannot create py_data from c_data when no max length is given")
                         continue
                     u_data = ffi.buffer(c_data + skip, max_bytes)[:]
                 else:
@@ -153,11 +153,9 @@ def lift(
                     cross_insn_opt=cross_insn_opt,
                     load_from_ro_regions=load_from_ro_regions,
                 )
-            # l.debug('block lifted by %s' % str(lifter))
-            # l.debug(str(final_irsb))
             break
         except LiftingException as ex:
-            l.debug("Lifting Exception: %s", str(ex))
+            log.debug("Lifting Exception: %s", str(ex))
             continue
     else:
         final_irsb = IRSB.empty_block(
@@ -283,10 +281,10 @@ def register(lifter, arch_name):
     :vartype lifter:     :class:`Lifter` or :class:`Postprocessor`
     """
     if issubclass(lifter, Lifter):
-        l.debug("Registering lifter %s for architecture %s.", lifter.__name__, arch_name)
+        log.debug("Registering lifter %s for architecture %s.", lifter.__name__, arch_name)
         lifters[arch_name].append(lifter)
     if issubclass(lifter, Postprocessor):
-        l.debug("Registering postprocessor %s for architecture %s.", lifter.__name__, arch_name)
+        log.debug("Registering postprocessor %s for architecture %s.", lifter.__name__, arch_name)
         postprocessors[arch_name].append(lifter)
 
 
@@ -295,3 +293,6 @@ from .libvex import LibVEXLifter
 from .zerodivision import ZeroDivisionPostProcessor
 
 from . import gym
+
+
+__all__ = ["lift", "register", "Lifter", "Postprocessor", "LibVEXLifter", "ZeroDivisionPostProcessor", "gym"]

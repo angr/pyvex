@@ -1,11 +1,11 @@
 import logging
 import bitstring
 
-from .vex_helper import *
+from .vex_helper import JumpKind, IRSBCustomizer
 from ..lifter import Lifter
 from ...const import vex_int_class
 
-l = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 def is_empty(bitstrm):
@@ -53,7 +53,7 @@ class GymratLifter(Lifter):
         # Try every instruction until one works
         for possible_instr in self.instrs:
             try:
-                l.info("Trying %s", possible_instr.name)
+                log.info("Trying %s", possible_instr.name)
                 return possible_instr(self.bitstrm, self.irsb.arch, addr)
             # a ParserError signals that this instruction did not match
             # we need to try other instructions, so we ignore this error
@@ -67,8 +67,8 @@ class GymratLifter(Lifter):
 
         # If no instruction matches, log an error
         errorstr = "Unknown instruction at bit position %d" % self.bitstrm.bitpos
-        l.debug(errorstr)
-        l.debug("Address: %#08x" % addr)
+        log.debug(errorstr)
+        log.debug("Address: %#08x" % addr)
 
     def decode(self):
         try:
@@ -76,7 +76,7 @@ class GymratLifter(Lifter):
             count = 0
             disas = []
             addr = self.irsb.addr
-            l.debug("Starting block at address: " + hex(addr))
+            log.debug("Starting block at address: " + hex(addr))
             bytepos = self.bitstrm.bytepos
 
             while not is_empty(self.bitstrm):
@@ -84,14 +84,14 @@ class GymratLifter(Lifter):
                 if not instr:
                     break
                 disas.append(instr)
-                l.debug("Matched " + instr.name)
+                log.debug("Matched " + instr.name)
                 addr += self.bitstrm.bytepos - bytepos
                 bytepos = self.bitstrm.bytepos
                 count += 1
             return disas
         except Exception as e:
             self.errors = str(e)
-            l.exception(f"Error decoding block at offset {bytepos:#x} (address {addr:#x}):")
+            log.exception(f"Error decoding block at offset {bytepos:#x} (address {addr:#x}):")
             raise
 
     def lift(self, disassemble=False, dump_irsb=False):
@@ -100,16 +100,16 @@ class GymratLifter(Lifter):
             if isinstance(self.data, (bytes, bytearray, memoryview))
             else self.data[: self.max_bytes].encode()
         )
-        l.debug(repr(self.thedata))
+        log.debug(repr(self.thedata))
         instructions = self.decode()
 
         if disassemble:
             return [instr.disassemble() for instr in instructions]
         self.irsb.jumpkind = JumpKind.Invalid
         irsb_c = IRSBCustomizer(self.irsb)
-        l.debug("Decoding complete.")
+        log.debug("Decoding complete.")
         for i, instr in enumerate(instructions[: self.max_inst]):
-            l.debug("Lifting instruction %s", instr.name)
+            log.debug("Lifting instruction %s", instr.name)
             instr(irsb_c, instructions[:i], instructions[i + 1 :])
             if irsb_c.irsb.jumpkind != JumpKind.Invalid:
                 break
@@ -123,7 +123,7 @@ class GymratLifter(Lifter):
             dst = irsb_c.irsb.addr + irsb_c.irsb.size
             dst_ty = vex_int_class(irsb_c.irsb.arch.bits).type
             irsb_c.irsb.next = irsb_c.mkconst(dst, dst_ty)
-        l.debug(self.irsb._pp_str())
+        log.debug(self.irsb._pp_str())
         if dump_irsb:
             self.irsb.pp()
         return self.irsb
@@ -143,5 +143,4 @@ class GymratLifter(Lifter):
         return self.lift(disassemble=True)
 
 
-from ...expr import *
 from .. import LiftingException

@@ -1,14 +1,11 @@
 import abc
 import string
 import bitstring
-import logging
 
 from .lifter_helper import ParseError
 from .syntax_wrapper import VexValue
 from ...expr import IRExpr, RdTmp
 from .vex_helper import JumpKind, vex_int_class, IRSBCustomizer
-
-l = logging.getLogger("instr")
 
 
 class Instruction(metaclass=abc.ABCMeta):

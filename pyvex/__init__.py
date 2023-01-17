@@ -82,7 +82,7 @@ def _find_c_lib():
     return lib
 
 
-pvc = _find_c_lib()  # type: Any # This should be properly typed, but this seems non trivial
+pvc: Any = _find_c_lib()  # This should be properly typed, but this seems non trivial
 
 # pylint: disable=wildcard-import
 from .enums import *

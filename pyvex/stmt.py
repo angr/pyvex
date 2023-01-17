@@ -6,7 +6,7 @@ from archinfo import RegisterOffset, TmpVar
 from .enums import get_enum_from_int, get_int_from_enum
 from .expr import Const
 
-l = logging.getLogger("pyvex.stmt")
+log = logging.getLogger("pyvex.stmt")
 
 
 class IRStmt(VEXObject):
@@ -14,7 +14,7 @@ class IRStmt(VEXObject):
     IR statements in VEX represents operations with side-effects.
     """
 
-    tag = None  # type: Optional[str]
+    tag: Optional[str] = None
     tag_int = 0  # set automatically at bottom of file
 
     __slots__ = []
@@ -214,7 +214,7 @@ class PutI(IRStmt):
         if dataty is None:
             return False
         if dataty != self.descr.elemTy:
-            l.debug("Expression doesn't match RegArray type")
+            log.debug("Expression doesn't match RegArray type")
             return False
         return True
 
@@ -253,7 +253,7 @@ class WrTmp(IRStmt):
         if dataty is None:
             return False
         if dataty != tyenv.lookup(self.tmp):
-            l.debug("Expression doesn't match tmp type")
+            log.debug("Expression doesn't match tmp type")
             return False
         return True
 
@@ -295,10 +295,10 @@ class Store(IRStmt):
         if addrty is None:
             return False
         if addrty != tyenv.wordty:
-            l.debug("addr must be full word for arch")
+            log.debug("addr must be full word for arch")
             return False
         if self.end not in ("Iend_LE", "Iend_BE"):
-            l.debug("invalid endness enum")
+            log.debug("invalid endness enum")
             return False
         return True
 
@@ -349,23 +349,23 @@ class CAS(IRStmt):
         if addrty is None:
             return False
         if addrty != tyenv.wordty:
-            l.debug("addr must be full word for arch")
+            log.debug("addr must be full word for arch")
             return False
         if self.end not in ("Iend_LE", "Iend_BE"):
-            l.debug("invalid endness enum")
+            log.debug("invalid endness enum")
             return False
 
         if self.oldHi == 0xFFFFFFFF:
             # single-element case
             if self.expdHi is not None or self.dataHi is not None:
-                l.debug("expdHi and dataHi must be None")
+                log.debug("expdHi and dataHi must be None")
                 return False
             expdLoTy = self.expdLo.typecheck(tyenv)
             dataLoTy = self.dataLo.typecheck(tyenv)
             if expdLoTy is None or dataLoTy is None:
                 return False
             if tyenv.lookup(self.oldLo) != expdLoTy or expdLoTy != dataLoTy:
-                l.debug("oldLo, expdL, dataLo must all have the same type")
+                log.debug("oldLo, expdL, dataLo must all have the same type")
                 return False
         else:
             # double-element case
@@ -382,7 +382,7 @@ class CAS(IRStmt):
                 or expdHiTy != dataHiTy
                 or expdLoTy != expdHiTy
             ):
-                l.debug("oldLo, expdLo, dataLo, oldHi, expdHi, dataHi must all have the same type")
+                log.debug("oldLo, expdLo, dataLo, oldHi, expdHi, dataHi must all have the same type")
                 return False
 
         return True
@@ -428,10 +428,10 @@ class LLSC(IRStmt):
         if addrty is None:
             return False
         if addrty != tyenv.wordty:
-            l.debug("addr must be full word for arch")
+            log.debug("addr must be full word for arch")
             return False
         if self.end not in ("Iend_LE", "Iend_BE"):
-            l.debug("invalid endness enum")
+            log.debug("invalid endness enum")
             return False
 
         if self.storedata is not None:
@@ -441,7 +441,7 @@ class LLSC(IRStmt):
                 return False
 
             if tyenv.lookup(self.result) != "Ity_I1":
-                l.debug("result tmp must be Ity_I1")
+                log.debug("result tmp must be Ity_I1")
                 return False
 
         return True
@@ -559,13 +559,13 @@ class Exit(IRStmt):
 
     def typecheck(self, tyenv):
         if not self.jk.startswith("Ijk_"):
-            l.debug("Jumpkind is not a jumpkind enum")
+            log.debug("Jumpkind is not a jumpkind enum")
             return False
         guardty = self.guard.typecheck(tyenv)
         if guardty is None:
             return False
         if guardty != "Ity_I1":
-            l.debug("guard must be Ity_I1")
+            log.debug("guard must be Ity_I1")
             return False
         return True
 
@@ -624,10 +624,10 @@ class LoadG(IRStmt):
         if addrty is None:
             return False
         if addrty != tyenv.wordty:
-            l.debug("addr must be full word for arch")
+            log.debug("addr must be full word for arch")
             return False
         if self.end not in ("Iend_LE", "Iend_BE"):
-            l.debug("invalid endness enum")
+            log.debug("invalid endness enum")
             return False
 
         dstty = tyenv.lookup(self.dst)
@@ -637,13 +637,13 @@ class LoadG(IRStmt):
         if guardty is None or altty is None:
             return False
         if dstty != "Ity_I32" or altty != "Ity_I32":
-            l.debug("dst and alt must be Ity_I32")
+            log.debug("dst and alt must be Ity_I32")
             return False
         if guardty != "Ity_I1":
-            l.debug("guard must be Ity_I1")
+            log.debug("guard must be Ity_I1")
             return False
         if not self.cvt.startswith("ILGop_"):
-            l.debug("Invalid cvt enum")
+            log.debug("Invalid cvt enum")
             return False
         return True
 
@@ -684,10 +684,10 @@ class StoreG(IRStmt):
         if addrty is None:
             return False
         if addrty != tyenv.wordty:
-            l.debug("addr must be full word for arch")
+            log.debug("addr must be full word for arch")
             return False
         if self.end not in ("Iend_LE", "Iend_BE"):
-            l.debug("invalid endness enum")
+            log.debug("invalid endness enum")
             return False
 
         guardty = self.guard.typecheck(tyenv)
@@ -696,7 +696,7 @@ class StoreG(IRStmt):
         if guardty is None or dataty is None:
             return False
         if guardty != "Ity_I1":
-            l.debug("guard must be Ity_I1")
+            log.debug("guard must be Ity_I1")
             return False
         return True
 

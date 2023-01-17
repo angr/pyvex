@@ -200,7 +200,7 @@ int vex_init() {
 	vta.instrument1         = NULL;
 	vta.instrument2         = NULL;
 	vta.finaltidy	    	= NULL;
-	vta.needs_self_check	= needs_self_check;	
+	vta.needs_self_check	= needs_self_check;
 
 	vta.disp_cp_chain_me_to_slowEP = (void *)dispatch; // Not used
 	vta.disp_cp_chain_me_to_fastEP = (void *)dispatch; // Not used

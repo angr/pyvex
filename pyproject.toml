@@ -10,3 +10,15 @@ force-exclude = '''
   vex
 )/
 '''
+
+[tool.ruff]
+line-length = 130 # A bit longer than black to catch egregious cases
+extend-ignore = [
+	"E402", # Bottom-file imports
+]
+
+[tool.ruff.per-file-ignores]
+"pyvex/__init__.py" = [
+	"F401", # Need to define __all__ at the bottom
+	"F403", # Need to replace * imports with explicit imports
+]

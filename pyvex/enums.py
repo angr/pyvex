@@ -9,7 +9,7 @@ class VEXObject:
     The base class for Vex types.
     """
 
-    __slots__ = []  # type: List
+    __slots__: List = []
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

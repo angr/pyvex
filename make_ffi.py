@@ -7,8 +7,8 @@ import platform
 
 import logging
 
-l = logging.getLogger("cffier")
-l.setLevel(logging.DEBUG)
+log = logging.getLogger("cffier")
+log.setLevel(logging.DEBUG)
 
 
 def find_good_scan(questionable):
@@ -18,7 +18,7 @@ def find_good_scan(questionable):
 
     while len(questionable):
         ffi = cffi.FFI()
-        l.debug("scan - trying %d good and %d questionable", len(known_good), len(questionable))
+        log.debug("scan - trying %d good and %d questionable", len(known_good), len(questionable))
 
         candidate = known_good + questionable[:end_line]
         failed_line = -1
@@ -98,7 +98,7 @@ def doit(vex_path):
             errs.append((" ".join(cmd), -1, "does not exist"))
             continue
     else:
-        l.warning("failed commands:\n" + "\n".join("{} ({}) -- {}".format(*e) for e in errs))
+        log.warning("failed commands:\n" + "\n".join("{} ({}) -- {}".format(*e) for e in errs))
         raise Exception(
             "Couldn't process pyvex headers."
             + 'Please set CPP environmental variable to local path of "cpp".'
@@ -145,7 +145,5 @@ def get_guest_offsets(vex_path):
 
 
 if __name__ == "__main__":
-    import sys
-
     logging.basicConfig(level=logging.DEBUG)
     doit(sys.argv[1])

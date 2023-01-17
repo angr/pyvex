@@ -273,7 +273,7 @@ class IRSBCustomizer:
 
     def set_bit(self, rdt, idx, bval):
         currbit = self.get_bit(rdt, idx)
-        bvalbit = self.op_extract_lsb(bval)
+        self.op_extract_lsb(bval)
         areequalextrabits = self.op_xor(bval, currbit)
         one = self.mkconst(1, self.get_type(areequalextrabits))
         areequal = self.op_and(areequalextrabits, one)

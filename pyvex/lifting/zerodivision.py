@@ -1,7 +1,6 @@
 import copy
 
-from . import Postprocessor, register
-from . import libvex
+from . import Postprocessor
 
 
 class ZeroDivisionPostProcessor(Postprocessor):
@@ -69,10 +68,6 @@ class ZeroDivisionPostProcessor(Postprocessor):
 
         for i, s in reversed(insertions):
             self.irsb.statements.insert(i, s)
-
-
-# for arch_name in libvex.SUPPORTED:
-#    register(ZeroDivisionPostProcessor, arch_name)
 
 
 from .. import stmt, expr, const

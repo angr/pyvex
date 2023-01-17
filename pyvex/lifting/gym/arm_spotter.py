@@ -6,7 +6,7 @@ from ..util.instr_helper import Instruction, ParseError
 from ..util import JumpKind, Type
 from .. import register
 
-l = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class ARMInstruction(Instruction):  # pylint: disable=abstract-method
@@ -125,7 +125,7 @@ class Instruction_MRC(ARMInstruction):
         # TODO at least look at the conditionals
         # TODO Clobber the dst reg of MCR
         # TODO maybe treat coproc regs as simple storage (even though they are very much not)
-        l.debug("Ignoring MRC instruction at %#x.", self.addr)
+        log.debug("Ignoring MRC instruction at %#x.", self.addr)
 
 
 class Instruction_MCR(ARMInstruction):
@@ -142,7 +142,7 @@ class Instruction_MCR(ARMInstruction):
         # TODO at least look at the conditionals
         # TODO Clobber the dst reg of MCR
         # TODO maybe treat coproc regs as simple storage (even though they are very much not)
-        l.debug("Ignoring MCR instruction at %#x.", self.addr)
+        log.debug("Ignoring MCR instruction at %#x.", self.addr)
 
 
 class Instruction_MSR(ARMInstruction):
@@ -152,7 +152,7 @@ class Instruction_MSR(ARMInstruction):
     #             11100001011011111111000000000001
 
     def compute_result(self):  # pylint: disable=arguments-differ
-        l.debug(
+        log.debug(
             "Ignoring MSR instruction at %#x. VEX cannot support this instruction. See pyvex/lifting/gym/arm_spotter.py",
             self.addr,
         )
@@ -163,7 +163,7 @@ class Instruction_MRS(ARMInstruction):
     bin_format = "cccc00010s001111dddd000000000000"
 
     def compute_result(self):  # pylint: disable=arguments-differ
-        l.debug(
+        log.debug(
             "Ignoring MRS instruction at %#x. VEX cannot support this instruction. See pyvex/lifting/gym/arm_spotter.py",
             self.addr,
         )
@@ -180,7 +180,7 @@ class Instruction_STM(ARMInstruction):
         return True
 
     def compute_result(self):  # pylint: disable=arguments-differ
-        l.warning(
+        log.warning(
             "Ignoring STMxx ^ instruction at %#x. This mode is not implemented by VEX! See pyvex/lifting/gym/arm_spotter.py",
             self.addr,
         )
@@ -198,9 +198,7 @@ class Instruction_LDM(ARMInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         # test if PC will be set. If so, the jumpkind of this block should be Ijk_Ret
-        l.warning("Spotting an LDM instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr)
-        # l.warning(repr(self.rawbits))
-        # l.warning(repr(self.data))
+        log.warning("Spotting an LDM instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr)
 
         src_n = int(self.data["b"], 2)
         src = self.get(src_n, Type.int_32)
@@ -238,7 +236,7 @@ class Instruction_STC(ARMInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         # TODO At least look at the conditionals
-        l.debug("Ignoring STC instruction at %#x.", self.addr)
+        log.debug("Ignoring STC instruction at %#x.", self.addr)
 
 
 class Instruction_STC_THUMB(ARMInstruction):
@@ -247,7 +245,7 @@ class Instruction_STC_THUMB(ARMInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         # TODO At least look at the conditionals
-        l.debug("Ignoring STC instruction at %#x.", self.addr)
+        log.debug("Ignoring STC instruction at %#x.", self.addr)
 
 
 class Instruction_LDC(ARMInstruction):
@@ -258,7 +256,7 @@ class Instruction_LDC(ARMInstruction):
         # TODO At least look at the conditionals
         # TODO Clobber the dest reg of LDC
         # TODO Maybe clobber the dst reg of CDP, if we're really adventurous
-        l.debug("Ignoring LDC instruction at %#x.", self.addr)
+        log.debug("Ignoring LDC instruction at %#x.", self.addr)
 
 
 class Instruction_LDC_THUMB(ARMInstruction):
@@ -269,7 +267,7 @@ class Instruction_LDC_THUMB(ARMInstruction):
         # TODO At least look at the conditionals
         # TODO Clobber the dest reg of LDC
         # TODO Maybe clobber the dst reg of CDP, if we're really adventurous
-        l.debug("Ignoring LDC instruction at %#x.", self.addr)
+        log.debug("Ignoring LDC instruction at %#x.", self.addr)
 
 
 class Instruction_CDP(Instruction):
@@ -283,7 +281,7 @@ class Instruction_CDP(Instruction):
     def compute_result(self):  # pylint: disable=arguments-differ
         # TODO At least look at the conditionals
         # TODO Maybe clobber the dst reg of CDP, if we're really adventurous
-        l.debug("Ignoring CDP instruction at %#x.", self.addr)
+        log.debug("Ignoring CDP instruction at %#x.", self.addr)
 
 
 ##
@@ -302,7 +300,7 @@ class Instruction_tCPSID(ThumbInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         # TODO haha lol yeah right
-        l.debug("[thumb] Ignoring CPS instruction at %#x.", self.addr)
+        log.debug("[thumb] Ignoring CPS instruction at %#x.", self.addr)
 
 
 class Instruction_tMSR(ThumbInstruction):
@@ -322,14 +320,14 @@ class Instruction_tMSR(ThumbInstruction):
                 src = self.get(src_reg, Type.int_32)
                 self.put(src, "primask")
             else:
-                l.warning(
+                log.warning(
                     "[thumb] tMSR at %#x is writing into an unsupported special register %#x. Ignoring the instruction. FixMe.",
                     self.addr,
                     dest_spec_reg,
                 )
         else:
-            l.warning("[thumb] tMSR at %#x is writing SPSR. Ignoring the instruction. FixMe.", self.addr)
-        l.warning(
+            log.warning("[thumb] tMSR at %#x is writing SPSR. Ignoring the instruction. FixMe.", self.addr)
+        log.warning(
             "[thumb] Spotting an tMSR instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr
         )
 
@@ -355,15 +353,15 @@ class Instruction_tMRS(ThumbInstruction):
                 src = self.get("primask", Type.int_32)
                 self.put(src, dest_reg)
             else:
-                l.warning(
+                log.warning(
                     "[thumb] tMRS at %#x is using the unsupported special register %#x. Ignoring the instruction. FixMe.",
                     self.addr,
                     spec_reg,
                 )
         else:
-            l.warning("[thumb] tMRS at %#x is reading from SPSR. Ignoring the instruction. FixMe.", self.addr)
-            l.debug("[thumb] Ignoring tMRS instruction at %#x.", self.addr)
-        l.warning(
+            log.warning("[thumb] tMRS at %#x is reading from SPSR. Ignoring the instruction. FixMe.", self.addr)
+            log.debug("[thumb] Ignoring tMRS instruction at %#x.", self.addr)
+        log.warning(
             "[thumb] Spotting an tMRS instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr
         )
 
@@ -374,7 +372,7 @@ class Instruction_tDMB(ThumbInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         # TODO haha lol yeah right
-        l.debug("[thumb] Ignoring DMB instruction at %#x.", self.addr)
+        log.debug("[thumb] Ignoring DMB instruction at %#x.", self.addr)
 
 
 class Instruction_WFI(ThumbInstruction):
@@ -383,7 +381,7 @@ class Instruction_WFI(ThumbInstruction):
     # 1011111100110000
 
     def compute_result(self):  # pylint: disable=arguments-differ
-        l.debug("[thumb] Ignoring WFI instruction at %#x.", self.addr)
+        log.debug("[thumb] Ignoring WFI instruction at %#x.", self.addr)
 
 
 class ARMSpotter(GymratLifter):
