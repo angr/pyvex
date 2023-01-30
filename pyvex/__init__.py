@@ -14,6 +14,7 @@ from .enums import (
     default_vex_archinfo,
     get_enum_from_int,
     get_int_from_enum,
+    irop_enums_to_ints,
     vex_endness_from_string,
 )
 from .errors import PyVEXError
@@ -35,6 +36,7 @@ __all__ = [
     "IRTypeEnv",
     "get_type_size",
     "get_type_spec_size",
+    "irop_enums_to_ints",
     "tag_to_const_class",
     "IRCallee",
     "IRRegArray",
