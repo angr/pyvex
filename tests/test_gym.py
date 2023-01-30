@@ -2,6 +2,7 @@
 import unittest
 
 import archinfo
+
 import pyvex
 
 

@@ -1,10 +1,12 @@
 import os
-import pyvex
+
 import angr
 import archinfo
-from pyvex.lifting import register
-from pyvex.lifting.util import *
+
+import pyvex
 import pyvex.lifting
+from pyvex.lifting import register
+from pyvex.lifting.util import GymratLifter, Instruction, Type
 
 test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../binaries/tests"))
 
@@ -66,7 +68,7 @@ class Instruction_MSR(Instruction):
     def compute_result(self):
         a = self.constant(10, Type.int_27)
         b = self.constant(20, Type.int_27)
-        c = a + b
+        a + b
 
 
 class Instruction_CPSIEI(Instruction):
@@ -76,7 +78,7 @@ class Instruction_CPSIEI(Instruction):
     def compute_result(self):
         a = self.constant(10, Type.int_27)
         b = self.constant(20, Type.int_27)
-        c = a + b
+        a + b
 
 
 class Instruction_CPSIEF(Instruction):
@@ -86,7 +88,7 @@ class Instruction_CPSIEF(Instruction):
     def compute_result(self):
         a = self.constant(10, Type.int_27)
         b = self.constant(20, Type.int_27)
-        c = a + b
+        a + b
 
 
 class CortexSpotter(GymratLifter):

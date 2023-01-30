@@ -1,8 +1,9 @@
 from typing import Optional
 
-from ...block import IRSB
-from ...stmt import WrTmp, Put, IMark, Store, NoOp
-from ...expr import Const, RdTmp, Unop, Binop, Triop, Qop, Get
+from pyvex.block import IRSB
+from pyvex.expr import Binop, Const, Get, Qop, RdTmp, Triop, Unop
+from pyvex.stmt import IMark, NoOp, Put, Store, WrTmp
+
 from .vex_helper import IRSBCustomizer
 
 

@@ -1,9 +1,10 @@
-import re
 import copy
-from ...const import ty_to_const_class, vex_int_class, get_type_size, U1
-from ...expr import Const, RdTmp, Unop, Binop, Load, CCall, Get, ITE
-from ...stmt import WrTmp, Put, IMark, Store, NoOp, Exit, Dirty
-from ...enums import IRCallee
+import re
+
+from pyvex.const import U1, get_type_size, ty_to_const_class, vex_int_class
+from pyvex.enums import IRCallee
+from pyvex.expr import ITE, Binop, CCall, Const, Get, Load, RdTmp, Unop
+from pyvex.stmt import Dirty, Exit, IMark, NoOp, Put, Store, WrTmp
 
 
 class JumpKind:
@@ -273,7 +274,6 @@ class IRSBCustomizer:
 
     def set_bit(self, rdt, idx, bval):
         currbit = self.get_bit(rdt, idx)
-        bvalbit = self.op_extract_lsb(bval)
         areequalextrabits = self.op_xor(bval, currbit)
         one = self.mkconst(1, self.get_type(areequalextrabits))
         areequal = self.op_and(areequalextrabits, one)

@@ -1,11 +1,11 @@
 # pylint: disable=no-name-in-module,import-error,missing-class-docstring
-import os
-import subprocess
-import sys
-import shutil
 import glob
 import multiprocessing
+import os
 import platform
+import shutil
+import subprocess
+import sys
 from distutils.command.build import build as st_build
 from distutils.util import get_platform
 

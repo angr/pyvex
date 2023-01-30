@@ -1,14 +1,15 @@
-import random
-import os
-import gc
 import copy
+import gc
 import logging
+import os
+import random
 import unittest
 
 from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
 
 import pyvex
 from pyvex.lifting import LibVEXLifter
+
 
 # pylint: disable=R0201
 class TestPyvex(unittest.TestCase):
@@ -523,7 +524,3 @@ class TestPyvex(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-    # _g = globals().copy()
-    # for k, v in _g.items():
-    #    if k.startswith("test_") and hasattr(v, "__call__"):
-    #        v()

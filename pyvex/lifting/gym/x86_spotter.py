@@ -1,9 +1,9 @@
 import logging
 
-from .. import register
-from ..util import GymratLifter, Instruction, Type, JumpKind
+from pyvex.lifting.lift import register
+from pyvex.lifting.util import GymratLifter, Instruction, JumpKind, Type
 
-l = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 # pylint: disable=missing-class-docstring
 
@@ -79,7 +79,7 @@ class Instruction_AAM(Instruction):
         temp_al = temp_al % base
         self.put(temp_ah, "ah")
         self.put(temp_al, "al")
-        l.warning(
+        log.warning(
             "The generalized AAM instruction is not supported by VEX, and is handled specially by pyvex."
             " It has no flag handling at present.  See pyvex/lifting/gym/x86_spotter.py for details"
         )
@@ -99,7 +99,7 @@ class Instruction_AAD(Instruction):
         temp_ah = self.constant(0, Type.int_8)
         self.put(temp_ah, "ah")
         self.put(temp_al, "al")
-        l.warning(
+        log.warning(
             "The generalized AAM instruction is not supported by VEX, and is handled specially by pyvex."
             " It has no flag handling at present.  See pyvex/lifting/gym/x86_spotter.py for details"
         )

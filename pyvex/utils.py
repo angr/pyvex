@@ -1,5 +1,5 @@
-from typing import Tuple
 import struct
+from typing import Tuple
 
 try:
     import _md5 as md5lib

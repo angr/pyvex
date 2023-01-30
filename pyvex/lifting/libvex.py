@@ -1,13 +1,12 @@
-import threading
 import logging
+import threading
 
-l = logging.getLogger("pyvex.lifting.libvex")
-l.setLevel(20)  # Shut up
+from pyvex.errors import LiftingException
+from pyvex.native import ffi, pvc
 
-from .. import stmt
-from . import Lifter, register, LiftingException
-from .. import pvc, ffi
-from ..enums import default_vex_archinfo, vex_endness_from_string
+from .lift import Lifter, register
+
+log = logging.getLogger("pyvex.lifting.libvex")
 
 _libvex_lock = threading.Lock()
 
@@ -40,7 +39,6 @@ class VexRegisterUpdates:
 
 
 class LibVEXLifter(Lifter):
-
     __slots__ = ()
 
     REQUIRE_DATA_C = True
@@ -50,13 +48,10 @@ class LibVEXLifter(Lifter):
         return bytes(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)).decode() if pvc.msg_buffer != ffi.NULL else None
 
     def lift(self):
-        if self.traceflags != 0 and l.getEffectiveLevel() > 20:
-            l.setLevel(20)
-
         try:
             _libvex_lock.acquire()
 
-            pvc.log_level = l.getEffectiveLevel()
+            pvc.log_level = log.getEffectiveLevel()
             vex_arch = getattr(pvc, self.irsb.arch.vex_arch)
 
             if self.bytes_offset is None:
@@ -106,11 +101,11 @@ class LibVEXLifter(Lifter):
                 raise LiftingException("libvex: unknown error" if log_str is None else log_str)
             else:
                 if log_str is not None:
-                    l.info(log_str)
+                    log.trace(log_str)
 
             self.irsb._from_c(lift_r, skip_stmts=self.skip_stmts)
             if self.irsb.size == 0:
-                l.debug("raising lifting exception")
+                log.debug("raising lifting exception")
                 raise LiftingException("libvex: could not decode any instructions @ 0x%x" % self.addr)
         finally:
             _libvex_lock.release()

@@ -1,8 +1,10 @@
 import unittest
+
 import archinfo
-from pyvex import IRSB, lift, ffi
-from pyvex.lifting.util import Instruction, GymratLifter, JumpKind
+
+from pyvex import IRSB, ffi, lift
 from pyvex.errors import PyVEXError
+from pyvex.lifting.util import GymratLifter, Instruction, JumpKind
 
 
 # pylint: disable=R0201

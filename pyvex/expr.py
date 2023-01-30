@@ -1,14 +1,15 @@
-import re
 import logging
+import re
 from typing import List, Optional
 
 from archinfo import RegisterOffset, TmpVar
-from . import VEXObject
-from .enums import IRCallee, IRRegArray, get_int_from_enum, get_enum_from_int
-from .const import get_type_size, U8, U16, U32, U64
-from .utils import stable_hash
 
-l = logging.getLogger("pyvex.expr")
+from .const import U8, U16, U32, U64, IRConst, get_type_size
+from .enums import IRCallee, IRRegArray, VEXObject, get_enum_from_int, get_int_from_enum
+from .errors import PyVEXError
+from .native import ffi, pvc
+
+log = logging.getLogger("pyvex.expr")
 
 
 class IRExpr(VEXObject):
@@ -18,7 +19,7 @@ class IRExpr(VEXObject):
 
     __slots__ = []
 
-    tag = None  # type: Optional[str]
+    tag: Optional[str] = None
     tag_int = 0  # set automatically at bottom of file
 
     def pp(self):
@@ -369,16 +370,16 @@ class Qop(IRExpr):
             return None
 
         if arg1ty_real != arg1ty:
-            l.debug("First arg of %s must be %s", self.op, arg1ty)
+            log.debug("First arg of %s must be %s", self.op, arg1ty)
             return None
         if arg2ty_real != arg2ty:
-            l.debug("Second arg of %s must be %s", self.op, arg2ty)
+            log.debug("Second arg of %s must be %s", self.op, arg2ty)
             return None
         if arg3ty_real != arg3ty:
-            l.debug("Third arg of %s must be %s", self.op, arg3ty)
+            log.debug("Third arg of %s must be %s", self.op, arg3ty)
             return None
         if arg4ty_real != arg4ty:
-            l.debug("Fourth arg of %s must be %s", self.op, arg4ty)
+            log.debug("Fourth arg of %s must be %s", self.op, arg4ty)
             return None
 
         return resty
@@ -432,13 +433,13 @@ class Triop(IRExpr):
             return None
 
         if arg1ty_real != arg1ty:
-            l.debug("First arg of %s must be %s", self.op, arg1ty)
+            log.debug("First arg of %s must be %s", self.op, arg1ty)
             return None
         if arg2ty_real != arg2ty:
-            l.debug("Second arg of %s must be %s", self.op, arg2ty)
+            log.debug("Second arg of %s must be %s", self.op, arg2ty)
             return None
         if arg3ty_real != arg3ty:
-            l.debug("Third arg of %s must be %s", self.op, arg3ty)
+            log.debug("Third arg of %s must be %s", self.op, arg3ty)
             return None
 
         return resty
@@ -497,10 +498,10 @@ class Binop(IRExpr):
             return None
 
         if arg1ty_real != arg1ty:
-            l.debug("First arg of %s must be %s", self.op, arg1ty)
+            log.debug("First arg of %s must be %s", self.op, arg1ty)
             return None
         if arg2ty_real != arg2ty:
-            l.debug("Second arg of %s must be %s", self.op, arg2ty)
+            log.debug("Second arg of %s must be %s", self.op, arg2ty)
             return None
 
         return resty
@@ -546,7 +547,7 @@ class Unop(IRExpr):
             return None
 
         if arg1ty_real != arg1ty:
-            l.debug("First arg of %s must be %s", self.op, arg1ty)
+            log.debug("First arg of %s must be %s", self.op, arg1ty)
             return None
 
         return resty
@@ -597,7 +598,7 @@ class Load(IRExpr):
         if addrty is None:
             return None
         if addrty != tyenv.wordty:
-            l.debug("Address must be word-sized")
+            log.debug("Address must be word-sized")
             return None
         return self.ty
 
@@ -689,11 +690,11 @@ class ITE(IRExpr):
             return None
 
         if condty != "Ity_I1":
-            l.debug("guard must be Ity_I1")
+            log.debug("guard must be Ity_I1")
             return None
 
         if falsety != truety:
-            l.debug("false condition must be same type as true condition")
+            log.debug("false condition must be same type as true condition")
             return None
 
         return falsety
@@ -961,8 +962,3 @@ def enum_to_expr_class(tag_enum):
         return enum_to_expr_mapping[tag_enum]
     except KeyError:
         raise KeyError("Cannot find expression class for type %s." % get_enum_from_int(tag_enum))
-
-
-from .const import IRConst
-from .errors import PyVEXError
-from . import ffi, pvc
