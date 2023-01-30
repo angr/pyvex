@@ -101,7 +101,7 @@ class LibVEXLifter(Lifter):
                 raise LiftingException("libvex: unknown error" if log_str is None else log_str)
             else:
                 if log_str is not None:
-                    log.trace(log_str)
+                    log.debug(log_str)
 
             self.irsb._from_c(lift_r, skip_stmts=self.skip_stmts)
             if self.irsb.size == 0:
