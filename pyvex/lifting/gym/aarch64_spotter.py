@@ -1,6 +1,5 @@
 import logging
 
-from pyvex.lifting.lift import register
 from pyvex.lifting.util.instr_helper import Instruction
 from pyvex.lifting.util.lifter_helper import GymratLifter
 
@@ -39,7 +38,3 @@ class Instruction_MRS(Aarch64Instruction):
 
 class AARCH64Spotter(GymratLifter):
     instrs = [Instruction_MRS, Instruction_MSR, Instruction_SYSL]
-
-
-register(AARCH64Spotter, "ARM64")
-register(AARCH64Spotter, "AARCH64")

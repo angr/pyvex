@@ -2,7 +2,6 @@ import logging
 
 import bitstring
 
-from pyvex.lifting.lift import register
 from pyvex.lifting.util import JumpKind, Type
 from pyvex.lifting.util.instr_helper import Instruction, ParseError
 from pyvex.lifting.util.lifter_helper import GymratLifter
@@ -427,9 +426,3 @@ class ARMSpotter(GymratLifter):
             self.instrs = self.arm_instrs
             self.thumb = False
         super().lift(disassemble, dump_irsb)
-
-
-register(ARMSpotter, "ARM")
-register(ARMSpotter, "ARMEL")
-register(ARMSpotter, "ARMHF")
-register(ARMSpotter, "ARMCortexM")

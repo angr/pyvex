@@ -4,13 +4,13 @@ import threading
 from pyvex.errors import LiftingException
 from pyvex.native import ffi, pvc
 
-from .lift import Lifter, register
+from .lift import Lifter
 
 log = logging.getLogger("pyvex.lifting.libvex")
 
 _libvex_lock = threading.Lock()
 
-SUPPORTED = {
+LIBVEX_SUPPORTED_ARCHES = {
     "X86",
     "AMD64",
     "MIPS32",
@@ -110,7 +110,3 @@ class LibVEXLifter(Lifter):
         finally:
             _libvex_lock.release()
             self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = None
-
-
-for arch_name in SUPPORTED:
-    register(LibVEXLifter, arch_name)

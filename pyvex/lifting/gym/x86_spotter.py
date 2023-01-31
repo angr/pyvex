@@ -1,6 +1,5 @@
 import logging
 
-from pyvex.lifting.lift import register
 from pyvex.lifting.util import GymratLifter, Instruction, JumpKind, Type
 
 log = logging.getLogger(__name__)
@@ -126,7 +125,3 @@ class X86Spotter(GymratLifter):
         Instruction_AAD,
         Instruction_AAM,
     ]
-
-
-register(AMD64Spotter, "AMD64")
-register(X86Spotter, "X86")
