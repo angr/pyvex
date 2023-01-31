@@ -244,7 +244,7 @@ def lift(
         for postprocessor in postprocessors[arch.name]:
             try:
                 postprocessor(final_irsb).postprocess()
-            except NeedStatementsNotification:
+            except NeedStatementsNotification as e:
                 # The post-processor cannot work without statements. Re-lift the current block with skip_stmts=False
                 if not skip_stmts:
                     # sanity check
@@ -252,7 +252,7 @@ def lift(
                     raise TypeError(
                         "Bad post-processor %s: "
                         "NeedStatementsNotification is raised when statements are available." % postprocessor.__class__
-                    )
+                    ) from e
 
                 # Re-lift the current IRSB
                 return lift(

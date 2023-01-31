@@ -2,6 +2,7 @@ import copy
 import gc
 import logging
 import os
+import platform
 import random
 import unittest
 
@@ -10,18 +11,14 @@ from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
 import pyvex
 from pyvex.lifting import LibVEXLifter
 
+if platform.system() != "Windows":
+    import resource
+
 
 # pylint: disable=R0201
 class TestPyvex(unittest.TestCase):
-    @staticmethod
-    def test_memory():
-
-        try:
-            import resource
-        except ImportError:
-            print("Cannot import the resource package. Are you using Windows? Skip test_memory().")
-            return
-
+    @unittest.skipIf(platform.system() == "Windows", "Cannot import the resource package on windows.")
+    def test_memory(self):
         arches = [ArchX86(), ArchPPC32(endness=Endness.BE), ArchAMD64(), ArchARM()]
         # we're not including ArchMIPS32 cause it segfaults sometimes
 
@@ -79,7 +76,7 @@ class TestPyvex(unittest.TestCase):
 
     def test_irsb_arm(self):
         irsb = pyvex.IRSB(data=b"\x33\xff\x2f\xe1", mem_addr=0, arch=ArchARM())
-        assert sum([1 for i in irsb.statements if type(i) == pyvex.IRStmt.IMark]) == 1
+        assert len([i for i in irsb.statements if type(i) == pyvex.IRStmt.IMark]) == 1
 
     def test_irsb_popret(self):
         irsb = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=ArchAMD64())

@@ -30,8 +30,8 @@ def _locate_lib(module: str, library: str) -> str:
 
 
 def _parse_ffi_str():
-    hash = hashlib.md5(_ffi_str.encode("utf-8")).hexdigest()
-    cache_location = os.path.join(tempfile.gettempdir(), f"pyvex_ffi_parser_cache.{hash}")
+    hash_ = hashlib.md5(_ffi_str.encode("utf-8")).hexdigest()
+    cache_location = os.path.join(tempfile.gettempdir(), f"pyvex_ffi_parser_cache.{hash_}")
 
     if os.path.isfile(cache_location):
         # load the cache
