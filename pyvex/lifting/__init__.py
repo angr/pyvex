@@ -1,6 +1,6 @@
 from .gym import AARCH64Spotter, AMD64Spotter, ARMSpotter, X86Spotter
 from .libvex import LIBVEX_SUPPORTED_ARCHES, LibVEXLifter
-from .lift import lift, lifters, register
+from .lift_function import lift, lifters, register
 from .lifter import Lifter
 from .post_processor import Postprocessor
 from .zerodivision import ZeroDivisionPostProcessor

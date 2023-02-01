@@ -130,7 +130,7 @@ class IRSB(VEXObject):
             # This is the slower path (because we need to call _from_py() to copy the content in the returned IRSB to
             # the current IRSB instance. You should always call `lift()` directly. This method is kept for compatibility
             # concerns.
-            from pyvex.lifting.lift import lift
+            from pyvex.lifting import lift
 
             irsb = lift(
                 data,

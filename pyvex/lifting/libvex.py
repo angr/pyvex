@@ -4,7 +4,7 @@ import threading
 from pyvex.errors import LiftingException
 from pyvex.native import ffi, pvc
 
-from .lift import Lifter
+from .lift_function import Lifter
 
 log = logging.getLogger("pyvex.lifting.libvex")
 
