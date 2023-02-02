@@ -1,23 +1,18 @@
 import copy
-import sys
 import itertools
+import logging
 from typing import List, Optional
 
-from pyvex.expr import IRExpr
-from pyvex.stmt import IRStmt
-
-from . import VEXObject
 from . import expr, stmt
 from .const import get_type_size
-from .stmt import WrTmp, LoadG, LLSC, Dirty, CAS, get_enum_from_int, get_int_from_enum, Exit, IMark
-from .expr import RdTmp
 from .data_ref import DataRef
+from .enums import VEXObject
 from .errors import SkipStatementsError
+from .expr import RdTmp
+from .native import pvc
+from .stmt import CAS, LLSC, Dirty, Exit, IMark, IRExpr, IRStmt, LoadG, WrTmp, get_enum_from_int, get_int_from_enum
 
-
-import logging
-
-l = logging.getLogger("pyvex.block")
+log = logging.getLogger("pyvex.block")
 
 
 class IRSB(VEXObject):
@@ -88,8 +83,10 @@ class IRSB(VEXObject):
         :type arch:                 :class:`archinfo.Arch`
         :param max_inst:            The maximum number of instructions to lift. (See note below)
         :param max_bytes:           The maximum number of bytes to use.
-        :param num_inst:            Replaces max_inst if max_inst is None. If set to None as well, no instruction limit is used.
-        :param num_bytes:           Replaces max_bytes if max_bytes is None. If set to None as well, no  byte limit is used.
+        :param num_inst:            Replaces max_inst if max_inst is None. If set to None as well, no instruction limit
+                                    is used.
+        :param num_bytes:           Replaces max_bytes if max_bytes is None. If set to None as well, no  byte limit is
+                                    used.
         :param bytes_offset:        The offset into `data` to start lifting at. Note that for ARM THUMB mode, both
                                     `mem_addr` and `bytes_offset` must be odd (typically `bytes_offset` is set to 1).
         :param traceflags:          The libVEX traceflags, controlling VEX debug prints.
@@ -117,10 +114,10 @@ class IRSB(VEXObject):
         self.addr = mem_addr
         self.arch = arch
 
-        self.statements = []  # type: List[IRStmt]
-        self.next = None  # type: Optional[IRExpr]
+        self.statements: List[IRStmt] = []
+        self.next: Optional[IRExpr] = None
         self._tyenv = None
-        self.jumpkind = None  # type: Optional[str]
+        self.jumpkind: Optional[str] = None
         self._direct_next = None
         self._size = None
         self._instructions = None
@@ -133,6 +130,8 @@ class IRSB(VEXObject):
             # This is the slower path (because we need to call _from_py() to copy the content in the returned IRSB to
             # the current IRSB instance. You should always call `lift()` directly. This method is kept for compatibility
             # concerns.
+            from pyvex.lifting import lift
+
             irsb = lift(
                 data,
                 mem_addr,
@@ -225,8 +224,8 @@ class IRSB(VEXObject):
 
         def convert_expr(expr_):
             """
-            Converts a VEX expression to use tmps in the appended-block instead of the appended-to-block. Used to prevent
-            collisions in tmp numbers between the two blocks.
+            Converts a VEX expression to use tmps in the appended-block instead of the appended-to-block. Used to
+            prevent collisions in tmp numbers between the two blocks.
             :param tmp:       The VEX expression to convert
             :vartype expr:    :class:`IRExpr`
             """
@@ -304,7 +303,7 @@ class IRSB(VEXObject):
             assert self.next is not None, "Missing next expression"
             assert self.jumpkind is not None, "Missing jumpkind"
 
-            # type assertions
+            # Type assertions
             assert isinstance(self.next, expr.IRExpr), "Next expression is not an expression"
             assert type(self.jumpkind is str), "Jumpkind is not a string"
             assert self.jumpkind.startswith("Ijk_"), "Jumpkind is not a jumpkind enum"
@@ -316,7 +315,7 @@ class IRSB(VEXObject):
                 assert isinstance(st, stmt.IRStmt), "Statement %d is not an IRStmt" % i
                 try:
                     assert st.typecheck(self.tyenv), "Statement %d failed to typecheck" % i
-                except:  # pylint: disable=bare-except
+                except Exception:  # pylint: disable=bare-except
                     assert False, "Statement %d errored in typechecking" % i
 
                 if type(st) is stmt.NoOp:
@@ -331,7 +330,7 @@ class IRSB(VEXObject):
 
             assert last_imark is not None, "No IMarks present in block"
         except AssertionError as e:
-            l.debug(e.args[0])
+            log.debug(e.args[0])
             return False
         return True
 
@@ -433,7 +432,8 @@ class IRSB(VEXObject):
     @property
     def all_constants(self):
         """
-        Returns all constants in the block (including incrementing of the program counter) as :class:`pyvex.const.IRConst`.
+        Returns all constants in the block (including incrementing of the program counter) as
+        :class:`pyvex.const.IRConst`.
         """
         return sum((e.constants for e in self.expressions), [])
 
@@ -634,7 +634,7 @@ class IRTypeEnv(VEXObject):
         Return the type of temporary variable `tmp` as an enum string
         """
         if tmp < 0 or tmp > self.types_used:
-            l.debug("Invalid temporary number %d", tmp)
+            log.debug("Invalid temporary number %d", tmp)
             raise IndexError(tmp)
         return self.types[tmp]
 
@@ -670,7 +670,3 @@ class IRTypeEnv(VEXObject):
             except ValueError:
                 return False
         return True
-
-
-from . import pvc
-from .lifting import lift

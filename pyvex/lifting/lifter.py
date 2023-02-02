@@ -1,4 +1,4 @@
-from ..block import IRSB
+from pyvex.block import IRSB
 
 # pylint:disable=attribute-defined-outside-init
 
@@ -32,10 +32,10 @@ class Lifter:
     :ivar max_inst:         The maximum number of instructions to lift. If set to None, no instruction limit is used.
     :ivar opt_level:        The level of optimization to apply to the IR, 0-2. Most likely will be ignored in any lifter
                             other then LibVEX.
-    :ivar traceflags:       The libVEX traceflags, controlling VEX debug prints. Most likely will be ignored in any lifter
-                            other than LibVEX.
-    :ivar allow_arch_optimizations:   Should the LibVEX lifter be allowed to perform lift-time preprocessing optimizations
-                            (e.g., lookback ITSTATE optimization on THUMB)
+    :ivar traceflags:       The libVEX traceflags, controlling VEX debug prints. Most likely will be ignored in any
+                            lifter other than LibVEX.
+    :ivar allow_arch_optimizations:   Should the LibVEX lifter be allowed to perform lift-time preprocessing
+                            optimizations (e.g., lookback ITSTATE optimization on THUMB)
                             Most likely will be ignored in any lifter other than LibVEX.
     :ivar strict_block_end: Should the LibVEX arm-thumb split block at some instructions, for example CB{N}Z.
     :ivar skip_stmts:       Should LibVEX ignore statements.
@@ -68,14 +68,15 @@ class Lifter:
         :param data:                The bytes to lift as either a python string of bytes or a cffi buffer object.
         :param bytes_offset:        The offset into `data` to start lifting at.
         :param max_bytes:           The maximum number of bytes to lift. If set to None, no byte limit is used.
-        :param max_inst:            The maximum number of instructions to lift. If set to None, no instruction limit is used.
-        :param opt_level:           The level of optimization to apply to the IR, 0-2. Most likely will be ignored in any lifter
-                                    other then LibVEX.
-        :param traceflags:          The libVEX traceflags, controlling VEX debug prints. Most likely will be ignored in any
-                                    lifter other than LibVEX.
-        :param allow_arch_optimizations:   Should the LibVEX lifter be allowed to perform lift-time preprocessing optimizations
-                            (e.g., lookback ITSTATE optimization on THUMB)
-                            Most likely will be ignored in any lifter other than LibVEX.
+        :param max_inst:            The maximum number of instructions to lift. If set to None, no instruction limit is
+                                    used.
+        :param opt_level:           The level of optimization to apply to the IR, 0-2. Most likely will be ignored in
+                                    any lifter other then LibVEX.
+        :param traceflags:          The libVEX traceflags, controlling VEX debug prints. Most likely will be ignored in
+                                    any lifter other than LibVEX.
+        :param allow_arch_optimizations:   Should the LibVEX lifter be allowed to perform lift-time preprocessing
+                                    optimizations (e.g., lookback ITSTATE optimization on THUMB) Most likely will be
+                                    ignored in any lifter other than LibVEX.
         :param strict_block_end:    Should the LibVEX arm-thumb split block at some instructions, for example CB{N}Z.
         :param skip_stmts:          Should the lifter skip transferring IRStmts from C to Python.
         :param collect_data_refs:   Should the LibVEX lifter collect data references in C.

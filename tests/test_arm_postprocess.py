@@ -1,5 +1,6 @@
-import pyvex
 import archinfo
+
+import pyvex
 
 
 ##########################

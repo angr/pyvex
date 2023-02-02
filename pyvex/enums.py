@@ -1,6 +1,6 @@
 from typing import List
 
-from . import pvc, ffi
+from .native import ffi, pvc
 from .utils import stable_hash
 
 
@@ -9,7 +9,7 @@ class VEXObject:
     The base class for Vex types.
     """
 
-    __slots__ = []  # type: List
+    __slots__: List[str] = []
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

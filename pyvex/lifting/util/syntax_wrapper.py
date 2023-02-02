@@ -1,10 +1,10 @@
 import functools
-
 from typing import Union
 
-from .vex_helper import Type, IRSBCustomizer
-from ...expr import IRExpr, Const, RdTmp
-from ...const import get_type_size
+from pyvex.const import get_type_size
+from pyvex.expr import Const, IRExpr, RdTmp
+
+from .vex_helper import IRSBCustomizer, Type
 
 
 def checkparams(rhstype=None):
@@ -79,8 +79,12 @@ class VexValue:
 
     # TODO at some point extend this to Vex nonconstants
     def __getitem__(self, idx):
-        getb = lambda i: VexValue(self.irsb_c, self.irsb_c.get_bit(self.rdt, i))
-        makeconstant = lambda x: VexValue.Constant(self.irsb_c, x, Type.int_8).rdt
+        def getb(i):
+            return VexValue(self.irsb_c, self.irsb_c.get_bit(self.rdt, i))
+
+        def makeconstant(x):
+            return VexValue.Constant(self.irsb_c, x, Type.int_8).rdt
+
         if not isinstance(idx, slice):
             actualindex = slice(idx).indices(self.width)[1]
             return getb(makeconstant(actualindex))
@@ -94,7 +98,6 @@ class VexValue:
     @checkparams()
     @vvifyresults
     def set_bit(self, idx, bval):
-        typedidx = idx.cast_to(Type.int_8)
         return self.irsb_c.set_bit(self.rdt, idx.rdt, bval.rdt)
 
     @checkparams()
