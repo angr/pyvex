@@ -452,7 +452,6 @@ class LLSC(IRStmt):
 
 
 class MBE(IRStmt):
-
     __slots__ = ["event"]
 
     tag = "Ist_MBE"
@@ -469,7 +468,6 @@ class MBE(IRStmt):
 
 
 class Dirty(IRStmt):
-
     __slots__ = ["cee", "guard", "args", "tmp", "mFx", "mAddr", "mSize", "nFxState"]
 
     tag = "Ist_Dirty"
@@ -539,7 +537,6 @@ class Exit(IRStmt):
         return self.jk
 
     def __str__(self, reg_name=None, arch=None, tyenv=None):
-
         if arch is not None and tyenv is not None:
             reg_name = arch.translate_register_name(self.offsIP, arch.bits // 8)
 

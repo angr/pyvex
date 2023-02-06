@@ -141,7 +141,6 @@ class Binder(IRExpr):
 
 
 class VECRET(IRExpr):
-
     tag = "Iex_VECRET"
 
     __slots__ = []
@@ -162,7 +161,6 @@ class VECRET(IRExpr):
 
 
 class GSPTR(IRExpr):
-
     __slots__ = []
 
     tag = "Iex_GSPTR"

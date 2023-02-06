@@ -4,7 +4,6 @@ from pyvex.block import IRSB
 
 
 class Lifter:
-
     __slots__ = (
         "data",
         "bytes_offset",
