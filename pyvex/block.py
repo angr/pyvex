@@ -170,7 +170,6 @@ class IRSB(VEXObject):
 
     @property
     def exit_statements(self):
-
         if self._exit_statements is not None:
             return self._exit_statements
 

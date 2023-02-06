@@ -10,7 +10,6 @@ log = logging.getLogger(__name__)
 
 
 class ARMInstruction(Instruction):  # pylint: disable=abstract-method
-
     # NOTE: WARNING: There is no CPSR in VEX's ARM implementation
     # You must use straight nasty hacks instead.
 
@@ -343,7 +342,6 @@ class Instruction_tMRS(ThumbInstruction):
     bin_format = "10x0mmmmxxxxxxxx11110011111Rrrrr"
 
     def compute_result(self):  # pylint: disable=arguments-differ
-
         spec_reg = int(self.data["x"], 2)
         dest_reg = int(self.data["m"], 2)
 

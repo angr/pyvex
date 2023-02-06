@@ -41,7 +41,6 @@ class ZeroDivisionPostProcessor(Postprocessor):
     """
 
     def postprocess(self):
-
         if self.irsb.statements is None:
             # This is an optimized IRSB. We cannot really post-process it.
             return

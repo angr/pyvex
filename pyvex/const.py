@@ -8,7 +8,6 @@ from .native import ffi, pvc
 
 # IRConst hierarchy
 class IRConst(VEXObject):
-
     __slots__ = ["_value"]
 
     type: Optional[str] = None

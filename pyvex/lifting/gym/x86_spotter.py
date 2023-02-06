@@ -70,6 +70,7 @@ class Instruction_XGETBV(Instruction):
 class Instruction_AAM(Instruction):
     name = "AAM"
     bin_format = "11010100iiiiiiii"
+
     # From https://www.felixcloutier.com/x86/aam
     def compute_result(self):  # pylint: disable=arguments-differ
         base = self.constant(int(self.data["i"], 2), Type.int_8)
@@ -89,6 +90,7 @@ class Instruction_AAM(Instruction):
 class Instruction_AAD(Instruction):
     name = "AAD"
     bin_format = "11010101iiiiiiii"
+
     # From https://www.felixcloutier.com/x86/aad
     def compute_result(self):  # pylint: disable=arguments-differ
         base = self.constant(int(self.data["i"], 2), Type.int_8)

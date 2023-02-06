@@ -37,7 +37,6 @@ def irsb_postproc_flatten(irsb_old: IRSB, irsb_new: Optional[IRSB] = None) -> IR
     old_to_new_tmp = {}
 
     for i, statement in enumerate(irsb_old.statements):
-
         if isinstance(statement, WrTmp):
             flat_expr = _flatten_and_get_expr(irsb_old, irsb_c, old_to_new_tmp, statement.data)
             if isinstance(flat_expr, RdTmp):
