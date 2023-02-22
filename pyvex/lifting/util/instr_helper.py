@@ -179,7 +179,7 @@ class Instruction(metaclass=abc.ABCMeta):
         return data
 
     def parse(self, bitstrm):
-        if self.arch.instruction_endness == "Iend_LE":
+        if self.arch.instruction_endness != self.arch.memory_endness:
             # This arch stores its instructions in memory endian-flipped compared to the ISA.
             # To enable natural lifter-writing, we let the user write them like in the manual, and correct for
             # endness here.
