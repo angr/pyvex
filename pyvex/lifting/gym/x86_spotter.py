@@ -6,7 +6,6 @@ log = logging.getLogger(__name__)
 
 # pylint: disable=missing-class-docstring
 
-
 class Instruction_SWAPGS(Instruction):
     name = "SWAPGS"
     bin_format = "000011110000000111111000"  # 0f 01 f8
