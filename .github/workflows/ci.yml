@@ -21,7 +21,7 @@ jobs:
           python-version: 3.8
       - name: Install pyVEX
         run: >
-          pip install git+https://github.com/angr/pyvex.git
+          pip install git+https://github.com/angr/archinfo.git
           pip install .[docs]
       - name: Build docs
         run: cd docs && make html
