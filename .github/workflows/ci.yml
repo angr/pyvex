@@ -15,12 +15,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          submodules: true
       - name: Setup python
         uses: actions/setup-python@v4
         with:
           python-version: 3.8
       - name: Install
         run: >
+          pip install -U pip
           pip install git+https://github.com/angr/archinfo.git
           pip install .[docs]
       - name: Build docs

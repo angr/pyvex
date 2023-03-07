@@ -8,6 +8,7 @@ build:
     python: "3.8"
   jobs:
     pre_install:
+      - pip install -U pip
       - pip install git+https://github.com/angr/archinfo.git
 
 python:
