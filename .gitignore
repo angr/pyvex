@@ -19,3 +19,4 @@ pyvex/lib
 pyvex/include
 vex-master
 vex-master.tar.gz
+docs/_build
