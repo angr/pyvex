@@ -1,7 +1,17 @@
 # PyVEX
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Latest Release](https://img.shields.io/pypi/v/pyvex.svg)](https://pypi.python.org/pypi/pyvex/)
+[![Python Version](https://img.shields.io/pypi/pyversions/pyvex)](https://pypi.python.org/pypi/pyvex/)
+[![PyPI Statistics](https://img.shields.io/pypi/dm/pyvex.svg)](https://pypistats.org/packages/pyvex)
+[![License](https://img.shields.io/github/license/angr/pyvex.svg)](https://github.com/angr/pyvex/blob/master/LICENSE)
 
-# Installing PyVEX
+PyVEX is Python bindings for the VEX IR.
+
+## Project Links
+Project repository: https://github.com/angr/pyvex
+
+Documentation: https://api.angr.io/projects/pyvex/en/latest/
+
+## Installing PyVEX
 
 PyVEX can be pip-installed:
 
@@ -9,22 +19,7 @@ PyVEX can be pip-installed:
 pip install pyvex
 ```
 
-# Citing PyVEX
-
-If you use PyVEX in an academic work, please cite the paper for which it was developed:
-
-```bibtex
-@article{shoshitaishvili2015firmalice,
-  title={Firmalice - Automatic Detection of Authentication Bypass Vulnerabilities in Binary Firmware},
-  author={Shoshitaishvili, Yan and Wang, Ruoyu and Hauser, Christophe and Kruegel, Christopher and Vigna, Giovanni},
-  booktitle={NDSS},
-  year={2015}
-}
-```
-
-# Using PyVEX
-
-PyVEX exposes VEX into Python. To understand VEX, read the "VEX Intermediate Representation" section below.
+## Using PyVEX
 
 ```python
 import pyvex
@@ -81,7 +76,7 @@ print(irsb.tyenv.types[0])
 
 Keep in mind that this is a *syntactic* respresentation of a basic block. That is, it'll tell you what the block means, but you don't have any context to say, for example, what *actual* data is written by a store instruction.
 
-# VEX Intermediate Representation
+## VEX Intermediate Representation
 
 To deal with widely diverse architectures, it is useful to carry out analyses on an intermediate representation.
 An IR abstracts away several architecture differences when dealing with different architectures, allowing a single analysis to be run on all of them:
@@ -139,3 +134,16 @@ Becomes this VEX IR:
     PUT(68) = 0x59FC8:I32
 
 Cool stuff!
+
+## Citing PyVEX
+
+If you use PyVEX in an academic work, please cite the paper for which it was developed:
+
+```bibtex
+@article{shoshitaishvili2015firmalice,
+  title={Firmalice - Automatic Detection of Authentication Bypass Vulnerabilities in Binary Firmware},
+  author={Shoshitaishvili, Yan and Wang, Ruoyu and Hauser, Christophe and Kruegel, Christopher and Vigna, Giovanni},
+  booktitle={NDSS},
+  year={2015}
+}
+```
