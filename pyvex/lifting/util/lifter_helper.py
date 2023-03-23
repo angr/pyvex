@@ -1,4 +1,5 @@
 import logging
+from typing import TYPE_CHECKING, List, Type
 
 import bitstring
 
@@ -7,6 +8,9 @@ from pyvex.errors import LiftingException
 from pyvex.lifting.lifter import Lifter
 
 from .vex_helper import IRSBCustomizer, JumpKind
+
+if TYPE_CHECKING:
+    from .instr_helper import Instruction
 
 log = logging.getLogger(__name__)
 
@@ -42,10 +46,10 @@ class GymratLifter(Lifter):
     )
 
     REQUIRE_DATA_PY = True
-    instrs = None
+    instrs: List[Type["Instruction"]]
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, arch, addr):
+        super().__init__(arch, addr)
         self.bitstrm = None
         self.errors = None
         self.thedata = None

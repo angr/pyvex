@@ -1,4 +1,7 @@
+from typing import Optional, Union
+
 from pyvex.block import IRSB
+from pyvex.types import Arch, LiftSource
 
 # pylint:disable=attribute-defined-outside-init
 
@@ -44,26 +47,26 @@ class Lifter:
     REQUIRE_DATA_C = False
     REQUIRE_DATA_PY = False
 
-    def __init__(self, arch, addr):
-        self.arch = arch
-        self.addr = addr
+    def __init__(self, arch: Arch, addr: int):
+        self.arch: Arch = arch
+        self.addr: int = addr
 
     def lift(
         self,
-        data,
-        bytes_offset=None,
-        max_bytes=None,
-        max_inst=None,
-        opt_level=1,
-        traceflags=None,
-        allow_arch_optimizations=None,
-        strict_block_end=None,
-        skip_stmts=False,
-        collect_data_refs=False,
-        cross_insn_opt=True,
-        load_from_ro_regions=False,
-        disasm=False,
-        dump_irsb=False,
+        data: LiftSource,
+        bytes_offset: Optional[int] = None,
+        max_bytes: Optional[int] = None,
+        max_inst: Optional[int] = None,
+        opt_level: Union[int, float] = 1,
+        traceflags: Optional[int] = None,
+        allow_arch_optimizations: Optional[bool] = None,
+        strict_block_end: Optional[bool] = None,
+        skip_stmts: bool = False,
+        collect_data_refs: bool = False,
+        cross_insn_opt: bool = True,
+        load_from_ro_regions: bool = False,
+        disasm: bool = False,
+        dump_irsb: bool = False,
     ):
         """
         Wrapper around the `_lift` method on Lifters. Should not be overridden in child classes.
@@ -87,7 +90,7 @@ class Lifter:
         :param disasm:              Should the GymratLifter generate disassembly during lifting.
         :param dump_irsb:           Should the GymratLifter log the lifted IRSB.
         """
-        irsb = IRSB.empty_block(self.arch, self.addr)
+        irsb: IRSB = IRSB.empty_block(self.arch, self.addr)
         self.data = data
         self.bytes_offset = bytes_offset
         self.opt_level = opt_level

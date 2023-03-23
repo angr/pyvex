@@ -1,7 +1,6 @@
 import logging
 from collections import defaultdict
-
-import archinfo
+from typing import DefaultDict, List, Optional, Type
 
 from pyvex import const
 from pyvex.block import IRSB
@@ -9,18 +8,19 @@ from pyvex.const import vex_int_class
 from pyvex.errors import LiftingException, NeedStatementsNotification, PyVEXError, SkipStatementsError
 from pyvex.expr import Const
 from pyvex.native import ffi
+from pyvex.types import LiftSource, PyLiftSource
 
 from .lifter import Lifter
 from .post_processor import Postprocessor
 
 log = logging.getLogger(__name__)
 
-lifters = defaultdict(list)
-postprocessors = defaultdict(list)
+lifters: DefaultDict[str, List[Type[Lifter]]] = defaultdict(list)
+postprocessors: DefaultDict[str, List[Type[Postprocessor]]] = defaultdict(list)
 
 
 def lift(
-    data,
+    data: LiftSource,
     addr,
     arch,
     max_bytes=None,
@@ -44,7 +44,6 @@ def lift(
     of the data and if they work, their output is appended to the first block.
 
     :param arch:            The arch to lift the data as.
-    :type arch:             :class:`archinfo.Arch`
     :param addr:            The starting address of the block. Effects the IMarks.
     :param data:            The bytes to lift as either a python string of bytes or a cffi buffer object.
     :param max_bytes:       The maximum number of bytes to lift. If set to None, no byte limit is used.
@@ -75,6 +74,7 @@ def lift(
     if isinstance(data, str):
         raise TypeError("Cannot pass unicode string as data to lifter")
 
+    py_data: Optional[PyLiftSource]
     if isinstance(data, (bytes, bytearray, memoryview)):
         py_data = data
         c_data = None
@@ -97,20 +97,25 @@ def lift(
 
     for lifter in lifters[arch.name]:
         try:
-            u_data = data
+            u_data: LiftSource = data
             if lifter.REQUIRE_DATA_C:
                 if c_data is None:
-                    u_data = ffi.from_buffer(ffi.BVoidP, py_data + b"\0" * 8 if isinstance(py_data, bytes) else py_data)
+                    assert py_data is not None
+                    if isinstance(py_data, (bytearray, memoryview)):
+                        u_data = ffi.from_buffer(ffi.BVoidP, py_data)
+                    else:
+                        u_data = ffi.from_buffer(ffi.BVoidP, py_data + b"\0" * 8)
                     max_bytes = min(len(py_data), max_bytes) if max_bytes is not None else len(py_data)
                 else:
                     u_data = c_data
                 skip = 0
             elif lifter.REQUIRE_DATA_PY:
-                if bytes_offset and archinfo.arch_arm.is_arm_arch(arch) and (addr & 1) == 1:
+                if bytes_offset and arch.name.startswith("ARM"):
                     skip = bytes_offset - 1
                 else:
                     skip = bytes_offset
                 if py_data is None:
+                    assert c_data is not None
                     if max_bytes is None:
                         log.debug("Cannot create py_data from c_data when no max length is given")
                         continue

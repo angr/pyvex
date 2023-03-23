@@ -5,6 +5,7 @@ import bitstring
 from pyvex.lifting.util import JumpKind, Type
 from pyvex.lifting.util.instr_helper import Instruction, ParseError
 from pyvex.lifting.util.lifter_helper import GymratLifter
+from pyvex.types import Arch
 
 log = logging.getLogger(__name__)
 
@@ -411,8 +412,8 @@ class ARMSpotter(GymratLifter):
         Instruction_LDC_THUMB,
     ]
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, arch: Arch, addr: int):
+        super().__init__(arch, addr)
         self.thumb: bool = False
 
     def _lift(self):

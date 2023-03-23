@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional
+from typing import List
 
 from .enums import VEXObject, get_enum_from_int
 from .errors import PyVEXError
@@ -10,10 +10,11 @@ from .native import ffi, pvc
 class IRConst(VEXObject):
     __slots__ = ["_value"]
 
-    type: Optional[str] = None
-    size = None
-    tag: Optional[str] = None
+    type: str
+    size: int
+    tag: str
     c_constructor = None
+    _value: int
 
     def pp(self):
         print(self.__str__())
