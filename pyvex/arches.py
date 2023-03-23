@@ -6,6 +6,10 @@ from .vex_ffi import guest_offsets
 
 
 class PyvexArch:
+    """
+    An architecture definition for use with pyvex - usable version.
+    """
+
     def __init__(self, name: str, bits: int, memory_endness: str):
         self.name = name
         self.bits = bits
@@ -52,7 +56,7 @@ class PyvexArch:
     def vex_name_small(self):
         return self.vex_arch[7:].lower()
 
-    def translate_register_name(self, offset, size=None):
+    def translate_register_name(self, offset, size=None):  # pylint: disable=unused-argument
         for (arch, reg), offset2 in guest_offsets.items():
             if arch == self.vex_name_small and offset2 == offset:
                 return reg
