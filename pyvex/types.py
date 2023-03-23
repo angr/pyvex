@@ -4,10 +4,18 @@ from cffi.api import FFI
 
 
 class Register(Protocol):
+    """
+    A register. Pyvex should probably not have this dependency.
+    """
+
     name: str
 
 
 class Arch(Protocol):
+    """
+    An architecture description.
+    """
+
     name: str
     ip_offset: int
     bits: int
@@ -26,6 +34,10 @@ class Arch(Protocol):
 
 @runtime_checkable
 class LibvexArch(Protocol):
+    """
+    The description for an architecture that is usable with libvex
+    """
+
     vex_arch: str
     vex_archinfo: Dict[str, Any]
 

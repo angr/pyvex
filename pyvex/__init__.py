@@ -5,6 +5,22 @@ For an introduction to VEX, take a look here: https://docs.angr.io/advanced-topi
 __version__ = "9.2.80.dev0"
 
 from . import const, expr, stmt
+from .arches import (
+    ARCH_AMD64,
+    ARCH_ARM64_BE,
+    ARCH_ARM64_LE,
+    ARCH_ARM_BE,
+    ARCH_ARM_LE,
+    ARCH_MIPS32_BE,
+    ARCH_MIPS32_LE,
+    ARCH_MIPS64_BE,
+    ARCH_MIPS64_LE,
+    ARCH_PPC32,
+    ARCH_PPC64_BE,
+    ARCH_PPC64_LE,
+    ARCH_S390X,
+    ARCH_X86,
+)
 from .block import IRSB, IRTypeEnv
 from .const import get_type_size, get_type_spec_size, tag_to_const_class
 from .enums import (
@@ -54,4 +70,18 @@ __all__ = [
     "IRStmt",
     "IRExpr",
     "IRConst",
+    "ARCH_X86",
+    "ARCH_AMD64",
+    "ARCH_ARM_LE",
+    "ARCH_ARM_BE",
+    "ARCH_ARM64_LE",
+    "ARCH_ARM64_BE",
+    "ARCH_PPC32",
+    "ARCH_PPC64_BE",
+    "ARCH_PPC64_LE",
+    "ARCH_S390X",
+    "ARCH_MIPS32_BE",
+    "ARCH_MIPS32_LE",
+    "ARCH_MIPS64_BE",
+    "ARCH_MIPS64_LE",
 ]
