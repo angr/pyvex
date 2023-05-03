@@ -650,6 +650,19 @@ void collect_data_references(
 								tmps[stmt->Ist.WrTmp.tmp].used = 1;
 								tmps[stmt->Ist.WrTmp.tmp].value = value;
 							}
+							if (arg1->tag == Iex_Const
+								&& arg2->tag == Iex_RdTmp
+								&& tmps[arg2->Iex.RdTmp.tmp].used) {
+								ULong arg1_value = get_value_from_const_expr(arg1->Iex.Const.con);
+								ULong arg2_value = tmps[arg2->Iex.RdTmp.tmp].value;
+								ULong value = arg1_value + arg2_value;
+								if (data->Iex.Binop.op == Iop_Add32) {
+									value &= 0xffffffff;
+								}
+								record_data_reference(lift_r, value, 0, Dt_Unknown, i, inst_addr);
+								tmps[stmt->Ist.WrTmp.tmp].used = 1;
+								tmps[stmt->Ist.WrTmp.tmp].value = value;
+							}
 							if (arg2->tag == Iex_Const) {
 								ULong arg2_value = get_value_from_const_expr(arg2->Iex.Const.con);
 								record_data_reference(lift_r, arg2_value, 0, Dt_Unknown, i, inst_addr);
