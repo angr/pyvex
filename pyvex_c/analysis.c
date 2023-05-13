@@ -663,6 +663,19 @@ void collect_data_references(
 								tmps[stmt->Ist.WrTmp.tmp].used = 1;
 								tmps[stmt->Ist.WrTmp.tmp].value = value;
 							}
+							if (arg1->tag == Iex_Const
+								&& arg2->tag == Iex_RdTmp
+								&& tmps[arg2->Iex.RdTmp.tmp].used) {
+								ULong arg1_value = get_value_from_const_expr(arg1->Iex.Const.con);
+								ULong arg2_value = tmps[arg2->Iex.RdTmp.tmp].value;
+								ULong value = arg1_value + arg2_value;
+								if (data->Iex.Binop.op == Iop_Add32) {
+									value &= 0xffffffff;
+								}
+								record_data_reference(lift_r, value, 0, Dt_Unknown, i, inst_addr);
+								tmps[stmt->Ist.WrTmp.tmp].used = 1;
+								tmps[stmt->Ist.WrTmp.tmp].value = value;
+							}
 							if (arg2->tag == Iex_Const) {
 								ULong arg2_value = get_value_from_const_expr(arg2->Iex.Const.con);
 								record_data_reference(lift_r, arg2_value, 0, Dt_Unknown, i, inst_addr);
@@ -742,8 +755,15 @@ void collect_data_references(
 				} else if (data->tag == Iex_RdTmp) {
 					if (tmps[data->Iex.RdTmp.tmp].used == 1) {
 						// tmp is available
-						UInt key = mk_key_GetPut(stmt->Ist.Put.offset, typeOfIRExpr(irsb->tyenv, data));
-						addToHHW(env, key, tmps[data->Iex.RdTmp.tmp].value);
+						IRType data_type = typeOfIRExpr(irsb->tyenv, data);
+						UInt key = mk_key_GetPut(stmt->Ist.Put.offset, data_type);
+						ULong value = tmps[data->Iex.RdTmp.tmp].value;
+						Int data_size = 0;
+						if (data_type != Ity_INVALID) {
+							data_size = sizeofIRType(data_type);
+						}
+						addToHHW(env, key, value);
+						record_data_reference(lift_r, value, data_size, Dt_Integer, i, inst_addr);
 					}
 				}
 			}
