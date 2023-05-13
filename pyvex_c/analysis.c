@@ -758,12 +758,8 @@ void collect_data_references(
 						IRType data_type = typeOfIRExpr(irsb->tyenv, data);
 						UInt key = mk_key_GetPut(stmt->Ist.Put.offset, data_type);
 						ULong value = tmps[data->Iex.RdTmp.tmp].value;
-						Int data_size = 0;
-						if (data_type != Ity_INVALID) {
-							data_size = sizeofIRType(data_type);
-						}
 						addToHHW(env, key, value);
-						record_data_reference(lift_r, value, data_size, Dt_Integer, i, inst_addr);
+						record_data_reference(lift_r, value, 0, Dt_Integer, i, inst_addr);
 					}
 				}
 			}
