@@ -56,7 +56,7 @@ class GymratLifter(Lifter):
         # Try every instruction until one works
         for possible_instr in self.instrs:
             try:
-                log.info("Trying %s", possible_instr.name)
+                log.debug("Trying %s", possible_instr.name)
                 return possible_instr(self.bitstrm, self.irsb.arch, addr)
             # a ParserError signals that this instruction did not match
             # we need to try other instructions, so we ignore this error
