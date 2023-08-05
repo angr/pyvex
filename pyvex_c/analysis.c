@@ -326,7 +326,7 @@ void record_data_reference(
 	lift_r->data_ref_count++;
 }
 
-void record_const(
+Addr record_const(
 	VEXLiftResult *lift_r,
 	IRExpr *const_expr,
 	Int size,
@@ -338,14 +338,15 @@ void record_const(
 	if (const_expr->tag != Iex_Const) {
 		// Why are you calling me?
 		assert (const_expr->tag == Iex_Const);
-		return;
+		return -1;
 	}
 
 	Addr addr = get_value_from_const_expr(const_expr->Iex.Const.con);
 	if (addr != next_inst_addr) {
 		record_data_reference(lift_r, addr, size, data_type, stmt_idx, inst_addr);
+        return addr;
 	}
-
+    return -1;
 }
 
 
@@ -541,6 +542,10 @@ void collect_data_references(
 	HashHW* env = newHHW();
 	TmpValue *tmps = NULL;
 	TmpValue tmp_backingstore[1024];
+    // Record the last legitimate constant value. We do not record RdTmp or BinOp results
+    // if they are the same as the last constant.
+	UInt last_const_value = 0;
+
 	if (irsb->tyenv->types_used > 1024) {
 		tmps = malloc(irsb->tyenv->types_used * sizeof(TmpValue));
 	} else {
@@ -593,7 +598,10 @@ void collect_data_references(
 					if (data->Iex.Load.addr->tag == Iex_Const) {
 						Int size;
 						size = sizeofIRType(typeOfIRTemp(irsb->tyenv, stmt->Ist.WrTmp.tmp));
-						record_const(lift_r, data->Iex.Load.addr, size, Dt_Integer, i, inst_addr, next_inst_addr);
+						Addr v = record_const(lift_r, data->Iex.Load.addr, size, Dt_Integer, i, inst_addr, next_inst_addr);
+						if (v != -1 && v != next_inst_addr) {
+							last_const_value = v;
+						}
 						// Load the value if it might be a constant pointer...
 						if (load_from_ro_regions && guest == VexArchARM && size == 4) {
 							UInt value;
@@ -608,7 +616,9 @@ void collect_data_references(
 							// The source tmp exists
 							Int size;
 							size = sizeofIRType(typeOfIRTemp(irsb->tyenv, stmt->Ist.WrTmp.tmp));
-							record_data_reference(lift_r, tmps[rdtmp].value, size, Dt_Integer, i, inst_addr);
+							if (tmps[rdtmp].value != last_const_value) {
+								record_data_reference(lift_r, tmps[rdtmp].value, size, Dt_Integer, i, inst_addr);
+							}
 							if (load_from_ro_regions)
 								if (guest == VexArchARM && size == 4 ||
 									guest == VexArchMIPS32 && size == 4 ||
@@ -633,7 +643,9 @@ void collect_data_references(
 									addr &= 0xffffffff;
 								}
 							if (addr != next_inst_addr) {
-								record_data_reference(lift_r, addr, 0, Dt_Unknown, i, inst_addr);
+								if (addr != last_const_value) {
+									record_data_reference(lift_r, addr, 0, Dt_Unknown, i, inst_addr);
+								}
 							}
 						} else {
 							// Do the calculation
@@ -646,7 +658,9 @@ void collect_data_references(
 								if (data->Iex.Binop.op == Iop_Add32) {
 									value &= 0xffffffff;
 								}
-								record_data_reference(lift_r, value, 0, Dt_Unknown, i, inst_addr);
+								if (value != last_const_value) {
+									record_data_reference(lift_r, value, 0, Dt_Unknown, i, inst_addr);
+								}
 								tmps[stmt->Ist.WrTmp.tmp].used = 1;
 								tmps[stmt->Ist.WrTmp.tmp].value = value;
 							}
@@ -659,7 +673,9 @@ void collect_data_references(
 								if (data->Iex.Binop.op == Iop_Add32) {
 									value &= 0xffffffff;
 								}
-								record_data_reference(lift_r, value, 0, Dt_Unknown, i, inst_addr);
+								if (value != last_const_value) {
+									record_data_reference(lift_r, value, 0, Dt_Unknown, i, inst_addr);
+								}
 								tmps[stmt->Ist.WrTmp.tmp].used = 1;
 								tmps[stmt->Ist.WrTmp.tmp].value = value;
 							}
@@ -672,13 +688,17 @@ void collect_data_references(
 								if (data->Iex.Binop.op == Iop_Add32) {
 									value &= 0xffffffff;
 								}
-								record_data_reference(lift_r, value, 0, Dt_Unknown, i, inst_addr);
+								if (value != last_const_value) {
+									record_data_reference(lift_r, value, 0, Dt_Unknown, i, inst_addr);
+								}
 								tmps[stmt->Ist.WrTmp.tmp].used = 1;
 								tmps[stmt->Ist.WrTmp.tmp].value = value;
 							}
 							if (arg2->tag == Iex_Const) {
 								ULong arg2_value = get_value_from_const_expr(arg2->Iex.Const.con);
-								record_data_reference(lift_r, arg2_value, 0, Dt_Unknown, i, inst_addr);
+								if (arg2_value != last_const_value) {
+									record_data_reference(lift_r, arg2_value, 0, Dt_Unknown, i, inst_addr);
+								}
 							}
 							if (arg1->tag == Iex_RdTmp
 								&& tmps[arg1->Iex.RdTmp.tmp].used
@@ -698,16 +718,25 @@ void collect_data_references(
 					else {
 						// Normal binary operations
 						if (data->Iex.Binop.arg1->tag == Iex_Const) {
-							record_const(lift_r, data->Iex.Binop.arg1, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+							Addr v = record_const(lift_r, data->Iex.Binop.arg1, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+							if (v != -1 && v != next_inst_addr) {
+								last_const_value = v;
+							}
 						}
 						if (data->Iex.Binop.arg2->tag == Iex_Const) {
-							record_const(lift_r, data->Iex.Binop.arg2, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+							Addr v = record_const(lift_r, data->Iex.Binop.arg2, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+							if (v != -1 && v != next_inst_addr) {
+								last_const_value = v;
+							}
 						}
 					}
 					break;
 				case Iex_Const:
 					{
-						record_const(lift_r, data, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+						Addr v = record_const(lift_r, data, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+						if (v != -1 && v != next_inst_addr) {
+							last_const_value = v;
+						}
 						tmps[stmt->Ist.WrTmp.tmp].used = 1;
 						tmps[stmt->Ist.WrTmp.tmp].value = get_value_from_const_expr(data->Iex.Const.con);
 					}
@@ -749,7 +778,10 @@ void collect_data_references(
 
 				IRExpr *data = stmt->Ist.Put.data;
 				if (data->tag == Iex_Const) {
-					record_const(lift_r, data, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+					Addr v = record_const(lift_r, data, 0, Dt_Unknown, i, inst_addr, next_inst_addr);
+					if (v != -1 && v != next_inst_addr) {
+						last_const_value = v;
+					}
 					UInt key = mk_key_GetPut(stmt->Ist.Put.offset, typeOfIRExpr(irsb->tyenv, data));
 					addToHHW(env, key, get_value_from_const_expr(data->Iex.Const.con));
 				} else if (data->tag == Iex_RdTmp) {
@@ -759,7 +791,9 @@ void collect_data_references(
 						UInt key = mk_key_GetPut(stmt->Ist.Put.offset, data_type);
 						ULong value = tmps[data->Iex.RdTmp.tmp].value;
 						addToHHW(env, key, value);
-						record_data_reference(lift_r, value, 0, Dt_Integer, i, inst_addr);
+						if (value != last_const_value) {
+							record_data_reference(lift_r, value, 0, Dt_Integer, i, inst_addr);
+						}
 					}
 				}
 			}
