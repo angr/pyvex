@@ -100,7 +100,7 @@ def lift(
             u_data = data
             if lifter.REQUIRE_DATA_C:
                 if c_data is None:
-                    u_data = ffi.from_buffer(ffi.BVoidP, py_data + b"\0" * 8 if type(py_data) is bytes else py_data)
+                    u_data = ffi.from_buffer(ffi.BVoidP, py_data + b"\0" * 8 if isinstance(py_data, bytes) else py_data)
                     max_bytes = min(len(py_data), max_bytes) if max_bytes is not None else len(py_data)
                 else:
                     u_data = c_data
