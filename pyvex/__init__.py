@@ -2,7 +2,7 @@
 PyVEX provides an interface that translates binary code into the VEX intermediate representation (IR).
 For an introduction to VEX, take a look here: https://docs.angr.io/advanced-topics/ir
 """
-__version__ = "9.2.64.dev0"
+__version__ = "9.2.65.dev0"
 
 from . import const, expr, stmt
 from .block import IRSB, IRTypeEnv
