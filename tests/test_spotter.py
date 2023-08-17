@@ -1,12 +1,18 @@
 import os
+import unittest
 
-import angr
 import archinfo
 
 import pyvex
 import pyvex.lifting
 from pyvex.lifting import register
 from pyvex.lifting.util import GymratLifter, Instruction, Type
+
+try:
+    import angr
+except ImportError:
+    angr = None
+
 
 test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../binaries/tests"))
 
@@ -98,6 +104,7 @@ class CortexSpotter(GymratLifter):
 register(CortexSpotter, "ARMEL")
 
 
+@unittest.skipIf(angr is None, "angr required")
 def test_full_binary():
     p = angr.Project(
         os.path.join(test_location, "armel", "RTOSDemo.axf.issue_685"),
@@ -112,6 +119,7 @@ def test_full_binary():
     assert simgr.active[0].regs.ip_at_syscall.args[0] == 0x13FB
 
 
+@unittest.skipIf(angr is None, "angr required")
 def test_tmrs():
     test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../binaries/tests"))
     p = angr.Project(
@@ -127,6 +135,7 @@ def test_tmrs():
     assert type(b.statements[2]) == pyvex.stmt.Put
 
 
+@unittest.skipIf(angr is None, "angr required")
 def test_tmsr():
     test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../binaries/tests"))
     p = angr.Project(

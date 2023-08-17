@@ -2,8 +2,8 @@ import copy
 import gc
 import logging
 import os
-import platform
 import random
+import sys
 import unittest
 
 from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
@@ -11,13 +11,15 @@ from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
 import pyvex
 from pyvex.lifting import LibVEXLifter
 
-if platform.system() != "Windows":
+if sys.platform == "linux":
     import resource
 
 
 # pylint: disable=R0201
 class TestPyvex(unittest.TestCase):
-    @unittest.skipIf(platform.system() == "Windows", "Cannot import the resource package on windows.")
+    @unittest.skipUnless(
+        sys.platform == "linux", "Cannot import the resource package on windows, values different on macos."
+    )
     def test_memory(self):
         arches = [ArchX86(), ArchPPC32(endness=Endness.BE), ArchAMD64(), ArchARM()]
         # we're not including ArchMIPS32 cause it segfaults sometimes
