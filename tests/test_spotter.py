@@ -119,6 +119,7 @@ def test_full_binary():
     assert simgr.active[0].regs.ip_at_syscall.args[0] == 0x13FB
 
 
+@unittest.skipIf(angr is None, "angr required")
 def test_tmrs():
     test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../binaries/tests"))
     p = angr.Project(
