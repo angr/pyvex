@@ -70,7 +70,7 @@ class IRExpr(VEXObject):
             v = getattr(self, k)
             if isinstance(v, IRExpr) and v in replacements:
                 setattr(self, k, replacements.get(v))
-            elif type(v) is list:
+            elif isinstance(v, list):
                 # Replace the instance in the list
                 for i, expr_ in enumerate(v):
                     if isinstance(expr_, IRExpr) and expr_ in replacements:
