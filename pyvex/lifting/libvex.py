@@ -48,7 +48,7 @@ class LibVEXLifter(Lifter):
     def get_vex_log():
         return bytes(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)).decode() if pvc.msg_buffer != ffi.NULL else None
 
-    def lift(self):
+    def _lift(self):
         try:
             _libvex_lock.acquire()
 

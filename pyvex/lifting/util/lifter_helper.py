@@ -97,7 +97,7 @@ class GymratLifter(Lifter):
             log.exception(f"Error decoding block at offset {bytepos:#x} (address {addr:#x}):")
             raise
 
-    def lift(self, disassemble=False, dump_irsb=False):
+    def _lift(self, disassemble=False, dump_irsb=False):
         self.thedata = (
             self.data[: self.max_bytes]
             if isinstance(self.data, (bytes, bytearray, memoryview))

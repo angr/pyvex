@@ -126,7 +126,7 @@ def lift(
                 )
 
             try:
-                final_irsb = lifter(arch, addr)._lift(
+                final_irsb = lifter(arch, addr).lift(
                     u_data,
                     bytes_offset - skip,
                     max_bytes,
@@ -142,7 +142,7 @@ def lift(
                 )
             except SkipStatementsError:
                 assert skip_stmts is True
-                final_irsb = lifter(arch, addr)._lift(
+                final_irsb = lifter(arch, addr).lift(
                     u_data,
                     bytes_offset - skip,
                     max_bytes,
