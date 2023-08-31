@@ -27,7 +27,7 @@ class TestLift(unittest.TestCase):
 
         lifter = NOPLifter(archinfo.ArchAMD64(), 0)
         # this should not throw an exception
-        block = lifter._lift("\x0F\x0Fa")
+        block = lifter.lift("\x0F\x0Fa")
         assert block.size == 2
         assert block.instructions == 1
         assert block.jumpkind == JumpKind.NoDecode
