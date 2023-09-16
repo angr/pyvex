@@ -3,18 +3,18 @@ def data_ref_type_str(dref_enum):
     Translate an ``enum DataRefTypes`` value into a string representation.
     """
     if dref_enum == 0x9000:
-        return 'unknown'
+        return "unknown"
     elif dref_enum == 0x9001:
-        return 'integer'
+        return "integer"
     elif dref_enum == 0x9002:
-        return 'fp'
+        return "fp"
     elif dref_enum == 0x9003:
-        return 'integer(store)'
+        return "integer(store)"
     else:
-        return 'INVALID'
+        return "INVALID"
 
 
-class DataRef(object):
+class DataRef:
     """
     A data reference object. Indicates a data access in an IRSB.
 
@@ -24,7 +24,8 @@ class DataRef(object):
     :ivar stmt_idx:     The IRSB statement index containing the data access
     :ivar ins_addr:     The address of the instruction performing the data access
     """
-    __slots__ = ('data_addr', 'data_size', 'data_type', 'stmt_idx', 'ins_addr')
+
+    __slots__ = ("data_addr", "data_size", "data_type", "stmt_idx", "ins_addr")
 
     def __init__(self, data_addr, data_size, data_type, stmt_idx, ins_addr):
         self.data_addr = data_addr
@@ -41,12 +42,12 @@ class DataRef(object):
         return data_ref_type_str(self.data_type)
 
     def __repr__(self):
-        return '<DataRef accessing %#x %s:%d at %#x:%d>' % (
-                self.data_addr,
-                data_ref_type_str(self.data_type),
-                self.data_size,
-                self.ins_addr,
-                self.stmt_idx
+        return "<DataRef accessing %#x %s:%d at %#x:%d>" % (
+            self.data_addr,
+            data_ref_type_str(self.data_type),
+            self.data_size,
+            self.ins_addr,
+            self.stmt_idx,
         )
 
     @classmethod

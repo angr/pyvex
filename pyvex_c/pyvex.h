@@ -15,7 +15,7 @@ void clear_log(void);
 
 //
 // Initializes VEX. This function must be called before vex_lift
-// can be used. 
+// can be used.
 //
 int vex_init(void);
 

@@ -1,9 +1,9 @@
 import archinfo
+
 import pyvex
 
 
 def test_ud2():
-
     # On x86 and amd64, ud2 is a valid 2-byte instruction that means "undefined instruction". Upon decoding a basic
     # block that ends with ud2, we should treat it as an explicit NoDecode, instead of skipping the instruction and
     # resume lifting.

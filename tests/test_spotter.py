@@ -1,14 +1,13 @@
 import os
-import pyvex
-import angr
-import archinfo
-from pyvex.lifting import register
-from pyvex.lifting.util import *
-import pyvex.lifting
 
-test_location = str(
-    os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../binaries/tests")
-)
+import archinfo
+
+import pyvex
+import pyvex.lifting
+from pyvex.lifting import register
+from pyvex.lifting.util import GymratLifter, Instruction, Type
+
+test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../binaries/tests"))
 
 
 class Instruction_IMAGINARY(Instruction):
@@ -46,12 +45,7 @@ def test_basic():
 def test_embedded():
     b = pyvex.block.IRSB(b"\x50" * 3 + b"\x0f\x0b" + b"\x50" * 6, 1, archinfo.ArchX86())
     for i, stmt in enumerate(b.statements):
-        if (
-            type(stmt) is pyvex.stmt.IMark
-            and stmt.addr == 0x4
-            and stmt.len == 2
-            and stmt.delta == 0
-        ):
+        if type(stmt) is pyvex.stmt.IMark and stmt.addr == 0x4 and stmt.len == 2 and stmt.delta == 0:
             imaginary_trans_stmt = b.statements[i + 1]
             assert type(imaginary_trans_stmt) is pyvex.stmt.WrTmp
             addexpr = imaginary_trans_stmt.data
@@ -73,7 +67,7 @@ class Instruction_MSR(Instruction):
     def compute_result(self):
         a = self.constant(10, Type.int_27)
         b = self.constant(20, Type.int_27)
-        c = a + b
+        a + b
 
 
 class Instruction_CPSIEI(Instruction):
@@ -83,7 +77,7 @@ class Instruction_CPSIEI(Instruction):
     def compute_result(self):
         a = self.constant(10, Type.int_27)
         b = self.constant(20, Type.int_27)
-        c = a + b
+        a + b
 
 
 class Instruction_CPSIEF(Instruction):
@@ -93,7 +87,7 @@ class Instruction_CPSIEF(Instruction):
     def compute_result(self):
         a = self.constant(10, Type.int_27)
         b = self.constant(20, Type.int_27)
-        c = a + b
+        a + b
 
 
 class CortexSpotter(GymratLifter):
@@ -103,61 +97,28 @@ class CortexSpotter(GymratLifter):
 register(CortexSpotter, "ARMEL")
 
 
-def test_full_binary():
-    p = angr.Project(
-        os.path.join(test_location, "armel", "RTOSDemo.axf.issue_685"),
-        arch="ARMEL",
-        auto_load_libs=False,
-    )
-    st = p.factory.call_state(0x000013CE + 1)
-    b = st.block().vex
-    simgr = p.factory.simulation_manager(st)
-    simgr.step()
-    assert b.jumpkind == "Ijk_Sys_syscall"
-    assert simgr.active[0].regs.ip_at_syscall.args[0] == 0x13FB
-
-
 def test_tmrs():
-    test_location = str(
-        os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "../../binaries/tests"
-        )
-    )
-    p = angr.Project(
-        os.path.join(test_location, "armel", "helloworld"),
-        arch="ARMEL",
-        auto_load_libs=False,
-    )
+    arch = archinfo.arch_from_id("ARMEL")
     ins = b"\xef\xf3\x08\x82"
-    b = pyvex.block.IRSB(ins, 1, p.arch)
+    b = pyvex.block.IRSB(ins, 1, arch)
     assert b.jumpkind == "Ijk_Boring"
     assert type(b.statements[1].data) == pyvex.expr.Get
-    assert p.arch.register_names.get(b.statements[1].data.offset, "") == "sp"
+    assert arch.register_names.get(b.statements[1].data.offset, "") == "sp"
     assert type(b.statements[2]) == pyvex.stmt.Put
 
 
 def test_tmsr():
-    test_location = str(
-        os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "../../binaries/tests"
-        )
-    )
-    p = angr.Project(
-        os.path.join(test_location, "armel", "helloworld"),
-        arch="ARMEL",
-        auto_load_libs=False,
-    )
+    arch = archinfo.arch_from_id("ARMEL")
     inss = b"\x82\xf3\x08\x88"
-    b = pyvex.block.IRSB(inss, 1, p.arch, opt_level=3)
+    b = pyvex.block.IRSB(inss, 1, arch, opt_level=3)
     assert b.jumpkind == "Ijk_Boring"
     assert type(b.statements[1].data) == pyvex.expr.Get
-    assert p.arch.register_names.get(b.statements[1].data.offset, "") == "r2"
+    assert arch.register_names.get(b.statements[1].data.offset, "") == "r2"
     assert type(b.statements[2]) == pyvex.stmt.Put
 
 
 if __name__ == "__main__":
     test_basic()
     test_embedded()
-    test_full_binary()
     test_tmrs()
     test_tmsr()

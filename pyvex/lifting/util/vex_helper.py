@@ -1,30 +1,31 @@
-import re
 import copy
-from ...const import ty_to_const_class, vex_int_class, get_type_size, U1
-from ...expr import Const, RdTmp, Unop, Binop, Load, CCall, Get, ITE
-from ...stmt import WrTmp, Put, IMark, Store, NoOp, Exit, Dirty
-from ...enums import IRCallee
+import re
+
+from pyvex.const import U1, get_type_size, ty_to_const_class, vex_int_class
+from pyvex.enums import IRCallee
+from pyvex.expr import ITE, Binop, CCall, Const, Get, Load, RdTmp, Unop
+from pyvex.stmt import Dirty, Exit, IMark, NoOp, Put, Store, WrTmp
 
 
-class JumpKind(object):
-    Boring = 'Ijk_Boring'
-    Call = 'Ijk_Call'
-    Ret = 'Ijk_Ret'
-    Segfault = 'Ijk_SigSEGV'
-    Exit = 'Ijk_Exit'
-    Syscall = 'Ijk_Sys_syscall'
-    Sysenter = 'Ijk_Sys_sysenter'
-    Invalid = 'Ijk_INVALID'
-    NoDecode = 'Ijk_NoDecode'
+class JumpKind:
+    Boring = "Ijk_Boring"
+    Call = "Ijk_Call"
+    Ret = "Ijk_Ret"
+    Segfault = "Ijk_SigSEGV"
+    Exit = "Ijk_Exit"
+    Syscall = "Ijk_Sys_syscall"
+    Sysenter = "Ijk_Sys_sysenter"
+    Invalid = "Ijk_INVALID"
+    NoDecode = "Ijk_NoDecode"
 
 
 class TypeMeta(type):
-    typemeta_re = re.compile(r'int_(?P<size>\d+)$')
+    typemeta_re = re.compile(r"int_(?P<size>\d+)$")
 
     def __getattr__(self, name):
         match = self.typemeta_re.match(name)
         if match:
-            width = int(match.group('size'))
+            width = int(match.group("size"))
             return vex_int_class(width).type
         else:
             return type.__getattr__(name)
@@ -33,15 +34,15 @@ class TypeMeta(type):
 class Type(metaclass=TypeMeta):
     __metaclass__ = TypeMeta
 
-    ieee_float_16 = 'Ity_F16'
-    ieee_float_32 = 'Ity_F32'
-    ieee_float_64 = 'Ity_F64'
-    ieee_float_128 = 'Ity_F128'
-    decimal_float_32 = 'Ity_D32'
-    decimal_float_64 = 'Ity_D64'
-    decimal_float_128 = 'Ity_D128'
-    simd_vector_128 = 'Ity_V128'
-    simd_vector_256 = 'Ity_V256'
+    ieee_float_16 = "Ity_F16"
+    ieee_float_32 = "Ity_F32"
+    ieee_float_64 = "Ity_F64"
+    ieee_float_128 = "Ity_F128"
+    decimal_float_32 = "Ity_D32"
+    decimal_float_64 = "Ity_D64"
+    decimal_float_128 = "Ity_D128"
+    simd_vector_128 = "Ity_V128"
+    simd_vector_256 = "Ity_V256"
 
 
 def get_op_format_from_const_ty(ty):
@@ -71,48 +72,48 @@ def mkunop(fstring):
     return lambda self, expr_a: self.op_unary(make_format_op_generator(fstring))(expr_a)
 
 
-def mkcmpop(fstring_fragment, signedness=''):
+def mkcmpop(fstring_fragment, signedness=""):
     def cmpop(self, expr_a, expr_b):
         ty = self.get_type(expr_a)
-        fstring = 'Iop_Cmp%s{arg_t[0]}%s' % (fstring_fragment, signedness)
+        fstring = f"Iop_Cmp{fstring_fragment}{{arg_t[0]}}{signedness}"
         retval = mkbinop(fstring)(self, expr_a, expr_b)
         return self.cast_to(retval, ty)
 
     return cmpop
 
 
-class IRSBCustomizer(object):
-    op_add = mkbinop('Iop_Add{arg_t[0]}')
-    op_sub = mkbinop('Iop_Sub{arg_t[0]}')
-    op_umul = mkbinop('Iop_Mul{arg_t[0]}')
-    op_smul = mkbinop('Iop_MullS{arg_t[0]}')
-    op_sdiv = mkbinop('Iop_DivS{arg_t[0]}')
-    op_udiv = mkbinop('Iop_DivU{arg_t[0]}')
+class IRSBCustomizer:
+    op_add = mkbinop("Iop_Add{arg_t[0]}")
+    op_sub = mkbinop("Iop_Sub{arg_t[0]}")
+    op_umul = mkbinop("Iop_Mul{arg_t[0]}")
+    op_smul = mkbinop("Iop_MullS{arg_t[0]}")
+    op_sdiv = mkbinop("Iop_DivS{arg_t[0]}")
+    op_udiv = mkbinop("Iop_DivU{arg_t[0]}")
 
     # Custom operation that does not exist in libVEX
-    op_mod = mkbinop('Iop_Mod{arg_t[0]}')
+    op_mod = mkbinop("Iop_Mod{arg_t[0]}")
 
-    op_or = mkbinop('Iop_Or{arg_t[0]}')
-    op_and = mkbinop('Iop_And{arg_t[0]}')
-    op_xor = mkbinop('Iop_Xor{arg_t[0]}')
+    op_or = mkbinop("Iop_Or{arg_t[0]}")
+    op_and = mkbinop("Iop_And{arg_t[0]}")
+    op_xor = mkbinop("Iop_Xor{arg_t[0]}")
 
-    op_shr = mkbinop('Iop_Shr{arg_t[0]}')  # Shift Right (logical)
-    op_shl = mkbinop('Iop_Shl{arg_t[0]}')  # Shift Left (logical)
+    op_shr = mkbinop("Iop_Shr{arg_t[0]}")  # Shift Right (logical)
+    op_shl = mkbinop("Iop_Shl{arg_t[0]}")  # Shift Left (logical)
 
-    op_sar = mkbinop('Iop_Sar{arg_t[0]}')  # Shift Arithmetic Right operation
+    op_sar = mkbinop("Iop_Sar{arg_t[0]}")  # Shift Arithmetic Right operation
 
-    op_not = mkunop('Iop_Not{arg_t[0]}')
+    op_not = mkunop("Iop_Not{arg_t[0]}")
 
-    op_cmp_eq = mkcmpop('EQ')
-    op_cmp_ne = mkcmpop('NE')
-    op_cmp_slt = mkcmpop('LT', 'S')
-    op_cmp_sle = mkcmpop('LE', 'S')
-    op_cmp_ult = mkcmpop('LT', 'U')
-    op_cmp_ule = mkcmpop('LE', 'U')
-    op_cmp_sge = mkcmpop('GE', 'S')
-    op_cmp_uge = mkcmpop('GE', 'U')
-    op_cmp_sgt = mkcmpop('GT', 'S')
-    op_cmp_ugt = mkcmpop('GT', 'U')
+    op_cmp_eq = mkcmpop("EQ")
+    op_cmp_ne = mkcmpop("NE")
+    op_cmp_slt = mkcmpop("LT", "S")
+    op_cmp_sle = mkcmpop("LE", "S")
+    op_cmp_ult = mkcmpop("LT", "U")
+    op_cmp_ule = mkcmpop("LE", "U")
+    op_cmp_sge = mkcmpop("GE", "S")
+    op_cmp_uge = mkcmpop("GE", "U")
+    op_cmp_sgt = mkcmpop("GT", "S")
+    op_cmp_ugt = mkcmpop("GT", "U")
 
     def __init__(self, irsb):
         self.arch = irsb.arch
@@ -184,14 +185,14 @@ class IRSBCustomizer(object):
         return self._settmp(Load(self.arch.memory_endness, ty, copy.copy(addr)))
 
     def op_ccall(self, retty, funcstr, args):
-        return self._settmp(CCall(retty, IRCallee(len(args), funcstr, 0xffff), args))
+        return self._settmp(CCall(retty, IRCallee(len(args), funcstr, 0xFFFF), args))
 
     def dirty(self, retty, funcstr, args):
         if retty is None:
-            tmp = 0xffffffff
+            tmp = 0xFFFFFFFF
         else:
             tmp = self._add_tmp(retty)
-        self._append_stmt(Dirty(IRCallee(len(args), funcstr, 0xffff), Const(U1(1)), args, tmp, None, None, None, None))
+        self._append_stmt(Dirty(IRCallee(len(args), funcstr, 0xFFFF), Const(U1(1)), args, tmp, None, None, None, None))
         return self._rdtmp(tmp)
 
     def ite(self, condrdt, iftruerdt, iffalserdt):
@@ -204,7 +205,8 @@ class IRSBCustomizer(object):
     # Operations
     def op_generic(self, Operation, op_generator):
         def instance(*args):  # Note: The args here are all RdTmps
-            for arg in args: assert isinstance(arg, RdTmp) or isinstance(arg, Const)
+            for arg in args:
+                assert isinstance(arg, RdTmp) or isinstance(arg, Const)
             arg_types = [self.get_type(arg) for arg in args]
             # two operations should never share the same argument instances, copy them here to ensure that
             args = [copy.copy(a) for a in args]
@@ -240,15 +242,15 @@ class IRSBCustomizer(object):
         return onebit
 
     def op_narrow_int(self, rdt, tydest, high_half=False):
-        op_name = '{op}{high}to{dest}'.format(op='Iop_{arg_t[0]}',
-                                              high='HI' if high_half else '',
-                                              dest=get_op_format_from_const_ty(tydest))
+        op_name = "{op}{high}to{dest}".format(
+            op="Iop_{arg_t[0]}", high="HI" if high_half else "", dest=get_op_format_from_const_ty(tydest)
+        )
         return self.op_unary(make_format_op_generator(op_name))(rdt)
 
     def op_widen_int(self, rdt, tydest, signed=False):
-        op_name = '{op}{sign}to{dest}'.format(op='Iop_{arg_t[0]}',
-                                              sign='S' if signed else 'U',
-                                              dest=get_op_format_from_const_ty(tydest))
+        op_name = "{op}{sign}to{dest}".format(
+            op="Iop_{arg_t[0]}", sign="S" if signed else "U", dest=get_op_format_from_const_ty(tydest)
+        )
         return self.op_unary(make_format_op_generator(op_name))(rdt)
 
     def op_widen_int_signed(self, rdt, tydest):
@@ -272,7 +274,6 @@ class IRSBCustomizer(object):
 
     def set_bit(self, rdt, idx, bval):
         currbit = self.get_bit(rdt, idx)
-        bvalbit = self.op_extract_lsb(bval)
         areequalextrabits = self.op_xor(bval, currbit)
         one = self.mkconst(1, self.get_type(areequalextrabits))
         areequal = self.op_and(areequalextrabits, one)

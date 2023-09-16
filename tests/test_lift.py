@@ -1,8 +1,10 @@
 import unittest
+
 import archinfo
-from pyvex import IRSB, lift, ffi
-from pyvex.lifting.util import Instruction, GymratLifter, JumpKind
+
+from pyvex import IRSB, ffi, lift
 from pyvex.errors import PyVEXError
+from pyvex.lifting.util import GymratLifter, Instruction, JumpKind
 
 
 # pylint: disable=R0201
@@ -25,7 +27,7 @@ class TestLift(unittest.TestCase):
 
         lifter = NOPLifter(archinfo.ArchAMD64(), 0)
         # this should not throw an exception
-        block = lifter._lift("\x0F\x0Fa")
+        block = lifter.lift("\x0F\x0Fa")
         assert block.size == 2
         assert block.instructions == 1
         assert block.jumpkind == JumpKind.NoDecode
@@ -51,9 +53,7 @@ class TestLift(unittest.TestCase):
         )
         arch = archinfo.arch_from_id("ARMEL")
         # Lifting the first four bytes will not cause any problem. Statements should be skipped as expected
-        b = IRSB(
-            bytes_[:34], 0xC6951, arch, opt_level=1, bytes_offset=5, skip_stmts=True
-        )
+        b = IRSB(bytes_[:34], 0xC6951, arch, opt_level=1, bytes_offset=5, skip_stmts=True)
         assert len(b.exit_statements) > 0
         assert not b.has_statements
 

@@ -200,7 +200,7 @@ int vex_init() {
 	vta.instrument1         = NULL;
 	vta.instrument2         = NULL;
 	vta.finaltidy	    	= NULL;
-	vta.needs_self_check	= needs_self_check;	
+	vta.needs_self_check	= needs_self_check;
 
 	vta.disp_cp_chain_me_to_slowEP = (void *)dispatch; // Not used
 	vta.disp_cp_chain_me_to_fastEP = (void *)dispatch; // Not used
@@ -271,6 +271,9 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai) {
 		case VexArchMIPS32:
 		case VexArchMIPS64:
 			vai->hwcaps = VEX_PRID_COMP_CAVIUM;
+			break;
+		case VexArchRISCV64:
+			vai->hwcaps = 0;
 			break;
 		default:
 			pyvex_error("Invalid arch in vex_prepare_vai.\n");

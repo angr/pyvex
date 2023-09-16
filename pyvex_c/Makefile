@@ -9,6 +9,11 @@ ifeq ($(UNAME), Linux)
 	STATIC_LIBRARY_FILE=libpyvex.a
 	LDFLAGS=-Wl,-soname,$(LIBRARY_FILE)
 endif
+ifeq ($(UNAME), FreeBSD)
+	LIBRARY_FILE=libpyvex.so
+	STATIC_LIBRARY_FILE=libpyvex.a
+	LDFLAGS=-Wl,-soname,$(LIBRARY_FILE)
+endif
 ifeq ($(UNAME), NetBSD)
 	LIBRARY_FILE=libpyvex.so
 	STATIC_LIBRARY_FILE=libpyvex.a

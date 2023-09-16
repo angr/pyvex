@@ -1,4 +1,3 @@
-
 class PyVEXError(Exception):
     pass
 
@@ -28,4 +27,5 @@ class NeedStatementsNotification(LiftingException):
     IRSBs based on available properties (jumpkind, next, etc.). If a post-processor must work with statements for the
     majority of IRSBs, the author should implement it in PyVEX in C for the sake of a better performance.
     """
+
     pass
