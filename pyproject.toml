@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=59", "wheel", "cffi >= 1.0.3"]
+requires = ["setuptools>=59", "wheel", "cffi >= 1.0.3", "atheris >= 2.3.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.black]
