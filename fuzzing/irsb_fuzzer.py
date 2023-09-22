@@ -79,6 +79,7 @@ def TestOneInput(data: bytes):
                 opt_level=fdp.PickValueInEnum(SupportedOptLevels),
             )
             irsb.pp()
+        return 0
     except pyvex.PyVEXError:
         return -1
     except ValueError as e:
