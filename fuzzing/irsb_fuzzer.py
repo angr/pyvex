@@ -17,7 +17,7 @@
 import re
 import sys
 from enum import IntEnum
-
+import os
 import atheris
 
 with atheris.instrument_imports(include=["pyvex"]):
@@ -66,14 +66,14 @@ def TestOneInput(data: bytes):
     try:
         with nostdout():
             data = fdp.ConsumeRandomBytes()
-
+            max_bytes = fdp.ConsumeIntInRange(0, len(data))
             irsb = pyvex.lift(
                 data,
                 fdp.ConsumeInt(arch.bits),
                 arch,
                 max_bytes=fdp.ConsumeIntInRange(0, len(data)),
                 max_inst=fdp.ConsumeInt(16),
-                bytes_offset=fdp.ConsumeIntInRange(0, len(data)),
+                bytes_offset=fdp.ConsumeIntInRange(0, max_bytes),
                 opt_level=fdp.PickValueInEnum(SupportedOptLevels)
             )
             irsb.pp()
