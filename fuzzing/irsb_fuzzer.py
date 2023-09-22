@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 ################################################################################
+import re
 import sys
 from enum import IntEnum
 
@@ -29,6 +30,7 @@ from io import StringIO
 
 from enhanced_fdp import EnhancedFuzzedDataProvider
 
+register_error_msg = re.compile('Register .*? does not exist!')
 
 @contextmanager
 def nostdout():
@@ -77,6 +79,10 @@ def TestOneInput(data: bytes):
             irsb.pp()
     except pyvex.PyVEXError:
         return -1
+    except ValueError as e:
+        if re.match(register_error_msg, str(e)):
+            return -1
+        raise e
     except OverflowError:
         return -1
 
