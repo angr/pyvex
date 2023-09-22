@@ -17,7 +17,6 @@
 Defines the EnhancedFuzzedDataProvider
 """
 from contextlib import contextmanager
-from enum import Enum
 from io import BytesIO, StringIO
 from tempfile import NamedTemporaryFile
 from typing import Optional, Union
@@ -102,7 +101,7 @@ class EnhancedFuzzedDataProvider(FuzzedDataProvider):
         :return: The path to the temporary file
         """
         file_data = self._consume_file_data(all_data, as_bytes)
-        mode = 'w+b' if as_bytes else 'w+'
+        mode = "w+b" if as_bytes else "w+"
         tfile = NamedTemporaryFile(mode=mode, suffix=suffix)
         tfile.write(file_data)
         tfile.seek(0)

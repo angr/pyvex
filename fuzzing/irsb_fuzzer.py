@@ -17,20 +17,21 @@
 import re
 import sys
 from enum import IntEnum
-import os
+
 import atheris
 
 with atheris.instrument_imports(include=["pyvex"]):
     import pyvex
 
 # Additional imports
-import archinfo
 from contextlib import contextmanager
 from io import StringIO
 
+import archinfo
 from enhanced_fdp import EnhancedFuzzedDataProvider
 
-register_error_msg = re.compile('Register .*? does not exist!')
+register_error_msg = re.compile("Register .*? does not exist!")
+
 
 @contextmanager
 def nostdout():
@@ -74,7 +75,7 @@ def TestOneInput(data: bytes):
                 max_bytes=fdp.ConsumeIntInRange(0, len(data)),
                 max_inst=fdp.ConsumeInt(16),
                 bytes_offset=fdp.ConsumeIntInRange(0, max_bytes),
-                opt_level=fdp.PickValueInEnum(SupportedOptLevels)
+                opt_level=fdp.PickValueInEnum(SupportedOptLevels),
             )
             irsb.pp()
     except pyvex.PyVEXError:
