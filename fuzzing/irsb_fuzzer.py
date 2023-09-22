@@ -16,11 +16,12 @@
 ################################################################################
 import re
 import sys
-from enum import IntEnum
 from contextlib import contextmanager
+from enum import IntEnum
 from io import StringIO
 
 import atheris
+
 with atheris.instrument_imports(include=["pyvex"]):
     import pyvex
 
@@ -50,6 +51,7 @@ class SupportedOptLevels(IntEnum):
     """
     Enumerates the supported optimization levels within pyvex, as derived from the documentation
     """
+
     StrictUnopt = -1
     Unopt = 0
     Opt = 1
