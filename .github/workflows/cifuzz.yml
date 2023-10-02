@@ -1,5 +1,9 @@
-name: CIFuzz
-on: [pull_request]
+name: OSS-Fuzz
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 permissions: {}
 jobs:
  Fuzzing:
