@@ -179,6 +179,10 @@ int vex_init() {
 #  endif
 #elif defined(__powerpc__)
         vta.arch_host = VexArchPPC64;
+#elif defined(__riscv)
+#  if defined(__riscv_xlen) && (__riscv_xlen == 64)
+	vta.arch_host = VexArchRISCV64;
+#  endif
 #else
 #error "Unsupported host arch"
 #endif
