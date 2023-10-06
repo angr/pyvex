@@ -1,7 +1,7 @@
 import logging
 from typing import Iterator, Optional
 
-from archinfo import RegisterOffset, TmpVar
+from archinfo.types import RegisterOffset, TmpVar
 
 from . import expr
 from .const import IRConst
