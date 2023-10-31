@@ -110,7 +110,7 @@ def lift(
                     u_data = c_data
                 skip = 0
             elif lifter.REQUIRE_DATA_PY:
-                if bytes_offset and arch.name.startswith("ARM"):
+                if bytes_offset and arch.name.startswith("ARM") and (addr & 1) == 1:
                     skip = bytes_offset - 1
                 else:
                     skip = bytes_offset
