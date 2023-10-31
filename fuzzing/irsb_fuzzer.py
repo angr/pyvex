@@ -72,7 +72,7 @@ class SupportedOptLevels(IntEnum):
     StrictOpt = 2
 
 
-def consume_random_arch(fdp: atheris.FuzzedDataProvider) -> pyvex.PyvexArch:
+def consume_random_arch(fdp: atheris.FuzzedDataProvider) -> pyvex.arches.PyvexArch:
     return fdp.PickValueInList(available_archs)
 
 
