@@ -50,7 +50,7 @@ class TestLift(unittest.TestCase):
             "3069C059B4C93049B4E9350ABCDF834C1CDF83CE185E8030094"
             "E803004B9683E8030015A94498C4F7E2EA "
         )
-        arch = pyvex.ARCH_ARM32_LE
+        arch = pyvex.ARCH_ARM_LE
         # Lifting the first four bytes will not cause any problem. Statements should be skipped as expected
         b = IRSB(bytes_[:34], 0xC6951, arch, opt_level=1, bytes_offset=5, skip_stmts=True)
         assert len(b.exit_statements) > 0
