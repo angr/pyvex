@@ -1,10 +1,8 @@
-import archinfo
-
 import pyvex
 
 
 def test_s390x_exrl():
-    arch = archinfo.ArchS390X()
+    arch = pyvex.ARCH_S390X
     irsb = pyvex.lift(
         b"\xc6\x10\x00\x00\x00\x04"  # exrl %r1,0x400408
         b"\x07\xfe"  # br %r14

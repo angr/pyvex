@@ -6,8 +6,6 @@ import random
 import sys
 import unittest
 
-from archinfo import ArchAMD64, ArchARM, ArchPPC32, ArchX86, Endness
-
 import pyvex
 from pyvex.lifting import LibVEXLifter
 
@@ -21,7 +19,7 @@ class TestPyvex(unittest.TestCase):
         sys.platform == "linux", "Cannot import the resource package on windows, values different on macos."
     )
     def test_memory(self):
-        arches = [ArchX86(), ArchPPC32(endness=Endness.BE), ArchAMD64(), ArchARM()]
+        arches = [pyvex.ARCH_X86, pyvex.ARCH_PPC32, pyvex.ARCH_AMD64, pyvex.ARCH_ARM32_BE]
         # we're not including ArchMIPS32 cause it segfaults sometimes
 
         # disable logging, as that may fill up log buffers somewhere
@@ -74,14 +72,14 @@ class TestPyvex(unittest.TestCase):
 
     def test_irsb_empty(self):
         self.assertRaises(Exception, pyvex.IRSB)
-        self.assertRaises(Exception, pyvex.IRSB, data="", arch=ArchAMD64(), mem_addr=0)
+        self.assertRaises(Exception, pyvex.IRSB, data="", arch=pyvex.ARCH_AMD64, mem_addr=0)
 
     def test_irsb_arm(self):
-        irsb = pyvex.IRSB(data=b"\x33\xff\x2f\xe1", mem_addr=0, arch=ArchARM())
+        irsb = pyvex.IRSB(data=b"\x33\xff\x2f\xe1", mem_addr=0, arch=pyvex.ARCH_ARM32_BE)
         assert len([i for i in irsb.statements if type(i) == pyvex.IRStmt.IMark]) == 1
 
     def test_irsb_popret(self):
-        irsb = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=ArchAMD64())
+        irsb = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=pyvex.ARCH_AMD64)
         stmts = irsb.statements
         irsb.pp()
 
@@ -97,8 +95,8 @@ class TestPyvex(unittest.TestCase):
         assert irsb.tyenv.lookup(irsb.statements[10].data.tmp) == "Ity_I64"
 
     def test_two_irsb(self):
-        irsb1 = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=ArchAMD64())
-        irsb2 = pyvex.IRSB(data=b"\x5d\x5d\x5d\x5d", mem_addr=0, arch=ArchAMD64())
+        irsb1 = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=pyvex.ARCH_AMD64)
+        irsb2 = pyvex.IRSB(data=b"\x5d\x5d\x5d\x5d", mem_addr=0, arch=pyvex.ARCH_AMD64)
 
         stmts1 = irsb1.statements
         stmts2 = irsb2.statements
@@ -106,7 +104,7 @@ class TestPyvex(unittest.TestCase):
         assert len(stmts1) != len(stmts2)
 
     def test_irsb_deepCopy(self):
-        irsb = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=ArchAMD64())
+        irsb = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=pyvex.ARCH_AMD64)
         stmts = irsb.statements
 
         irsb2 = copy.deepcopy(irsb)
@@ -114,7 +112,7 @@ class TestPyvex(unittest.TestCase):
         assert len(stmts) == len(stmts2)
 
     def test_irsb_addStmt(self):
-        irsb = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=ArchAMD64())
+        irsb = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=pyvex.ARCH_AMD64)
         stmts = irsb.statements
 
         irsb2 = copy.deepcopy(irsb)
@@ -128,13 +126,13 @@ class TestPyvex(unittest.TestCase):
         irsb2.pp()
 
     def test_irsb_tyenv(self):
-        irsb = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=ArchAMD64())
+        irsb = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=pyvex.ARCH_AMD64)
         print(irsb.tyenv)
         print("Orig")
         print(irsb.tyenv)
 
         print("Empty")
-        irsb2 = pyvex.IRSB.empty_block(arch=ArchAMD64(), addr=0)
+        irsb2 = pyvex.IRSB.empty_block(arch=pyvex.ARCH_AMD64, addr=0)
         print(irsb2.tyenv)
 
         print("Unwrapped")
@@ -146,7 +144,7 @@ class TestPyvex(unittest.TestCase):
     ##################
 
     def test_irstmt_pp(self):
-        irsb = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=ArchAMD64())
+        irsb = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=pyvex.ARCH_AMD64)
         stmts = irsb.statements
         for i in stmts:
             print("STMT: ", end=" ")
@@ -415,7 +413,7 @@ class TestPyvex(unittest.TestCase):
         assert m.tag == "Iex_RdTmp"
         assert m.tmp == 123
 
-        irsb = pyvex.IRSB(b"\x90\x5d\xc3", mem_addr=0x0, arch=ArchAMD64())
+        irsb = pyvex.IRSB(b"\x90\x5d\xc3", mem_addr=0x0, arch=pyvex.ARCH_AMD64)
         print("TMP:", irsb.next.tmp)
 
     def test_irexpr_get(self):

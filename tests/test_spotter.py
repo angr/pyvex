@@ -1,7 +1,5 @@
 import os
 
-import archinfo
-
 import pyvex
 import pyvex.lifting
 from pyvex.lifting import register
@@ -38,12 +36,12 @@ IRSB {
 
 
 def test_basic():
-    b = pyvex.block.IRSB(b"\x0f\x0b", 1, archinfo.ArchX86())
+    b = pyvex.block.IRSB(b"\x0f\x0b", 1, pyvex.ARCH_X86)
     assert str(b).strip() == basic_goal.strip()
 
 
 def test_embedded():
-    b = pyvex.block.IRSB(b"\x50" * 3 + b"\x0f\x0b" + b"\x50" * 6, 1, archinfo.ArchX86())
+    b = pyvex.block.IRSB(b"\x50" * 3 + b"\x0f\x0b" + b"\x50" * 6, 1, pyvex.ARCH_X86)
     for i, stmt in enumerate(b.statements):
         if type(stmt) is pyvex.stmt.IMark and stmt.addr == 0x4 and stmt.len == 2 and stmt.delta == 0:
             imaginary_trans_stmt = b.statements[i + 1]
@@ -98,7 +96,7 @@ register(CortexSpotter, "ARMEL")
 
 
 def test_tmrs():
-    arch = archinfo.arch_from_id("ARMEL")
+    arch = pyvex.ARCH_ARM_LE
     ins = b"\xef\xf3\x08\x82"
     b = pyvex.block.IRSB(ins, 1, arch)
     assert b.jumpkind == "Ijk_Boring"
@@ -108,7 +106,7 @@ def test_tmrs():
 
 
 def test_tmsr():
-    arch = archinfo.arch_from_id("ARMEL")
+    arch = pyvex.ARCH_ARM_LE
     inss = b"\x82\xf3\x08\x88"
     b = pyvex.block.IRSB(inss, 1, arch, opt_level=3)
     assert b.jumpkind == "Ijk_Boring"
