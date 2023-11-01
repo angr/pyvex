@@ -50,7 +50,7 @@ class PyvexArch:
             self.vex_archinfo["endness"] = vex_endness_from_string("VexEndnessBE")
 
     def __repr__(self):
-        return f"<PyvexArch {self.name}"
+        return f"<PyvexArch {self.name}>"
 
     @property
     def vex_name_small(self):
