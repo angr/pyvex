@@ -10,11 +10,11 @@ class PyvexArch:
     An architecture definition for use with pyvex - usable version.
     """
 
-    def __init__(self, name: str, bits: int, memory_endness: str):
+    def __init__(self, name: str, bits: int, memory_endness: str, instruction_endness: str = "Iend_BE"):
         self.name = name
         self.bits = bits
         self.memory_endness = memory_endness
-        self.instruction_endness = "Iend_BE"
+        self.instruction_endness = instruction_endness
         self.byte_width = 8
         self.register_list: List[Register] = []
         self.registers: Dict[str, Tuple[int, int]] = {}
@@ -60,7 +60,7 @@ class PyvexArch:
         for (arch, reg), offset2 in guest_offsets.items():
             if arch == self.vex_name_small and offset2 == offset:
                 return reg
-        return None
+        return str(offset)
 
     def get_register_offset(self, name: str) -> int:
         return guest_offsets[(self.vex_name_small, name)]
@@ -68,9 +68,10 @@ class PyvexArch:
 
 ARCH_X86 = PyvexArch("X86", 32, "Iend_LE")
 ARCH_AMD64 = PyvexArch("AMD64", 64, "Iend_LE")
-ARCH_ARM_LE = PyvexArch("ARM", 32, "Iend_LE")
+ARCH_ARM_LE = PyvexArch("ARM", 32, "Iend_LE", instruction_endness="Iend_LE")
+ARCH_ARM_BE_LE = PyvexArch("ARM", 32, "Iend_BE", instruction_endness="Iend_LE")
 ARCH_ARM_BE = PyvexArch("ARM", 32, "Iend_LE")
-ARCH_ARM64_LE = PyvexArch("ARM64", 64, "Iend_LE")
+ARCH_ARM64_LE = PyvexArch("ARM64", 64, "Iend_LE", instruction_endness="Iend_LE")
 ARCH_ARM64_BE = PyvexArch("ARM64", 64, "Iend_BE")
 ARCH_PPC32 = PyvexArch("PPC32", 32, "Iend_BE")
 ARCH_PPC64_BE = PyvexArch("PPC64", 64, "Iend_BE")

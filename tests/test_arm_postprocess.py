@@ -322,7 +322,7 @@ def test_arm_postprocess_ret():
         irsb = pyvex.IRSB(
             data=b"\xe9\x1b\xa8\xf0",
             mem_addr=0xED4028,
-            arch=pyvex.ARCH_ARM_BE,
+            arch=pyvex.ARCH_ARM_BE_LE,
             num_inst=1,
             opt_level=i,
         )
@@ -333,7 +333,7 @@ def test_arm_postprocess_ret():
         irsb = pyvex.IRSB(
             data=b"\xe9\x1b\xa8\xf0",
             mem_addr=0x4D4028,
-            arch=pyvex.ARCH_ARM_BE,
+            arch=pyvex.ARCH_ARM_BE_LE,
             num_inst=1,
             opt_level=i,
         )
