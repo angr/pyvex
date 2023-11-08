@@ -22,7 +22,7 @@ class PyvexArch:
             "X86": "VexArchX86",
             "AMD64": "VexArchAMD64",
             "ARM": "VexArchARM",
-            "AArch64": "VexArchARM64",
+            "ARM64": "VexArchARM64",
             "PPC32": "VexArchPPC32",
             "PPC64": "VexArchPPC64",
             "S390X": "VexArchS390X",
@@ -36,7 +36,7 @@ class PyvexArch:
                     "X86": "eip",
                     "AMD64": "rip",
                     "ARM": "r15t",
-                    "AArch64": "pc",
+                    "ARM64": "pc",
                     "PPC32": "cia",
                     "PPC64": "cia",
                     "S390X": "ia",
@@ -70,8 +70,8 @@ ARCH_X86 = PyvexArch("X86", 32, "Iend_LE")
 ARCH_AMD64 = PyvexArch("AMD64", 64, "Iend_LE")
 ARCH_ARM_LE = PyvexArch("ARM", 32, "Iend_LE")
 ARCH_ARM_BE = PyvexArch("ARM", 32, "Iend_LE")
-ARCH_ARM64_LE = PyvexArch("AArch64", 64, "Iend_LE")
-ARCH_ARM64_BE = PyvexArch("AArch64", 64, "Iend_BE")
+ARCH_ARM64_LE = PyvexArch("ARM64", 64, "Iend_LE")
+ARCH_ARM64_BE = PyvexArch("ARM64", 64, "Iend_BE")
 ARCH_PPC32 = PyvexArch("PPC32", 32, "Iend_BE")
 ARCH_PPC64_BE = PyvexArch("PPC64", 64, "Iend_BE")
 ARCH_PPC64_LE = PyvexArch("PPC64", 64, "Iend_LE")

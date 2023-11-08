@@ -5,6 +5,7 @@ from typing import Dict
 import bitstring
 
 from pyvex.expr import IRExpr, RdTmp
+from pyvex.vex_ffi import guest_offsets
 
 from .lifter_helper import ParseError
 from .syntax_wrapper import VexValue
@@ -255,12 +256,7 @@ class Instruction(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _lookup_register(arch, reg):
-        if isinstance(reg, int):
-            if hasattr(arch, "register_index"):
-                reg = arch.register_index[reg]
-            else:
-                reg = arch.register_list[reg].name
-        return arch.get_register_offset(reg)
+        return guest_offsets.get((arch.name.lower(), reg))
 
     def get(self, reg, ty):
         """
