@@ -1,5 +1,6 @@
 from typing import Dict, List, Tuple
 
+from ._subregister_map import subregister_map
 from .enums import default_vex_archinfo, vex_endness_from_string
 from .types import Register
 from .vex_ffi import guest_offsets
@@ -62,10 +63,20 @@ class PyvexArch:
         for (arch, reg), offset2 in guest_offsets.items():
             if arch == self.vex_name_small and offset2 == offset:
                 return reg
+        for (arch, reg), offset2 in subregister_map.items():
+            if arch == self.vex_name_small and offset2 == offset:
+                return reg
+        print("nope")
         return str(offset)
 
     def get_register_offset(self, name: str) -> int:
-        return guest_offsets[(self.vex_name_small, name)]
+        arch_reg_tuple = (self.vex_name_small, name)
+        if arch_reg_tuple in guest_offsets:
+            return guest_offsets[arch_reg_tuple]
+        elif arch_reg_tuple in subregister_map:
+            return subregister_map[arch_reg_tuple]
+        else:
+            raise KeyError(f"Unknown register {name} for architecture {self.name}")
 
 
 ARCH_X86 = PyvexArch("X86", 32, "Iend_LE")
