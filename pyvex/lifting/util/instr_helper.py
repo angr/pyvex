@@ -5,7 +5,6 @@ from typing import Dict
 import bitstring
 
 from pyvex.expr import IRExpr, RdTmp
-from pyvex.vex_ffi import guest_offsets
 
 from .lifter_helper import ParseError
 from .syntax_wrapper import VexValue
@@ -256,7 +255,7 @@ class Instruction(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _lookup_register(arch, reg):
-        return guest_offsets.get((arch.name.lower(), reg))
+        return arch.translate_register_name(reg)
 
     def get(self, reg, ty):
         """

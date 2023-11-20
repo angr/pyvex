@@ -66,7 +66,6 @@ class PyvexArch:
         for (arch, reg), offset2 in subregister_map.items():
             if arch == self.vex_name_small and offset2 == offset:
                 return reg
-        print("nope")
         return str(offset)
 
     def get_register_offset(self, name: str) -> int:
