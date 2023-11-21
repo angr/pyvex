@@ -314,7 +314,7 @@ class Instruction_tMSR(ThumbInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         dest_spec_reg = int(self.data["x"], 2)
-        src_reg = int(self.data["r"], 2)
+        src_reg = f"r{int(self.data['r'], 2)}"
 
         # If 0, do not write the SPSR
         if self.data["R"] == "0":
