@@ -181,7 +181,7 @@ class Instruction_STM(ARMInstruction):
         return True
 
     def compute_result(self):  # pylint: disable=arguments-differ
-        log.warning(
+        log.debug(
             "Ignoring STMxx ^ instruction at %#x. This mode is not implemented by VEX! "
             "See pyvex/lifting/gym/arm_spotter.py",
             self.addr,
@@ -200,7 +200,7 @@ class Instruction_LDM(ARMInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         # test if PC will be set. If so, the jumpkind of this block should be Ijk_Ret
-        log.warning("Spotting an LDM instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr)
+        log.debug("Spotting an LDM instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr)
         # l.warning(repr(self.rawbits))
         # l.warning(repr(self.data))
 
@@ -324,15 +324,15 @@ class Instruction_tMSR(ThumbInstruction):
                 src = self.get(src_reg, Type.int_32)
                 self.put(src, "primask")
             else:
-                log.warning(
+                log.debug(
                     "[thumb] FIXME: tMSR at %#x is writing into an unsupported special register %#x. "
                     "Ignoring the instruction.",
                     self.addr,
                     dest_spec_reg,
                 )
         else:
-            log.warning("[thumb] tMSR at %#x is writing SPSR. Ignoring the instruction. FixMe.", self.addr)
-        log.warning(
+            log.debug("[thumb] tMSR at %#x is writing SPSR. Ignoring the instruction. FixMe.", self.addr)
+        log.debug(
             "[thumb] Spotting an tMSR instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr
         )
 
@@ -357,16 +357,16 @@ class Instruction_tMRS(ThumbInstruction):
                 src = self.get("primask", Type.int_32)
                 self.put(src, dest_reg)
             else:
-                log.warning(
+                log.debug(
                     "[thumb] FIXME: tMRS at %#x is using the unsupported special register %#x. "
                     "Ignoring the instruction.",
                     self.addr,
                     spec_reg,
                 )
         else:
-            log.warning("[thumb] tMRS at %#x is reading from SPSR. Ignoring the instruction. FixMe.", self.addr)
+            log.debug("[thumb] tMRS at %#x is reading from SPSR. Ignoring the instruction. FixMe.", self.addr)
             log.debug("[thumb] Ignoring tMRS instruction at %#x.", self.addr)
-        log.warning(
+        log.debug(
             "[thumb] Spotting an tMRS instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr
         )
 
