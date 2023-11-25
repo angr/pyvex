@@ -136,11 +136,11 @@ class GymratLifter(Lifter):
         insts = self.disassemble()
         for addr, name, args in insts:
             args_str = ",".join(str(a) for a in args)
-            disasstr += f"{addr:0#8x}:\t{name} {args_str}\n"
+            disasstr += f"{addr:#08x}:\t{name} {args_str}\n"
         print(disasstr)
 
     def error(self):
         return self.errors
 
     def disassemble(self):
-        return self.lift(disassemble=True)
+        return self._lift(disassemble=True)
