@@ -60,7 +60,7 @@ class Lifter:
         collect_data_refs=False,
         cross_insn_opt=True,
         load_from_ro_regions=False,
-        **kwargs
+        **kwargs,
     ):
         """
         Wrapper around the `_lift` method on Lifters. Should not be overridden in child classes.
