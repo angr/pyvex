@@ -60,7 +60,6 @@ class Lifter:
         collect_data_refs=False,
         cross_insn_opt=True,
         load_from_ro_regions=False,
-        **kwargs,
     ):
         """
         Wrapper around the `_lift` method on Lifters. Should not be overridden in child classes.
@@ -96,7 +95,7 @@ class Lifter:
         self.irsb = irsb
         self.cross_insn_opt = cross_insn_opt
         self.load_from_ro_regions = load_from_ro_regions
-        self._lift(**kwargs)
+        self._lift()
         return self.irsb
 
     def _lift(self):
