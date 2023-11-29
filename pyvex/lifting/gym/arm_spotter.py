@@ -415,7 +415,7 @@ class ARMSpotter(GymratLifter):
         super().__init__(*args)
         self.thumb: bool = False
 
-    def _lift(self, disassemble=False, dump_irsb=False):
+    def _lift(self):
         if self.irsb.addr & 1:
             # Thumb!
             self.instrs = self.thumb_instrs
@@ -423,4 +423,4 @@ class ARMSpotter(GymratLifter):
         else:
             self.instrs = self.arm_instrs
             self.thumb = False
-        super()._lift(disassemble, dump_irsb)
+        super()._lift()
