@@ -97,7 +97,7 @@ class GymratLifter(Lifter):
             log.exception(f"Error decoding block at offset {bytepos:#x} (address {addr:#x}):")
             raise
 
-    def _lift(self, disassemble=False, dump_irsb=False):
+    def _lift(self):
         self.thedata = (
             self.data[: self.max_bytes]
             if isinstance(self.data, (bytes, bytearray, memoryview))
@@ -106,7 +106,7 @@ class GymratLifter(Lifter):
         log.debug(repr(self.thedata))
         instructions = self.decode()
 
-        if disassemble:
+        if self.return_disasm:
             return [instr.disassemble() for instr in instructions]
         self.irsb.jumpkind = JumpKind.Invalid
         irsb_c = IRSBCustomizer(self.irsb)
@@ -127,7 +127,7 @@ class GymratLifter(Lifter):
             dst_ty = vex_int_class(irsb_c.irsb.arch.bits).type
             irsb_c.irsb.next = irsb_c.mkconst(dst, dst_ty)
         log.debug(self.irsb._pp_str())
-        if dump_irsb:
+        if self.dump_irsb:
             self.irsb.pp()
         return self.irsb
 
@@ -143,4 +143,4 @@ class GymratLifter(Lifter):
         return self.errors
 
     def disassemble(self):
-        return self._lift(disassemble=True)
+        return self.lift(self.data, return_disasm=True)
