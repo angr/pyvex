@@ -62,7 +62,7 @@ class Lifter:
         load_from_ro_regions=False,
     ):
         """
-        Wrapper around the `_lift` method on Lifters. Most of the time, you should override `_lift` instead of `lift`.
+        Wrapper around the `_lift` method on Lifters. Should not be overridden in child classes.
 
         :param data:                The bytes to lift as either a python string of bytes or a cffi buffer object.
         :param bytes_offset:        The offset into `data` to start lifting at.
@@ -95,7 +95,8 @@ class Lifter:
         self.irsb = irsb
         self.cross_insn_opt = cross_insn_opt
         self.load_from_ro_regions = load_from_ro_regions
-        return self._lift()
+        self._lift()
+        return self.irsb
 
     def _lift(self):
         """
