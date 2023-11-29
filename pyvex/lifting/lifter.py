@@ -103,7 +103,8 @@ class Lifter:
         self.load_from_ro_regions = load_from_ro_regions
         self.return_disasm = return_disasm
         self.dump_irsb = dump_irsb
-        return self._lift()
+        self._lift()
+        return self.irsb
 
     def _lift(self):
         """
