@@ -255,7 +255,7 @@ class Instruction(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _lookup_register(arch, reg):
-        return arch.translate_register_name(reg)
+        return arch.get_register_offset(reg)
 
     def get(self, reg, ty):
         """

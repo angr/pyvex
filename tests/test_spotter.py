@@ -101,7 +101,7 @@ def test_tmrs():
     b = pyvex.block.IRSB(ins, 1, arch)
     assert b.jumpkind == "Ijk_Boring"
     assert type(b.statements[1].data) == pyvex.expr.Get
-    assert arch.translate_register_name(b.statements[1].data.offset) == "sp"
+    assert arch.translate_register_name(b.statements[1].data.offset) in ["sp", "r13"]
     assert type(b.statements[2]) == pyvex.stmt.Put
 
 

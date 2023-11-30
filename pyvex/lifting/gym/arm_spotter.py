@@ -344,7 +344,7 @@ class Instruction_tMRS(ThumbInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         spec_reg = int(self.data["x"], 2)
-        dest_reg = int(self.data["m"], 2)
+        dest_reg = f"r{int(self.data['m'], 2)}"
 
         # Reading from CPSR
         if self.data["R"] == "0":
