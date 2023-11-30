@@ -38,6 +38,7 @@ class GymratLifter(Lifter):
         "bitstrm",
         "errors",
         "thedata",
+        "disassembly",
     )
 
     REQUIRE_DATA_PY = True
@@ -48,6 +49,7 @@ class GymratLifter(Lifter):
         self.bitstrm = None
         self.errors = None
         self.thedata = None
+        self.disassembly = None
 
     def create_bitstrm(self):
         self.bitstrm = bitstring.ConstBitStream(bytes=self.thedata)
@@ -106,8 +108,8 @@ class GymratLifter(Lifter):
         log.debug(repr(self.thedata))
         instructions = self.decode()
 
-        if self.return_disasm:
-            return [instr.disassemble() for instr in instructions]
+        if self.disasm:
+            self.disassembly = [instr.disassemble() for instr in instructions]
         self.irsb.jumpkind = JumpKind.Invalid
         irsb_c = IRSBCustomizer(self.irsb)
         log.debug("Decoding complete.")
@@ -143,4 +145,6 @@ class GymratLifter(Lifter):
         return self.errors
 
     def disassemble(self):
-        return self.lift(self.data, return_disasm=True)
+        if self.disassembly is None:
+            self.lift(self.data, disasm=True)
+        return self.disassembly

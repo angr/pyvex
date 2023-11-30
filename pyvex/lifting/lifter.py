@@ -20,7 +20,7 @@ class Lifter:
         "addr",
         "cross_insn_opt",
         "load_from_ro_regions",
-        "return_disasm",
+        "disasm",
         "dump_irsb",
     )
 
@@ -62,7 +62,7 @@ class Lifter:
         collect_data_refs=False,
         cross_insn_opt=True,
         load_from_ro_regions=False,
-        return_disasm=False,
+        disasm=False,
         dump_irsb=False,
     ):
         """
@@ -84,7 +84,7 @@ class Lifter:
         :param skip_stmts:          Should the lifter skip transferring IRStmts from C to Python.
         :param collect_data_refs:   Should the LibVEX lifter collect data references in C.
         :param cross_insn_opt:      If cross-instruction-boundary optimizations are allowed or not.
-        :param return_disasm:       Should the GymratLifter return a disassembly of the lifted block instead of an IRSB.
+        :param disasm:              Should the GymratLifter generate disassembly during lifting.
         :param dump_irsb:           Should the GymratLifter log the lifted IRSB.
         """
         irsb = IRSB.empty_block(self.arch, self.addr)
@@ -101,7 +101,7 @@ class Lifter:
         self.irsb = irsb
         self.cross_insn_opt = cross_insn_opt
         self.load_from_ro_regions = load_from_ro_regions
-        self.return_disasm = return_disasm
+        self.disasm = disasm
         self.dump_irsb = dump_irsb
         self._lift()
         return self.irsb
