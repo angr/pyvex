@@ -38,6 +38,7 @@ class GymratLifter(Lifter):
         "bitstrm",
         "errors",
         "thedata",
+        "disassembly",
     )
 
     REQUIRE_DATA_PY = True
@@ -48,6 +49,7 @@ class GymratLifter(Lifter):
         self.bitstrm = None
         self.errors = None
         self.thedata = None
+        self.disassembly = None
 
     def create_bitstrm(self):
         self.bitstrm = bitstring.ConstBitStream(bytes=self.thedata)
@@ -97,7 +99,7 @@ class GymratLifter(Lifter):
             log.exception(f"Error decoding block at offset {bytepos:#x} (address {addr:#x}):")
             raise
 
-    def _lift(self, disassemble=False, dump_irsb=False):
+    def _lift(self):
         self.thedata = (
             self.data[: self.max_bytes]
             if isinstance(self.data, (bytes, bytearray, memoryview))
@@ -106,8 +108,8 @@ class GymratLifter(Lifter):
         log.debug(repr(self.thedata))
         instructions = self.decode()
 
-        if disassemble:
-            return [instr.disassemble() for instr in instructions]
+        if self.disasm:
+            self.disassembly = [instr.disassemble() for instr in instructions]
         self.irsb.jumpkind = JumpKind.Invalid
         irsb_c = IRSBCustomizer(self.irsb)
         log.debug("Decoding complete.")
@@ -127,7 +129,7 @@ class GymratLifter(Lifter):
             dst_ty = vex_int_class(irsb_c.irsb.arch.bits).type
             irsb_c.irsb.next = irsb_c.mkconst(dst, dst_ty)
         log.debug(self.irsb._pp_str())
-        if dump_irsb:
+        if self.dump_irsb:
             self.irsb.pp()
         return self.irsb
 
@@ -136,11 +138,13 @@ class GymratLifter(Lifter):
         insts = self.disassemble()
         for addr, name, args in insts:
             args_str = ",".join(str(a) for a in args)
-            disasstr += f"{addr:0#8x}:\t{name} {args_str}\n"
+            disasstr += f"{addr:#08x}:\t{name} {args_str}\n"
         print(disasstr)
 
     def error(self):
         return self.errors
 
     def disassemble(self):
-        return self.lift(disassemble=True)
+        if self.disassembly is None:
+            self.lift(self.data, disasm=True)
+        return self.disassembly
