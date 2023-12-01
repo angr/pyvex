@@ -19,7 +19,7 @@ class TestPyvex(unittest.TestCase):
         sys.platform == "linux", "Cannot import the resource package on windows, values different on macos."
     )
     def test_memory(self):
-        arches = [pyvex.ARCH_X86, pyvex.ARCH_PPC32, pyvex.ARCH_AMD64, pyvex.ARCH_ARM32_BE]
+        arches = [pyvex.ARCH_X86, pyvex.ARCH_PPC32, pyvex.ARCH_AMD64, pyvex.ARCH_ARM_BE]
         # we're not including ArchMIPS32 cause it segfaults sometimes
 
         # disable logging, as that may fill up log buffers somewhere
