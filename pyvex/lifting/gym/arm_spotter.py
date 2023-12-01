@@ -202,10 +202,8 @@ class Instruction_LDM(ARMInstruction):
     def compute_result(self):  # pylint: disable=arguments-differ
         # test if PC will be set. If so, the jumpkind of this block should be Ijk_Ret
         log.debug("Spotting an LDM instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr)
-        # l.warning(repr(self.rawbits))
-        # l.warning(repr(self.data))
 
-        src_n = int(self.data["b"], 2)
+        src_n = f"r{int(self.data['b'], 2)}"
         src = self.get(src_n, Type.int_32)
 
         for reg_num, bit in enumerate(self.data["r"]):
@@ -217,7 +215,7 @@ class Instruction_LDM(ARMInstruction):
                     else:
                         src -= 4
                 val = self.load(src, Type.int_32)
-                self.put(val, reg_num)
+                self.put(val, f"r{reg_num}")
                 if self.data["P"] == "0":
                     if self.data["U"] == "0":
                         src += 4
