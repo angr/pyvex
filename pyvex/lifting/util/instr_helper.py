@@ -257,8 +257,11 @@ class Instruction(metaclass=abc.ABCMeta):
     def _lookup_register(arch, reg):
         # TODO: This is a hack to make it work with archinfo where we use
         # register indicies instead of names
-        if isinstance(reg, int) and hasattr(arch, "registers") and hasattr(arch, "register_index"):
-            return arch.registers[arch.register_index[reg]][0]
+        if isinstance(reg, int):
+            if hasattr(arch, "register_index"):
+                reg = arch.register_index[reg]
+            else:
+                reg = arch.register_list[reg].name
         return arch.get_register_offset(reg)
 
     def get(self, reg, ty):
