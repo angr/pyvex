@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, Dict, List
 
 from .native import ffi, pvc
 from .utils import stable_hash
@@ -22,9 +22,9 @@ class VEXObject:
 
     def __hash__(self):
         values = [getattr(self, slot) for slot in self.__slots__]
-        for i in range(len(values)):
-            if isinstance(values[i], list):
-                values[i] = tuple(values[i])
+        for i, lst_val in enumerate(values):
+            if isinstance(lst_val, list):
+                values[i] = tuple(lst_val)
         return stable_hash(tuple([type(self)] + values))
 
 
@@ -55,7 +55,7 @@ class IRCallee(VEXObject):
 
     @staticmethod
     def _to_c(callee):  # pylint: disable=unused-argument
-        raise Exception(
+        raise TypeError(
             "This doesn't work! Please invent a way to get the correct address for the named function from pyvex_c."
         )
         # c_callee = pvc.mkIRCallee(callee.regparms,
@@ -95,9 +95,9 @@ class IRRegArray(VEXObject):
         return pvc.mkIRRegArray(arr.base, get_int_from_enum(arr.elemTy), arr.nElems)
 
 
-ints_to_enums = {}
-enums_to_ints = {}
-irop_enums_to_ints = {}
+ints_to_enums: Dict[int, str] = {}
+enums_to_ints: Dict[str, int] = {}
+irop_enums_to_ints: Dict[str, int] = {}
 will_be_overwritten = ["Ircr_GT", "Ircr_LT"]
 
 
@@ -109,12 +109,16 @@ def get_int_from_enum(e):
     return enums_to_ints[e]
 
 
+_add_enum_counter = 0
+
+
 def _add_enum(s, i=None):  # TODO get rid of this
+    global _add_enum_counter  # pylint: disable=global-statement
     if i is None:
-        while _add_enum.counter in ints_to_enums:
-            _add_enum.counter += 1
-        i = _add_enum.counter
-        _add_enum.counter += 1  # Update for the next iteration
+        while _add_enum_counter in ints_to_enums:
+            _add_enum_counter += 1
+        i = _add_enum_counter
+        _add_enum_counter += 1  # Update for the next iteration
     if i in ints_to_enums:
         if ints_to_enums[i] not in will_be_overwritten:
             raise ValueError("Enum with intkey %d already present" % i)
@@ -123,8 +127,6 @@ def _add_enum(s, i=None):  # TODO get rid of this
     if s.startswith("Iop_"):
         irop_enums_to_ints[s] = i
 
-
-_add_enum.counter = 0
 
 for attr in dir(pvc):
     if attr[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" and hasattr(pvc, attr) and isinstance(getattr(pvc, attr), int):
@@ -135,7 +137,7 @@ def vex_endness_from_string(endness_str):
     return getattr(pvc, endness_str)
 
 
-def default_vex_archinfo():
+def default_vex_archinfo() -> Dict[str, Any]:
     return {
         "hwcaps": 0,
         "endness": vex_endness_from_string("VexEndnessLE"),

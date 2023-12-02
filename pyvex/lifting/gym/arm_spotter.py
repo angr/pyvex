@@ -5,6 +5,7 @@ import bitstring
 from pyvex.lifting.util import JumpKind, Type
 from pyvex.lifting.util.instr_helper import Instruction, ParseError
 from pyvex.lifting.util.lifter_helper import GymratLifter
+from pyvex.types import Arch
 
 log = logging.getLogger(__name__)
 
@@ -201,10 +202,8 @@ class Instruction_LDM(ARMInstruction):
     def compute_result(self):  # pylint: disable=arguments-differ
         # test if PC will be set. If so, the jumpkind of this block should be Ijk_Ret
         log.debug("Spotting an LDM instruction at %#x.  This is not fully tested.  Prepare for errors.", self.addr)
-        # l.warning(repr(self.rawbits))
-        # l.warning(repr(self.data))
 
-        src_n = int(self.data["b"], 2)
+        src_n = f"r{int(self.data['b'], 2)}"
         src = self.get(src_n, Type.int_32)
 
         for reg_num, bit in enumerate(self.data["r"]):
@@ -216,7 +215,7 @@ class Instruction_LDM(ARMInstruction):
                     else:
                         src -= 4
                 val = self.load(src, Type.int_32)
-                self.put(val, reg_num)
+                self.put(val, f"r{reg_num}")
                 if self.data["P"] == "0":
                     if self.data["U"] == "0":
                         src += 4
@@ -313,7 +312,7 @@ class Instruction_tMSR(ThumbInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         dest_spec_reg = int(self.data["x"], 2)
-        src_reg = int(self.data["r"], 2)
+        src_reg = f"r{int(self.data['r'], 2)}"
 
         # If 0, do not write the SPSR
         if self.data["R"] == "0":
@@ -343,7 +342,7 @@ class Instruction_tMRS(ThumbInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         spec_reg = int(self.data["x"], 2)
-        dest_reg = int(self.data["m"], 2)
+        dest_reg = f"r{int(self.data['m'], 2)}"
 
         # Reading from CPSR
         if self.data["R"] == "0":
@@ -411,8 +410,8 @@ class ARMSpotter(GymratLifter):
         Instruction_LDC_THUMB,
     ]
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, arch: Arch, addr: int):
+        super().__init__(arch, addr)
         self.thumb: bool = False
 
     def _lift(self):

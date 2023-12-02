@@ -1,5 +1,5 @@
 import struct
-from typing import Tuple
+from typing import Any, Callable, Dict, Tuple
 
 try:
     import _md5 as md5lib
@@ -54,7 +54,7 @@ def _dump_type(t: type) -> bytes:
     return t.__name__.encode("ascii")
 
 
-_DUMP_BY_TYPE = {
+_DUMP_BY_TYPE: Dict[type, Callable[[Any], bytes]] = {
     tuple: _dump_tuple,
     str: _dump_str,
     int: _dump_int,

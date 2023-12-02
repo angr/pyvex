@@ -1,5 +1,6 @@
 import abc
 import string
+from typing import Dict
 
 import bitstring
 
@@ -67,8 +68,8 @@ class Instruction(metaclass=abc.ABCMeta):
     See the examples provided by gymrat for ideas of how to use this to build your own lifters quickly and easily.
     """
 
-    data = None
-    irsb_c = None
+    data: Dict[str, str]
+    irsb_c: IRSBCustomizer
 
     def __init__(self, bitstrm, arch, addr):
         """
@@ -254,6 +255,8 @@ class Instruction(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _lookup_register(arch, reg):
+        # TODO: This is a hack to make it work with archinfo where we use
+        # register indicies instead of names
         if isinstance(reg, int):
             if hasattr(arch, "register_index"):
                 reg = arch.register_index[reg]

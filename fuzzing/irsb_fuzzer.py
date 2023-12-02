@@ -26,7 +26,6 @@ with atheris.instrument_imports(include=["pyvex"]):
     import pyvex
 
 # Additional imports
-import archinfo
 from enhanced_fdp import EnhancedFuzzedDataProvider
 
 register_error_msg = re.compile("Register .*? does not exist!")
@@ -44,7 +43,22 @@ def nostdout():
 
 
 # Save all available architectures off
-available_archs = [tup[3]() for tup in archinfo.arch.arch_id_map if len(tup) >= 3]
+available_archs = [
+    pyvex.ARCH_X86,
+    pyvex.ARCH_AMD64,
+    pyvex.ARCH_ARM_LE,
+    pyvex.ARCH_ARM_BE,
+    pyvex.ARCH_ARM64_LE,
+    pyvex.ARCH_ARM64_BE,
+    pyvex.ARCH_PPC32,
+    pyvex.ARCH_PPC64_BE,
+    pyvex.ARCH_PPC64_LE,
+    pyvex.ARCH_S390X,
+    pyvex.ARCH_MIPS32_BE,
+    pyvex.ARCH_MIPS32_LE,
+    pyvex.ARCH_MIPS64_BE,
+    pyvex.ARCH_MIPS64_LE,
+]
 
 
 class SupportedOptLevels(IntEnum):
@@ -58,7 +72,7 @@ class SupportedOptLevels(IntEnum):
     StrictOpt = 2
 
 
-def consume_random_arch(fdp: atheris.FuzzedDataProvider) -> archinfo.Arch:
+def consume_random_arch(fdp: atheris.FuzzedDataProvider) -> pyvex.arches.PyvexArch:
     return fdp.PickValueInList(available_archs)
 
 

@@ -1,5 +1,3 @@
-import archinfo
-
 import pyvex
 
 
@@ -11,7 +9,7 @@ def test_mips32_unconditional_jumps():
     irsb = pyvex.IRSB(
         data=(b"\x10\x00\x00\x02" b"\x00\x00\x00\x00"),
         mem_addr=0x40000C,
-        arch=archinfo.ArchMIPS32(),
+        arch=pyvex.ARCH_MIPS32_BE,
         num_inst=2,
         opt_level=0,
     )

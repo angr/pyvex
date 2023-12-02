@@ -10,10 +10,11 @@ from .native import ffi, pvc
 class IRConst(VEXObject):
     __slots__ = ["_value"]
 
-    type: Optional[str] = None
-    size = None
-    tag: Optional[str] = None
+    type: str
+    size: Optional[int] = None
+    tag: str
     c_constructor = None
+    _value: int
 
     def pp(self):
         print(self.__str__())

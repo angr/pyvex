@@ -1,7 +1,7 @@
 import copy
 import itertools
 import logging
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from . import expr, stmt
 from .const import get_type_size
@@ -10,7 +10,20 @@ from .enums import VEXObject
 from .errors import SkipStatementsError
 from .expr import RdTmp
 from .native import pvc
-from .stmt import CAS, LLSC, Dirty, Exit, IMark, IRExpr, IRStmt, LoadG, WrTmp, get_enum_from_int, get_int_from_enum
+from .stmt import (
+    CAS,
+    LLSC,
+    Dirty,
+    Exit,
+    IMark,
+    IRExpr,
+    IRStmt,
+    LoadG,
+    WrTmp,
+    get_enum_from_int,
+    get_int_from_enum,
+)
+from .types import Arch
 
 log = logging.getLogger("pyvex.block")
 
@@ -23,8 +36,7 @@ class IRSB(VEXObject):
     IRSB stands for *Intermediate Representation Super-Block*. An IRSB in VEX is a single-entry, multiple-exit code
     block.
 
-    :ivar arch:             The architecture this block is lifted under
-    :vartype arch:          :class:`archinfo.Arch`
+    :ivar arch:             The architecture this block is lifted under. Must duck-type as :class:`archinfo.arch.Arch`
     :ivar statements:       The statements in this block
     :vartype statements:    list of :class:`IRStmt`
     :ivar next:             The expression for the default exit target of this block
@@ -61,7 +73,7 @@ class IRSB(VEXObject):
         self,
         data,
         mem_addr,
-        arch,
+        arch: Arch,
         max_inst=None,
         max_bytes=None,
         bytes_offset=0,
@@ -80,7 +92,6 @@ class IRSB(VEXObject):
         :type data:                 str or bytes or cffi.FFI.CData or None
         :param int mem_addr:        The address to lift the data at.
         :param arch:                The architecture to lift the data as.
-        :type arch:                 :class:`archinfo.Arch`
         :param max_inst:            The maximum number of instructions to lift. (See note below)
         :param max_bytes:           The maximum number of bytes to use.
         :param num_inst:            Replaces max_inst if max_inst is None. If set to None as well, no instruction limit
@@ -112,19 +123,19 @@ class IRSB(VEXObject):
             max_bytes = num_bytes
         VEXObject.__init__(self)
         self.addr = mem_addr
-        self.arch = arch
+        self.arch: Arch = arch
 
         self.statements: List[IRStmt] = []
         self.next: Optional[IRExpr] = None
-        self._tyenv = None
+        self._tyenv: Optional["IRTypeEnv"] = None
         self.jumpkind: Optional[str] = None
-        self._direct_next = None
-        self._size = None
-        self._instructions = None
-        self._exit_statements = None
+        self._direct_next: Optional[bool] = None
+        self._size: Optional[int] = None
+        self._instructions: Optional[int] = None
+        self._exit_statements: Optional[Tuple[Tuple[int, int, IRStmt], ...]] = None
         self.default_exit_target = None
         self.data_refs = ()
-        self._instruction_addresses = ()
+        self._instruction_addresses: Tuple[int, ...] = ()
 
         if data is not None:
             # This is the slower path (because we need to call _from_py() to copy the content in the returned IRSB to
@@ -155,7 +166,7 @@ class IRSB(VEXObject):
         return block
 
     @property
-    def tyenv(self):
+    def tyenv(self) -> "IRTypeEnv":
         if self._tyenv is None:
             self._tyenv = IRTypeEnv(self.arch)
         return self._tyenv
@@ -165,34 +176,35 @@ class IRSB(VEXObject):
         self._tyenv = v
 
     @property
-    def has_statements(self):
-        return self.statements is not None and self.statements
+    def has_statements(self) -> bool:
+        return self.statements is not None and bool(self.statements)
 
     @property
-    def exit_statements(self):
+    def exit_statements(self) -> Tuple[Tuple[int, int, IRStmt], ...]:
         if self._exit_statements is not None:
             return self._exit_statements
 
         # Delayed process
         if not self.has_statements:
-            return []
+            return ()
 
-        self._exit_statements = []
+        exit_statements = []
 
         ins_addr = None
         for idx, stmt_ in enumerate(self.statements):
             if type(stmt_) is IMark:
                 ins_addr = stmt_.addr + stmt_.delta
             elif type(stmt_) is Exit:
-                self._exit_statements.append((ins_addr, idx, stmt_))
+                assert ins_addr is not None
+                exit_statements.append((ins_addr, idx, stmt_))
 
-        self._exit_statements = tuple(self._exit_statements)
+        self._exit_statements = tuple(exit_statements)
         return self._exit_statements
 
-    def copy(self):
+    def copy(self) -> "IRSB":
         return copy.deepcopy(self)
 
-    def extend(self, extendwith):
+    def extend(self, extendwith) -> None:
         """
         Appends an irsb to the current irsb. The irsb that is appended is invalidated. The appended irsb's jumpkind and
         default exit are used.
@@ -268,10 +280,10 @@ class IRSB(VEXObject):
 
         # TODO: Change exit_statements, data_references, etc.
 
-    def invalidate_direct_next(self):
+    def invalidate_direct_next(self) -> None:
         self._direct_next = None
 
-    def pp(self):
+    def pp(self) -> None:
         """
         Pretty-print the IRSB to stdout.
         """
@@ -296,7 +308,7 @@ class IRSB(VEXObject):
     def __hash__(self):
         return hash((IRSB, self.addr, self.arch.name, tuple(self.statements), self.next, self.jumpkind))
 
-    def typecheck(self):
+    def typecheck(self) -> bool:
         try:
             # existence assertions
             assert self.next is not None, "Missing next expression"
@@ -338,13 +350,13 @@ class IRSB(VEXObject):
     #
 
     @staticmethod
-    def from_c(c_irsb, mem_addr, arch):
+    def from_c(c_irsb, mem_addr, arch) -> "IRSB":
         irsb = IRSB(None, mem_addr, arch)
         irsb._from_c(c_irsb)
         return irsb
 
     @staticmethod
-    def from_py(tyenv, stmts, next_expr, jumpkind, mem_addr, arch):
+    def from_py(tyenv, stmts, next_expr, jumpkind, mem_addr, arch) -> "IRSB":
         irsb = IRSB(None, mem_addr, arch)
 
         irsb.tyenv = tyenv
@@ -360,13 +372,13 @@ class IRSB(VEXObject):
     #
 
     @property
-    def stmts_used(self):
+    def stmts_used(self) -> int:
         if self.statements is None:
             return 0
         return len(self.statements)
 
     @property
-    def offsIP(self):
+    def offsIP(self) -> int:
         return self.arch.ip_offset
 
     @property
@@ -397,15 +409,17 @@ class IRSB(VEXObject):
         return self._instructions
 
     @property
-    def instruction_addresses(self):
+    def instruction_addresses(self) -> Tuple[int, ...]:
         """
         Addresses of instructions in this block.
         """
         if self._instruction_addresses is None:
             if self.statements is None:
-                self._instruction_addresses = []
+                self._instruction_addresses = ()
             else:
-                self._instruction_addresses = [(s.addr + s.delta) for s in self.statements if type(s) is stmt.IMark]
+                self._instruction_addresses = tuple(
+                    (s.addr + s.delta) for s in self.statements if type(s) is stmt.IMark
+                )
         return self._instruction_addresses
 
     @property
@@ -481,11 +495,9 @@ class IRSB(VEXObject):
     # private methods
     #
 
-    def _pp_str(self):
+    def _pp_str(self) -> str:
         """
         Return the pretty-printed IRSB.
-
-        :rtype: str
         """
         sa = []
         sa.append("IRSB {")
@@ -495,17 +507,17 @@ class IRSB(VEXObject):
         if self.statements is not None:
             for i, s in enumerate(self.statements):
                 if isinstance(s, stmt.Put):
-                    stmt_str = s.__str__(
+                    stmt_str = s._pp_str(
                         reg_name=self.arch.translate_register_name(s.offset, s.data.result_size(self.tyenv) // 8)
                     )
                 elif isinstance(s, stmt.WrTmp) and isinstance(s.data, expr.Get):
-                    stmt_str = s.__str__(
+                    stmt_str = s._pp_str(
                         reg_name=self.arch.translate_register_name(s.data.offset, s.data.result_size(self.tyenv) // 8)
                     )
                 elif isinstance(s, stmt.Exit):
-                    stmt_str = s.__str__(reg_name=self.arch.translate_register_name(s.offsIP, self.arch.bits // 8))
+                    stmt_str = s._pp_str(reg_name=self.arch.translate_register_name(s.offsIP, self.arch.bits // 8))
                 else:
-                    stmt_str = s.__str__()
+                    stmt_str = s._pp_str()
                 sa.append("   %02d | %s" % (i, stmt_str))
         else:
             sa.append("   Statements are omitted.")
@@ -543,7 +555,7 @@ class IRSB(VEXObject):
         self._instruction_addresses = tuple(itertools.islice(lift_r.inst_addrs, lift_r.insts))
 
         # Conditional exits
-        self._exit_statements = []
+        exit_statements = []
         if skip_stmts:
             if lift_r.exit_count > self.MAX_EXITS:
                 # There are more exits than the default size of the exits array. We will need all statements
@@ -551,9 +563,9 @@ class IRSB(VEXObject):
             for i in range(lift_r.exit_count):
                 ex = lift_r.exits[i]
                 exit_stmt = stmt.IRStmt._from_c(ex.stmt)
-                self._exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt))
+                exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt))
 
-            self._exit_statements = tuple(self._exit_statements)
+            self._exit_statements = tuple(exit_statements)
         else:
             self._exit_statements = None  # It will be generated when self.exit_statements is called
         # The default exit

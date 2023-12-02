@@ -1,10 +1,8 @@
-import archinfo
-
 import pyvex
 
 
 def test_s390x_lochi():
-    arch = archinfo.ArchS390X()
+    arch = pyvex.ARCH_S390X
     irsb = pyvex.lift(b"\xec\x18\xab\xcd\x00\x42", 0x400400, arch)  # lochi %r1,0xabcd,8
     irsb_str = str(irsb)
 

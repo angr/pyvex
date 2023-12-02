@@ -1,7 +1,6 @@
 import unittest
 
-import archinfo
-
+import pyvex
 from pyvex import IRSB, ffi, lift
 from pyvex.errors import PyVEXError
 from pyvex.lifting.util import GymratLifter, Instruction, JumpKind
@@ -25,7 +24,7 @@ class TestLift(unittest.TestCase):
         class NOPLifter(GymratLifter):
             instrs = [NOP]
 
-        lifter = NOPLifter(archinfo.ArchAMD64(), 0)
+        lifter = NOPLifter(pyvex.ARCH_AMD64, 0)
         # this should not throw an exception
         block = lifter.lift("\x0F\x0Fa")
         assert block.size == 2
@@ -51,7 +50,7 @@ class TestLift(unittest.TestCase):
             "3069C059B4C93049B4E9350ABCDF834C1CDF83CE185E8030094"
             "E803004B9683E8030015A94498C4F7E2EA "
         )
-        arch = archinfo.arch_from_id("ARMEL")
+        arch = pyvex.ARCH_ARM_LE
         # Lifting the first four bytes will not cause any problem. Statements should be skipped as expected
         b = IRSB(bytes_[:34], 0xC6951, arch, opt_level=1, bytes_offset=5, skip_stmts=True)
         assert len(b.exit_statements) > 0
@@ -69,7 +68,7 @@ class TestLift(unittest.TestCase):
 
     def test_max_bytes(self):
         data = bytes.fromhex("909090909090c3")
-        arch = archinfo.ArchX86()
+        arch = pyvex.ARCH_X86
         assert lift(data, 0x1000, arch, max_bytes=None).size == len(data)
         assert lift(data, 0x1000, arch, max_bytes=len(data) - 1).size == len(data) - 1
         assert lift(data, 0x1000, arch, max_bytes=len(data) + 1).size == len(data)

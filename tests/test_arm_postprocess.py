@@ -1,5 +1,3 @@
-import archinfo
-
 import pyvex
 
 
@@ -19,7 +17,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\x80\xb4" b"\x00\xaf" b"\x4f\xf0\x06\x01" b"\x78\x46" b"\x00\xeb\x01\x0e" b"\xff\xf7\xec\xbf"),
             mem_addr=0x1041F,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=6,
             bytes_offset=1,
             opt_level=i,
@@ -31,7 +29,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\xfe\x46" b"\xe9\xe7"),
             mem_addr=0x10431,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=2,
             bytes_offset=1,
             opt_level=i,
@@ -44,7 +42,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\x00\xa2" b"\x02\xf1\x06\x0e" b"\xdf\xf8\x34\xf0"),
             mem_addr=0x10435,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=3,
             bytes_offset=1,
             opt_level=i,
@@ -69,7 +67,7 @@ def test_arm_postprocess_call():
                 b"\x87\x46"
             ),
             mem_addr=0x1043F,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=7,
             bytes_offset=1,
             opt_level=i,
@@ -82,7 +80,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\x80\xea\x00\x00" b"\x86\x46" b"\x01\xe0"),
             mem_addr=0x10455,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=3,
             bytes_offset=1,
             opt_level=i,
@@ -98,7 +96,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\x4f\xf0\x06\x01" b"\x78\x46" b"\x00\xeb\x01\x0e" b"\x00\xf0\xc5\xb8"),
             mem_addr=0x10325,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=4,
             bytes_offset=1,
             opt_level=i,
@@ -123,7 +121,7 @@ def test_arm_postprocess_call():
                 b"\x87\x46"
             ),
             mem_addr=0x10333,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=7,
             bytes_offset=1,
             opt_level=i,
@@ -136,7 +134,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\x00\xa2" b"\x02\xf1\x06\x0e" b"\xdf\xf8\x1c\xf0"),
             mem_addr=0x10349,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=3,
             bytes_offset=1,
             opt_level=i,
@@ -148,7 +146,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\xfe\x46" b"\xb2\xe0"),
             mem_addr=0x10353,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=2,
             bytes_offset=1,
             opt_level=i,
@@ -161,7 +159,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\x80\xea\x00\x00" b"\x86\x46" b"\x01\xe0"),
             mem_addr=0x10357,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=3,
             bytes_offset=1,
             opt_level=i,
@@ -177,7 +175,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\x04\x10\xa0\xe3" b"\x0f\x00\xa0\xe1" b"\x01\xe0\x80\xe0" b"\x38\xf0\x9f\xe5"),
             mem_addr=0x10298,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=4,
             opt_level=i,
         )
@@ -199,7 +197,7 @@ def test_arm_postprocess_call():
                 b"\x54\x00\x00\xea"
             ),
             mem_addr=0x102A8,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=6,
             opt_level=i,
         )
@@ -210,7 +208,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\x0f\xe0\xa0\xe1" b"\x52\x00\x00\xea"),
             mem_addr=0x102C0,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=2,
             opt_level=i,
         )
@@ -222,7 +220,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\x00\x00\x20\xe0" b"\x00\xe0\xa0\xe1" b"\x00\x00\x00\xea"),
             mem_addr=0x102C8,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=3,
             opt_level=i,
         )
@@ -246,7 +244,7 @@ def test_arm_postprocess_call():
                 b"\x44\xf0\x9f\xe5"
             ),
             mem_addr=0x103E8,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=6,
             opt_level=i,
         )
@@ -268,7 +266,7 @@ def test_arm_postprocess_call():
                 b"\x54\xff\xff\xea"
             ),
             mem_addr=0x10400,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=6,
             opt_level=i,
         )
@@ -279,7 +277,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\x0f\xe0\xa0\xe1" b"\xe8\xff\xff\xea"),
             mem_addr=0x10418,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=2,
             opt_level=i,
         )
@@ -291,7 +289,7 @@ def test_arm_postprocess_call():
         irsb = pyvex.IRSB(
             data=(b"\x00\x00\x20\xe0" b"\x00\xe0\xa0\xe1" b"\x00\x00\x00\xea"),
             mem_addr=0x10420,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=3,
             opt_level=i,
         )
@@ -310,7 +308,7 @@ def test_arm_postprocess_call():
                 b"\x01\xf0\xa0\xe1"
             ),
             mem_addr=0x264B4C,
-            arch=archinfo.ArchARMEL(),
+            arch=pyvex.ARCH_ARM_LE,
             num_inst=6,
             opt_level=i,
         )
@@ -324,7 +322,7 @@ def test_arm_postprocess_ret():
         irsb = pyvex.IRSB(
             data=b"\xe9\x1b\xa8\xf0",
             mem_addr=0xED4028,
-            arch=archinfo.ArchARMEL(endness=archinfo.Endness.BE),
+            arch=pyvex.ARCH_ARM_BE_LE,
             num_inst=1,
             opt_level=i,
         )
@@ -335,7 +333,7 @@ def test_arm_postprocess_ret():
         irsb = pyvex.IRSB(
             data=b"\xe9\x1b\xa8\xf0",
             mem_addr=0x4D4028,
-            arch=archinfo.ArchARMEL(endness=archinfo.Endness.BE),
+            arch=pyvex.ARCH_ARM_BE_LE,
             num_inst=1,
             opt_level=i,
         )
@@ -347,7 +345,7 @@ def test_arm_postprocess_ret():
         irsb = pyvex.IRSB(
             data=b"\x00\xa8\x9d\xe8",
             mem_addr=0xC800B57C,
-            arch=archinfo.ArchARMEL(endness=archinfo.Endness.LE),
+            arch=pyvex.ARCH_ARM_BE,
             num_inst=1,
             opt_level=1,
         )

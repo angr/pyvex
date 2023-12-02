@@ -1,8 +1,10 @@
 import logging
 import threading
+from typing import TYPE_CHECKING
 
 from pyvex.errors import LiftingException
 from pyvex.native import ffi, pvc
+from pyvex.types import CLiftSource, LibvexArch
 
 from .lift_function import Lifter
 
@@ -49,11 +51,15 @@ class LibVEXLifter(Lifter):
         return bytes(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)).decode() if pvc.msg_buffer != ffi.NULL else None
 
     def _lift(self):
+        if TYPE_CHECKING:
+            assert isinstance(self.irsb.arch, LibvexArch)
+            assert isinstance(self.data, CLiftSource)
         try:
             _libvex_lock.acquire()
 
             pvc.log_level = log.getEffectiveLevel()
-            vex_arch = getattr(pvc, self.irsb.arch.vex_arch)
+            vex_arch = getattr(pvc, self.irsb.arch.vex_arch, None)
+            assert vex_arch is not None
 
             if self.bytes_offset is None:
                 self.bytes_offset = 0
