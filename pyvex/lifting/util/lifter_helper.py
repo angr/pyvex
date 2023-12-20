@@ -132,7 +132,7 @@ class GymratLifter(Lifter):
             dst = irsb_c.irsb.addr + irsb_c.irsb.size
             dst_ty = vex_int_class(irsb_c.irsb.arch.bits).type
             irsb_c.irsb.next = irsb_c.mkconst(dst, dst_ty)
-        log.debug(self.irsb._pp_str())
+        log.debug(str(self.irsb))
         if self.dump_irsb:
             self.irsb.pp()
         return self.irsb
