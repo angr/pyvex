@@ -507,17 +507,17 @@ class IRSB(VEXObject):
         if self.statements is not None:
             for i, s in enumerate(self.statements):
                 if isinstance(s, stmt.Put):
-                    stmt_str = s._pp_str(
+                    stmt_str = s.pp_str(
                         reg_name=self.arch.translate_register_name(s.offset, s.data.result_size(self.tyenv) // 8)
                     )
                 elif isinstance(s, stmt.WrTmp) and isinstance(s.data, expr.Get):
-                    stmt_str = s._pp_str(
+                    stmt_str = s.pp_str(
                         reg_name=self.arch.translate_register_name(s.data.offset, s.data.result_size(self.tyenv) // 8)
                     )
                 elif isinstance(s, stmt.Exit):
-                    stmt_str = s._pp_str(reg_name=self.arch.translate_register_name(s.offsIP, self.arch.bits // 8))
+                    stmt_str = s.pp_str(reg_name=self.arch.translate_register_name(s.offsIP, self.arch.bits // 8))
                 else:
-                    stmt_str = s._pp_str()
+                    stmt_str = s.pp_str()
                 sa.append("   %02d | %s" % (i, stmt_str))
         else:
             sa.append("   Statements are omitted.")

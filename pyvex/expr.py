@@ -297,11 +297,13 @@ class Get(IRExpr):
     def type(self):
         return get_enum_from_int(self.ty_int)
 
-    def _pp_str(self, reg_name=None):
-        if reg_name:
-            return f"GET:{self.ty[4:]}({reg_name})"
-        else:
-            return f"GET:{self.ty[4:]}(offset={self.offset})"
+    def _pp_str(self):
+        return f"GET:{self.ty[4:]}(offset={self.offset})"
+
+    def pp_str_with_name(self, reg_name: str):
+        """pp_str_with_name is used to print the expression with the name of the
+        register instead of the offset"""
+        return f"GET:{self.ty[4:]}({reg_name})"
 
     @staticmethod
     def _from_c(c_expr):
