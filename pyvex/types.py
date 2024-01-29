@@ -25,11 +25,9 @@ class Arch(Protocol):
     register_list: List[Register]
     registers: Dict[str, Tuple[int, int]]
 
-    def translate_register_name(self, offset: int, size: Optional[int] = None) -> Optional[str]:
-        ...
+    def translate_register_name(self, offset: int, size: Optional[int] = None) -> Optional[str]: ...
 
-    def get_register_offset(self, name: str) -> int:
-        ...
+    def get_register_offset(self, name: str) -> int: ...
 
 
 @runtime_checkable
