@@ -183,6 +183,11 @@ int vex_init() {
 #  if defined(__riscv_xlen) && (__riscv_xlen == 64)
 	vta.arch_host = VexArchRISCV64;
 #  endif
+
+#elif defined(__loongarch__)
+#  if defined(__loongarch_grlen) && (__loongarch_grlen == 64)
+	vta.arch_host = VexArchLOONGARCH64;
+#  endif
 #else
 #error "Unsupported host arch"
 #endif
