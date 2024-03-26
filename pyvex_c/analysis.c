@@ -446,12 +446,15 @@ Bool load_value(ULong addr, int size, int endness, void *value) {
 		return False;
 	}
 	unsigned char* ptr = NULL;
-	if (regions[pos].in_use && regions[pos].start <= addr &&
-			regions[pos].start + regions[pos].size >= addr + size) {
+	if (regions[pos].in_use &&
+		regions[pos].start <= addr &&
+		regions[pos].start <= addr + size &&
+		regions[pos].start + regions[pos].size >= addr + size) {
 		ptr = regions[pos].content + (addr - regions[pos].start);
 	} else if (pos > 0 &&
 			regions[pos - 1].in_use &&
 			regions[pos - 1].start <= addr &&
+			regions[pos - 1].start <= addr + size &&
 			regions[pos - 1].start + regions[pos - 1].size >= addr + size) {
 		ptr = regions[pos - 1].content + (addr - regions[pos - 1].start);
 	} else {
