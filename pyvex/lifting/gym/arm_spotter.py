@@ -103,10 +103,12 @@ class ARMInstruction(Instruction):  # pylint: disable=abstract-method
         if (self.addr & 1) == 1 and numbits > 16:
             chunk = ""
             oldpos = bitstream.pos
-            for _ in range(0, numbits, 16):
-                chunk += bitstring.Bits(uint=bitstream.peek("uintle:%d" % 16), length=16).bin
-                bitstream.pos += 16
-            bitstream.pos = oldpos
+            try:
+                for _ in range(0, numbits, 16):
+                    chunk += bitstring.Bits(uint=bitstream.peek("uintle:%d" % 16), length=16).bin
+                    bitstream.pos += 16
+            finally:
+                bitstream.pos = oldpos
             return chunk
         return super()._load_le_instr(bitstream, numbits)
 

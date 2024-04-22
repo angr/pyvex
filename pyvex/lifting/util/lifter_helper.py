@@ -71,7 +71,7 @@ class GymratLifter(Lifter):
             # if we are out of input, ignore.
             # there may be other, shorter instructions that still match,
             # so we continue with the loop
-            except bitstring.ReadError:
+            except (bitstring.ReadError, bitstring.InterpretError):
                 pass
 
         # If no instruction matches, log an error
