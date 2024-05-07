@@ -6,7 +6,6 @@ from pyvex.expr import Const, IRExpr, RdTmp
 
 from .vex_helper import IRSBCustomizer, Type
 
-
 def checkparams(rhstype=None):
     def decorator(fn):
         @functools.wraps(fn)
@@ -95,7 +94,7 @@ class VexValue:
         setted = self.set_bit(idx, bval)
         self.__init__(setted.irsb_c, setted.rdt)
 
-    @checkparams()
+    @checkparams(rhstype=Type.int_8)
     @vvifyresults
     def set_bit(self, idx, bval):
         return self.irsb_c.set_bit(self.rdt, idx.rdt, bval.rdt)
