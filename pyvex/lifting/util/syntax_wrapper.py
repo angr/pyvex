@@ -6,6 +6,7 @@ from pyvex.expr import Const, IRExpr, RdTmp
 
 from .vex_helper import IRSBCustomizer, Type
 
+
 def checkparams(rhstype=None):
     def decorator(fn):
         @functools.wraps(fn)
