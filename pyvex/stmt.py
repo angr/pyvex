@@ -1,5 +1,5 @@
 import logging
-from typing import Iterator, Optional
+from collections.abc import Iterator
 
 from . import expr
 from .const import IRConst
@@ -16,7 +16,7 @@ class IRStmt(VEXObject):
     IR statements in VEX represents operations with side-effects.
     """
 
-    tag: Optional[str] = None
+    tag: str | None = None
     tag_int = 0  # set automatically at bottom of file
 
     __slots__ = []

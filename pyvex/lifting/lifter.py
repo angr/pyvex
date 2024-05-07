@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 from pyvex.block import IRSB
 from pyvex.types import Arch, LiftSource
 
@@ -54,13 +52,13 @@ class Lifter:
     def lift(
         self,
         data: LiftSource,
-        bytes_offset: Optional[int] = None,
-        max_bytes: Optional[int] = None,
-        max_inst: Optional[int] = None,
-        opt_level: Union[int, float] = 1,
-        traceflags: Optional[int] = None,
-        allow_arch_optimizations: Optional[bool] = None,
-        strict_block_end: Optional[bool] = None,
+        bytes_offset: int | None = None,
+        max_bytes: int | None = None,
+        max_inst: int | None = None,
+        opt_level: int | float = 1,
+        traceflags: int | None = None,
+        allow_arch_optimizations: bool | None = None,
+        strict_block_end: bool | None = None,
         skip_stmts: bool = False,
         collect_data_refs: bool = False,
         cross_insn_opt: bool = True,

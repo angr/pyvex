@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from typing import DefaultDict, List, Optional, Type
+from typing import DefaultDict
 
 from pyvex import const
 from pyvex.block import IRSB
@@ -15,8 +15,8 @@ from .post_processor import Postprocessor
 
 log = logging.getLogger(__name__)
 
-lifters: DefaultDict[str, List[Type[Lifter]]] = defaultdict(list)
-postprocessors: DefaultDict[str, List[Type[Postprocessor]]] = defaultdict(list)
+lifters: DefaultDict[str, list[type[Lifter]]] = defaultdict(list)
+postprocessors: DefaultDict[str, list[type[Postprocessor]]] = defaultdict(list)
 
 
 def lift(
@@ -74,7 +74,7 @@ def lift(
     if isinstance(data, str):
         raise TypeError("Cannot pass unicode string as data to lifter")
 
-    py_data: Optional[PyLiftSource]
+    py_data: PyLiftSource | None
     if isinstance(data, (bytes, bytearray, memoryview)):
         py_data = data
         c_data = None

@@ -1,5 +1,3 @@
-from typing import Dict, List, Tuple
-
 from ._register_info import REGISTER_OFFSETS
 from .enums import default_vex_archinfo, vex_endness_from_string
 from .types import Register
@@ -17,8 +15,8 @@ class PyvexArch:
         self.memory_endness = memory_endness
         self.instruction_endness = instruction_endness
         self.byte_width = 8
-        self.register_list: List[Register] = []
-        self.registers: Dict[str, Tuple[int, int]] = {}
+        self.register_list: list[Register] = []
+        self.registers: dict[str, tuple[int, int]] = {}
         self.vex_arch = {
             "X86": "VexArchX86",
             "AMD64": "VexArchAMD64",

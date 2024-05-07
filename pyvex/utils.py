@@ -1,5 +1,6 @@
 import struct
-from typing import Any, Callable, Dict, Tuple
+from collections.abc import Callable
+from typing import Any
 
 try:
     import _md5 as md5lib
@@ -10,13 +11,13 @@ except ImportError:
 md5_unpacker = struct.Struct("4I")
 
 
-def stable_hash(t: Tuple) -> int:
+def stable_hash(t: tuple) -> int:
     cnt = _dump_tuple(t)
     hd = md5lib.md5(cnt).digest()
     return md5_unpacker.unpack(hd)[0]  # 32 bits
 
 
-def _dump_tuple(t: Tuple) -> bytes:
+def _dump_tuple(t: tuple) -> bytes:
     cnt = b""
     for item in t:
         if item is not None:
@@ -54,7 +55,7 @@ def _dump_type(t: type) -> bytes:
     return t.__name__.encode("ascii")
 
 
-_DUMP_BY_TYPE: Dict[type, Callable[[Any], bytes]] = {
+_DUMP_BY_TYPE: dict[type, Callable[[Any], bytes]] = {
     tuple: _dump_tuple,
     str: _dump_str,
     int: _dump_int,

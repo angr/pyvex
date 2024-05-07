@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Protocol, Tuple, Union, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, Union, runtime_checkable
 
 from cffi.api import FFI
 
@@ -22,10 +22,10 @@ class Arch(Protocol):
     instruction_endness: str
     memory_endness: str
     byte_width: int
-    register_list: List[Register]
-    registers: Dict[str, Tuple[int, int]]
+    register_list: list[Register]
+    registers: dict[str, tuple[int, int]]
 
-    def translate_register_name(self, offset: int, size: Optional[int] = None) -> Optional[str]: ...
+    def translate_register_name(self, offset: int, size: int | None = None) -> str | None: ...
 
     def get_register_offset(self, name: str) -> int: ...
 
@@ -37,7 +37,7 @@ class LibvexArch(Protocol):
     """
 
     vex_arch: str
-    vex_archinfo: Dict[str, Any]
+    vex_archinfo: dict[str, Any]
 
 
 PyLiftSource = Union[bytes, bytearray, memoryview]
