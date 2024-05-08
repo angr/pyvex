@@ -1,5 +1,4 @@
 import re
-from typing import List, Optional
 
 from .enums import VEXObject, get_enum_from_int
 from .errors import PyVEXError
@@ -11,7 +10,7 @@ class IRConst(VEXObject):
     __slots__ = ["_value"]
 
     type: str
-    size: Optional[int] = None
+    size: int | None = None
     tag: str
     c_constructor = None
     _value: int
@@ -58,7 +57,7 @@ class IRConst(VEXObject):
 
 
 class U1(IRConst):
-    __slots__: List[str] = []
+    __slots__: list[str] = []
 
     type = "Ity_I1"
     size = 1
@@ -78,7 +77,7 @@ class U1(IRConst):
 
 
 class U8(IRConst):
-    __slots__: List[str] = []
+    __slots__: list[str] = []
 
     type = "Ity_I8"
     size = 8
@@ -101,7 +100,7 @@ _U8_POOL = [U8(i) for i in range(256)]
 
 
 class U16(IRConst):
-    __slots__: List[str] = []
+    __slots__: list[str] = []
 
     type = "Ity_I16"
     size = 16
@@ -129,7 +128,7 @@ _U16_POOL = [U16(i) for i in range(1024)] + [U16(i) for i in range(0xFC00, 0xFFF
 
 
 class U32(IRConst):
-    __slots__: List[str] = []
+    __slots__: list[str] = []
 
     type = "Ity_I32"
     size = 32
@@ -157,7 +156,7 @@ _U32_POOL = [U32(i) for i in range(1024)] + [U32(i) for i in range(0xFFFFFC00, 0
 
 
 class U64(IRConst):
-    __slots__: List[str] = []
+    __slots__: list[str] = []
 
     type = "Ity_I64"
     size = 64
@@ -210,7 +209,7 @@ def vex_int_class(size):
 
 
 class F32(IRConst):
-    __slots__: List[str] = []
+    __slots__: list[str] = []
 
     type = "Ity_F32"
     tag = "Ico_F32"
@@ -229,7 +228,7 @@ class F32(IRConst):
 
 
 class F32i(IRConst):
-    __slots__: List[str] = []
+    __slots__: list[str] = []
 
     type = "Ity_F32"
     tag = "Ico_F32i"
@@ -248,7 +247,7 @@ class F32i(IRConst):
 
 
 class F64(IRConst):
-    __slots__: List[str] = []
+    __slots__: list[str] = []
 
     type = "Ity_F64"
     tag = "Ico_F64"
@@ -267,7 +266,7 @@ class F64(IRConst):
 
 
 class F64i(IRConst):
-    __slots__: List[str] = []
+    __slots__: list[str] = []
 
     type = "Ity_F64"
     tag = "Ico_F64i"
@@ -286,7 +285,7 @@ class F64i(IRConst):
 
 
 class V128(IRConst):
-    __slots__: List[str] = []
+    __slots__: list[str] = []
 
     type = "Ity_V128"
     tag = "Ico_V128"
@@ -312,7 +311,7 @@ class V128(IRConst):
 
 
 class V256(IRConst):
-    __slots__: List[str] = []
+    __slots__: list[str] = []
 
     type = "Ity_V256"
     tag = "Ico_V256"

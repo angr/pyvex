@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 from .native import ffi, pvc
 from .utils import stable_hash
@@ -9,7 +9,7 @@ class VEXObject:
     The base class for Vex types.
     """
 
-    __slots__: List[str] = []
+    __slots__: list[str] = []
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -95,9 +95,9 @@ class IRRegArray(VEXObject):
         return pvc.mkIRRegArray(arr.base, get_int_from_enum(arr.elemTy), arr.nElems)
 
 
-ints_to_enums: Dict[int, str] = {}
-enums_to_ints: Dict[str, int] = {}
-irop_enums_to_ints: Dict[str, int] = {}
+ints_to_enums: dict[int, str] = {}
+enums_to_ints: dict[str, int] = {}
+irop_enums_to_ints: dict[str, int] = {}
 will_be_overwritten = ["Ircr_GT", "Ircr_LT"]
 
 
@@ -137,7 +137,7 @@ def vex_endness_from_string(endness_str):
     return getattr(pvc, endness_str)
 
 
-def default_vex_archinfo() -> Dict[str, Any]:
+def default_vex_archinfo() -> dict[str, Any]:
     return {
         "hwcaps": 0,
         "endness": vex_endness_from_string("VexEndnessLE"),

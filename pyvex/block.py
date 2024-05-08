@@ -1,7 +1,7 @@
 import copy
 import itertools
 import logging
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from . import expr, stmt
 from .const import get_type_size
@@ -125,17 +125,17 @@ class IRSB(VEXObject):
         self.addr = mem_addr
         self.arch: Arch = arch
 
-        self.statements: List[IRStmt] = []
-        self.next: Optional[IRExpr] = None
+        self.statements: list[IRStmt] = []
+        self.next: IRExpr | None = None
         self._tyenv: Optional["IRTypeEnv"] = None
-        self.jumpkind: Optional[str] = None
-        self._direct_next: Optional[bool] = None
-        self._size: Optional[int] = None
-        self._instructions: Optional[int] = None
-        self._exit_statements: Optional[Tuple[Tuple[int, int, IRStmt], ...]] = None
+        self.jumpkind: str | None = None
+        self._direct_next: bool | None = None
+        self._size: int | None = None
+        self._instructions: int | None = None
+        self._exit_statements: tuple[tuple[int, int, IRStmt], ...] | None = None
         self.default_exit_target = None
         self.data_refs = ()
-        self._instruction_addresses: Tuple[int, ...] = ()
+        self._instruction_addresses: tuple[int, ...] = ()
 
         if data is not None:
             # This is the slower path (because we need to call _from_py() to copy the content in the returned IRSB to
@@ -180,7 +180,7 @@ class IRSB(VEXObject):
         return self.statements is not None and bool(self.statements)
 
     @property
-    def exit_statements(self) -> Tuple[Tuple[int, int, IRStmt], ...]:
+    def exit_statements(self) -> tuple[tuple[int, int, IRStmt], ...]:
         if self._exit_statements is not None:
             return self._exit_statements
 
@@ -409,7 +409,7 @@ class IRSB(VEXObject):
         return self._instructions
 
     @property
-    def instruction_addresses(self) -> Tuple[int, ...]:
+    def instruction_addresses(self) -> tuple[int, ...]:
         """
         Addresses of instructions in this block.
         """

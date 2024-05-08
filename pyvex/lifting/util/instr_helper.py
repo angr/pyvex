@@ -1,6 +1,5 @@
 import abc
 import string
-from typing import Dict
 
 import bitstring
 
@@ -68,7 +67,7 @@ class Instruction(metaclass=abc.ABCMeta):
     See the examples provided by gymrat for ideas of how to use this to build your own lifters quickly and easily.
     """
 
-    data: Dict[str, str]
+    data: dict[str, str]
     irsb_c: IRSBCustomizer
 
     def __init__(self, bitstrm, arch, addr):

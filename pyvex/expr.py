@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 from .const import U8, U16, U32, U64, IRConst, get_type_size
 from .enums import IRCallee, IRRegArray, VEXObject, get_enum_from_int, get_int_from_enum
@@ -17,7 +17,7 @@ class IRExpr(VEXObject):
 
     __slots__ = []
 
-    tag: Optional[str] = None
+    tag: str | None = None
     tag_int = 0  # set automatically at bottom of file
 
     def pp(self):
@@ -30,7 +30,7 @@ class IRExpr(VEXObject):
         raise NotImplementedError
 
     @property
-    def child_expressions(self) -> List["IRExpr"]:
+    def child_expressions(self) -> list["IRExpr"]:
         """
         A list of all of the expressions that this expression ends up evaluating.
         """
@@ -282,7 +282,7 @@ class Get(IRExpr):
 
     tag = "Iex_Get"
 
-    def __init__(self, offset, ty: str, ty_int: Optional[int] = None):
+    def __init__(self, offset, ty: str, ty_int: int | None = None):
         self.offset = offset
         if ty_int is None:
             self.ty_int = get_int_from_enum(ty)
@@ -762,7 +762,7 @@ def get_op_retty(op):
     return op_arg_types(op)[0]
 
 
-op_signatures: Dict[str, Tuple[str, Tuple[str, ...]]] = {}
+op_signatures: dict[str, tuple[str, tuple[str, ...]]] = {}
 
 
 def _request_op_type_from_cache(op):

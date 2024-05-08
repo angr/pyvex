@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, List, Type
+from typing import TYPE_CHECKING
 
 import bitstring
 
@@ -46,7 +46,7 @@ class GymratLifter(Lifter):
     )
 
     REQUIRE_DATA_PY = True
-    instrs: List[Type["Instruction"]]
+    instrs: list[type["Instruction"]]
 
     def __init__(self, arch, addr):
         super().__init__(arch, addr)
