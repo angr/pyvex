@@ -17,10 +17,10 @@
 
 # Since pyvex requires a specific developer build of archinfo, install it from source
 cd "$SRC"/archinfo
-python3.10 -m pip install .
+python3.9 -m pip install .
 
 cd "$SRC"/pyvex
-python3.10 -m pip install .[testing]
+python3.9 -m pip install .[testing]
 
 # Generate a simple binary for the corpus
 echo -ne "start:\n\txor %edi, %edi\nmov \$60, %eax\nsyscall" > /tmp/corpus.s
