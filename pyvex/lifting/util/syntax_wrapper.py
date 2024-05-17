@@ -95,7 +95,7 @@ class VexValue:
         setted = self.set_bit(idx, bval)
         self.__init__(setted.irsb_c, setted.rdt)
 
-    @checkparams()
+    @checkparams(rhstype=Type.int_8)
     @vvifyresults
     def set_bit(self, idx, bval):
         return self.irsb_c.set_bit(self.rdt, idx.rdt, bval.rdt)
