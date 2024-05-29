@@ -49,7 +49,7 @@ class IRStmt(VEXObject):
             return None
 
         try:
-            stmt_class = enum_to_stmt_class(c_stmt.tag)._from_c(c_stmt)
+            stmt_class = enum_to_stmt_class(c_stmt.tag)
         except KeyError:
             raise PyVEXError("Unknown/unsupported IRStmtTag %s.\n" % get_enum_from_int(c_stmt.tag))
         return stmt_class._from_c(c_stmt)
