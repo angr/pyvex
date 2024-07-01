@@ -100,9 +100,9 @@ def test_tmrs():
     ins = b"\xef\xf3\x08\x82"
     b = pyvex.block.IRSB(ins, 1, arch)
     assert b.jumpkind == "Ijk_Boring"
-    assert type(b.statements[1].data) == pyvex.expr.Get
+    assert isinstance(b.statements[1].data, pyvex.expr.Get)
     assert arch.translate_register_name(b.statements[1].data.offset) in ["sp", "r13"]
-    assert type(b.statements[2]) == pyvex.stmt.Put
+    assert isinstance(b.statements[2], pyvex.stmt.Put)
 
 
 def test_tmsr():
@@ -110,9 +110,9 @@ def test_tmsr():
     inss = b"\x82\xf3\x08\x88"
     b = pyvex.block.IRSB(inss, 1, arch, opt_level=3)
     assert b.jumpkind == "Ijk_Boring"
-    assert type(b.statements[1].data) == pyvex.expr.Get
+    assert isinstance(b.statements[1].data, pyvex.expr.Get)
     assert arch.translate_register_name(b.statements[1].data.offset) == "r2"
-    assert type(b.statements[2]) == pyvex.stmt.Put
+    assert isinstance(b.statements[2], pyvex.stmt.Put)
 
 
 if __name__ == "__main__":

@@ -319,7 +319,7 @@ class TestPyvex(unittest.TestCase):
         args = [pyvex.IRExpr.RdTmp.get_instance(i) for i in range(10)]
         m = pyvex.IRStmt.Dirty("test_dirty", pyvex.IRConst.U8(1), args, 15, "Ifx_None", 0, 1, 0)
         assert m.cee == "test_dirty"
-        assert type(m.guard) == pyvex.IRConst.U8
+        assert isinstance(m.guard, pyvex.IRConst.U8)
         assert m.tmp == 15
         assert m.mFx == "Ifx_None"
         assert m.nFxState == 0
