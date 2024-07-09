@@ -3,7 +3,7 @@ PyVEX provides an interface that translates binary code into the VEX intermediat
 For an introduction to VEX, take a look here: https://docs.angr.io/advanced-topics/ir
 """
 
-__version__ = "9.2.110.dev0"
+__version__ = "9.2.111.dev0"
 
 from . import const, expr, stmt
 from .arches import (
