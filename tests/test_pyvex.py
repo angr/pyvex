@@ -76,7 +76,7 @@ class TestPyvex(unittest.TestCase):
 
     def test_irsb_arm(self):
         irsb = pyvex.IRSB(data=b"\x33\xff\x2f\xe1", mem_addr=0, arch=pyvex.ARCH_ARM_BE)
-        assert len([i for i in irsb.statements if type(i) == pyvex.IRStmt.IMark]) == 1
+        assert len([i for i in irsb.statements if isinstance(i, pyvex.IRStmt.IMark)]) == 1
 
     def test_irsb_popret(self):
         irsb = pyvex.IRSB(data=b"\x5d\xc3", mem_addr=0, arch=pyvex.ARCH_AMD64)
