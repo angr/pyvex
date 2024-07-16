@@ -23,6 +23,7 @@ from .arches import (
     ARCH_RISCV64_LE,
     ARCH_S390X,
     ARCH_X86,
+    ARCH_TILEGX,
 )
 from .block import IRSB, IRTypeEnv
 from .const import get_type_size, get_type_spec_size, tag_to_const_class
@@ -89,4 +90,5 @@ __all__ = [
     "ARCH_MIPS64_BE",
     "ARCH_MIPS64_LE",
     "ARCH_RISCV64_LE",
+    "ARCH_TILEGX",
 ]
