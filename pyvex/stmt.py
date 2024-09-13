@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 import logging
 from collections.abc import Iterator
 
@@ -8,6 +11,9 @@ from .errors import PyVEXError
 from .expr import Const, Get, IRExpr
 from .native import ffi, pvc
 
+if TYPE_CHECKING:
+    from .block import IRTypeEnv
+
 log = logging.getLogger("pyvex.stmt")
 
 
@@ -16,7 +22,7 @@ class IRStmt(VEXObject):
     IR statements in VEX represents operations with side-effects.
     """
 
-    tag: str | None = None
+    tag: str
     tag_int = 0  # set automatically at bottom of file
 
     __slots__ = []
@@ -54,7 +60,7 @@ class IRStmt(VEXObject):
             raise PyVEXError("Unknown/unsupported IRStmtTag %s.\n" % get_enum_from_int(c_stmt.tag))
         return stmt_class._from_c(c_stmt)
 
-    def typecheck(self, tyenv):  # pylint: disable=unused-argument,no-self-use
+    def typecheck(self, tyenv: IRTypeEnv) -> bool:  # pylint: disable=unused-argument,no-self-use
         return True
 
     def replace_expression(self, replacements):

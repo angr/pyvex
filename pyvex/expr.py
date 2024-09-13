@@ -1,11 +1,16 @@
+from __future__ import annotations
 import logging
 import re
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
 
 from .const import U8, U16, U32, U64, IRConst, get_type_size
 from .enums import IRCallee, IRRegArray, VEXObject, get_enum_from_int, get_int_from_enum
 from .errors import PyVEXError
 from .native import ffi, pvc
+
+if TYPE_CHECKING:
+    from .block import IRTypeEnv
 
 log = logging.getLogger("pyvex.expr")
 
@@ -56,10 +61,10 @@ class IRExpr(VEXObject):
                 constants.append(v)
         return constants
 
-    def result_size(self, tyenv):
+    def result_size(self, tyenv: IRTypeEnv):
         return get_type_size(self.result_type(tyenv))
 
-    def result_type(self, tyenv):
+    def result_type(self, tyenv: IRTypeEnv):
         raise NotImplementedError()
 
     def replace_expression(self, replacements):
@@ -849,6 +854,7 @@ def cmp_signature(op):
     if (m is None) == (m2 is None):
         raise PyvexOpMatchException()
     mfound = m if m is not None else m2
+    assert mfound is not None
     size = int(mfound.group("size"))
     size_type = int_type_for_size(size)
     return (int_type_for_size(1), (size_type, size_type))
