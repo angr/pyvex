@@ -409,7 +409,7 @@ class LLSC(IRStmt):
 
     tag = "Ist_LLSC"
 
-    def __init__(self, addr, storedata, result, end):
+    def __init__(self, addr: IRExpr, storedata: IRExpr, result: int, end: str):
         self.addr = addr
         self.storedata = storedata
         self.result = result

@@ -525,7 +525,7 @@ class Unop(IRExpr):
 
     tag = "Iex_Unop"
 
-    def __init__(self, op, args):
+    def __init__(self, op: str, args: list[IRExpr]):
         self.op = op
         self.args = args
 
