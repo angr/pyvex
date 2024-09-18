@@ -4,12 +4,12 @@ import logging
 from typing import Optional
 
 from . import expr, stmt
-from .const import get_type_size
+from .const import U1, get_type_size
 from .const_val import ConstVal
 from .data_ref import DataRef
 from .enums import VEXObject
 from .errors import SkipStatementsError
-from .expr import RdTmp
+from .expr import Const, RdTmp
 from .native import pvc
 from .stmt import (
     CAS,
@@ -50,7 +50,7 @@ class IRSB(VEXObject):
     :ivar int addr:         The address of this basic block, i.e. the address in the first IMark
     """
 
-    __slots__ = (
+    __slots__ = [
         "addr",
         "arch",
         "statements",
@@ -65,7 +65,7 @@ class IRSB(VEXObject):
         "_instruction_addresses",
         "data_refs",
         "const_vals",
-    )
+    ]
 
     # The following constants shall match the defs in pyvex.h
     MAX_EXITS = 400
@@ -129,9 +129,9 @@ class IRSB(VEXObject):
         self.arch: Arch = arch
 
         self.statements: list[IRStmt] = []
-        self.next: IRExpr | None = None
+        self.next: IRExpr = Const(U1(0))
         self._tyenv: Optional["IRTypeEnv"] = None
-        self.jumpkind: str | None = None
+        self.jumpkind: str = "UNSET"
         self._direct_next: bool | None = None
         self._size: int | None = None
         self._instructions: int | None = None
