@@ -40,8 +40,15 @@ typedef struct _DataRef {
 	Addr ins_addr;
 } DataRef;
 
+typedef struct _ConstVal {
+	Int tmp;
+	Int stmt_idx;
+	ULong value;  // 64-bit max
+} ConstVal;
+
 #define MAX_EXITS 400
 #define MAX_DATA_REFS 2000
+#define MAX_CONST_VALS 1000
 
 typedef struct _VEXLiftResult {
 	IRSB* irsb;
@@ -58,6 +65,9 @@ typedef struct _VEXLiftResult {
 	// Data references
 	Int data_ref_count;
 	DataRef data_refs[MAX_DATA_REFS];
+	// Constant propagation
+	Int const_val_count;
+	ConstVal const_vals[MAX_CONST_VALS];
 } VEXLiftResult;
 
 VEXLiftResult *vex_lift(
@@ -72,6 +82,8 @@ VEXLiftResult *vex_lift(
 		int allow_arch_optimizations,
 		int strict_block_end,
 		int collect_data_refs,
+		int load_from_ro_regions,
+		int const_prop,
 		VexRegisterUpdates px_control,
 		unsigned int lookback_amount);
 

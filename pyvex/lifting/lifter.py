@@ -21,6 +21,7 @@ class Lifter:
         "addr",
         "cross_insn_opt",
         "load_from_ro_regions",
+        "const_prop",
         "disasm",
         "dump_irsb",
     )
@@ -63,6 +64,7 @@ class Lifter:
         collect_data_refs: bool = False,
         cross_insn_opt: bool = True,
         load_from_ro_regions: bool = False,
+        const_prop: bool = False,
         disasm: bool = False,
         dump_irsb: bool = False,
     ):
@@ -102,6 +104,7 @@ class Lifter:
         self.irsb = irsb
         self.cross_insn_opt = cross_insn_opt
         self.load_from_ro_regions = load_from_ro_regions
+        self.const_prop = const_prop
         self.disasm = disasm
         self.dump_irsb = dump_irsb
         self._lift()
