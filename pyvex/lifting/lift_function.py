@@ -34,6 +34,7 @@ def lift(
     collect_data_refs=False,
     cross_insn_opt=True,
     load_from_ro_regions=False,
+    const_prop=False,
 ):
     """
     Recursively lifts blocks using the registered lifters and postprocessors. Tries each lifter in the order in
@@ -144,6 +145,7 @@ def lift(
                     collect_data_refs=collect_data_refs,
                     cross_insn_opt=cross_insn_opt,
                     load_from_ro_regions=load_from_ro_regions,
+                    const_prop=const_prop,
                 )
             except SkipStatementsError:
                 assert skip_stmts is True
@@ -160,6 +162,7 @@ def lift(
                     collect_data_refs=collect_data_refs,
                     cross_insn_opt=cross_insn_opt,
                     load_from_ro_regions=load_from_ro_regions,
+                    const_prop=const_prop,
                 )
             break
         except LiftingException as ex:
@@ -210,6 +213,8 @@ def lift(
                 strict_block_end=strict_block_end,
                 skip_stmts=False,
                 collect_data_refs=collect_data_refs,
+                load_from_ro_regions=load_from_ro_regions,
+                const_prop=const_prop,
             )
 
         next_addr = addr + final_irsb.size
@@ -235,6 +240,8 @@ def lift(
                 inner=True,
                 skip_stmts=False,
                 collect_data_refs=collect_data_refs,
+                load_from_ro_regions=load_from_ro_regions,
+                const_prop=const_prop,
             )
             if more_irsb.size:
                 # Successfully decoded more bytes
@@ -273,6 +280,8 @@ def lift(
                     inner=inner,
                     skip_stmts=False,
                     collect_data_refs=collect_data_refs,
+                    load_from_ro_regions=load_from_ro_regions,
+                    const_prop=const_prop,
                 )
             except LiftingException:
                 continue

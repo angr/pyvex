@@ -5,6 +5,7 @@ from typing import Optional
 
 from . import expr, stmt
 from .const import get_type_size
+from .const_val import ConstVal
 from .data_ref import DataRef
 from .enums import VEXObject
 from .errors import SkipStatementsError
@@ -63,11 +64,13 @@ class IRSB(VEXObject):
         "default_exit_target",
         "_instruction_addresses",
         "data_refs",
+        "const_vals",
     )
 
     # The following constants shall match the defs in pyvex.h
     MAX_EXITS = 400
     MAX_DATA_REFS = 2000
+    MAX_CONST_VALS = 1000
 
     def __init__(
         self,
@@ -135,6 +138,7 @@ class IRSB(VEXObject):
         self._exit_statements: tuple[tuple[int, int, IRStmt], ...] | None = None
         self.default_exit_target = None
         self.data_refs = ()
+        self.const_vals = ()
         self._instruction_addresses: tuple[int, ...] = ()
 
         if data is not None:
@@ -578,8 +582,15 @@ class IRSB(VEXObject):
         self.data_refs = None
         if lift_r.data_ref_count > 0:
             if lift_r.data_ref_count > self.MAX_DATA_REFS:
-                raise SkipStatementsError("data_ref_count exceeded MAX_DATA_REFS (%d)" % self.MAX_DATA_REFS)
+                raise SkipStatementsError(f"data_ref_count exceeded MAX_DATA_REFS ({self.MAX_DATA_REFS})")
             self.data_refs = [DataRef.from_c(lift_r.data_refs[i]) for i in range(lift_r.data_ref_count)]
+
+        # Const values
+        self.const_vals = None
+        if lift_r.const_val_count > 0:
+            if lift_r.const_val_count > self.MAX_CONST_VALS:
+                raise SkipStatementsError(f"const_val_count exceeded MAX_CONST_VALS ({self.MAX_CONST_VALS})")
+            self.const_vals = [ConstVal.from_c(lift_r.const_vals[i]) for i in range(lift_r.const_val_count)]
 
     def _set_attributes(
         self,

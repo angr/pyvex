@@ -306,7 +306,6 @@ static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 }
 
 VEXLiftResult _lift_r;
-#define LOAD_FROM_RO_REGIONS_MASK 2
 
 //----------------------------------------------------------------------
 // Main entry point. Do a lift.
@@ -323,6 +322,8 @@ VEXLiftResult *vex_lift(
 		int allow_arch_optimizations,
 		int strict_block_end,
 		int collect_data_refs,
+		int load_from_ro_regions,
+		int const_prop,
 		VexRegisterUpdates px_control,
 		unsigned int lookback) {
 	VexRegisterUpdates pxControl = px_control;
@@ -359,6 +360,7 @@ VEXLiftResult *vex_lift(
 	if (setjmp(jumpout) == 0) {
 		LibVEX_Update_Control(&vc);
 		_lift_r.data_ref_count = 0;
+		_lift_r.const_val_count = 0;
 		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl);
 		if (!_lift_r.irsb) {
 			// Lifting failed
@@ -376,8 +378,8 @@ VEXLiftResult *vex_lift(
 			arm_post_processor_determine_calls(_lift_r.inst_addrs[0], _lift_r.size, _lift_r.insts, _lift_r.irsb);
 		}
 		zero_division_side_exits(_lift_r.irsb);
-		if (collect_data_refs) {
-			collect_data_references(_lift_r.irsb, &_lift_r, guest, collect_data_refs & LOAD_FROM_RO_REGIONS_MASK);
+		if (collect_data_refs || const_prop) {
+			execute_irsb(_lift_r.irsb, &_lift_r, guest, (Bool)load_from_ro_regions, (Bool)collect_data_refs, (Bool)const_prop);
 		}
 		return &_lift_r;
 	} else {
