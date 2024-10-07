@@ -7,7 +7,11 @@ class ConstVal:
     :ivar stmt_idx:     The IRSB statement index containing the data access
     """
 
-    __slots__ = ("tmp", "value", "stmt_idx",)
+    __slots__ = (
+        "tmp",
+        "value",
+        "stmt_idx",
+    )
 
     def __init__(self, tmp: int, value: int, stmt_idx: int):
         self.tmp = tmp
