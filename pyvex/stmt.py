@@ -171,7 +171,7 @@ class Put(IRStmt):
 
     tag = "Ist_Put"
 
-    def __init__(self, data: "IRExpr", offset):
+    def __init__(self, data: "IRExpr", offset: int):
         self.data = data
         self.offset = offset
 
@@ -587,7 +587,7 @@ class LoadG(IRStmt):
 
     tag = "Ist_LoadG"
 
-    def __init__(self, end, cvt, dst, addr, alt, guard):
+    def __init__(self, end: str, cvt: str, dst: int, addr: IRExpr, alt: IRExpr, guard: IRExpr):
         self.addr = addr
         self.alt = alt
         self.guard = guard
