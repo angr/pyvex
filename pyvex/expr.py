@@ -287,7 +287,7 @@ class Get(IRExpr):
 
     tag = "Iex_Get"
 
-    def __init__(self, offset, ty: str, ty_int: int | None = None):
+    def __init__(self, offset: int, ty: str, ty_int: int | None = None):
         self.offset = offset
         if ty_int is None:
             self.ty_int = get_int_from_enum(ty)

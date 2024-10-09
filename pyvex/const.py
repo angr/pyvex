@@ -10,7 +10,7 @@ class IRConst(VEXObject):
     __slots__ = ["_value"]
 
     type: str
-    size: int | None = None
+    size: int
     tag: str
     c_constructor = None
     _value: int
