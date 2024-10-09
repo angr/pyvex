@@ -651,7 +651,7 @@ class IRTypeEnv(VEXObject):
     def __str__(self):
         return " ".join(("t%d:%s" % (i, t)) for i, t in enumerate(self.types))
 
-    def lookup(self, tmp):
+    def lookup(self, tmp: int) -> str:
         """
         Return the type of temporary variable `tmp` as an enum string
         """
