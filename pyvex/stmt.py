@@ -533,7 +533,7 @@ class Exit(IRStmt):
 
     tag = "Ist_Exit"
 
-    def __init__(self, guard, dst, jk, offsIP):
+    def __init__(self, guard: IRExpr, dst: IRConst, jk: str, offsIP: int):
         self.guard = guard
         self.dst = dst
         self.offsIP = offsIP
