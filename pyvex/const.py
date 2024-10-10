@@ -215,6 +215,7 @@ class F32(IRConst):
     tag = "Ico_F32"
     op_format = "F32"
     c_constructor = pvc.IRConst_F32
+    size = 32
 
     def __init__(self, value):
         self._value = value
@@ -234,6 +235,7 @@ class F32i(IRConst):
     tag = "Ico_F32i"
     op_format = "F32"
     c_constructor = pvc.IRConst_F32i
+    size = 32
 
     def __init__(self, value):
         self._value = value
@@ -253,6 +255,7 @@ class F64(IRConst):
     tag = "Ico_F64"
     op_format = "F64"
     c_constructor = pvc.IRConst_F64
+    size = 64
 
     def __init__(self, value):
         self._value = value
@@ -272,6 +275,7 @@ class F64i(IRConst):
     tag = "Ico_F64i"
     op_format = "F64"
     c_constructor = pvc.IRConst_F64i
+    size = 64
 
     def __init__(self, value):
         self._value = value
@@ -291,6 +295,7 @@ class V128(IRConst):
     tag = "Ico_V128"
     op_format = "V128"
     c_constructor = pvc.IRConst_V128
+    size = 128
 
     def __init__(self, value):
         self._value = value
