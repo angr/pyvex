@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 import logging
 from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 from . import expr
 from .const import IRConst
@@ -31,7 +31,7 @@ class IRStmt(VEXObject):
         print(str(self))
 
     @property
-    def child_expressions(self) -> Iterator["IRExpr"]:
+    def child_expressions(self) -> Iterator[IRExpr]:
         for k in self.__slots__:
             v = getattr(self, k)
             if isinstance(v, IRExpr):
@@ -171,7 +171,7 @@ class Put(IRStmt):
 
     tag = "Ist_Put"
 
-    def __init__(self, data: "IRExpr", offset: int):
+    def __init__(self, data: IRExpr, offset: int):
         self.data = data
         self.offset = offset
 
@@ -240,7 +240,7 @@ class WrTmp(IRStmt):
 
     tag = "Ist_WrTmp"
 
-    def __init__(self, tmp, data: "IRExpr"):
+    def __init__(self, tmp, data: IRExpr):
         self.tmp = tmp
         self.data = data
 
@@ -278,7 +278,7 @@ class Store(IRStmt):
 
     tag = "Ist_Store"
 
-    def __init__(self, addr: "IRExpr", data: "IRExpr", end: str):
+    def __init__(self, addr: IRExpr, data: IRExpr, end: str):
         self.addr = addr
         self.data = data
         self.end = end

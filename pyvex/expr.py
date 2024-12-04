@@ -1,8 +1,8 @@
 from __future__ import annotations
+
 import logging
 import re
-from typing import Optional, TYPE_CHECKING
-
+from typing import TYPE_CHECKING
 
 from .const import U8, U16, U32, U64, IRConst, get_type_size
 from .enums import IRCallee, IRRegArray, VEXObject, get_enum_from_int, get_int_from_enum
@@ -35,7 +35,7 @@ class IRExpr(VEXObject):
         raise NotImplementedError
 
     @property
-    def child_expressions(self) -> list["IRExpr"]:
+    def child_expressions(self) -> list[IRExpr]:
         """
         A list of all of the expressions that this expression ends up evaluating.
         """
@@ -100,7 +100,7 @@ class IRExpr(VEXObject):
                 v.replace_expression(replacements)
 
     @staticmethod
-    def _from_c(c_expr) -> Optional["IRExpr"]:
+    def _from_c(c_expr) -> IRExpr | None:
         if c_expr == ffi.NULL or c_expr[0] == ffi.NULL:
             return None
 
@@ -621,14 +621,14 @@ class Const(IRExpr):
 
     tag = "Iex_Const"
 
-    def __init__(self, con: "IRConst"):
+    def __init__(self, con: IRConst):
         self._con = con
 
     def _pp_str(self):
         return str(self.con)
 
     @property
-    def con(self) -> "IRConst":
+    def con(self) -> IRConst:
         return self._con
 
     @staticmethod
