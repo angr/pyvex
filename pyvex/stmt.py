@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import logging
 from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 from . import expr
 from .const import IRConst
@@ -7,6 +10,9 @@ from .enums import IRCallee, IRRegArray, VEXObject, get_enum_from_int, get_int_f
 from .errors import PyVEXError
 from .expr import Const, Get, IRExpr
 from .native import ffi, pvc
+
+if TYPE_CHECKING:
+    from .block import IRTypeEnv
 
 log = logging.getLogger("pyvex.stmt")
 
@@ -16,7 +22,7 @@ class IRStmt(VEXObject):
     IR statements in VEX represents operations with side-effects.
     """
 
-    tag: str | None = None
+    tag: str
     tag_int = 0  # set automatically at bottom of file
 
     __slots__ = []
@@ -25,7 +31,7 @@ class IRStmt(VEXObject):
         print(str(self))
 
     @property
-    def child_expressions(self) -> Iterator["IRExpr"]:
+    def child_expressions(self) -> Iterator[IRExpr]:
         for k in self.__slots__:
             v = getattr(self, k)
             if isinstance(v, IRExpr):
@@ -54,7 +60,7 @@ class IRStmt(VEXObject):
             raise PyVEXError("Unknown/unsupported IRStmtTag %s.\n" % get_enum_from_int(c_stmt.tag))
         return stmt_class._from_c(c_stmt)
 
-    def typecheck(self, tyenv):  # pylint: disable=unused-argument,no-self-use
+    def typecheck(self, tyenv: IRTypeEnv) -> bool:  # pylint: disable=unused-argument,no-self-use
         return True
 
     def replace_expression(self, replacements):
@@ -165,7 +171,7 @@ class Put(IRStmt):
 
     tag = "Ist_Put"
 
-    def __init__(self, data: "IRExpr", offset):
+    def __init__(self, data: IRExpr, offset: int):
         self.data = data
         self.offset = offset
 
@@ -234,7 +240,7 @@ class WrTmp(IRStmt):
 
     tag = "Ist_WrTmp"
 
-    def __init__(self, tmp, data: "IRExpr"):
+    def __init__(self, tmp, data: IRExpr):
         self.tmp = tmp
         self.data = data
 
@@ -272,7 +278,7 @@ class Store(IRStmt):
 
     tag = "Ist_Store"
 
-    def __init__(self, addr: "IRExpr", data: "IRExpr", end: str):
+    def __init__(self, addr: IRExpr, data: IRExpr, end: str):
         self.addr = addr
         self.data = data
         self.end = end
@@ -403,7 +409,7 @@ class LLSC(IRStmt):
 
     tag = "Ist_LLSC"
 
-    def __init__(self, addr, storedata, result, end):
+    def __init__(self, addr: IRExpr, storedata: IRExpr, result: int, end: str):
         self.addr = addr
         self.storedata = storedata
         self.result = result
@@ -527,7 +533,7 @@ class Exit(IRStmt):
 
     tag = "Ist_Exit"
 
-    def __init__(self, guard, dst, jk, offsIP):
+    def __init__(self, guard: IRExpr, dst: IRConst, jk: str, offsIP: int):
         self.guard = guard
         self.dst = dst
         self.offsIP = offsIP
@@ -581,7 +587,7 @@ class LoadG(IRStmt):
 
     tag = "Ist_LoadG"
 
-    def __init__(self, end, cvt, dst, addr, alt, guard):
+    def __init__(self, end: str, cvt: str, dst: int, addr: IRExpr, alt: IRExpr, guard: IRExpr):
         self.addr = addr
         self.alt = alt
         self.guard = guard
