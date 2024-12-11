@@ -319,11 +319,12 @@ def test_arm_postprocess_call():
         # 400008  cmp     r0, r1
         # 40000c  blne    #FunctionB
         irsb = pyvex.IRSB(
-            data=bytes.fromhex('04e02de50a10a0e3010050e10100001b'),
+            data=bytes.fromhex("04e02de50a10a0e3010050e10100001b"),
             mem_addr=0x400000,
             arch=pyvex.ARCH_ARM_LE,
             num_inst=4,
-            opt_level=i)
+            opt_level=i,
+        )
         assert len(irsb.exit_statements) == 1
         assert irsb.exit_statements[0][2].jumpkind == "Ijk_Call"
         assert irsb.jumpkind == "Ijk_Boring"
