@@ -237,7 +237,7 @@ void arm_post_processor_determine_calls(
 			// Fix the not-default exit
 			other_exit->Ist.Exit.jk = Ijk_Call;
 		}
-		else {
+		else if (!has_exit || other_exit->Ist.Exit.jk != Ijk_Call) {
 			//Fix the default exit
 			irsb->jumpkind = Ijk_Call;
 		}
