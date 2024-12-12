@@ -1,4 +1,6 @@
+# pylint:disable=missing-class-docstring,raise-missing-from,not-callable
 import re
+from abc import ABC
 
 from .enums import VEXObject, get_enum_from_int
 from .errors import PyVEXError
@@ -6,7 +8,7 @@ from .native import ffi, pvc
 
 
 # IRConst hierarchy
-class IRConst(VEXObject):
+class IRConst(VEXObject, ABC):
     __slots__ = ["_value"]
 
     type: str
@@ -16,7 +18,7 @@ class IRConst(VEXObject):
     _value: int
 
     def pp(self):
-        print(self.__str__())
+        print(str(self))
 
     @property
     def value(self) -> int:
