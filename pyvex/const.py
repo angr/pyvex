@@ -324,6 +324,7 @@ class V256(IRConst):
     tag = "Ico_V256"
     op_format = "V256"
     c_constructor = pvc.IRConst_V256
+    size = 256
 
     def __init__(self, value):
         self._value = value
