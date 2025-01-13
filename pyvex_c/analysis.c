@@ -925,3 +925,61 @@ void execute_irsb(
 		free(tmps);
 	}
 }
+
+/* Determine if the VEX block is an no-op */
+void get_is_noop_block(
+	IRSB *irsb, VEXLiftResult *lift_r
+) {
+	// the block is a noop block if it only has IMark statements **and** it jumps to its immediate successor. VEX will
+	// generate such blocks when opt_level==1 and cross_insn_opt is True.
+
+	// the block is a noop block if it only has IMark statements and IP-setting statements that set the IP to the next
+	// location. VEX will generate such blocks when opt_level==1 and cross_insn_opt is False.
+	Addr fallthrough_addr = 0xffffffffffffffff;
+	Bool has_other_inst = False;
+
+	for (int i = 0; i < irsb->stmts_used; ++i) {
+		IRStmt *stmt = irsb->stmts[i];
+		if (stmt->tag == Ist_IMark) {
+			// update fallthrough_addr; it will be correct upon the last instruction
+			fallthrough_addr = stmt->Ist.IMark.addr + stmt->Ist.IMark.delta + stmt->Ist.IMark.len;
+		} else if (stmt->tag == Ist_NoOp) {
+			// NoOp is a no-op
+		} else if (stmt->tag == Ist_Put) {
+			if (stmt->Ist.Put.data->tag == Iex_Const) {
+				if (irsb->offsIP != stmt->Ist.Put.offset) {
+					// found a register write that is not the same as the pc offset; this is not a noop block
+					lift_r->is_noop_block = False;
+					return;
+				}
+			} else {
+				// found a non-constant register write; this is not a noop block
+				lift_r->is_noop_block = False;
+				return;
+			}
+		} else {
+			has_other_inst = True;
+			break;
+		}
+	}
+	if (has_other_inst) {
+		lift_r->is_noop_block = False;
+		return;
+	}
+
+	if (fallthrough_addr == 0xffffffffffffffff) {
+		// for some reason we cannot find the fallthrough addr; just give up
+		lift_r->is_noop_block = False;
+		return;
+	}
+
+	if (irsb->jumpkind == Ijk_Boring && irsb->next->tag == Iex_Const) {
+		if (irsb->next->Iex.Const.con->tag == Ico_U32 && fallthrough_addr < 0xffffffff && fallthrough_addr == irsb->next->Iex.Const.con->Ico.U32
+			|| irsb->next->Iex.Const.con->tag == Ico_U64 && fallthrough_addr == irsb->next->Iex.Const.con->Ico.U64) {
+			lift_r->is_noop_block = True;
+			return;
+		}
+	}
+
+	lift_r->is_noop_block = False;
+}

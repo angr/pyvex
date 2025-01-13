@@ -57,6 +57,7 @@ class IRSB(VEXObject):
         "next",
         "_tyenv",
         "jumpkind",
+        "is_noop_block",
         "_direct_next",
         "_size",
         "_instructions",
@@ -136,6 +137,7 @@ class IRSB(VEXObject):
         self._size: int | None = None
         self._instructions: int | None = None
         self._exit_statements: tuple[tuple[int, int, IRStmt], ...] | None = None
+        self.is_noop_block: bool = False
         self.default_exit_target = None
         self.data_refs = ()
         self.const_vals = ()
@@ -555,6 +557,7 @@ class IRSB(VEXObject):
         self.next = expr.IRExpr._from_c(c_irsb.next)
         self.jumpkind = get_enum_from_int(c_irsb.jumpkind)
         self._size = lift_r.size
+        self.is_noop_block = lift_r.is_noop_block == 1
         self._instructions = lift_r.insts
         self._instruction_addresses = tuple(itertools.islice(lift_r.inst_addrs, lift_r.insts))
 
