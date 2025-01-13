@@ -359,6 +359,7 @@ VEXLiftResult *vex_lift(
 	// Do the actual translation
 	if (setjmp(jumpout) == 0) {
 		LibVEX_Update_Control(&vc);
+		_lift_r.is_noop_block = False;
 		_lift_r.data_ref_count = 0;
 		_lift_r.const_val_count = 0;
 		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl);
@@ -378,6 +379,7 @@ VEXLiftResult *vex_lift(
 			arm_post_processor_determine_calls(_lift_r.inst_addrs[0], _lift_r.size, _lift_r.insts, _lift_r.irsb);
 		}
 		zero_division_side_exits(_lift_r.irsb);
+		get_is_noop_block(_lift_r.irsb, &_lift_r);
 		if (collect_data_refs || const_prop) {
 			execute_irsb(_lift_r.irsb, &_lift_r, guest, (Bool)load_from_ro_regions, (Bool)collect_data_refs, (Bool)const_prop);
 		}

@@ -53,6 +53,7 @@ typedef struct _ConstVal {
 typedef struct _VEXLiftResult {
 	IRSB* irsb;
 	Int size;
+	Bool is_noop_block;
 	// Conditional exits
 	Int exit_count;
 	ExitInfo exits[MAX_EXITS];
