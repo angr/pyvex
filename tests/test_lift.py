@@ -26,7 +26,7 @@ class TestLift(unittest.TestCase):
 
         lifter = NOPLifter(pyvex.ARCH_AMD64, 0)
         # this should not throw an exception
-        block = lifter.lift("\x0F\x0Fa")
+        block = lifter.lift("\x0f\x0fa")
         assert block.size == 2
         assert block.instructions == 1
         assert block.jumpkind == JumpKind.NoDecode
