@@ -2,6 +2,62 @@
 requires = ["setuptools>=59", "wheel", "cffi >= 1.0.3"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "pyvex"
+description = "A Python interface to libVEX and VEX IR"
+license = { text = "BSD-2-Clause" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "bitstring",
+    "cffi>=1.0.3;implementation_name == 'cpython'",
+]
+dynamic = ["version"]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.urls]
+Homepage = "https://api.angr.io/projects/pyvex/en/latest/"
+Repository = "https://github.com/angr/pyvex"
+
+[project.optional-dependencies]
+docs = [
+    "furo",
+    "myst-parser",
+    "sphinx",
+    "sphinx-autodoc-typehints",
+]
+fuzzing = [
+    "atheris>=2.3.0",
+]
+testing = [
+    "pytest",
+    "pytest-xdist",
+]
+
+[tool.setuptools]
+include-package-data = true
+license-files = ["LICENSE", "pyvex_c/LICENSE"]
+
+[tool.setuptools.packages.find]
+exclude = ["tests*"]
+namespaces = false
+
+[tool.setuptools.dynamic]
+version = { attr = "pyvex.__version__" }
+
+[tool.setuptools.package-data]
+pyvex = ["py.typed", "lib/*", "include/*"]
+
 [tool.black]
 line-length = 120
 target-version = ['py310']
