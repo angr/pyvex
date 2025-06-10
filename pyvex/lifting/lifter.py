@@ -24,10 +24,11 @@ class Lifter:
         "const_prop",
         "disasm",
         "dump_irsb",
+        "max_blocks",
     )
 
     """
-    A lifter is a class of methods for processing a block.
+    A lifter is a class of methods for processing a block or many blocks.
 
     :ivar data:             The bytes to lift as either a python string of bytes or a cffi buffer object.
     :ivar bytes_offset:     The offset into `data` to start lifting at.
@@ -121,4 +122,18 @@ class Lifter:
         Ijk_NoDecode, signalling to pyvex that other lifters should be used on the undecodable data.
 
         """
+        raise NotImplementedError()
+
+    def lift_multi(
+        self,
+        max_blocks: int = 100,
+        opt_level: int = 1,
+        traceflags: int = 0,
+        allow_arch_optimizations: bool = True,
+        strict_block_end: bool = True,
+        collect_data_refs: bool = False,
+        load_from_ro_regions: bool = False,
+        const_prop: bool = False,
+        cross_insn_opt: bool = True,
+    ):
         raise NotImplementedError()

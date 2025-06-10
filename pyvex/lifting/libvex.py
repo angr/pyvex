@@ -2,6 +2,7 @@ import logging
 import threading
 from typing import TYPE_CHECKING
 
+from pyvex.block import IRSB
 from pyvex.errors import LiftingException
 from pyvex.native import ffi, pvc
 from pyvex.types import CLiftSource, LibvexArch
@@ -112,6 +113,42 @@ class LibVEXLifter(Lifter):
             if self.irsb.size == 0:
                 log.debug("raising lifting exception")
                 raise LiftingException("libvex: could not decode any instructions @ 0x%x" % self.addr)
+        finally:
+            _libvex_lock.release()
+            self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = None
+
+    def _lift_multi(self):
+        lift_results = pvc.VEXLiftResult * [ffi.NULL] * self.max_blocks
+
+        try:
+            _libvex_lock.acquire()
+            self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = ffi.NULL
+
+            # TODO: Fix this call; I'm sure the arguments are wrong
+            # TODO: Also remove references to self.irsb; arch does not have to be part of .irsb. We are dealing with multiple blocks, so we should use self.irsbs instead
+            r = pvc.vex_lift_multi(
+                self.irsb.arch.vex_arch,
+                self.irsb.arch.vex_archinfo,
+                self.irsb.addr,
+                self.max_inst,
+                self.max_bytes,
+                self.opt_level,
+                self.traceflags,
+                lift_results,
+            )
+
+            log_str = self.get_vex_log()
+            if r == -1:
+                raise LiftingException("libvex: unknown error" if log_str is None else log_str)
+            else:
+                if log_str is not None:
+                    log.debug(log_str)
+
+            self.irsbs = [None] * r
+            for i in range(r):
+                self.irsbs[i] = IRSB.empty_block(self.irsb.arch, self.irsb.addr + i * self.irsb.size)
+                self.irsbs[i]._from_c(lift_results[i], skip_stmts=self.skip_stmts)
+
         finally:
             _libvex_lock.release()
             self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = None

@@ -388,3 +388,40 @@ VEXLiftResult *vex_lift(
 		return NULL;
 	}
 }
+
+/*
+ * Lift multiple blocks at once starting from the given address.
+ *
+ * @return -1 if error, otherwise the number of blocks lifted
+ */
+
+VEXLiftResult lift_result_array[4096];
+
+int vex_lift_multi(
+	VexArch guest,
+	VexArchInfo archinfo,
+	unsigned long long insn_addr,
+	unsigned int max_blocks,
+	unsigned int max_insns,
+	unsigned int max_bytes,
+	int opt_level,
+	int traceflags,
+	int allow_arch_optimizations,
+	int strict_block_end,
+	int collect_data_refs,
+	int load_from_ro_regions,
+	int const_prop,
+	VexRegisterUpdates px_control,
+	unsigned int lookback,
+	VEXLiftResult *lift_results
+	) {
+
+	// TODO: Implement this function
+	//
+	// Hints:
+	// - Read-only memory regions are stored in `regions` in `analysis.c`.
+	// - Prior to performing CFG analysis, angr calls `register_readonly_region` to register read-only memory regions.
+	// - You can call `find_region` to find the index of a region. See how `find_region` is used in `analysis.c`.
+
+	return -1;
+}
