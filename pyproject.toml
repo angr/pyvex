@@ -44,6 +44,11 @@ testing = [
     "pytest-xdist",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]
+
 [tool.setuptools]
 include-package-data = true
 license-files = ["LICENSE", "pyvex_c/LICENSE"]
