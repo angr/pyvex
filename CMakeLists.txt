@@ -8,7 +8,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/pyvex/lib)
 if (MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /O2 /W3 /std:c99")
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O2 -Wall -shared -fPIC -std=c99")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O2 -Wall -fPIC -std=c99")
 endif()
 
 # Include directories
