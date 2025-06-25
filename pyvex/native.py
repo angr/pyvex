@@ -49,7 +49,20 @@ def _find_c_lib():
     # parse _ffi_str and use cache if possible
     _parse_ffi_str()
     # RTLD_GLOBAL used for sim_unicorn.so
-    lib = ffi.dlopen(pyvex_path)
+    try:
+        lib = ffi.dlopen(pyvex_path)
+    except OSError as e:
+        raise ImportError(f"""
+        Failed to load the VEX C library.
+
+        Expected to find the library at: {pyvex_path}
+        Base folder: {os.path.dirname(__file__)}
+        Does the file exist? {os.path.exists(pyvex_path)}
+        Does the folder exist? {os.path.isdir(os.path.dirname(pyvex_path))}
+        Base contents: {os.listdir(os.path.dirname(__file__))}
+        Folder contents: {os.listdir(os.path.dirname(pyvex_path))}
+        """)
+
     if not lib.vex_init():
         raise ImportError("libvex failed to initialize")
     # this looks up all the definitions (wtf)
