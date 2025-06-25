@@ -60,7 +60,7 @@ def _find_c_lib():
         Does the file exist? {os.path.exists(pyvex_path)}
         Does the folder exist? {os.path.isdir(os.path.dirname(pyvex_path))}
         Base contents: {os.listdir(os.path.dirname(__file__))}
-        Folder contents: {os.listdir(os.path.dirname(pyvex_path))}
+        Folder contents: {(os.path.isdir(os.path.dirname(pyvex_path)) or os.listdir(os.path.dirname(pyvex_path)))}
         """)
 
     if not lib.vex_init():
