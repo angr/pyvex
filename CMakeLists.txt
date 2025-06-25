@@ -103,7 +103,8 @@ target_include_directories(pyvex PRIVATE pyvex_c)
 target_link_libraries(pyvex PRIVATE vex)
 
 # Install the built library to the Python package
-install(TARGETS pyvex LIBRARY DESTINATION pyvex/lib)
+install(TARGETS pyvex LIBRARY DESTINATION ${SKBUILD_PLATLIB_DIR}/pyvex/lib)
+
 # --- BEGIN: Generate pub/libvex_guest_offsets.h ---
 add_executable(genoffsets vex/auxprogs/genoffsets.c)
 set_target_properties(genoffsets PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/vex/auxprogs)
