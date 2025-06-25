@@ -97,7 +97,6 @@ target_link_libraries(pyvex PRIVATE vex)
 
 # Install the built library to the Python package
 install(TARGETS pyvex LIBRARY DESTINATION pyvex/lib)
-
 # --- BEGIN: Generate pub/libvex_guest_offsets.h ---
 add_executable(genoffsets vex/auxprogs/genoffsets.c)
 set_target_properties(genoffsets PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/vex/auxprogs)
@@ -116,3 +115,19 @@ add_custom_target(generate_offsets_header
 
 add_dependencies(vex generate_offsets_header)
 # --- END: Generate pub/libvex_guest_offsets.h ---
+
+# --- BEGIN: Generate pyvex/vex_ffi.py ---
+add_custom_command(
+    OUTPUT ${CMAKE_SOURCE_DIR}/pyvex/vex_ffi.py
+    COMMAND ${CMAKE_COMMAND} -E env
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/make_ffi.py ${CMAKE_SOURCE_DIR}/vex/pub
+    DEPENDS ${CMAKE_SOURCE_DIR}/vex/pub/libvex_guest_offsets.h
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Generating pyvex/vex_ffi.py using make_ffi.py"
+)
+
+add_custom_target(generate_vex_ffi_py
+    DEPENDS ${CMAKE_SOURCE_DIR}/pyvex/vex_ffi.py
+)
+add_dependencies(pyvex generate_vex_ffi_py)
+# --- END: Generate pyvex/vex_ffi.py ---
