@@ -52,7 +52,6 @@ def _find_c_lib():
     # RTLD_GLOBAL used for sim_unicorn.so
     lib = ffi.dlopen(pyvex_path)
 
-
     if not lib.vex_init():
         raise ImportError("libvex failed to initialize")
     # this looks up all the definitions (wtf)
