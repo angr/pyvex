@@ -30,6 +30,8 @@ jobs:
         uses: astral-sh/setup-uv@445689ea25e0de0a23313031f5fe577c74ae45a1 # v6
       - name: Sync dependencies
         run: uv sync -p 3.10 -v
+      - name: Print status
+        run: uv pip list
       - name: Run tests
         run: uv run pytest tests
 
