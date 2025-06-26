@@ -137,5 +137,9 @@ add_custom_command(
 add_custom_target(generate_vex_ffi_py
     DEPENDS ${CMAKE_SOURCE_DIR}/pyvex/vex_ffi.py
 )
+install(
+    FILES ${CMAKE_SOURCE_DIR}/pyvex/vex_ffi.py
+    DESTINATION pyvex
+)
 add_dependencies(pyvex generate_vex_ffi_py)
 # --- END: Generate pyvex/vex_ffi.py ---
