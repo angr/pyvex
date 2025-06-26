@@ -136,3 +136,22 @@ install(
 )
 add_dependencies(pyvex generate_vex_ffi_py)
 # --- END: Generate pyvex/vex_ffi.py ---
+
+# --- BEGIN: Copy headers to pyvex/include ---
+add_custom_command(
+    OUTPUT ${CMAKE_SOURCE_DIR}/pyvex/include/pub
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/vex/pub ${CMAKE_SOURCE_DIR}/pyvex/include/
+    DEPENDS ${CMAKE_SOURCE_DIR}/vex/pub
+    COMMENT "Copying vex/pub to pyvex/include/"
+)
+add_custom_command(
+    OUTPUT ${CMAKE_SOURCE_DIR}/pyvex/include/pyvex.h
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/pyvex_c/pyvex.h ${CMAKE_SOURCE_DIR}/pyvex/include/pyvex.h
+    DEPENDS ${CMAKE_SOURCE_DIR}/pyvex_c/pyvex.h
+    COMMENT "Copying pyvex_c/pyvex.h to pyvex/include/"
+)
+add_custom_target(copy_headers ALL
+    DEPENDS ${CMAKE_SOURCE_DIR}/pyvex/include/pub ${CMAKE_SOURCE_DIR}/pyvex/include/pyvex.h
+)
+add_dependencies(pyvex copy_headers)
+# --- END: Copy headers to pyvex/include ---
