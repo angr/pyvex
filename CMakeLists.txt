@@ -4,12 +4,8 @@ project(pyvex LANGUAGES C)
 # Set the output directory for built libraries
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/pyvex/lib)
 
-# Set C compiler flags
-if (MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /O2 /W3 /std:c99")
-else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O2 -Wall -fPIC -std=c99")
-endif()
+# Set the C standard to C99
+set(CMAKE_C_STANDARD 99)
 
 # Include directories
 include_directories(
@@ -28,65 +24,60 @@ set(PYVEX_SRC
 
 # Source files for the VEX C library
 set(VEX_SRC
-    vex/priv/guest_amd64_helpers.c
-    vex/priv/guest_x86_toIR.c
-    vex/priv/host_riscv64_isel.c
-    vex/priv/guest_amd64_toIR.c
-    vex/priv/host_amd64_defs.c
-    vex/priv/host_s390_defs.c
-    vex/priv/guest_arm64_helpers.c
-    vex/priv/host_amd64_isel.c
-    vex/priv/host_s390_isel.c
-    vex/priv/guest_arm64_toIR.c
-    vex/priv/host_arm64_defs.c
-    vex/priv/host_tilegx_defs.c
-    vex/priv/guest_arm_helpers.c
-    vex/priv/host_arm64_isel.c
-    vex/priv/host_tilegx_isel.c
-    vex/priv/guest_arm_toIR.c
-    vex/priv/host_arm_defs.c
-    vex/priv/host_x86_defs.c
-    vex/priv/guest_generic_bb_to_IR.c
-    vex/priv/host_arm_isel.c
-    vex/priv/host_x86_isel.c
-    vex/priv/guest_generic_x87.c
-    vex/priv/host_generic_maddf.c
-    vex/priv/ir_defs.c
-    vex/priv/guest_mips_helpers.c
-    vex/priv/host_generic_reg_alloc2.c
-    vex/priv/ir_inject.c
-    vex/priv/guest_mips_toIR.c
-    vex/priv/host_generic_reg_alloc3.c
-    vex/priv/ir_match.c
-    vex/priv/guest_ppc_helpers.c
-    vex/priv/host_generic_regs.c
-    vex/priv/ir_opt.c
-    vex/priv/guest_ppc_toIR.c
-    vex/priv/host_generic_simd128.c
-    vex/priv/main_globals.c
-    vex/priv/guest_riscv64_helpers.c
-    vex/priv/host_generic_simd256.c
-    vex/priv/main_main.c
-    vex/priv/guest_riscv64_toIR.c
-    vex/priv/host_generic_simd64.c
-    vex/priv/main_util.c
-    vex/priv/guest_s390_helpers.c
-    vex/priv/host_mips_defs.c
+	vex/priv/ir_defs.c
+	vex/priv/ir_match.c
+	vex/priv/ir_opt.c
+	vex/priv/ir_inject.c
+	vex/priv/main_globals.c
+	vex/priv/main_util.c
+	vex/priv/s390_disasm.c
+	vex/priv/host_x86_defs.c
+	vex/priv/host_amd64_defs.c
+	vex/priv/host_arm_defs.c
+	vex/priv/host_arm64_defs.c
+	vex/priv/host_ppc_defs.c
+	vex/priv/host_riscv64_defs.c
+	vex/priv/host_s390_defs.c
+	vex/priv/host_mips_defs.c
+	vex/priv/host_x86_isel.c
+	vex/priv/host_amd64_isel.c
+	vex/priv/host_arm_isel.c
+	vex/priv/host_arm64_isel.c
+	vex/priv/host_ppc_isel.c
+	vex/priv/host_riscv64_isel.c
+	vex/priv/host_s390_isel.c
+	vex/priv/host_mips_isel.c
+	vex/priv/host_generic_maddf.c
+	vex/priv/host_generic_regs.c
+	vex/priv/host_generic_simd64.c
+	vex/priv/host_generic_simd128.c
+	vex/priv/host_generic_simd256.c
+	vex/priv/host_generic_reg_alloc2.c
+	vex/priv/host_generic_reg_alloc3.c
+	vex/priv/guest_generic_x87.c
+	vex/priv/guest_generic_bb_to_IR.c
+	vex/priv/guest_x86_helpers.c
+	vex/priv/guest_amd64_helpers.c
+	vex/priv/guest_arm_helpers.c
+	vex/priv/guest_arm64_helpers.c
+	vex/priv/guest_ppc_helpers.c
+	vex/priv/guest_riscv64_helpers.c
+	vex/priv/guest_s390_helpers.c
+	vex/priv/guest_mips_helpers.c
+	vex/priv/guest_x86_toIR.c
+	vex/priv/guest_amd64_toIR.c
+	vex/priv/guest_arm_toIR.c
+	vex/priv/guest_arm64_toIR.c
+	vex/priv/guest_ppc_toIR.c
+	vex/priv/guest_riscv64_toIR.c
+	vex/priv/guest_s390_toIR.c
+	vex/priv/guest_mips_toIR.c
     vex/priv/multiarch_main_main.c
-    vex/priv/guest_s390_toIR.c
-    vex/priv/host_mips_isel.c
-    vex/priv/s390_disasm.c
-    vex/priv/guest_tilegx_helpers.c
-    vex/priv/host_ppc_defs.c
-    vex/priv/tilegx_disasm.c
-    vex/priv/guest_tilegx_toIR.c
-    vex/priv/host_ppc_isel.c
-    vex/priv/guest_x86_helpers.c
-    vex/priv/host_riscv64_defs.c
 )
 
 # Build the VEX static library
 add_library(vex STATIC ${VEX_SRC})
+target_compile_definitions(vex PRIVATE PYVEX)
 target_include_directories(vex PUBLIC ${CMAKE_SOURCE_DIR}/vex/pub)
 
 # Build the shared library
@@ -103,7 +94,7 @@ target_include_directories(pyvex PRIVATE pyvex_c)
 target_link_libraries(pyvex PRIVATE vex)
 
 # Install the built library to the Python package
-install(TARGETS pyvex DESTINATION pyvex/lib)
+install(TARGETS pyvex DESTINATION ${CMAKE_SOURCE_DIR}/pyvex/lib)
 
 # --- BEGIN: Generate pub/libvex_guest_offsets.h ---
 add_executable(genoffsets vex/auxprogs/genoffsets.c)
