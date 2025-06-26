@@ -96,7 +96,9 @@ target_include_directories(pyvex PRIVATE pyvex_c)
 target_link_libraries(pyvex PRIVATE vex)
 
 # Install the built library to the Python package
+# It is installed twice to handle both editable and non-editable installs
 install(TARGETS pyvex DESTINATION ${CMAKE_SOURCE_DIR}/pyvex/lib)
+install(TARGETS pyvex DESTINATION pyvex/lib)
 
 # --- BEGIN: Generate pub/libvex_guest_offsets.h ---
 add_executable(genoffsets vex/auxprogs/genoffsets.c)
