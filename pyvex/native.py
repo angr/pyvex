@@ -1,4 +1,5 @@
 import hashlib
+import importlib.resources
 import os
 import pickle
 import sys
@@ -45,7 +46,7 @@ def _find_c_lib():
     else:
         library_file = "libpyvex.so"
 
-    pyvex_path = os.path.join(os.path.dirname(__file__), "lib", library_file)
+    pyvex_path = str(importlib.resources.files("pyvex") / "lib" / library_file)
     # parse _ffi_str and use cache if possible
     _parse_ffi_str()
     # RTLD_GLOBAL used for sim_unicorn.so
