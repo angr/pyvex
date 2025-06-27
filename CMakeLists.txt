@@ -115,6 +115,10 @@ add_custom_command(
 add_custom_target(generate_offsets_header
     DEPENDS ${CMAKE_SOURCE_DIR}/vex/pub/libvex_guest_offsets.h
 )
+install(
+    FILES ${CMAKE_SOURCE_DIR}/vex/pub/libvex_guest_offsets.h
+    DESTINATION pyvex/include
+)
 
 add_dependencies(vex generate_offsets_header)
 # --- END: Generate pub/libvex_guest_offsets.h ---
