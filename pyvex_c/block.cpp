@@ -6,52 +6,15 @@
 extern "C" {
 #include "pyvex.h"
 }
+#include "const.hpp"
+#include "expr.hpp"
+#include "stmt.hpp"
+#include "typeenv.hpp"
 
 namespace nb = nanobind;
 
 // Forward declarations
-class IRStmt;
-class IRExpr;
-class IRConst;
-
-// IRTypeEnv class for managing temporary variable types
-class IRTypeEnv {
-public:
-    std::vector<std::string> types;
-    std::string wordty;
-
-    IRTypeEnv() : wordty("Ity_I64") {}
-
-    IRTypeEnv(const std::vector<std::string>& types, const std::string& wordty)
-        : types(types), wordty(wordty) {}
-
-    void extend(const std::string& ty) {
-        types.push_back(ty);
-    }
-
-    std::string lookup(int tmp) const {
-        if (tmp >= 0 && tmp < static_cast<int>(types.size())) {
-            return types[tmp];
-        }
-        throw std::runtime_error("Invalid temporary number: " + std::to_string(tmp));
-    }
-
-    size_t types_used() const {
-        return types.size();
-    }
-
-    std::string __str__() const {
-        std::string result = "IRTypeEnv([";
-        for (size_t i = 0; i < types.size(); ++i) {
-            if (i > 0) result += ", ";
-            result += types[i];
-        }
-        result += "])";
-        return result;
-    }
-
-    static std::shared_ptr<IRTypeEnv> _from_c(const ::IRTypeEnv* c_tyenv);
-};
+class PyIRStmt;
 
 // Data reference tracking
 class DataRef {
@@ -88,15 +51,15 @@ public:
     }
 };
 
-// Main IRSB class
-class IRSB {
+// Main PyIRSB class
+class PyIRSB {
 public:
     // Core attributes
     uint64_t addr;
     std::string arch;  // Architecture name (simplified)
-    std::vector<std::shared_ptr<IRStmt>> statements;
-    std::shared_ptr<IRExpr> next;
-    std::shared_ptr<IRTypeEnv> _tyenv;
+    std::vector<std::shared_ptr<PyIRStmt>> statements;
+    std::shared_ptr<PyIRExpr> next;
+    std::shared_ptr<PyIRTypeEnv> _tyenv;
     std::string jumpkind;
     bool is_noop_block;
 
@@ -104,7 +67,7 @@ public:
     mutable std::optional<bool> _direct_next;
     mutable std::optional<int> _size;
     mutable std::optional<int> _instructions;
-    mutable std::optional<std::vector<std::shared_ptr<IRStmt>>> _exit_statements;
+    mutable std::optional<std::vector<std::shared_ptr<PyIRStmt>>> _exit_statements;
     mutable std::optional<uint64_t> default_exit_target;
     mutable std::optional<std::vector<uint64_t>> _instruction_addresses;
 
@@ -119,7 +82,7 @@ public:
 
     // Constructor for empty block
     IRSB() : addr(0), arch("unknown"), is_noop_block(false), jumpkind("Ijk_Boring") {
-        _tyenv = std::make_shared<IRTypeEnv>();
+        _tyenv = std::make_shared<PyIRTypeEnv>();
     }
 
     // Constructor with lifting (simplified)
@@ -127,7 +90,7 @@ public:
          int max_inst = 99, int max_bytes = 800, int bytes_offset = 0,
          int traceflags = 0, int opt_level = 1)
         : addr(mem_addr), arch(arch_name), is_noop_block(false), jumpkind("Ijk_Boring") {
-        _tyenv = std::make_shared<IRTypeEnv>();
+        _tyenv = std::make_shared<PyIRTypeEnv>();
         // TODO: Implement actual lifting via pyvex.lifting.lift()
         // For now, create empty block
     }
@@ -189,7 +152,7 @@ public:
         return _direct_next.value();
     }
 
-    std::vector<std::shared_ptr<IRStmt>> exit_statements() const {
+    std::vector<std::shared_ptr<PyIRStmt>> exit_statements() const {
         if (!_exit_statements.has_value()) {
             std::vector<std::shared_ptr<IRStmt>> exits;
             for (const auto& stmt : statements) {
@@ -203,7 +166,7 @@ public:
     }
 
     // Type environment access
-    std::shared_ptr<IRTypeEnv> tyenv() const {
+    std::shared_ptr<PyIRTypeEnv> tyenv() const {
         return _tyenv;
     }
 
@@ -242,7 +205,7 @@ public:
         new_block->is_noop_block = is_noop_block;
         
         // Deep copy type environment
-        new_block->_tyenv = std::make_shared<IRTypeEnv>(_tyenv->types, _tyenv->wordty);
+        new_block->_tyenv = std::make_shared<PyIRTypeEnv>(_tyenv->types, _tyenv->wordty);
         
         // Deep copy statements
         for (const auto& stmt : statements) {
@@ -365,18 +328,6 @@ private:
 
 // Nanobind module definition
 void bind_block(nb::module_& m) {
-    // IRTypeEnv class
-    nb::class_<IRTypeEnv>(m, "IRTypeEnv")
-        .def(nb::init<>())
-        .def(nb::init<const std::vector<std::string>&, const std::string&>())
-        .def_readwrite("types", &IRTypeEnv::types)
-        .def_readwrite("wordty", &IRTypeEnv::wordty)
-        .def("extend", &IRTypeEnv::extend)
-        .def("lookup", &IRTypeEnv::lookup)
-        .def("types_used", &IRTypeEnv::types_used)
-        .def("__str__", &IRTypeEnv::__str__)
-        .def_static("_from_c", &IRTypeEnv::_from_c, nb::rv_policy::take_ownership);
-
     // DataRef class
     nb::class_<DataRef>(m, "DataRef")
         .def(nb::init<uint64_t, uint64_t, int, const std::string&>())
@@ -393,37 +344,37 @@ void bind_block(nb::module_& m) {
         .def_readwrite("value", &ConstVal::value)
         .def("__str__", &ConstVal::__str__);
 
-    // IRSB class
-    nb::class_<IRSB>(m, "IRSB")
+    // PyIRSB class
+    nb::class_<PyIRSB>(m, "IRSB")
         .def(nb::init<>())
         .def(nb::init<const std::vector<uint8_t>&, uint64_t, const std::string&, int, int, int, int, int>(),
              "data"_a, "mem_addr"_a, "arch"_a, "max_inst"_a = 99, "max_bytes"_a = 800,
              "bytes_offset"_a = 0, "traceflags"_a = 0, "opt_level"_a = 1)
-        .def_readwrite("addr", &IRSB::addr)
-        .def_readwrite("arch", &IRSB::arch)
-        .def_readwrite("statements", &IRSB::statements)
-        .def_readwrite("next", &IRSB::next)
-        .def_readwrite("jumpkind", &IRSB::jumpkind)
-        .def_readwrite("is_noop_block", &IRSB::is_noop_block)
-        .def_readwrite("data_refs", &IRSB::data_refs)
-        .def_readwrite("const_vals", &IRSB::const_vals)
-        .def_property_readonly("size", &IRSB::size)
-        .def_property_readonly("instructions", &IRSB::instructions)
-        .def_property_readonly("instruction_addresses", &IRSB::instruction_addresses)
-        .def_property_readonly("direct_next", &IRSB::direct_next)
-        .def_property_readonly("exit_statements", &IRSB::exit_statements)
-        .def_property_readonly("tyenv", &IRSB::tyenv)
-        .def("extend", &IRSB::extend)
-        .def("copy", &IRSB::copy)
-        .def("typecheck", &IRSB::typecheck)
-        .def("expressions", &IRSB::expressions)
-        .def("constants", &IRSB::constants)
-        .def("operations", &IRSB::operations)
-        .def("constant_jump_targets", &IRSB::constant_jump_targets)
-        .def("__str__", &IRSB::__str__)
-        .def_static("_from_c", &IRSB::_from_c, nb::rv_policy::take_ownership)
-        .def_static("_from_py", &IRSB::_from_py, nb::rv_policy::take_ownership)
-        .def_readonly_static("MAX_EXITS", &IRSB::MAX_EXITS)
-        .def_readonly_static("MAX_DATA_REFS", &IRSB::MAX_DATA_REFS)
-        .def_readonly_static("MAX_CONST_VALS", &IRSB::MAX_CONST_VALS);
+        .def_readwrite("addr", &PyIRSB::addr)
+        .def_readwrite("arch", &PyIRSB::arch)
+        .def_readwrite("statements", &PyIRSB::statements)
+        .def_readwrite("next", &PyIRSB::next)
+        .def_readwrite("jumpkind", &PyIRSB::jumpkind)
+        .def_readwrite("is_noop_block", &PyIRSB::is_noop_block)
+        .def_readwrite("data_refs", &PyIRSB::data_refs)
+        .def_readwrite("const_vals", &PyIRSB::const_vals)
+        .def_property_readonly("size", &PyIRSB::size)
+        .def_property_readonly("instructions", &PyIRSB::instructions)
+        .def_property_readonly("instruction_addresses", &PyIRSB::instruction_addresses)
+        .def_property_readonly("direct_next", &PyIRSB::direct_next)
+        .def_property_readonly("exit_statements", &PyIRSB::exit_statements)
+        .def_property_readonly("tyenv", &PyIRSB::tyenv)
+        .def("extend", &PyIRSB::extend)
+        .def("copy", &PyIRSB::copy)
+        .def("typecheck", &PyIRSB::typecheck)
+        .def("expressions", &PyIRSB::expressions)
+        .def("constants", &PyIRSB::constants)
+        .def("operations", &PyIRSB::operations)
+        .def("constant_jump_targets", &PyIRSB::constant_jump_targets)
+        .def("__str__", &PyIRSB::__str__)
+        .def_static("_from_c", &PyIRSB::_from_c, nb::rv_policy::take_ownership)
+        .def_static("_from_py", &PyIRSB::_from_py, nb::rv_policy::take_ownership)
+        .def_readonly_static("MAX_EXITS", &PyIRSB::MAX_EXITS)
+        .def_readonly_static("MAX_DATA_REFS", &PyIRSB::MAX_DATA_REFS)
+        .def_readonly_static("MAX_CONST_VALS", &PyIRSB::MAX_CONST_VALS);
 }

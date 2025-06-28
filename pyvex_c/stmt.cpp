@@ -7,62 +7,34 @@ extern "C" {
 #include "pyvex.h"
 }
 
+#include "const.hpp"
+#include "expr.hpp"
+#include "stmt.hpp"
+
+
 namespace nb = nanobind;
 
 // Forward declarations
-class IRExpr;
-class IRConst;
-class IRRegArray;
-class IRCallee;
-class IRTypeEnv;
+class PyIRRegArray;
+class PyIRCallee;
+class PyIRTypeEnv;
 
-// Base IRStmt class
-class IRStmt {
-public:
-    std::string tag;
-    int tag_int = 0;
-
-    virtual ~IRStmt() = default;
-
-    void pp() const {
-        nb::print(nb::str(__str__().c_str()));
-    }
-
-    virtual std::vector<std::shared_ptr<IRExpr>> child_expressions() const = 0;
-    
-    std::vector<std::shared_ptr<IRExpr>> expressions() const {
-        return child_expressions();
-    }
-
-    virtual std::vector<std::shared_ptr<IRConst>> constants() const;
-
-    static std::shared_ptr<IRStmt> _from_c(const ::IRStmt* c_stmt);
-
-    virtual bool typecheck(const IRTypeEnv& tyenv) const {
-        return true;
-    }
-
-    virtual void replace_expression(const std::unordered_map<std::shared_ptr<IRExpr>, std::shared_ptr<IRExpr>>& replacements) = 0;
-
-    virtual std::string __str__() const {
-        return pp_str("", "", nullptr);
-    }
-
-    virtual std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const = 0;
-};
+void PyIRStmt::pp() const {
+    nb::print(nb::str(__str__().c_str()));
+}
 
 // NoOp statement
-class NoOp : public IRStmt {
+class PyNoOp : public PyIRStmt {
 public:
-    NoOp() {
+    PyNoOp() {
         tag = "Ist_NoOp";
     }
 
-    std::vector<std::shared_ptr<IRExpr>> child_expressions() const override {
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override {
         return {};
     }
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<IRExpr>, std::shared_ptr<IRExpr>>& replacements) override {
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override {
         // No expressions to replace
     }
 
@@ -70,27 +42,27 @@ public:
         return "NoOp";
     }
 
-    static std::shared_ptr<NoOp> _from_c(const ::IRStmt* c_stmt) {
-        return std::make_shared<NoOp>();
+    static std::shared_ptr<PyNoOp> _from_c(const ::IRStmt* c_stmt) {
+        return std::make_shared<PyNoOp>();
     }
 };
 
 // IMark statement  
-class IMark : public IRStmt {
+class PyIMark : public PyIRStmt {
 public:
     uint64_t addr;
     int len;
     uint8_t delta;
 
-    IMark(uint64_t addr, int len, uint8_t delta) : addr(addr), len(len), delta(delta) {
+    PyIMark(uint64_t addr, int len, uint8_t delta) : addr(addr), len(len), delta(delta) {
         tag = "Ist_IMark";
     }
 
-    std::vector<std::shared_ptr<IRExpr>> child_expressions() const override {
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override {
         return {};
     }
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<IRExpr>, std::shared_ptr<IRExpr>>& replacements) override {
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override {
         // No expressions to replace
     }
 
@@ -100,8 +72,8 @@ public:
         return std::string(buf);
     }
 
-    static std::shared_ptr<IMark> _from_c(const ::IRStmt* c_stmt) {
-        return std::make_shared<IMark>(
+    static std::shared_ptr<PyIMark> _from_c(const ::IRStmt* c_stmt) {
+        return std::make_shared<PyIMark>(
             c_stmt->Ist.IMark.addr,
             c_stmt->Ist.IMark.len,
             c_stmt->Ist.IMark.delta
@@ -110,170 +82,170 @@ public:
 };
 
 // AbiHint statement
-class AbiHint : public IRStmt {
+class PyAbiHint : public PyIRStmt {
 public:
-    std::shared_ptr<IRExpr> base;
+    std::shared_ptr<PyIRExpr> base;
     int len;
-    std::shared_ptr<IRExpr> nia;
+    std::shared_ptr<PyIRExpr> nia;
 
-    AbiHint(std::shared_ptr<IRExpr> base, int len, std::shared_ptr<IRExpr> nia)
+    PyAbiHint(std::shared_ptr<PyIRExpr> base, int len, std::shared_ptr<PyIRExpr> nia)
         : base(base), len(len), nia(nia) {
         tag = "Ist_AbiHint";
     }
 
-    std::vector<std::shared_ptr<IRExpr>> child_expressions() const override;
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override;
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<IRExpr>, std::shared_ptr<IRExpr>>& replacements) override;
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override;
 
     std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override {
         return "AbiHint(" + base->__str__() + ", " + std::to_string(len) + ", " + nia->__str__() + ")";
     }
 
-    static std::shared_ptr<AbiHint> _from_c(const ::IRStmt* c_stmt);
+    static std::shared_ptr<PyAbiHint> _from_c(const ::IRStmt* c_stmt);
 };
 
 // Put statement
-class Put : public IRStmt {
+class PyPut : public PyIRStmt {
 public:
-    std::shared_ptr<IRExpr> data;
+    std::shared_ptr<PyIRExpr> data;
     int offset;
 
-    Put(std::shared_ptr<IRExpr> data, int offset) : data(data), offset(offset) {
+    PyPut(std::shared_ptr<PyIRExpr> data, int offset) : data(data), offset(offset) {
         tag = "Ist_Put";
     }
 
-    std::vector<std::shared_ptr<IRExpr>> child_expressions() const override;
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override;
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<IRExpr>, std::shared_ptr<IRExpr>>& replacements) override;
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override;
 
     std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override;
 
-    static std::shared_ptr<Put> _from_c(const ::IRStmt* c_stmt);
+    static std::shared_ptr<PyPut> _from_c(const IRStmt* c_stmt);
 };
 
 // PutI statement  
-class PutI : public IRStmt {
+class PyPutI : public PyIRStmt {
 public:
-    std::shared_ptr<IRRegArray> descr;
-    std::shared_ptr<IRExpr> ix;
-    std::shared_ptr<IRExpr> data;
+    std::shared_ptr<PyIRRegArray> descr;
+    std::shared_ptr<PyIRExpr> ix;
+    std::shared_ptr<PyIRExpr> data;
     int bias;
 
-    PutI(std::shared_ptr<IRRegArray> descr, std::shared_ptr<IRExpr> ix, 
-         std::shared_ptr<IRExpr> data, int bias)
+    PyPutI(std::shared_ptr<PyIRRegArray> descr, std::shared_ptr<PyIRExpr> ix, 
+         std::shared_ptr<PyIRExpr> data, int bias)
         : descr(descr), ix(ix), data(data), bias(bias) {
         tag = "Ist_PutI";
     }
 
-    std::vector<std::shared_ptr<IRExpr>> child_expressions() const override;
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override;
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<IRExpr>, std::shared_ptr<IRExpr>>& replacements) override;
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override;
 
     std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override;
 
-    static std::shared_ptr<PutI> _from_c(const ::IRStmt* c_stmt);
+    static std::shared_ptr<PyPutI> _from_c(const IRStmt* c_stmt);
 };
 
 // WrTmp statement
-class WrTmp : public IRStmt {
+class PyWrTmp : public PyIRStmt {
 public:
-    std::shared_ptr<IRExpr> data;
+    std::shared_ptr<PyIRExpr> data;
     int tmp;
 
-    WrTmp(std::shared_ptr<IRExpr> data, int tmp) : data(data), tmp(tmp) {
+    PyWrTmp(std::shared_ptr<PyIRExpr> data, int tmp) : data(data), tmp(tmp) {
         tag = "Ist_WrTmp";
     }
 
-    std::vector<std::shared_ptr<IRExpr>> child_expressions() const override;
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override;
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<IRExpr>, std::shared_ptr<IRExpr>>& replacements) override;
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override;
 
     std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override;
 
-    static std::shared_ptr<WrTmp> _from_c(const ::IRStmt* c_stmt);
+    static std::shared_ptr<PyWrTmp> _from_c(const IRStmt* c_stmt);
 };
 
 // Store statement
-class Store : public IRStmt {
+class PyStore : public PyIRStmt {
 public:
-    std::shared_ptr<IRExpr> addr;
-    std::shared_ptr<IRExpr> data;
+    std::shared_ptr<PyIRExpr> addr;
+    std::shared_ptr<PyIRExpr> data;
     std::string end;
 
-    Store(std::shared_ptr<IRExpr> addr, std::shared_ptr<IRExpr> data, const std::string& end)
+    PyStore(std::shared_ptr<PyIRExpr> addr, std::shared_ptr<PyIRExpr> data, const std::string& end)
         : addr(addr), data(data), end(end) {
         tag = "Ist_Store";
     }
 
     std::string endness() const { return end; }
 
-    std::vector<std::shared_ptr<IRExpr>> child_expressions() const override;
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override;
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<IRExpr>, std::shared_ptr<IRExpr>>& replacements) override;
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override;
 
     std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override;
 
-    static std::shared_ptr<Store> _from_c(const ::IRStmt* c_stmt);
+    static std::shared_ptr<PyStore> _from_c(const IRStmt* c_stmt);
 };
 
 // Exit statement
-class Exit : public IRStmt {
+class PyExit : public PyIRStmt {
 public:
-    std::shared_ptr<IRExpr> guard;
-    std::shared_ptr<IRConst> dst;
+    std::shared_ptr<PyIRExpr> guard;
+    std::shared_ptr<PyIRConst> dst;
     int offsIP;
     std::string jk;
 
-    Exit(std::shared_ptr<IRExpr> guard, std::shared_ptr<IRConst> dst, int offsIP, const std::string& jk)
+    PyExit(std::shared_ptr<PyIRExpr> guard, std::shared_ptr<PyIRConst> dst, int offsIP, const std::string& jk)
         : guard(guard), dst(dst), offsIP(offsIP), jk(jk) {
         tag = "Ist_Exit";
     }
 
     std::string jumpkind() const { return jk; }
 
-    std::vector<std::shared_ptr<IRExpr>> child_expressions() const override;
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override;
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<IRExpr>, std::shared_ptr<IRExpr>>& replacements) override;
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override;
 
     std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override;
 
-    static std::shared_ptr<Exit> _from_c(const ::IRStmt* c_stmt);
+    static std::shared_ptr<PyExit> _from_c(const IRStmt* c_stmt);
 };
 
 // Global mapping for statement type lookup
-static std::unordered_map<int, std::function<std::shared_ptr<IRStmt>(const ::IRStmt*)>> enum_to_stmt_factory;
+static std::unordered_map<int, std::function<std::shared_ptr<PyIRStmt>(const ::IRStmt*)>> enum_to_stmt_factory;
 
 // Initialize statement type mapping
 void _initialize_stmt_mapping() {
-    enum_to_stmt_factory[Ist_NoOp] = [](const ::IRStmt* c_stmt) -> std::shared_ptr<IRStmt> {
-        return NoOp::_from_c(c_stmt);
+    enum_to_stmt_factory[Ist_NoOp] = [](const IRStmt* c_stmt) -> std::shared_ptr<PyIRStmt> {
+        return PyNoOp::_from_c(c_stmt);
     };
-    enum_to_stmt_factory[Ist_IMark] = [](const ::IRStmt* c_stmt) -> std::shared_ptr<IRStmt> {
-        return IMark::_from_c(c_stmt);
+    enum_to_stmt_factory[Ist_IMark] = [](const IRStmt* c_stmt) -> std::shared_ptr<PyIRStmt> {
+        return PyIMark::_from_c(c_stmt);
     };
-    enum_to_stmt_factory[Ist_AbiHint] = [](const ::IRStmt* c_stmt) -> std::shared_ptr<IRStmt> {
-        return AbiHint::_from_c(c_stmt);
+    enum_to_stmt_factory[Ist_AbiHint] = [](const IRStmt* c_stmt) -> std::shared_ptr<PyIRStmt> {
+        return PyAbiHint::_from_c(c_stmt);
     };
-    enum_to_stmt_factory[Ist_Put] = [](const ::IRStmt* c_stmt) -> std::shared_ptr<IRStmt> {
-        return Put::_from_c(c_stmt);
+    enum_to_stmt_factory[Ist_Put] = [](const IRStmt* c_stmt) -> std::shared_ptr<PyIRStmt> {
+        return PyPut::_from_c(c_stmt);
     };
-    enum_to_stmt_factory[Ist_PutI] = [](const ::IRStmt* c_stmt) -> std::shared_ptr<IRStmt> {
-        return PutI::_from_c(c_stmt);
+    enum_to_stmt_factory[Ist_PutI] = [](const IRStmt* c_stmt) -> std::shared_ptr<PyIRStmt> {
+        return PyPutI::_from_c(c_stmt);
     };
-    enum_to_stmt_factory[Ist_WrTmp] = [](const ::IRStmt* c_stmt) -> std::shared_ptr<IRStmt> {
-        return WrTmp::_from_c(c_stmt);
+    enum_to_stmt_factory[Ist_WrTmp] = [](const IRStmt* c_stmt) -> std::shared_ptr<PyIRStmt> {
+        return PyWrTmp::_from_c(c_stmt);
     };
-    enum_to_stmt_factory[Ist_Store] = [](const ::IRStmt* c_stmt) -> std::shared_ptr<IRStmt> {
-        return Store::_from_c(c_stmt);
+    enum_to_stmt_factory[Ist_Store] = [](const IRStmt* c_stmt) -> std::shared_ptr<PyIRStmt> {
+        return PyStore::_from_c(c_stmt);
     };
-    enum_to_stmt_factory[Ist_Exit] = [](const ::IRStmt* c_stmt) -> std::shared_ptr<IRStmt> {
-        return Exit::_from_c(c_stmt);
+    enum_to_stmt_factory[Ist_Exit] = [](const IRStmt* c_stmt) -> std::shared_ptr<PyIRStmt> {
+        return PyExit::_from_c(c_stmt);
     };
     // Add more statement types as needed...
 }
 
 // Factory method implementation
-std::shared_ptr<IRStmt> IRStmt::_from_c(const ::IRStmt* c_stmt) {
+std::shared_ptr<PyIRStmt> PyIRStmt::_from_c(const IRStmt* c_stmt) {
     if (!c_stmt) return nullptr;
     
     auto it = enum_to_stmt_factory.find(c_stmt->tag);
@@ -290,79 +262,79 @@ void bind_stmt(nb::module_& m) {
     _initialize_stmt_mapping();
 
     // Base IRStmt class
-    nb::class_<IRStmt>(m, "IRStmt")
-        .def("pp", &IRStmt::pp)
-        .def("child_expressions", &IRStmt::child_expressions)
-        .def("expressions", &IRStmt::expressions)
-        .def("constants", &IRStmt::constants)
-        .def_static("_from_c", &IRStmt::_from_c, nb::rv_policy::take_ownership)
-        .def("typecheck", &IRStmt::typecheck)
-        .def("replace_expression", &IRStmt::replace_expression)
-        .def("__str__", &IRStmt::__str__)
-        .def("pp_str", &IRStmt::pp_str)
-        .def_readwrite("tag", &IRStmt::tag)
-        .def_readwrite("tag_int", &IRStmt::tag_int);
+    nb::class_<PyIRStmt>(m, "IRStmt")
+        .def("pp", &PyIRStmt::pp)
+        .def("child_expressions", &PyIRStmt::child_expressions)
+        .def("expressions", &PyIRStmt::expressions)
+        .def("constants", &PyIRStmt::constants)
+        .def_static("_from_c", &PyIRStmt::_from_c, nb::rv_policy::take_ownership)
+        .def("typecheck", &PyIRStmt::typecheck)
+        .def("replace_expression", &PyIRStmt::replace_expression)
+        .def("__str__", &PyIRStmt::__str__)
+        .def("pp_str", &PyIRStmt::pp_str)
+        .def_rw("tag", &PyIRStmt::tag)
+        .def_rw("tag_int", &PyIRStmt::tag_int);
 
     // NoOp statement
-    nb::class_<NoOp, IRStmt>(m, "NoOp")
+    nb::class_<PyNoOp, PyIRStmt>(m, "NoOp")
         .def(nb::init<>())
-        .def_static("_from_c", &NoOp::_from_c, nb::rv_policy::take_ownership);
+        .def_static("_from_c", &PyNoOp::_from_c, nb::rv_policy::take_ownership);
 
     // IMark statement
-    nb::class_<IMark, IRStmt>(m, "IMark")
+    nb::class_<PyIMark, PyIRStmt>(m, "IMark")
         .def(nb::init<uint64_t, int, uint8_t>())
-        .def_readwrite("addr", &IMark::addr)
-        .def_readwrite("len", &IMark::len)
-        .def_readwrite("delta", &IMark::delta)
-        .def_static("_from_c", &IMark::_from_c, nb::rv_policy::take_ownership);
+        .def_rw("addr", &PyIMark::addr)
+        .def_rw("len", &PyIMark::len)
+        .def_rw("delta", &PyIMark::delta)
+        .def_static("_from_c", &PyIMark::_from_c, nb::rv_policy::take_ownership);
 
     // AbiHint statement
-    nb::class_<AbiHint, IRStmt>(m, "AbiHint")
-        .def(nb::init<std::shared_ptr<IRExpr>, int, std::shared_ptr<IRExpr>>())
-        .def_readwrite("base", &AbiHint::base)
-        .def_readwrite("len", &AbiHint::len)
-        .def_readwrite("nia", &AbiHint::nia)
-        .def_static("_from_c", &AbiHint::_from_c, nb::rv_policy::take_ownership);
+    nb::class_<PyAbiHint, PyIRStmt>(m, "AbiHint")
+        .def(nb::init<std::shared_ptr<PyIRExpr>, int, std::shared_ptr<PyIRExpr>>())
+        .def_rw("base", &PyAbiHint::base)
+        .def_rw("len", &PyAbiHint::len)
+        .def_rw("nia", &PyAbiHint::nia)
+        .def_static("_from_c", &PyAbiHint::_from_c, nb::rv_policy::take_ownership);
 
     // Put statement
-    nb::class_<Put, IRStmt>(m, "Put")
-        .def(nb::init<std::shared_ptr<IRExpr>, int>())
-        .def_readwrite("data", &Put::data)
-        .def_readwrite("offset", &Put::offset)
-        .def_static("_from_c", &Put::_from_c, nb::rv_policy::take_ownership);
+    nb::class_<PyPut, PyIRStmt>(m, "Put")
+        .def(nb::init<std::shared_ptr<PyIRExpr>, int>())
+        .def_rw("data", &PyPut::data)
+        .def_rw("offset", &PyPut::offset)
+        .def_static("_from_c", &PyPut::_from_c, nb::rv_policy::take_ownership);
 
     // PutI statement
-    nb::class_<PutI, IRStmt>(m, "PutI")
-        .def(nb::init<std::shared_ptr<IRRegArray>, std::shared_ptr<IRExpr>, std::shared_ptr<IRExpr>, int>())
-        .def_readwrite("descr", &PutI::descr)
-        .def_readwrite("ix", &PutI::ix)
-        .def_readwrite("data", &PutI::data)
-        .def_readwrite("bias", &PutI::bias)
-        .def_static("_from_c", &PutI::_from_c, nb::rv_policy::take_ownership);
+    nb::class_<PyPutI, PyIRStmt>(m, "PutI")
+        .def(nb::init<std::shared_ptr<PyIRRegArray>, std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>, int>())
+        .def_rw("descr", &PyPutI::descr)
+        .def_rw("ix", &PyPutI::ix)
+        .def_rw("data", &PyPutI::data)
+        .def_rw("bias", &PyPutI::bias)
+        .def_static("_from_c", &PyPutI::_from_c, nb::rv_policy::take_ownership);
 
     // WrTmp statement
-    nb::class_<WrTmp, IRStmt>(m, "WrTmp")
-        .def(nb::init<std::shared_ptr<IRExpr>, int>())
-        .def_readwrite("data", &WrTmp::data)
-        .def_readwrite("tmp", &WrTmp::tmp)
-        .def_static("_from_c", &WrTmp::_from_c, nb::rv_policy::take_ownership);
+    nb::class_<PyWrTmp, PyIRStmt>(m, "WrTmp")
+        .def(nb::init<std::shared_ptr<PyIRExpr>, int>())
+        .def_rw("data", &PyWrTmp::data)
+        .def_rw("tmp", &PyWrTmp::tmp)
+        .def_static("_from_c", &PyWrTmp::_from_c, nb::rv_policy::take_ownership);
 
     // Store statement
-    nb::class_<Store, IRStmt>(m, "Store")
-        .def(nb::init<std::shared_ptr<IRExpr>, std::shared_ptr<IRExpr>, const std::string&>())
-        .def_readwrite("addr", &Store::addr)
-        .def_readwrite("data", &Store::data)
-        .def_readwrite("end", &Store::end)
-        .def_property_readonly("endness", &Store::endness)
-        .def_static("_from_c", &Store::_from_c, nb::rv_policy::take_ownership);
+    nb::class_<PyStore, PyIRStmt>(m, "Store")
+        .def(nb::init<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>, const std::string&>())
+        .def_rw("addr", &PyStore::addr)
+        .def_rw("data", &PyStore::data)
+        .def_rw("end", &PyStore::end)
+        .def_prop_ro("endness", &PyStore::endness)
+        .def_static("_from_c", &PyStore::_from_c, nb::rv_policy::take_ownership);
 
     // Exit statement
-    nb::class_<Exit, IRStmt>(m, "Exit")
-        .def(nb::init<std::shared_ptr<IRExpr>, std::shared_ptr<IRConst>, int, const std::string&>())
-        .def_readwrite("guard", &Exit::guard)
-        .def_readwrite("dst", &Exit::dst)
-        .def_readwrite("offsIP", &Exit::offsIP)
-        .def_readwrite("jk", &Exit::jk)
-        .def_property_readonly("jumpkind", &Exit::jumpkind)
-        .def_static("_from_c", &Exit::_from_c, nb::rv_policy::take_ownership);
+    nb::class_<PyExit, PyIRStmt>(m, "Exit")
+        .def(nb::init<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRConst>, int, const std::string&>())
+        .def_rw("guard", &PyExit::guard)
+        .def_rw("dst", &PyExit::dst)
+        .def_rw("offsIP", &PyExit::offsIP)
+        .def_rw("jk", &PyExit::jk)
+        .def_prop_ro("jumpkind", &PyExit::jumpkind)
+        .def_static("_from_c", &PyExit::_from_c, nb::rv_policy::take_ownership);
 }
