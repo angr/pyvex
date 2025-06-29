@@ -388,3 +388,26 @@ VEXLiftResult *vex_lift(
 		return NULL;
 	}
 }
+
+// Nanobind wrapper functions
+IRExpr** mkIRExprVec_wrapper(IRExpr** args, int count) {
+	// VEX has fixed-arity versions, we need to call the appropriate one
+	switch(count) {
+		case 0: return mkIRExprVec_0();
+		case 1: return mkIRExprVec_1(args[0]);
+		case 2: return mkIRExprVec_2(args[0], args[1]);
+		case 3: return mkIRExprVec_3(args[0], args[1], args[2]);
+		case 4: return mkIRExprVec_4(args[0], args[1], args[2], args[3]);
+		case 5: return mkIRExprVec_5(args[0], args[1], args[2], args[3], args[4]);
+		case 6: return mkIRExprVec_6(args[0], args[1], args[2], args[3], args[4], args[5]);
+		case 7: return mkIRExprVec_7(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+		case 8: return mkIRExprVec_8(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+		case 9: return mkIRExprVec_9(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]);
+		default:
+			// For larger counts, fall back to mkIRExprVec_9 and ignore extra args
+			if (count >= 9) {
+				return mkIRExprVec_9(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]);
+			}
+			return mkIRExprVec_0();
+	}
+}

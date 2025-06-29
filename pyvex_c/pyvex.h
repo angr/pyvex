@@ -93,4 +93,7 @@ void deregister_all_readonly_regions();
 Bool register_initial_register_value(UInt offset, UInt size, ULong value);
 Bool reset_initial_register_values();
 
+// Nanobind wrapper functions
+IRExpr** mkIRExprVec_wrapper(IRExpr** args, int count);
+
 #endif

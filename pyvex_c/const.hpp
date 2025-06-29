@@ -1,7 +1,12 @@
+#include <nanobind/nanobind.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 
+namespace nb = nanobind;
+
+void bind_const(nb::module_& m);
 
 // Base PyIRConst class
 class PyIRConst {

@@ -1,10 +1,14 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 
+namespace nb = nanobind;
+
+void bind_stmt(nb::module_& m);
 
 class PyIRExpr;
-
+class PyIRTypeEnv;
 
 // Base IRStmt class
 class PyIRStmt {
@@ -22,13 +26,11 @@ public:
         return child_expressions();
     }
 
-    virtual std::vector<std::shared_ptr<PyIRConst>> constants() const;
+    virtual std::vector<std::shared_ptr<PyIRConst>> constants() const = 0;
 
     static std::shared_ptr<PyIRStmt> _from_c(const ::IRStmt* c_stmt);
 
-    virtual bool typecheck(const IRTypeEnv& tyenv) const {
-        return true;
-    }
+    virtual bool typecheck(const PyIRTypeEnv& tyenv) const = 0;
 
     virtual void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) = 0;
 
@@ -36,5 +38,5 @@ public:
         return pp_str("", "", nullptr);
     }
 
-    virtual std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const = 0;
+    virtual std::string pp_str(const std::string& reg_name, const std::string& arch, const PyIRTypeEnv* tyenv) const = 0;
 };

@@ -1,3 +1,4 @@
+#include <nanobind/nanobind.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -6,6 +7,9 @@ extern "C" {
 #include "pyvex.h"
 }
 
+namespace nb = nanobind;
+
+void bind_typeenv(nb::module_& m);
 
 // PyIRTypeEnv class for managing temporary variable types
 class PyIRTypeEnv {

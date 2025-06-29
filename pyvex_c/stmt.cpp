@@ -3,21 +3,18 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <functional>
 extern "C" {
 #include "pyvex.h"
 }
 
 #include "const.hpp"
 #include "expr.hpp"
+#include "enums.hpp"
+#include "typeenv.hpp"
 #include "stmt.hpp"
 
-
 namespace nb = nanobind;
-
-// Forward declarations
-class PyIRRegArray;
-class PyIRCallee;
-class PyIRTypeEnv;
 
 void PyIRStmt::pp() const {
     nb::print(nb::str(__str__().c_str()));
@@ -34,15 +31,23 @@ public:
         return {};
     }
 
+    std::vector<std::shared_ptr<PyIRConst>> constants() const override {
+        return {};
+    }
+
+    bool typecheck(const PyIRTypeEnv& tyenv) const override {
+        return true;
+    }
+
     void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override {
         // No expressions to replace
     }
 
-    std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override {
+    std::string pp_str(const std::string& reg_name, const std::string& arch, const PyIRTypeEnv* tyenv) const override {
         return "NoOp";
     }
 
-    static std::shared_ptr<PyNoOp> _from_c(const ::IRStmt* c_stmt) {
+    static std::shared_ptr<PyNoOp> _from_c(const IRStmt* c_stmt) {
         return std::make_shared<PyNoOp>();
     }
 };
@@ -62,17 +67,25 @@ public:
         return {};
     }
 
+    std::vector<std::shared_ptr<PyIRConst>> constants() const override {
+        return {};
+    }
+
+    bool typecheck(const PyIRTypeEnv& tyenv) const override {
+        return true;
+    }
+
     void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override {
         // No expressions to replace
     }
 
-    std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override {
+    std::string pp_str(const std::string& reg_name, const std::string& arch, const PyIRTypeEnv* tyenv) const override {
         char buf[64];
         snprintf(buf, sizeof(buf), "IMark(0x%lx, %d, %d)", addr, len, delta);
         return std::string(buf);
     }
 
-    static std::shared_ptr<PyIMark> _from_c(const ::IRStmt* c_stmt) {
+    static std::shared_ptr<PyIMark> _from_c(const IRStmt* c_stmt) {
         return std::make_shared<PyIMark>(
             c_stmt->Ist.IMark.addr,
             c_stmt->Ist.IMark.len,
@@ -93,15 +106,29 @@ public:
         tag = "Ist_AbiHint";
     }
 
-    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override;
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override {
+        return {base, nia};
+    }
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override;
+    std::vector<std::shared_ptr<PyIRConst>> constants() const override {
+        return {};
+    }
 
-    std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override {
+    bool typecheck(const PyIRTypeEnv& tyenv) const override {
+        return true;
+    }
+
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override {
+        // No expressions to replace
+    }
+
+    std::string pp_str(const std::string& reg_name, const std::string& arch, const PyIRTypeEnv* tyenv) const override {
         return "AbiHint(" + base->__str__() + ", " + std::to_string(len) + ", " + nia->__str__() + ")";
     }
 
-    static std::shared_ptr<PyAbiHint> _from_c(const ::IRStmt* c_stmt);
+    static std::shared_ptr<PyAbiHint> _from_c(const ::IRStmt* c_stmt) {
+        // FIXME: Not implemented yet
+    }
 };
 
 // Put statement
@@ -114,13 +141,29 @@ public:
         tag = "Ist_Put";
     }
 
-    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override;
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override {
+        return {data};
+    }
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override;
+    std::vector<std::shared_ptr<PyIRConst>> constants() const override {
+        return {};
+    }
 
-    std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override;
+    bool typecheck(const PyIRTypeEnv& tyenv) const override {
+        return true;
+    }
 
-    static std::shared_ptr<PyPut> _from_c(const IRStmt* c_stmt);
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override {
+        // No expressions to replace
+    }
+
+    std::string pp_str(const std::string& reg_name, const std::string& arch, const PyIRTypeEnv* tyenv) const override {
+        return "Put(" + data->_pp_str() + ", " + std::to_string(offset) + ")";
+    }
+
+    static std::shared_ptr<PyPut> _from_c(const IRStmt* c_stmt) {
+        // FIXME: Not implemented yet
+    }
 };
 
 // PutI statement  
@@ -137,13 +180,29 @@ public:
         tag = "Ist_PutI";
     }
 
-    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override;
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override {
+        return {ix, data};
+    }
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override;
+    std::vector<std::shared_ptr<PyIRConst>> constants() const override {
+        return {};
+    }
 
-    std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override;
+    bool typecheck(const PyIRTypeEnv& tyenv) const override {
+        return true;
+    }
 
-    static std::shared_ptr<PyPutI> _from_c(const IRStmt* c_stmt);
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override {
+        // No expressions to replace
+    }
+
+    std::string pp_str(const std::string& reg_name, const std::string& arch, const PyIRTypeEnv* tyenv) const override {
+        return "PutI(" + descr->__str__() + ", " + ix->__str__() + ", " + data->__str__() + ", " + std::to_string(bias) + ")";
+    }
+
+    static std::shared_ptr<PyPutI> _from_c(const IRStmt* c_stmt) {
+        // FIXME: Not implemented yet
+    }
 };
 
 // WrTmp statement
@@ -156,13 +215,29 @@ public:
         tag = "Ist_WrTmp";
     }
 
-    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override;
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override {
+        return {data};
+    }
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override;
+    std::vector<std::shared_ptr<PyIRConst>> constants() const override {
+        return {};
+    }
 
-    std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override;
+    bool typecheck(const PyIRTypeEnv& tyenv) const override {
+        return true;
+    }
 
-    static std::shared_ptr<PyWrTmp> _from_c(const IRStmt* c_stmt);
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override {
+        // No expressions to replace
+    }
+
+    std::string pp_str(const std::string& reg_name, const std::string& arch, const PyIRTypeEnv* tyenv) const override {
+        return "WrTmp(" + data->__str__() + ", " + std::to_string(tmp) + ")";
+    }
+
+    static std::shared_ptr<PyWrTmp> _from_c(const IRStmt* c_stmt) {
+        // FIXME: Not implemented yet
+    }
 };
 
 // Store statement
@@ -179,13 +254,29 @@ public:
 
     std::string endness() const { return end; }
 
-    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override;
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override {
+        return {addr, data};
+    }
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override;
+    std::vector<std::shared_ptr<PyIRConst>> constants() const override {
+        return {};
+    }
 
-    std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override;
+    bool typecheck(const PyIRTypeEnv& tyenv) const override {
+        return true;
+    }
 
-    static std::shared_ptr<PyStore> _from_c(const IRStmt* c_stmt);
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override {
+        // No expressions to replace
+    }
+
+    std::string pp_str(const std::string& reg_name, const std::string& arch, const PyIRTypeEnv* tyenv) const override {
+        return "Store(" + addr->__str__() + ", " + data->__str__() + ", " + end + ")";
+    }
+
+    static std::shared_ptr<PyStore> _from_c(const IRStmt* c_stmt) {
+        // FIXME: Not implemented yet
+    }
 };
 
 // Exit statement
@@ -203,17 +294,33 @@ public:
 
     std::string jumpkind() const { return jk; }
 
-    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override;
+    std::vector<std::shared_ptr<PyIRExpr>> child_expressions() const override {
+        return {guard};
+    }
 
-    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override;
+    std::vector<std::shared_ptr<PyIRConst>> constants() const override {
+        return {};
+    }
 
-    std::string pp_str(const std::string& reg_name, const std::string& arch, const IRTypeEnv* tyenv) const override;
+    bool typecheck(const PyIRTypeEnv& tyenv) const override {
+        return true;
+    }
 
-    static std::shared_ptr<PyExit> _from_c(const IRStmt* c_stmt);
+    void replace_expression(const std::unordered_map<std::shared_ptr<PyIRExpr>, std::shared_ptr<PyIRExpr>>& replacements) override {
+        // No expressions to replace
+    }
+
+    std::string pp_str(const std::string& reg_name, const std::string& arch, const PyIRTypeEnv* tyenv) const override {
+        return "Exit(" + guard->__str__() + ", " + dst->__str__() + ", " + std::to_string(offsIP) + ", " + jk + ")";
+    }
+
+    static std::shared_ptr<PyExit> _from_c(const IRStmt* c_stmt) {
+        // FIXME: Not implemented yet
+    }
 };
 
 // Global mapping for statement type lookup
-static std::unordered_map<int, std::function<std::shared_ptr<PyIRStmt>(const ::IRStmt*)>> enum_to_stmt_factory;
+static std::unordered_map<int, std::function<std::shared_ptr<PyIRStmt>(const IRStmt*)>> enum_to_stmt_factory;
 
 // Initialize statement type mapping
 void _initialize_stmt_mapping() {

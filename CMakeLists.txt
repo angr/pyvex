@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-project(pyvex LANGUAGES C)
+project(pyvex LANGUAGES C CXX)
+
+# Find Python and nanobind
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
+find_package(nanobind CONFIG REQUIRED)
 
 # Set the output directory for built libraries
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/pyvex/lib)
@@ -22,6 +26,13 @@ set(PYVEX_SRC
     pyvex_c/analysis.c
     pyvex_c/logging.c
     pyvex_c/postprocess.c
+	pyvex_c/typeenv.cpp
+    pyvex_c/const.cpp
+    pyvex_c/enums.cpp
+    pyvex_c/stmt.cpp
+    pyvex_c/expr.cpp
+    pyvex_c/block.cpp
+	pyvex_c/module.cpp
 )
 
 # Source files for the VEX C library
@@ -79,26 +90,21 @@ set(VEX_SRC
 
 # Build the VEX static library
 add_library(vex STATIC ${VEX_SRC})
+set_target_properties(vex PROPERTIES LINKER_LANGUAGE C)
 target_compile_definitions(vex PRIVATE PYVEX)
 target_include_directories(vex PUBLIC ${CMAKE_SOURCE_DIR}/vex/pub)
 
-# Build the shared library
-add_library(pyvex SHARED ${PYVEX_SRC})
-set_target_properties(pyvex PROPERTIES OUTPUT_NAME "pyvex")
+# Build the nanobind module
+nanobind_add_module(
+	_pyvex
+	STABLE_ABI
+	NB_STATIC
+	${PYVEX_SRC})
+target_link_libraries(_pyvex PRIVATE vex)
+target_include_directories(_pyvex PRIVATE pyvex_c)
 
-# Handle .def file for Windows builds
-if (WIN32)
-    set_target_properties(pyvex PROPERTIES LINK_FLAGS "/DEF:${CMAKE_SOURCE_DIR}/pyvex_c/pyvex.def")
-endif()
-
-target_include_directories(pyvex PRIVATE pyvex_c)
-
-target_link_libraries(pyvex PRIVATE vex)
-
-# Install the built library to the Python package
-# It is installed twice to handle both editable and non-editable installs
-install(TARGETS pyvex DESTINATION ${CMAKE_SOURCE_DIR}/pyvex/lib)
-install(TARGETS pyvex DESTINATION pyvex/lib)
+# Install the nanobind module
+install(TARGETS _pyvex DESTINATION ${CMAKE_SOURCE_DIR}/pyvex/lib)
 
 # --- BEGIN: Generate pub/libvex_guest_offsets.h ---
 add_executable(genoffsets vex/auxprogs/genoffsets.c)
@@ -121,27 +127,8 @@ install(
 )
 
 add_dependencies(vex generate_offsets_header)
+add_dependencies(_pyvex generate_offsets_header)
 # --- END: Generate pub/libvex_guest_offsets.h ---
-
-# --- BEGIN: Generate pyvex/vex_ffi.py ---
-add_custom_command(
-    OUTPUT ${CMAKE_SOURCE_DIR}/pyvex/vex_ffi.py
-    COMMAND ${CMAKE_COMMAND} -E env
-        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/make_ffi.py ${CMAKE_SOURCE_DIR}/vex/pub
-    DEPENDS ${CMAKE_SOURCE_DIR}/vex/pub/libvex_guest_offsets.h
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Generating pyvex/vex_ffi.py using make_ffi.py"
-)
-
-add_custom_target(generate_vex_ffi_py
-    DEPENDS ${CMAKE_SOURCE_DIR}/pyvex/vex_ffi.py
-)
-install(
-    FILES ${CMAKE_SOURCE_DIR}/pyvex/vex_ffi.py
-    DESTINATION pyvex
-)
-add_dependencies(pyvex generate_vex_ffi_py)
-# --- END: Generate pyvex/vex_ffi.py ---
 
 # --- BEGIN: Copy headers to pyvex/include ---
 add_custom_command(
@@ -159,5 +146,5 @@ add_custom_command(
 add_custom_target(copy_headers ALL
     DEPENDS ${CMAKE_SOURCE_DIR}/pyvex/include/pub ${CMAKE_SOURCE_DIR}/pyvex/include/pyvex.h
 )
-add_dependencies(pyvex copy_headers)
+add_dependencies(_pyvex copy_headers)
 # --- END: Copy headers to pyvex/include ---
