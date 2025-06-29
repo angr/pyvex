@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING, Any, Protocol, Union, runtime_checkable
 
-from cffi.api import FFI
-
 
 class Register(Protocol):
     """
@@ -42,7 +40,7 @@ class LibvexArch(Protocol):
 
 PyLiftSource = Union[bytes, bytearray, memoryview]
 if TYPE_CHECKING:
-    CLiftSource = FFI.CData
+    CLiftSource = Any  # For nanobind buffer objects
 else:
     CLiftSource = None
 LiftSource = Union[PyLiftSource, CLiftSource]
