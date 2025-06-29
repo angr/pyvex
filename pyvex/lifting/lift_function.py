@@ -7,7 +7,7 @@ from pyvex.block import IRSB
 from pyvex.const import vex_int_class
 from pyvex.errors import LiftingException, NeedStatementsNotification, PyVEXError, SkipStatementsError
 from pyvex.expr import Const
-from pyvex.native import ffi
+from pyvex.native_nanobind import NULL
 from pyvex.types import LiftSource, PyLiftSource
 
 from .lifter import Lifter
@@ -103,9 +103,9 @@ def lift(
                 if c_data is None:
                     assert py_data is not None
                     if isinstance(py_data, (bytearray, memoryview)):
-                        u_data = ffi.from_buffer(ffi.BVoidP, py_data)
+                        u_data = py_data  # nanobind handles buffer conversion automatically
                     else:
-                        u_data = ffi.from_buffer(ffi.BVoidP, py_data + b"\0" * 8)
+                        u_data = py_data + b"\0" * 8  # nanobind handles buffer conversion automatically
                     max_bytes = min(len(py_data), max_bytes) if max_bytes is not None else len(py_data)
                 else:
                     u_data = c_data
@@ -120,7 +120,7 @@ def lift(
                     if max_bytes is None:
                         log.debug("Cannot create py_data from c_data when no max length is given")
                         continue
-                    u_data = ffi.buffer(c_data + skip, max_bytes)[:]
+                    u_data = bytes(c_data[skip:skip + max_bytes])  # Convert to Python bytes
                 else:
                     if max_bytes is None:
                         u_data = py_data[skip:]

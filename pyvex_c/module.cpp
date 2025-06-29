@@ -11,6 +11,7 @@ extern "C" {
 #include "expr.hpp"
 #include "block.hpp"
 #include "typeenv.hpp"
+#include "arches.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -100,4 +101,7 @@ NB_MODULE(_pyvex, m) {
     
     // Bind block classes
     bind_block(m);
+    
+    // Bind arches classes
+    bind_arches(m);
 }

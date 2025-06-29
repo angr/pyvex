@@ -12,8 +12,10 @@ extern "C" {
 #include "expr.hpp"
 #include "stmt.hpp"
 #include "typeenv.hpp"
+#include "arches.hpp"
 
 namespace nb = nanobind;
+using namespace nb::literals;
 
 // Forward declarations
 class PyIRStmt;
@@ -58,7 +60,7 @@ class PyIRSB {
 public:
     // Core attributes
     uint64_t addr;
-    std::string arch;  // Architecture name (simplified)
+    std::shared_ptr<PyvexArch> arch;
     std::vector<std::shared_ptr<PyIRStmt>> statements;
     std::shared_ptr<PyIRExpr> next;
     std::shared_ptr<PyIRTypeEnv> _tyenv;
@@ -78,15 +80,15 @@ public:
     std::vector<PyConstVal> const_vals;
 
     // Constructor for empty block
-    PyIRSB() : addr(0), arch("unknown"), is_noop_block(false), jumpkind("Ijk_Boring") {
+    PyIRSB() : addr(0), arch(ARCH_AMD64), is_noop_block(false), jumpkind("Ijk_Boring") {
         _tyenv = std::make_shared<PyIRTypeEnv>();
     }
 
     // Constructor with lifting (simplified)
-    PyIRSB(const std::vector<uint8_t>& data, uint64_t mem_addr, const std::string& arch_name,
+    PyIRSB(const nb::bytes& data, uint64_t mem_addr, ArchType arch_type,
          int max_inst = 99, int max_bytes = 800, int bytes_offset = 0,
          int traceflags = 0, int opt_level = 1)
-        : addr(mem_addr), arch(arch_name), is_noop_block(false), jumpkind("Ijk_Boring") {
+        : addr(mem_addr), arch(arch_from_archtype(arch_type)), is_noop_block(false), jumpkind("Ijk_Boring") {
         _tyenv = std::make_shared<PyIRTypeEnv>();
         // TODO: Implement actual lifting via pyvex.lifting.lift()
         // For now, create empty block
@@ -353,9 +355,9 @@ void bind_block(nb::module_& m) {
     // PyIRSB class
     nb::class_<PyIRSB>(m, "IRSB")
         .def(nb::init<>())
-        .def(nb::init<const std::vector<uint8_t>&, uint64_t, const std::string&, int, int, int, int, int>())
-            // "data"_a, "mem_addr"_a, "arch"_a, "max_inst"_a = 99, "max_bytes"_a = 800,
-            // "bytes_offset"_a = 0, "traceflags"_a = 0, "opt_level"_a = 1)
+        .def(nb::init<const nb::bytes&, uint64_t, ArchType, int, int, int, int, int>(),
+            "data"_a, "mem_addr"_a, "arch"_a, "max_inst"_a = 99, "max_bytes"_a = 800,
+            "bytes_offset"_a = 0, "traceflags"_a = 0, "opt_level"_a = 1)
         .def_rw("addr", &PyIRSB::addr)
         .def_rw("arch", &PyIRSB::arch)
         .def_rw("statements", &PyIRSB::statements)

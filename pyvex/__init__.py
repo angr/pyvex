@@ -5,6 +5,15 @@ For an introduction to VEX, take a look here: https://docs.angr.io/advanced-topi
 
 __version__ = "9.2.163.dev0"
 
+# import the native module
+import importlib.resources
+import sys
+
+_pyvex_lib_path = str(importlib.resources.files("pyvex") / "lib")
+sys.path.append(_pyvex_lib_path)
+
+import _pyvex
+
 from . import const, expr, stmt
 from .arches import (
     ARCH_AMD64,
@@ -25,21 +34,21 @@ from .arches import (
     ARCH_X86,
 )
 from .block import IRSB, IRTypeEnv
-from .const import get_type_size, get_type_spec_size, tag_to_const_class
+# from .const import get_type_size, get_type_spec_size, tag_to_const_class
 from .enums import (
     IRCallee,
     IRRegArray,
     VEXObject,
-    default_vex_archinfo,
-    get_enum_from_int,
-    get_int_from_enum,
-    irop_enums_to_ints,
-    vex_endness_from_string,
+    # default_vex_archinfo,
+    # get_enum_from_int,
+    #get_int_from_enum,
+    # irop_enums_to_ints,
+    # vex_endness_from_string,
 )
 from .errors import PyVEXError
-from .expr import get_op_retty
+# from .expr import get_op_retty
 from .lifting import lift, lifters
-from .native import ffi, pvc
+from .native_nanobind import pvc
 
 # aliases....
 IRStmt = stmt
@@ -68,7 +77,6 @@ __all__ = [
     "get_op_retty",
     "lift",
     "lifters",
-    "ffi",
     "pvc",
     "IRStmt",
     "IRExpr",

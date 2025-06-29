@@ -1,5 +1,5 @@
 [build-system]
-requires = ["scikit-build-core >= 0.11.4", "cffi >= 1.0.3;implementation_name == 'cpython'"]
+requires = ["scikit-build-core >= 0.11.4", "nanobind >= 2.0"]
 build-backend = "scikit_build_core.build"
 
 [project]
@@ -23,7 +23,6 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "bitstring",
-    "cffi>=1.0.3;implementation_name == 'cpython'",
 ]
 dynamic = ["version"]
 

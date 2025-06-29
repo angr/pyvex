@@ -3,7 +3,7 @@ import threading
 from typing import TYPE_CHECKING
 
 from pyvex.errors import LiftingException
-from pyvex.native import ffi, pvc
+from pyvex.native_nanobind import pvc, NULL
 from pyvex.types import CLiftSource, LibvexArch
 
 from .lift_function import Lifter
@@ -48,7 +48,7 @@ class LibVEXLifter(Lifter):
 
     @staticmethod
     def get_vex_log():
-        return bytes(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)).decode() if pvc.msg_buffer != ffi.NULL else None
+        return bytes(pvc.msg_buffer[:pvc.msg_current_size]).decode() if pvc.msg_buffer != NULL else None
 
     def _lift(self):
         if TYPE_CHECKING:
@@ -83,7 +83,7 @@ class LibVEXLifter(Lifter):
             else:
                 px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
 
-            self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = ffi.NULL
+            self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = NULL
             lift_r = pvc.vex_lift(
                 vex_arch,
                 self.irsb.arch.vex_archinfo,
@@ -102,7 +102,7 @@ class LibVEXLifter(Lifter):
                 self.bytes_offset,
             )
             log_str = self.get_vex_log()
-            if lift_r == ffi.NULL:
+            if lift_r == NULL:
                 raise LiftingException("libvex: unknown error" if log_str is None else log_str)
             else:
                 if log_str is not None:

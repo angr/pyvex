@@ -1,7 +1,7 @@
 import unittest
 
 import pyvex
-from pyvex import IRSB, ffi, lift
+from pyvex import IRSB, lift
 from pyvex.errors import PyVEXError
 from pyvex.lifting.util import GymratLifter, Instruction, JumpKind
 
@@ -73,7 +73,7 @@ class TestLift(unittest.TestCase):
         assert lift(data, 0x1000, arch, max_bytes=len(data) - 1).size == len(data) - 1
         assert lift(data, 0x1000, arch, max_bytes=len(data) + 1).size == len(data)
 
-        data2 = ffi.from_buffer(data)
+        data2 = memoryview(data)  # Use memoryview instead of ffi.from_buffer
         self.assertRaises(PyVEXError, lift, data2, 0x1000, arch)
         assert lift(data2, 0x1000, arch, max_bytes=len(data)).size == len(data)
         assert lift(data2, 0x1000, arch, max_bytes=len(data) - 1).size == len(data) - 1

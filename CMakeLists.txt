@@ -33,6 +33,7 @@ set(PYVEX_SRC
     pyvex_c/expr.cpp
     pyvex_c/block.cpp
 	pyvex_c/module.cpp
+	pyvex_c/arches.cpp
 )
 
 # Source files for the VEX C library
