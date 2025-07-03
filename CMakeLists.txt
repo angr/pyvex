@@ -160,4 +160,5 @@ add_custom_target(copy_headers ALL
     DEPENDS ${CMAKE_SOURCE_DIR}/pyvex/include/pub ${CMAKE_SOURCE_DIR}/pyvex/include/pyvex.h
 )
 add_dependencies(pyvex copy_headers)
+add_dependencies(copy_headers generate_offsets_header)
 # --- END: Copy headers to pyvex/include ---
