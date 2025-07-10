@@ -118,22 +118,46 @@ class LibVEXLifter(Lifter):
             self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = None
 
     def _lift_multi(self) -> None:
-        lift_results = pvc.VEXLiftResult * [ffi.NULL] * self.max_blocks
+
+        if TYPE_CHECKING:
+            assert isinstance(self.arch, LibvexArch)
+
+        # lift_results = pvc.VEXLiftResult * [ffi.NULL] * self.max_blocks
+        lift_results = ffi.new("VEXLiftResult[]", self.max_blocks)
 
         try:
             _libvex_lock.acquire()
             self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = ffi.NULL
 
+            vex_arch = getattr(pvc, self.arch.vex_arch, None)
+            assert vex_arch is not None
+
+            if self.cross_insn_opt:
+                px_control = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
+            else:
+                px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
+
+            if self.bytes_offset is None:
+                self.bytes_offset = 0
+
             # TODO: Fix this call; I'm sure the arguments are wrong
             # TODO: Also remove references to self.irsb; arch does not have to be part of .irsb. We are dealing with multiple blocks, so we should use self.irsbs instead
             r = pvc.vex_lift_multi(
-                self.irsb.arch.vex_arch,
-                self.irsb.arch.vex_archinfo,
-                self.irsb.addr,
+                vex_arch,
+                self.arch.vex_archinfo,
+                self.addr,
+                self.max_blocks,
                 self.max_inst,
                 self.max_bytes,
                 self.opt_level,
                 self.traceflags,
+                1 if self.allow_arch_optimizations else 0,
+                1 if self.strict_block_end else 0,
+                1 if self.collect_data_refs else 0,
+                1 if self.load_from_ro_regions else 0,
+                1 if self.const_prop else 0,
+                px_control,
+                self.bytes_offset, # is this argument necessary?
                 lift_results,
             )
 
