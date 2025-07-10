@@ -1,6 +1,6 @@
 from .gym import AARCH64Spotter, AMD64Spotter, ARMSpotter, X86Spotter
 from .libvex import LIBVEX_SUPPORTED_ARCHES, LibVEXLifter
-from .lift_function import lift, lifters, register
+from .lift_function import lift, lifters, register, lift_multi
 from .lifter import Lifter
 from .post_processor import Postprocessor
 from .zerodivision import ZeroDivisionPostProcessor
@@ -15,4 +15,4 @@ register(ARMSpotter, "ARMCortexM")
 register(AMD64Spotter, "AMD64")
 register(X86Spotter, "X86")
 
-__all__ = ["Lifter", "Postprocessor", "lift", "register", "lifters", "ZeroDivisionPostProcessor"]
+__all__ = ["Lifter", "Postprocessor", "lift", "register", "lifters", "ZeroDivisionPostProcessor", "lift_multi"]

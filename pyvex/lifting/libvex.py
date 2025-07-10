@@ -117,7 +117,7 @@ class LibVEXLifter(Lifter):
             _libvex_lock.release()
             self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = None
 
-    def _lift_multi(self):
+    def _lift_multi(self) -> None:
         lift_results = pvc.VEXLiftResult * [ffi.NULL] * self.max_blocks
 
         try:
@@ -144,7 +144,7 @@ class LibVEXLifter(Lifter):
                 if log_str is not None:
                     log.debug(log_str)
 
-            self.irsbs = [None] * r
+            self.irsbs: list[IRSB] = [None] * r
             for i in range(r):
                 self.irsbs[i] = IRSB.empty_block(self.irsb.arch, self.irsb.addr + i * self.irsb.size)
                 self.irsbs[i]._from_c(lift_results[i], skip_stmts=self.skip_stmts)

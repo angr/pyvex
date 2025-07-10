@@ -13,6 +13,9 @@ from pyvex.types import LiftSource, PyLiftSource
 from .lifter import Lifter
 from .post_processor import Postprocessor
 
+from archinfo import Arch # Temporal
+from .libvex import LibVEXLifter
+
 log = logging.getLogger(__name__)
 
 lifters: DefaultDict[str, list[type[Lifter]]] = defaultdict(list)
@@ -288,6 +291,30 @@ def lift(
 
     return final_irsb
 
+def lift_multi(
+    self,
+    arch: Arch, # "Arch" temporal
+    addr,    
+):
+    """
+    Lifts multiple blocks starting from the given address.
+
+    TODO: Check if the lifter supports lifting multiple blocks? Or do we have to implement multi block lifting for all the registered Lifters?
+    """
+
+    for lifter in lifters[arch.name]:
+        # The below check is, maybe, temporal. It depends on the TODO question above.
+        # If we decide to implement multi-block lifting for all the registered Lifters, we will remove this check.
+        # Maybe a more efficient and scalable way to check this is to set a property on the Lifter class. (But that is not so trivial since we are
+        # instantiating the Lifter class here, so we should check the instance type anyway).
+        if not isinstance(lifter, LibVEXLifter):
+            log.debug("Lifter %s does not support multi-block lifting, skipping.", lifter.__name__)
+            continue
+        try:
+            return lifter(arch, addr).lift_multi()
+        except LiftingException as ex:
+            log.debug("Lifting Exception: %s", str(ex))
+            continue
 
 def register(lifter, arch_name):
     """

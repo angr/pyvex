@@ -135,5 +135,19 @@ class Lifter:
         load_from_ro_regions: bool = False,
         const_prop: bool = False,
         cross_insn_opt: bool = True,
-    ):
+    ) -> list[IRSB]:
+        self.max_blocks = max_blocks
+        self.opt_level = opt_level
+        self.traceflags = traceflags
+        self.allow_arch_optimizations = allow_arch_optimizations
+        self.strict_block_end = strict_block_end
+        self.collect_data_refs = collect_data_refs
+        self.load_from_ro_regions = load_from_ro_regions
+        self.const_prop = const_prop
+        self.cross_insn_opt = cross_insn_opt
+        self.irsbs: list[IRSB] = []
+        self._lift_multi()
+        return self.irsbs
+    
+    def _lift_multi(self) -> None:
         raise NotImplementedError()
