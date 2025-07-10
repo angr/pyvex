@@ -1,4 +1,5 @@
 import hashlib
+import importlib.resources
 import os
 import pickle
 import sys
@@ -10,23 +11,6 @@ import cffi
 from .vex_ffi import ffi_str as _ffi_str
 
 ffi = cffi.FFI()
-
-
-def _locate_lib(module: str, library: str) -> str:
-    """
-    Attempt to find a native library without using pkg_resources, and only fall back to pkg_resources upon failures.
-    This is because "import pkg_resources" is slow.
-
-    :return:    The full path of the native library.
-    """
-    base_dir = os.path.dirname(__file__)
-    attempt = os.path.join(base_dir, library)
-    if os.path.isfile(attempt):
-        return attempt
-
-    import pkg_resources  # pylint:disable=import-outside-toplevel
-
-    return pkg_resources.resource_filename(module, os.path.join("lib", library))
 
 
 def _parse_ffi_str():
@@ -62,11 +46,12 @@ def _find_c_lib():
     else:
         library_file = "libpyvex.so"
 
-    pyvex_path = _locate_lib(__name__, os.path.join("lib", library_file))
+    pyvex_path = str(importlib.resources.files("pyvex") / "lib" / library_file)
     # parse _ffi_str and use cache if possible
     _parse_ffi_str()
     # RTLD_GLOBAL used for sim_unicorn.so
     lib = ffi.dlopen(pyvex_path)
+
     if not lib.vex_init():
         raise ImportError("libvex failed to initialize")
     # this looks up all the definitions (wtf)

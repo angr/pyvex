@@ -20,3 +20,5 @@ pyvex/include
 vex-master
 vex-master.tar.gz
 docs/_build
+scikit_build
+uv.lock
