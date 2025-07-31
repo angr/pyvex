@@ -17,13 +17,20 @@ def _parse_ffi_str():
     hash_ = hashlib.md5(_ffi_str.encode("utf-8")).hexdigest()
     cache_location = os.path.join(tempfile.gettempdir(), f"pyvex_ffi_parser_cache.{hash_}")
 
+    cache_loaded = False
     if os.path.isfile(cache_location):
         # load the cache
-        with open(cache_location, "rb") as f:
-            cache = pickle.loads(f.read())
-        ffi._parser._declarations = cache["_declarations"]
-        ffi._parser._int_constants = cache["_int_constants"]
-    else:
+        try:
+            with open(cache_location, "rb") as f:
+                cache = pickle.loads(f.read())
+            ffi._parser._declarations = cache["_declarations"]
+            ffi._parser._int_constants = cache["_int_constants"]
+            cache_loaded = True
+        except Exception:
+            # failed to load the cache; fall back to parsing
+            cache_loaded = False
+
+    if not cache_loaded:
         ffi.cdef(_ffi_str)
         # cache the result
         cache = {
@@ -35,6 +42,7 @@ def _parse_ffi_str():
             temp_file.write(pickle.dumps(cache))
             temp_file_name = temp_file.name
         os.replace(temp_file_name, cache_location)
+        os.chmod(cache_location, 0o644)  # allow other users on Linux to read the cache
 
 
 def _find_c_lib():
