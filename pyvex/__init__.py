@@ -3,7 +3,7 @@ PyVEX provides an interface that translates binary code into the VEX intermediat
 For an introduction to VEX, take a look here: https://docs.angr.io/advanced-topics/ir
 """
 
-__version__ = "9.2.166.dev0"
+__version__ = "9.2.172.dev0"
 
 from . import const, expr, stmt
 from .arches import (
@@ -38,7 +38,7 @@ from .enums import (
 )
 from .errors import PyVEXError
 from .expr import get_op_retty
-from .lifting import lift, lifters
+from .lifting import lift, lifters, lift_multi
 from .native import ffi, pvc
 
 # aliases....
@@ -67,6 +67,7 @@ __all__ = [
     "PyVEXError",
     "get_op_retty",
     "lift",
+    "lift_multi",
     "lifters",
     "ffi",
     "pvc",
