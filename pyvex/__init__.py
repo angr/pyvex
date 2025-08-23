@@ -38,7 +38,7 @@ from .enums import (
 )
 from .errors import PyVEXError
 from .expr import get_op_retty
-from .lifting import lift, lifters
+from .lifting import lift, lifters, lift_multi
 from .native import ffi, pvc
 
 # aliases....
@@ -67,6 +67,7 @@ __all__ = [
     "PyVEXError",
     "get_op_retty",
     "lift",
+    "lift_multi",
     "lifters",
     "ffi",
     "pvc",

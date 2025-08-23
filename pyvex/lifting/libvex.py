@@ -7,7 +7,7 @@ from pyvex.errors import LiftingException
 from pyvex.native import ffi, pvc
 from pyvex.types import CLiftSource, LibvexArch
 
-from .lift_function import Lifter
+from .lifter import Lifter
 
 log = logging.getLogger("pyvex.lifting.libvex")
 
@@ -51,6 +51,24 @@ class LibVEXLifter(Lifter):
     def get_vex_log():
         return bytes(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)).decode() if pvc.msg_buffer != ffi.NULL else None
 
+    def _parameters_check(self):
+        if self.bytes_offset is None:
+            self.bytes_offset = 0
+
+        if self.max_bytes is None or self.max_bytes > VEX_MAX_BYTES:
+            self.max_bytes = VEX_MAX_BYTES
+
+        if self.max_inst is None or self.max_inst > VEX_MAX_INSTRUCTIONS:
+            self.max_inst = VEX_MAX_INSTRUCTIONS
+
+        if self.strict_block_end is None:
+            self.strict_block_end = True
+
+        if self.cross_insn_opt:
+            self.px_control = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
+        else:
+            self.px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
+
     def _lift(self):
         if TYPE_CHECKING:
             assert isinstance(self.irsb.arch, LibvexArch)
@@ -62,27 +80,7 @@ class LibVEXLifter(Lifter):
             vex_arch = getattr(pvc, self.irsb.arch.vex_arch, None)
             assert vex_arch is not None
 
-            if self.bytes_offset is None:
-                self.bytes_offset = 0
-
-            if self.max_bytes is None or self.max_bytes > VEX_MAX_BYTES:
-                max_bytes = VEX_MAX_BYTES
-            else:
-                max_bytes = self.max_bytes
-
-            if self.max_inst is None or self.max_inst > VEX_MAX_INSTRUCTIONS:
-                max_inst = VEX_MAX_INSTRUCTIONS
-            else:
-                max_inst = self.max_inst
-
-            strict_block_end = self.strict_block_end
-            if strict_block_end is None:
-                strict_block_end = True
-
-            if self.cross_insn_opt:
-                px_control = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
-            else:
-                px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
+            self._parameters_check()
 
             self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = ffi.NULL
             lift_r = pvc.vex_lift(
@@ -90,16 +88,16 @@ class LibVEXLifter(Lifter):
                 self.irsb.arch.vex_archinfo,
                 self.data + self.bytes_offset,
                 self.irsb.addr,
-                max_inst,
-                max_bytes,
+                self.max_inst,
+                self.max_bytes,
                 self.opt_level,
                 self.traceflags,
                 self.allow_arch_optimizations,
-                strict_block_end,
+                self.strict_block_end,
                 1 if self.collect_data_refs else 0,
                 1 if self.load_from_ro_regions else 0,
                 1 if self.const_prop else 0,
-                px_control,
+                self.px_control,
                 self.bytes_offset,
             )
             log_str = self.get_vex_log()
@@ -121,30 +119,26 @@ class LibVEXLifter(Lifter):
 
         if TYPE_CHECKING:
             assert isinstance(self.arch, LibvexArch)
+            assert isinstance(self.data, CLiftSource)
 
         # lift_results = pvc.VEXLiftResult * [ffi.NULL] * self.max_blocks
         lift_results = ffi.new("VEXLiftResult[]", self.max_blocks)
 
         try:
             _libvex_lock.acquire()
-            self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = ffi.NULL
+            self.arch.vex_archinfo["hwcache_info"]["caches"] = ffi.NULL
 
             vex_arch = getattr(pvc, self.arch.vex_arch, None)
             assert vex_arch is not None
 
-            if self.cross_insn_opt:
-                px_control = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
-            else:
-                px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
-
-            if self.bytes_offset is None:
-                self.bytes_offset = 0
+            self._parameters_check()
 
             # TODO: Fix this call; I'm sure the arguments are wrong
             # TODO: Also remove references to self.irsb; arch does not have to be part of .irsb. We are dealing with multiple blocks, so we should use self.irsbs instead
-            r = pvc.vex_lift_multi(
+            r: int = pvc.vex_lift_multi(
                 vex_arch,
                 self.arch.vex_archinfo,
+                self.data + self.bytes_offset,
                 self.addr,
                 self.max_blocks,
                 self.max_inst,
@@ -156,8 +150,8 @@ class LibVEXLifter(Lifter):
                 1 if self.collect_data_refs else 0,
                 1 if self.load_from_ro_regions else 0,
                 1 if self.const_prop else 0,
-                px_control,
-                self.bytes_offset, # is this argument necessary?
+                self.px_control,
+                self.bytes_offset,
                 lift_results,
             )
 
@@ -170,9 +164,9 @@ class LibVEXLifter(Lifter):
 
             self.irsbs: list[IRSB] = [None] * r
             for i in range(r):
-                self.irsbs[i] = IRSB.empty_block(self.irsb.arch, self.irsb.addr + i * self.irsb.size)
+                self.irsbs[i] = IRSB.empty_block(self.arch, lift_results[i].inst_addrs[0])  # Assuming inst_addrs[0] gives the firs address of the block
                 self.irsbs[i]._from_c(lift_results[i], skip_stmts=self.skip_stmts)
 
         finally:
             _libvex_lock.release()
-            self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = None
+            self.arch.vex_archinfo["hwcache_info"]["caches"] = None
