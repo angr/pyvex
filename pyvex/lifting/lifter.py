@@ -17,6 +17,7 @@ class Lifter:
         "max_bytes",
         "skip_stmts",
         "irsb",
+        "irsbs",
         "arch",
         "addr",
         "cross_insn_opt",
@@ -169,6 +170,7 @@ class Lifter:
         self.max_blocks = max_blocks or self.MAX_BLOCKS_FOR_MULTI_LIFT
         self.bytes_offset = bytes_offset
         self.max_bytes = max_bytes
+        self.max_inst = None
         self.opt_level = opt_level
         self.traceflags = traceflags
         self.allow_arch_optimizations = allow_arch_optimizations

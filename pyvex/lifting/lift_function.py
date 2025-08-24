@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from typing import DefaultDict, Union
+from typing import DefaultDict, Union, TYPE_CHECKING
 
 from pyvex import const
 from pyvex.block import IRSB
@@ -13,8 +13,10 @@ from pyvex.types import LiftSource, PyLiftSource, CLiftSource
 from .lifter import Lifter
 from .post_processor import Postprocessor
 
-from archinfo import Arch # Temporal
 from .libvex import LibVEXLifter, LIBVEX_SUPPORTED_ARCHES
+
+if TYPE_CHECKING:
+    from archinfo import Arch
 
 log = logging.getLogger(__name__)
 
@@ -328,7 +330,7 @@ def lift(
 def lift_multi(
     data: LiftSource,
     addr: int,
-    arch: Arch,
+    arch: "Arch",
     bytes_offset: int = 0,
     max_bytes: int | None = None,
     max_blocks: int = 100,

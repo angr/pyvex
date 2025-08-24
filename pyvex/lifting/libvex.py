@@ -51,7 +51,7 @@ class LibVEXLifter(Lifter):
     def get_vex_log():
         return bytes(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)).decode() if pvc.msg_buffer != ffi.NULL else None
 
-    def _parameters_check(self):
+    def _parameters_check_and_get_px_control(self) -> int:
         if self.bytes_offset is None:
             self.bytes_offset = 0
 
@@ -65,9 +65,11 @@ class LibVEXLifter(Lifter):
             self.strict_block_end = True
 
         if self.cross_insn_opt:
-            self.px_control = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
+            px_control = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
         else:
-            self.px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
+            px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
+        
+        return px_control
 
     def _lift(self):
         if TYPE_CHECKING:
@@ -80,7 +82,7 @@ class LibVEXLifter(Lifter):
             vex_arch = getattr(pvc, self.irsb.arch.vex_arch, None)
             assert vex_arch is not None
 
-            self._parameters_check()
+            px_control = self._parameters_check_and_get_px_control()
 
             self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = ffi.NULL
             lift_r = pvc.vex_lift(
@@ -97,7 +99,7 @@ class LibVEXLifter(Lifter):
                 1 if self.collect_data_refs else 0,
                 1 if self.load_from_ro_regions else 0,
                 1 if self.const_prop else 0,
-                self.px_control,
+                px_control,
                 self.bytes_offset,
             )
             log_str = self.get_vex_log()
@@ -131,15 +133,13 @@ class LibVEXLifter(Lifter):
             vex_arch = getattr(pvc, self.arch.vex_arch, None)
             assert vex_arch is not None
 
-            self._parameters_check()
+            px_control = self._parameters_check_and_get_px_control()
 
-            # TODO: Fix this call; I'm sure the arguments are wrong
-            # TODO: Also remove references to self.irsb; arch does not have to be part of .irsb. We are dealing with multiple blocks, so we should use self.irsbs instead
             r: int = pvc.vex_lift_multi(
                 vex_arch,
                 self.arch.vex_archinfo,
-                self.data + self.bytes_offset,
                 self.addr,
+                self.data + self.bytes_offset,
                 self.max_blocks,
                 self.max_inst,
                 self.max_bytes,
@@ -150,10 +150,12 @@ class LibVEXLifter(Lifter):
                 1 if self.collect_data_refs else 0,
                 1 if self.load_from_ro_regions else 0,
                 1 if self.const_prop else 0,
-                self.px_control,
+                px_control,
                 self.bytes_offset,
                 lift_results,
             )
+
+            print("termino de ejecutar c")
 
             log_str = self.get_vex_log()
             if r == -1:

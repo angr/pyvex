@@ -549,6 +549,8 @@ int vex_lift_multi(
 	VEXLiftResult *lift_results
 	) {
 
+	printf("Starting multi-block lift...\n");
+
 	// For now, we will use the same structure as the single lift function
 	// The idea is to set all the parameters as the same as the single lift function and modify the necessary ones in the loop
 	
