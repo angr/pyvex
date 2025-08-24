@@ -423,6 +423,16 @@ static Bool is_queue_empty(AddressQueue *queue) {
     return queue->size == 0;
 }
 
+// Check if a block has already been lifted to avoid duplicates
+static int is_block_already_lifted(Addr addr, VEXLiftResult *lift_results, int blocks_lifted) {
+	for (int i = 0; i < blocks_lifted; i++) {
+		if (lift_results[i].inst_addrs[0] == addr) {
+			return 1; // Block already lifted
+		}
+	}
+	return 0; // Block not lifted yet
+}
+
 VEXLiftResult _lift_r;
 
 //----------------------------------------------------------------------
@@ -577,6 +587,11 @@ int vex_lift_multi(
 			
 			// Dequeue the next address to lift
 			Addr current_addr = dequeue(&multi_lift_queue);
+
+			// Check if this block has already been lifted
+			if (is_block_already_lifted(current_addr, lift_result_array, blocks_lifted)) {
+				continue; // Skip already lifted block
+			}
 			
 			// Calculate the byte pointer for the current address
 			unsigned char *current_bytes = initial_insn_start + (current_addr - insn_addr);
@@ -619,7 +634,5 @@ int vex_lift_multi(
 	// - Read-only memory regions are stored in `regions` in `analysis.c`.
 	// - Prior to performing CFG analysis, angr calls `register_readonly_region` to register read-only memory regions.
 	// - You can call `find_region` to find the index of a region. See how `find_region` is used in `analysis.c`.
-
-	// Note -> We dont use pragma omp because there is no way to predict the next address to lift in a for loop
 	return blocks_lifted;
 }
