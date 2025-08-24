@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from typing import DefaultDict
+from typing import DefaultDict, Union
 
 from pyvex import const
 from pyvex.block import IRSB
@@ -25,7 +25,7 @@ def pre_lift_checks(
     data: LiftSource,
     max_bytes: int | None = None,
     opt_level: int = 1,
-) -> tuple[PyLiftSource | None, CLiftSource | None, bool, int]:
+) -> tuple[Union[PyLiftSource,None], Union[CLiftSource,None], bool, int]:
     if max_bytes is not None and max_bytes <= 0:
         raise PyVEXError("Cannot lift block with no data (max_bytes <= 0)")
 
@@ -67,7 +67,7 @@ def get_initial_data_and_skip(
         max_bytes: int | None,
         bytes_offset: int,
         arch_name: str,
-) -> tuple[LiftSource | None, int, int | None]:
+) -> tuple[Union[LiftSource,None], int, Union[int,None]]:
     u_data: LiftSource = data
     if lifter.REQUIRE_DATA_C:
         if c_data is None:
