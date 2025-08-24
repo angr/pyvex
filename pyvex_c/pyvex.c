@@ -377,18 +377,6 @@ static void vex_update_vta_address(Addr new_addr, unsigned char *new_start){
 	vta.guest_bytes_addr    = (Addr64)(new_addr);
 }
 
-// Simple FIFO queue structure for addresses
-typedef struct 
-{
-
-	Addr *addresses; // Array of addresses
-	size_t size; // Current size of the queue
-	size_t capacity; // Maximum capacity of the queue
-	size_t front; // Index of the front element
-	size_t rear; // Index of the rear element
-
-} AddressQueue;
-
 // Initialize queue
 static void init_queue(AddressQueue *queue, int capacity) {
     queue->addresses = malloc(capacity * sizeof(Addr));
@@ -431,6 +419,15 @@ static int is_block_already_lifted(Addr addr, VEXLiftResult *lift_results, int b
 		}
 	}
 	return 0; // Block not lifted yet
+}
+
+static void clear_queue(AddressQueue *queue) {
+	free(queue->addresses);
+	queue->addresses = NULL;
+	queue->front = 0;
+	queue->rear = 0;
+	queue->size = 0;
+	queue->capacity = 0;
 }
 
 VEXLiftResult _lift_r;
@@ -621,6 +618,9 @@ int vex_lift_multi(
 			// Increment the lifted blocks counter
 			blocks_lifted++;
 		}
+
+		// Clear the queue after lifting
+		clear_queue(&multi_lift_queue);
 
 	} else {
 		// Lifting failed
