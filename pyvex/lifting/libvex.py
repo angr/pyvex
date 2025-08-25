@@ -155,7 +155,6 @@ class LibVEXLifter(Lifter):
                 lift_results,
             )
 
-            print("termino de ejecutar c")
 
             log_str = self.get_vex_log()
             if r == -1:
