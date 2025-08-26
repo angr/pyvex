@@ -166,6 +166,7 @@ class Lifter:
         :param disasm:              Should the GymratLifter generate disassembly during lifting.
         :param dump_irsb:           Should the GymratLifter log the lifted IRSB.
         """
+
         self.data = data
         self.max_blocks = max_blocks or self.MAX_BLOCKS_FOR_MULTI_LIFT
         self.bytes_offset = bytes_offset
