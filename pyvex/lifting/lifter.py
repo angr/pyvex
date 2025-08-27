@@ -94,6 +94,23 @@ class Lifter:
         :param disasm:              Should the GymratLifter generate disassembly during lifting.
         :param dump_irsb:           Should the GymratLifter log the lifted IRSB.
         """
+
+        # Print all the arguments
+        print("Argumentos en pyvex/lifting/lifter.py/lift")
+        print(f"addr: {self.addr}")
+        print(f"arch: {self.arch}")
+        print(f"bytes_offset: {bytes_offset}")
+        print(f"max_bytes: {max_bytes}")
+        print(f"opt_level: {opt_level}")
+        print(f"traceflags: {traceflags}")
+        print(f"collect_data_refs: {collect_data_refs}")
+        print(f"load_from_ro_regions: {load_from_ro_regions}")
+        print(f"skip_stmts: {skip_stmts}")
+        print(f"strict_block_end: {strict_block_end}")
+        print(f"const_prop: {const_prop}")
+        print(f"cross_insn_opt: {cross_insn_opt}")
+
+
         irsb: IRSB = IRSB.empty_block(self.arch, self.addr)
         self.data = data
         self.bytes_offset = bytes_offset
@@ -166,6 +183,22 @@ class Lifter:
         :param disasm:              Should the GymratLifter generate disassembly during lifting.
         :param dump_irsb:           Should the GymratLifter log the lifted IRSB.
         """
+
+        # Print all the arguments
+        print("Argumentos en pyvex/lifting/lifter.py/lift_multi")
+        print(f"addr: {self.addr}")
+        print(f"arch: {self.arch}")
+        print(f"bytes_offset: {bytes_offset}")
+        print(f"max_bytes: {max_bytes}")
+        print(f"max_blocks: {max_blocks}")
+        print(f"opt_level: {opt_level}")
+        print(f"traceflags: {traceflags}")
+        print(f"collect_data_refs: {collect_data_refs}")
+        print(f"load_from_ro_regions: {load_from_ro_regions}")
+        print(f"skip_stmts: {skip_stmts}")
+        print(f"strict_block_end: {strict_block_end}")
+        print(f"const_prop: {const_prop}")
+        print(f"cross_insn_opt: {cross_insn_opt}")
 
         self.data = data
         self.max_blocks = max_blocks or self.MAX_BLOCKS_FOR_MULTI_LIFT
