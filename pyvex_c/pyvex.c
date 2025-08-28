@@ -28,6 +28,9 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include "pyvex_internal.h"
 #include "logging.h"
 
+static int call_cunt = 0;
+static int one_shot = 0;
+
 //======================================================================
 //
 // Globals
@@ -453,7 +456,7 @@ VEXLiftResult *vex_lift(
 		unsigned int lookback) {
 
     // Print all the arguments
-    printf("Argumentos en pyvex_c/pyvex.c/vex_lift\n");
+    printf("\nArgumentos en pyvex_c/pyvex.c/vex_lift\n");
     printf("addr: %llu\n", insn_addr);
     printf("arch: %d\n", guest);
     printf("max_insns: %d\n", max_insns);
@@ -467,7 +470,23 @@ VEXLiftResult *vex_lift(
     printf("const_prop: %d\n", const_prop);
     printf("px_control: %d\n", px_control);
     printf("lookback: %d\n", lookback);
-    sleep(20);
+	printf("Esto sólo deberia pasar si estoy haciendo CFG y no en load\n");
+	printf("Como veo que eso no sucede, voy a contar las veces que se llama a esta función\n");
+	printf("Llamada número: %d\n", call_cunt);
+	call_cunt++;
+	printf("\n");
+	usleep(625);
+
+	if(call_cunt == 721) { 
+		call_cunt = 0;
+		one_shot = 1;
+	}
+
+	if(call_cunt == 4 && one_shot == 1){
+		sleep(20);
+	}
+
+
 
 	// this is the level of optimization to apply to the IR
 	// (In terms of how often you are interested in updating records during translation)
@@ -566,13 +585,9 @@ int vex_lift_multi(
 	VEXLiftResult *lift_results
 	) {
 
-	printf("Starting multi-block lift...\n");
-
-    // Print all the arguments
-    printf("Argumentos en pyvex_c/pyvex.c/vex_lift_multi\n");
+    printf("Argumentos en pyvex_c/pyvex.c/vex_lift\n");
     printf("addr: %llu\n", insn_addr);
     printf("arch: %d\n", guest);
-    printf("max_blocks: %d\n", max_blocks);
     printf("max_insns: %d\n", max_insns);
     printf("max_bytes: %d\n", max_bytes);
     printf("opt_level: %d\n", opt_level);
@@ -584,7 +599,8 @@ int vex_lift_multi(
     printf("const_prop: %d\n", const_prop);
     printf("px_control: %d\n", px_control);
     printf("lookback: %d\n", lookback);
-    sleep(20);
+	printf("Ahora si estoy llamado al multiblock papá\n\n");
+	printf("Esto sólo deberia pasar si estoy haciendo CFG y no en load\n");
 
 	// For now, we will use the same structure as the single lift function
 	// The idea is to set all the parameters as the same as the single lift function and modify the necessary ones in the loop
