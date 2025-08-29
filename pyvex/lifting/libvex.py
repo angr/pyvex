@@ -135,6 +135,8 @@ class LibVEXLifter(Lifter):
 
             px_control = self._parameters_check_and_get_px_control()
 
+            print("\nahora deberia ser la famosa llamada a pyvex.c\n")
+
             r: int = pvc.vex_lift_multi(
                 vex_arch,
                 self.arch.vex_archinfo,
@@ -154,7 +156,6 @@ class LibVEXLifter(Lifter):
                 self.bytes_offset,
                 lift_results,
             )
-
 
             log_str = self.get_vex_log()
             if r == -1:
