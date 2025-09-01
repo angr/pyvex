@@ -155,23 +155,6 @@ def lift(
               ends properly or until it runs out of data to lift.
     """
 
-    # Print all the arguments
-    print("Argumentos en pyvex/lift")
-    print(f"addr: {addr}")
-    print(f"arch: {arch}")
-    print(f"max_bytes: {max_bytes}")
-    print(f"max_inst: {max_inst}")
-    print(f"bytes_offset: {bytes_offset}")
-    print(f"opt_level: {opt_level}")
-    print(f"traceflags: {traceflags}")
-    print(f"strict_block_end: {strict_block_end}")
-    print(f"inner: {inner}")
-    print(f"skip_stmts: {skip_stmts}")
-    print(f"collect_data_refs: {collect_data_refs}")
-    print(f"cross_insn_opt: {cross_insn_opt}")
-    print(f"load_from_ro_regions: {load_from_ro_regions}")
-    print(f"const_prop: {const_prop}")
-
     py_data, c_data, allow_arch_optimizations, opt_level = pre_lift_checks(data, max_bytes, opt_level)
 
     for lifter in lifters[arch.name]:
@@ -364,22 +347,6 @@ def lift_multi(
     Lifts multiple blocks at once starting from the given address.
     """
 
-    # Print all the arguments
-    print("Argumentos en pyvex/lift_multi")
-    print(f"addr: {addr}")
-    print(f"arch: {arch}")
-    print(f"bytes_offset: {bytes_offset}")
-    print(f"max_bytes: {max_bytes}")
-    print(f"max_blocks: {max_blocks}")
-    print(f"opt_level: {opt_level}")
-    print(f"traceflags: {trace_flags}")
-    print(f"collect_data_refs: {collect_data_refs}")
-    print(f"load_from_ro_regions: {load_from_ro_regions}")
-    print(f"skip_stmts: {skip_stmts}")
-    print(f"strict_block_end: {strict_block_end}")
-    print(f"const_prop: {const_prop}")
-    print(f"cross_insn_opt: {cross_insn_opt}")
-    
     if arch.name not in LIBVEX_SUPPORTED_ARCHES:
         raise PyVEXError("Multi-block lifting is only supported for architectures which are registered with LibVEXLifter.")
 
