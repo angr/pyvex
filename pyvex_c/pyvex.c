@@ -661,24 +661,6 @@ int vex_lift_multi(
 
 	printf("Insn_addr: %llu\n", insn_addr);
 	printf("Insn_start: %p\n", insn_start);
-	// printf("Esto sólo deberia pasar si estoy haciendo CFG y no en load\n");
-
-	// For now, we will use the same structure as the single lift function
-	// The idea is to set all the parameters as the same as the single lift function and modify the necessary ones in the loop
-
-	// this is the level of optimization to apply to the IR
-	// VexRegisterUpdates pxControl = px_control;
-
-	// vex_prepare_vai(guest, &archinfo); // Prepare the VexArchInfo struct
-	// vex_prepare_vbi(guest, &vbi); // Prepare the VexAbiInfo struct (application Binary Interface)
-
-	// // Prepare VTA and VC structures for multi-block lifting
-	// vex_prepare_vta_multi(guest, archinfo, vbi, traceflags);
-	// vex_prepare_vc_multi(max_insns, max_bytes, opt_level, lookback, allow_arch_optimizations, strict_block_end);
-
-	// LibVEX_Update_Control(&vc); // I think this only have to be called once (ask Fish)
-
-	// clear_log();
 
 	AddressQueue multi_lift_queue; // the FIFO queue for addresses to lift
 
@@ -731,27 +713,6 @@ int vex_lift_multi(
 			// Lifting failed
 			continue;
 		}
-		// TODO: Ask fish if this is correct or if I should update the base calculation
-
-		// // Update VTA with the current address and byte pointer
-		// vex_update_vta_address(current_addr, current_bytes);
-
-		// // Perform the lift
-		// lift_result_array[blocks_lifted].is_noop_block = False;
-		// lift_result_array[blocks_lifted].data_ref_count = 0;
-		// lift_result_array[blocks_lifted].const_val_count = 0;
-
-		// lift_result_array[blocks_lifted].irsb = LibVEX_Lift(&vta, &vtr, &pxControl); // calls the actual lifting function from VEX
-
-		// if (!lift_result_array[blocks_lifted].irsb) {
-		// 	// Lifting failed
-		// 	return -1;
-		// }
-
-		// // Check the next field of the irsb structure
-		// printf("Next at: %p\n", lift_result_array[blocks_lifted].irsb->next);
-
-		// post_process_irsb(lift_result_array[blocks_lifted].irsb, &lift_result_array[blocks_lifted], guest, (Bool)collect_data_refs, (Bool)load_from_ro_regions, (Bool)const_prop);
 
 		// Print the VexLiftResult for debugging
 		print_vex_lift_result(&lift_result_array[blocks_lifted_count], "Lifted Block");
