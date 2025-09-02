@@ -141,5 +141,8 @@ static Bool is_queue_empty(AddressQueue *queue);
 static int is_block_already_lifted(Addr addr, VEXLiftResult *lift_results, int blocks_lifted);
 static void clear_queue(AddressQueue *queue);
 
+// Debug/Print functions
+static void print_vex_lift_result(const VEXLiftResult *result, const char *label);
+
 
 #endif
