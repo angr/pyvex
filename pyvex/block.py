@@ -549,7 +549,7 @@ class IRSB(VEXObject):
         c_irsb = lift_r.irsb
         if not skip_stmts:
             self.statements = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in range(c_irsb.stmts_used)]
-            self.tyenv = IRTypeEnv._from_c(self.arch, c_irsb.tyenv)
+            self.tyenv = IRTypeEnv._from_c(self.arch, c_irsb.tyenv) # SegFault in this line
         else:
             self.statements = None
             self.tyenv = None

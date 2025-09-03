@@ -68,7 +68,7 @@ class LibVEXLifter(Lifter):
             px_control = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
         else:
             px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
-        
+
         return px_control
 
     def _lift(self):
@@ -125,6 +125,7 @@ class LibVEXLifter(Lifter):
 
         # lift_results = pvc.VEXLiftResult * [ffi.NULL] * self.max_blocks
         lift_results = ffi.new("VEXLiftResult[]", self.max_blocks)
+        print("max blocks is ", self.max_blocks)
 
         try:
             _libvex_lock.acquire()
@@ -134,8 +135,6 @@ class LibVEXLifter(Lifter):
             assert vex_arch is not None
 
             px_control = self._parameters_check_and_get_px_control()
-
-            print("\nahora deberia ser la famosa llamada a pyvex.c\n")
 
             r: int = pvc.vex_lift_multi(
                 vex_arch,
@@ -157,6 +156,8 @@ class LibVEXLifter(Lifter):
                 lift_results,
             )
 
+            print("r is ", r)
+
             log_str = self.get_vex_log()
             if r == -1:
                 raise LiftingException("libvex: unknown error" if log_str is None else log_str)
@@ -166,7 +167,13 @@ class LibVEXLifter(Lifter):
 
             self.irsbs: list[IRSB] = [None] * r
             for i in range(r):
+                print(f"First irsb: {lift_results[i].irsb}")
+                print(f"First irsb first addr: {hex(lift_results[i].inst_addrs[0])}")
+                print(f"First irsb size: {lift_results[i].size}")
                 self.irsbs[i] = IRSB.empty_block(self.arch, lift_results[i].inst_addrs[0])  # Assuming inst_addrs[0] gives the firs address of the block
+                print("Empty block created")
+                import pdb
+                pdb.set_trace()
                 self.irsbs[i]._from_c(lift_results[i], skip_stmts=self.skip_stmts)
 
         finally:

@@ -72,7 +72,7 @@ typedef struct _VEXLiftResult {
 } VEXLiftResult;
 
 // Simple FIFO queue structure for addresses
-typedef struct 
+typedef struct
 {
 
 	Addr *addresses; // Array of addresses
@@ -106,6 +106,7 @@ Bool register_initial_register_value(UInt offset, UInt size, ULong value);
 Bool reset_initial_register_values();
 
 // Multi lift functions
+#define MAX_LIFTED_BLOCKS 1000
 int vex_lift_multi(
 	VexArch guest,
 	VexArchInfo archinfo,
@@ -126,10 +127,10 @@ int vex_lift_multi(
 	VEXLiftResult *lift_results
 	);
 static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queue);
-static void post_process_irsb(IRSB *irsb, VEXLiftResult *lift_result, VexArch guest, 
+static void post_process_irsb(IRSB *irsb, VEXLiftResult *lift_result, VexArch guest,
                               Bool collect_data_refs, Bool load_from_ro_regions, Bool const_prop);
 static void vex_prepare_vta_multi(VexArch guest, VexArchInfo archinfo, VexAbiInfo vbi, int traceflags);
-static void vex_prepare_vc_multi(unsigned int max_insns, unsigned int max_bytes, int opt_level, 
+static void vex_prepare_vc_multi(unsigned int max_insns, unsigned int max_bytes, int opt_level,
                                  unsigned int lookback, int allow_arch_optimizations, int strict_block_end);
 static void vex_update_vta_address(Addr new_addr, unsigned char *new_start);
 

@@ -309,7 +309,7 @@ void print_queue(AddressQueue *queue) {
 	printf("\nCurrent queue state:\n");
 	printf("Queue size: %ld\n", queue->size);
 	for (int i = 0; i < queue->size; i++) {
-		printf("Queue[%d]: %lu\n", i, (unsigned long)queue->addresses[(queue->front + i)%queue->capacity]);
+		printf("Queue[%d]: 0x%llx\n", i, (unsigned long)queue->addresses[(queue->front + i)%queue->capacity]);
 	}
 }
 
@@ -345,29 +345,20 @@ static void post_process_irsb(IRSB *irsb, VEXLiftResult *lift_result, VexArch gu
 
 static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queue) {
 
-	printf("\nThe default exit is: %llu\n", (unsigned long long)simple_irsb_result->default_exit);
+	//printf("\nThe default exit is: 0x%llx\n", (unsigned long long)simple_irsb_result->default_exit);
 
 	// The next address is a direct jump to the default exit
 	if ( simple_irsb_result->is_default_exit_constant == 1 ){
-
 		// First, the default exit address
 		enqueue(queue, (unsigned long long)simple_irsb_result->default_exit);
-
-		// // Enqueue all exit addresses into the FIFO queue
-		for (size_t i = 0; i < simple_irsb_result->exit_count; i++) {
-			enqueue(queue, simple_irsb_result->exits[i].ins_addr);
-		}
 	} else{ // The next address should will we the next instruction after the current block
-
 		// First, the next instruction address
 		Addr next_inst_addr = simple_irsb_result->inst_addrs[0] + simple_irsb_result->size;
 		enqueue(queue, next_inst_addr);
-
-		// // Enqueue all exit addresses into the FIFO queue
-		for (size_t i = 0; i < simple_irsb_result->exit_count; i++) {
-			enqueue(queue, simple_irsb_result->exits[i].ins_addr);
-		}
-		
+	}
+    // // Enqueue all exit addresses into the FIFO queue
+	for (size_t i = 0; i < simple_irsb_result->exit_count; i++) {
+		enqueue(queue, simple_irsb_result->exits[i].ins_addr);
 	}
 
 	printf("\nEnqueued exits into the queue. Current queue state:\n");
@@ -417,7 +408,7 @@ static void init_queue(AddressQueue *queue, int capacity) {
 // Add address to queue
 static void enqueue(AddressQueue *queue, Addr addr) {
 
-	printf("\nEnqueuing address: %llu\n", (unsigned long long)addr);
+	printf("\nEnqueuing address: 0x%llx\n", (unsigned long long)addr);
 
     if (queue->size < queue->capacity) {
         queue->addresses[queue->rear] = addr;
@@ -468,32 +459,32 @@ static void print_vex_lift_result(const VEXLiftResult *result, const char *label
 		return;
 	}
 
-	
+
 	printf("=== VEXLiftResult ===\n");
 	printf("Block at address: 0x%llx\n", (unsigned long long)result->inst_addrs[0]);
 	printf("IRSB pointer: %p\n", (void*)result->irsb);
 	printf("Size: %d\n", result->size);
 	printf("Is noop block: %s\n", result->is_noop_block ? "True" : "False");
-	
+
 	// Conditional exits
 	printf("Exit count: %d\n", result->exit_count);
 	for (int i = 0; i < result->exit_count && i < MAX_EXITS; i++) {
-		printf("  Exit[%d]: stmt_idx=%d, ins_addr=0x%llx, stmt=%p\n", 
-			   i, result->exits[i].stmt_idx, 
+		printf("  Exit[%d]: stmt_idx=%d, ins_addr=0x%llx, stmt=%p\n",
+			   i, result->exits[i].stmt_idx,
 			   (unsigned long long)result->exits[i].ins_addr,
 			   (void*)result->exits[i].stmt);
 	}
-	
+
 	// Default exit
 	printf("Is default exit constant: %d\n", result->is_default_exit_constant);
 	printf("Default exit: 0x%llx\n", (unsigned long long)result->default_exit);
-	
+
 	// Instruction addresses
 	printf("Instructions count: %d\n", result->insts);
 	for (int i = 0; i < result->insts && i < 200; i++) {
 		printf("  Inst[%d]: 0x%llx\n", i, (unsigned long long)result->inst_addrs[i]);
 	}
-	
+
 	// Data references
 	printf("Data ref count: %d\n", result->data_ref_count);
 	for (int i = 0; i < result->data_ref_count && i < MAX_DATA_REFS; i++) {
@@ -511,7 +502,7 @@ static void print_vex_lift_result(const VEXLiftResult *result, const char *label
 			   result->data_refs[i].stmt_idx,
 			   (unsigned long long)result->data_refs[i].ins_addr);
 	}
-	
+
 	// Constant values
 	printf("Const val count: %d\n", result->const_val_count);
 	for (int i = 0; i < result->const_val_count && i < MAX_CONST_VALS; i++) {
@@ -520,7 +511,7 @@ static void print_vex_lift_result(const VEXLiftResult *result, const char *label
 			   result->const_vals[i].stmt_idx,
 			   (unsigned long long)result->const_vals[i].value);
 	}
-	
+
 	printf("=== End %s ===\n\n", label);
 }
 
@@ -622,7 +613,7 @@ VEXLiftResult *vex_lift(
  * @return -1 if error, otherwise the number of blocks lifted
  */
 
-VEXLiftResult lift_result_array[4096];
+//VEXLiftResult lift_result_array[MAX_LIFTED_BLOCKS];
 
 int vex_lift_multi(
 	VexArch guest,
@@ -641,7 +632,7 @@ int vex_lift_multi(
 	int const_prop,
 	VexRegisterUpdates px_control,
 	unsigned int lookback,
-	VEXLiftResult *lift_results
+	VEXLiftResult *lift_result_array
 	) {
 
     // printf("Argumentos en pyvex_c/pyvex.c/vex_lift\n");
@@ -680,11 +671,12 @@ int vex_lift_multi(
 		Addr current_addr = dequeue(&multi_lift_queue);
 
 		// print queue addresses
-		printf("\nPost dequeue:\n");
-		print_queue(&multi_lift_queue);
+		// printf("\nPost dequeue:\n");
+		// print_queue(&multi_lift_queue);
 
 		// Check if this block has already been lifted
 		if (is_block_already_lifted(current_addr, lift_result_array, blocks_lifted_count)) {
+            printf("Block at address 0x%llx has already been lifted\n", (unsigned long long)current_addr);
 			continue; // Skip already lifted block
 		}
 
@@ -711,18 +703,22 @@ int vex_lift_multi(
 
 		if (lift_result_array[blocks_lifted_count].irsb == NULL) {
 			// Lifting failed
+            printf("Lifting failed for block at address: 0x%llx\n", (unsigned long long)current_addr);
 			continue;
 		}
 
+
 		// Print the VexLiftResult for debugging
-		print_vex_lift_result(&lift_result_array[blocks_lifted_count], "Lifted Block");
+        //ppIRSB(lift_result_array[blocks_lifted_count].irsb);
+
+        print_vex_lift_result(&lift_result_array[blocks_lifted_count], "Lifted Block");
 
 		// Extract exits and add them to the queue for further lifting
 		exits_to_fifo(&lift_result_array[blocks_lifted_count], &multi_lift_queue);
-		
+
 		// Increment the lifted blocks counter
 		blocks_lifted_count++;
-		
+
 	}
 
 	printf("\nTotal blocks lifted: %d\n", blocks_lifted_count);
