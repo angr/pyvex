@@ -74,7 +74,7 @@ print(irsb.tyenv.types)
 print(irsb.tyenv.types[0])
 ```
 
-Keep in mind that this is a *syntactic* respresentation of a basic block. That is, it'll tell you what the block means, but you don't have any context to say, for example, what *actual* data is written by a store instruction.
+Keep in mind that this is a *syntactic* representation of a basic block. That is, it'll tell you what the block means, but you don't have any context to say, for example, what *actual* data is written by a store instruction.
 
 ## VEX Intermediate Representation
 
@@ -82,7 +82,7 @@ To deal with widely diverse architectures, it is useful to carry out analyses on
 An IR abstracts away several architecture differences when dealing with different architectures, allowing a single analysis to be run on all of them:
 
 - **Register names.** The quantity and names of registers differ between architectures, but modern CPU designs hold to a common theme: each CPU contains several general purpose registers, a register to hold the stack pointer, a set of registers to store condition flags, and so forth. The IR provides a consistent, abstracted interface to registers on different platforms. Specifically, VEX models the registers as a separate memory space, with integer offsets (i.e., AMD64's `rax` is stored starting at address 16 in this memory space).
-- **Memory access.** Different architectures access memory in different ways. For example, ARM can access memory in both little-endian and big-endian modes. The IR must abstracts away these differences.
+- **Memory access.** Different architectures access memory in different ways. For example, ARM can access memory in both little-endian and big-endian modes. The IR must abstract away these differences.
 - **Memory segmentation.** Some architectures, such as x86, support memory segmentation through the use of special segment registers. The IR understands such memory access mechanisms.
 - **Instruction side-effects.** Most instructions have side-effects. For example, most operations in Thumb mode on ARM update the condition flags, and stack push/pop instructions update the stack pointer. Tracking these side-effects in an *ad hoc* manner in the analysis would be crazy, so the IR makes these effects explicit.
 
