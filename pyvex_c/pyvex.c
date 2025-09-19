@@ -517,36 +517,6 @@ static void print_vex_lift_result(const VEXLiftResult *result, const char *label
 
 VEXLiftResult _lift_r;
 //----------------------------------------------------------------------
-// Deep copy an IRSB structure using LibVEX's built-in function
-//----------------------------------------------------------------------
-static IRSB* deep_copy_irsb(IRSB* original) {
-    if (!original) return NULL;
-
-    // Use LibVEX's built-in deep copy function
-    return deepCopyIRSB(original);
-}//----------------------------------------------------------------------
-// Free memory used by deep copied IRSB
-//----------------------------------------------------------------------
-static void free_deep_copied_irsb(IRSB* irsb) {
-    if (!irsb) return;
-
-    // Note: LibVEX uses its own memory allocator, so we don't free individual components
-    // The memory will be freed when LibVEX cleans up its allocation arena
-    // This function is here for completeness and future use if needed
-}
-
-//----------------------------------------------------------------------
-// Free memory used by lift result array
-//----------------------------------------------------------------------
-static void free_lift_result_array(VEXLiftResult* results, int count) {
-    if (!results) return;
-
-    for (int i = 0; i < count; i++) {
-        free_deep_copied_irsb(results[i].irsb);
-    }
-}
-
-//----------------------------------------------------------------------
 // Main entry point. Do a lift.
 //----------------------------------------------------------------------
 VEXLiftResult *vex_lift(
@@ -664,21 +634,6 @@ int vex_lift_multi(
 	VEXLiftResult *lift_result_array
 	) {
 
-    // printf("Argumentos en pyvex_c/pyvex.c/vex_lift\n");
-    // printf("addr: %llu\n", insn_addr);
-    // printf("arch: %d\n", guest);
-    // printf("max_insns: %d\n", max_insns);
-    // printf("max_bytes: %d\n", max_bytes);
-    // printf("opt_level: %d\n", opt_level);
-    // printf("traceflags: %d\n", traceflags);
-    // printf("allow_arch_optimizations: %d\n", allow_arch_optimizations);
-    // printf("strict_block_end: %d\n", strict_block_end);
-    // printf("collect_data_refs: %d\n", collect_data_refs);
-    // printf("load_from_ro_regions: %d\n", load_from_ro_regions);
-    // printf("const_prop: %d\n", const_prop);
-    // printf("px_control: %d\n", px_control);
-    // printf("lookback: %d\n", lookback);
-
 	printf("Insn_addr: %llu\n", insn_addr);
 	printf("Insn_start: %p\n", insn_start);
 
@@ -739,16 +694,13 @@ int vex_lift_multi(
 		// Make a copy of the result to avoid pointer invalidation
 		_lift_result_array[blocks_lifted_count] = *temp_result;
 
-		// Make a deep copy of the IRSB so we can access it later
-		_lift_result_array[blocks_lifted_count].irsb = deep_copy_irsb(temp_result->irsb);
-
 		if (_lift_result_array[blocks_lifted_count].irsb == NULL) {
 			printf("Failed to create deep copy of IRSB for block at address: 0x%llx\n", (unsigned long long)current_addr);
 			continue;
 		}
 
 
-        print_vex_lift_result(&_lift_result_array[blocks_lifted_count], "Lifted Block");
+        //print_vex_lift_result(&_lift_result_array[blocks_lifted_count], "Lifted Block");
 
 		// Extract exits and add them to the queue for further lifting
 		exits_to_fifo(&_lift_result_array[blocks_lifted_count], &multi_lift_queue);
@@ -756,31 +708,32 @@ int vex_lift_multi(
 		// Increment the lifted blocks counter
 		blocks_lifted_count++;
 
+        // Log what we can access immediately
+        for (int i = 0; i < blocks_lifted_count; i++) {
+            printf("DEBUG!!!!!\n");
+            printf("Block at address 0x%llx:\n", (unsigned long long)_lift_result_array[i].inst_addrs[0]);
+            printf("IRSB pointer: %p\n", (void*)_lift_result_array[i].irsb);
+            printf("IRTypeEnv pointer: %p\n", (void*)_lift_result_array[i].irsb->tyenv->types);
+            printf("Statements count: %d\n", _lift_result_array[i].irsb->stmts_used);
+
+            // Try to access first statement immediately while pointer is valid
+            if (_lift_result_array[i].irsb->stmts_used > 0) {
+                for (int j = 0; j < _lift_result_array[i].irsb->stmts_used; j++) {
+                    if (_lift_result_array[i].irsb->stmts[j] != NULL) {
+                        printf("Statement %d tag: %d\n", j, _lift_result_array[i].irsb->stmts[j]->tag);
+                        printf("Statement %d pointer: %p\n", j, (void*)_lift_result_array[i].irsb->stmts[j]);
+                    } else {
+                        printf("Statement %d is NULL\n", j);
+                    }
+                }
+            }
+            fflush(stdout); // Ensure output is written immediately
+        }
+
 	}
 
 	printf("\nTotal blocks lifted: %d\n", blocks_lifted_count);
 
-
-    // Log what we can access immediately
-    for (int i = 0; i < blocks_lifted_count; i++) {
-		printf("Block at address 0x%llx:\n", (unsigned long long)_lift_result_array[i].inst_addrs[0]);
-		printf("IRSB pointer: %p\n", (void*)_lift_result_array[i].irsb);
-		printf("IRTypeEnv pointer: %p\n", (void*)_lift_result_array[i].irsb->tyenv->types);
-		printf("Statements count: %d\n", _lift_result_array[i].irsb->stmts_used);
-
-		// Try to access first statement immediately while pointer is valid
-		if (_lift_result_array[i].irsb->stmts_used > 0) {
-            for (int j = 0; j < _lift_result_array[i].irsb->stmts_used; j++) {
-                if (_lift_result_array[i].irsb->stmts[j] != NULL) {
-                    printf("Statement %d tag: %d\n", j, _lift_result_array[i].irsb->stmts[j]->tag);
-                    printf("Statement %d pointer: %p\n", j, (void*)_lift_result_array[i].irsb->stmts[j]);
-                } else {
-                    printf("Statement %d is NULL\n", j);
-                }
-            }
-		}
-        fflush(stdout); // Ensure output is written immediately
-    }
 
 	// Clear the queue after lifting
 	clear_queue(&multi_lift_queue);
