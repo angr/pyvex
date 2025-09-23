@@ -3,6 +3,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 project(pyvex LANGUAGES C)
 
+# Add debug flags globally
+add_compile_options(-g -O0)
+
 # Set the output directory for built libraries
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/pyvex/lib)
 
