@@ -649,6 +649,8 @@ int vex_lift_multi(
 	// Initialize the first address in the queue
 	enqueue(&multi_lift_queue, insn_addr);
 
+    __asm__("int $3");
+
 	while (!is_queue_empty(&multi_lift_queue) && blocks_lifted_count < max_blocks) {
 
 		// Dequeue the next address to lift

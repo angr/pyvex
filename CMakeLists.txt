@@ -6,6 +6,10 @@ project(pyvex LANGUAGES C)
 # Add debug flags globally
 add_compile_options(-g -O0)
 
+# Avoid strip
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_STRIP "")
+
 # Set the output directory for built libraries
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/pyvex/lib)
 

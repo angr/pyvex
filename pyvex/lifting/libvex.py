@@ -172,9 +172,7 @@ class LibVEXLifter(Lifter):
                 print(f"First irsb size: {lift_results[i].size}")
                 self.irsbs[i] = IRSB.empty_block(self.arch, lift_results[i].inst_addrs[0])  # Assuming inst_addrs[0] gives the firs address of the block
                 print("Empty block created")
-                import pdb
-                pdb.set_trace()
-                self.irsbs[i]._from_c(lift_results[i], skip_stmts=self.skip_stmts)
+                self.irsbs[i]._from_c(lift_results[i], skip_stmts=True)
 
         finally:
             _libvex_lock.release()
