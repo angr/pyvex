@@ -366,36 +366,6 @@ static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queu
 
 }
 
-// Prepare VexTranslateArgs for vex_lift_multi
-static void vex_prepare_vta_multi(VexArch guest, VexArchInfo archinfo, VexAbiInfo vbi, int traceflags) {
-	vta.archinfo_guest = archinfo;
-	vta.arch_guest = guest;
-	vta.abiinfo_both = vbi;
-	vta.traceflags = traceflags;
-}
-
-// Prepare VexControl for vex_lift_multi
-static void vex_prepare_vc_multi(unsigned int max_insns, unsigned int max_bytes, int opt_level,
-                                 unsigned int lookback, int allow_arch_optimizations, int strict_block_end) {
-	vc.guest_max_bytes = max_bytes;
-	vc.guest_max_insns = max_insns;
-	vc.iropt_level = opt_level;
-	vc.lookback_amount = lookback;
-
-	// Gate all of these on one flag, they depend on the arch
-	vc.arm_allow_optimizing_lookback = allow_arch_optimizations;
-	vc.arm64_allow_reordered_writeback = allow_arch_optimizations;
-	vc.x86_optimize_callpop_idiom = allow_arch_optimizations;
-
-	vc.strict_block_end = strict_block_end;
-}
-
-// Update the VTA address and byte pointer
-static void vex_update_vta_address(Addr new_addr, unsigned char *new_start){
-	vta.guest_bytes         = (UChar *)(new_start);  // Ptr to actual bytes of start of instruction
-	vta.guest_bytes_addr    = (Addr64)(new_addr);
-}
-
 // Initialize queue
 static void init_queue(AddressQueue *queue, int capacity) {
     queue->addresses = malloc(capacity * sizeof(Addr));
@@ -515,6 +485,96 @@ static void print_vex_lift_result(const VEXLiftResult *result, const char *label
 	printf("=== End %s ===\n\n", label);
 }
 
+// Deep copy function for VEXLiftResult struct
+static VEXLiftResult* copy_vex_lift_result(const VEXLiftResult *src) {
+
+	// avoid copying if either pointer is NULL
+	if (src == NULL) {
+		return;
+	}
+
+	VEXLiftResult *dest = malloc(sizeof(VEXLiftResult));
+	if (dest == NULL) {
+		pyvex_error("Failed to allocate memory for VEXLiftResult copy.\n");
+		free(dest);
+		return NULL;
+	}
+
+	// Copy non-pointer fields directly
+	dest->size = src->size;
+	dest->is_noop_block = src->is_noop_block;
+	dest->exit_count = src->exit_count;
+	dest->is_default_exit_constant = src->is_default_exit_constant;
+	dest->default_exit = src->default_exit;
+	dest->insts = src->insts;
+	dest->data_ref_count = src->data_ref_count;
+	dest->const_val_count = src->const_val_count;
+
+	// Copy the IRSB structure if it exists
+	if (src->irsb == NULL) {
+		pyvex_error("Source IRSB is NULL, cannot copy.\n");
+		free(dest);
+		return NULL;
+	}
+
+	//dest->irsb = copy_irsb(src->irsb);
+
+}
+
+// Deep copy function for IRSB struct
+static IRSB* copy_irsb(const IRSB *src) {
+
+	if (src == NULL) {
+		return NULL;
+	}
+
+	IRSB *irsb = malloc(sizeof(IRSB));
+	if (irsb == NULL) {
+		pyvex_error("Failed to allocate memory for IRSB copy.\n");
+		return NULL;
+	}
+
+	// Copy non-pointer fields directly
+	irsb->stmts_size = src->stmts_size;
+	irsb->stmts_used = src->stmts_used;
+	irsb->jumpkind = src->jumpkind;
+	irsb->offsIP = src->offsIP;
+
+	// Set excluded fields to NULL
+    irsb->tyenv = NULL;  
+    irsb->stmts = NULL;  
+
+	// Deep copy the 'next' field if it exists
+	if (src->next == NULL) {
+		pyvex_error("Source IRSB 'next' is NULL, cannot copy.\n");
+		free(irsb);
+		return NULL;
+	}
+
+	src->next = deepCopyIRExpr(src->next);
+
+	//src->next = manual_irexpr_copy(src->next);
+
+}
+
+
+
+
+
+
+
+
+
+
+
+	
+
+	
+
+
+
+
+	
 VEXLiftResult _lift_r;
 //----------------------------------------------------------------------
 // Main entry point. Do a lift.
@@ -649,7 +709,7 @@ int vex_lift_multi(
 	// Initialize the first address in the queue
 	enqueue(&multi_lift_queue, insn_addr);
 
-    __asm__("int $3");
+    //__asm__("int $3");
 
 	while (!is_queue_empty(&multi_lift_queue) && blocks_lifted_count < max_blocks) {
 
@@ -735,7 +795,6 @@ int vex_lift_multi(
 	}
 
 	printf("\nTotal blocks lifted: %d\n", blocks_lifted_count);
-
 
 	// Clear the queue after lifting
 	clear_queue(&multi_lift_queue);
