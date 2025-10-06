@@ -4,7 +4,6 @@
 #define __VEXIR_H
 
 #include <libvex.h>
-#include <stdbool.h>
 
 // Some info required for translation
 extern int log_level;
@@ -100,8 +99,8 @@ VEXLiftResult *vex_lift(
 		int const_prop,
 		VexRegisterUpdates px_control,
 		unsigned int lookback_amount,
-		bool clear
-	);
+        Bool clear
+);
 
 Bool register_readonly_region(ULong start, ULong size, unsigned char* content);
 void deregister_all_readonly_regions();

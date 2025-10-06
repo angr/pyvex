@@ -321,7 +321,7 @@ static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queu
 			enqueue(queue, simple_irsb_result->exits[i].ins_addr);
 		}
 
-	} 
+	}
 
 }
 
@@ -475,8 +475,7 @@ VEXLiftResult *vex_lift(
 		int const_prop,
 		VexRegisterUpdates px_control,
 		unsigned int lookback,
-		bool clear
-	) {
+        Bool clear) {
 
 	// this is the level of optimization to apply to the IR
 	// (In terms of how often you are interested in updating records during translation)
@@ -591,6 +590,9 @@ int vex_lift_multi(
 	// Initialize the first address in the queue
 	enqueue(&multi_lift_queue, insn_addr);
 
+    Bool first_call_to_lift = True;
+    Bool clear = False;
+
     //__asm__("int $3");
 
 	while (!is_queue_empty(&multi_lift_queue) && blocks_lifted_count < max_blocks) {
@@ -607,8 +609,11 @@ int vex_lift_multi(
 		// Calculate the byte pointer for the current address
 		unsigned char *current_bytes = initial_insn_start + (current_addr - insn_addr);
 
-		// Flag to indicate if the memory should be cleared
-		bool clear = false; 
+
+        if(first_call_to_lift) {
+            clear = True;
+            first_call_to_lift = False;
+        }
 
 		VEXLiftResult *temp_result = vex_lift(
 			guest,
@@ -626,8 +631,10 @@ int vex_lift_multi(
 			const_prop,
 			px_control,
 			lookback,
-			clear
+            clear
 		);
+
+        clear = False; // only clear on the first call to lift
 
 		if (temp_result == NULL || temp_result->irsb == NULL) {
 			// Lifting failed
