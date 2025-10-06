@@ -101,6 +101,7 @@ class LibVEXLifter(Lifter):
                 1 if self.const_prop else 0,
                 px_control,
                 self.bytes_offset,
+                True
             )
             log_str = self.get_vex_log()
             if lift_r == ffi.NULL:
@@ -167,11 +168,7 @@ class LibVEXLifter(Lifter):
 
             self.irsbs: list[IRSB] = [None] * r
             for i in range(r):
-                print(f"First irsb: {lift_results[i].irsb}")
-                print(f"First irsb first addr: {hex(lift_results[i].inst_addrs[0])}")
-                print(f"First irsb size: {lift_results[i].size}")
                 self.irsbs[i] = IRSB.empty_block(self.arch, lift_results[i].inst_addrs[0])  # Assuming inst_addrs[0] gives the firs address of the block
-                print("Empty block created")
                 self.irsbs[i]._from_c(lift_results[i], skip_stmts=True)
 
         finally:
