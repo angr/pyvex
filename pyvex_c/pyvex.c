@@ -475,7 +475,7 @@ VEXLiftResult *vex_lift(
 		int const_prop,
 		VexRegisterUpdates px_control,
 		unsigned int lookback,
-        Bool clear) {
+        Bool clearVEXAllocArray) {
 
 	// this is the level of optimization to apply to the IR
 	// (In terms of how often you are interested in updating records during translation)
@@ -517,7 +517,7 @@ VEXLiftResult *vex_lift(
 		_lift_r.is_noop_block = False;
 		_lift_r.data_ref_count = 0;
 		_lift_r.const_val_count = 0;
-		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl, clear); // calls the actual lifting function from VEX
+		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl, clearVEXAllocArray); // calls the actual lifting function from VEX
 		if (!_lift_r.irsb) {
 			// Lifting failed
 			return NULL;
@@ -591,7 +591,7 @@ int vex_lift_multi(
 	enqueue(&multi_lift_queue, insn_addr);
 
     Bool first_call_to_lift = True;
-    Bool clear = False;
+    Bool clearVEXAllocArray = False;
 
     //__asm__("int $3");
 
@@ -611,7 +611,7 @@ int vex_lift_multi(
 
 
         if(first_call_to_lift) {
-            clear = True;
+            clearVEXAllocArray = True;
             first_call_to_lift = False;
         }
 
@@ -631,10 +631,10 @@ int vex_lift_multi(
 			const_prop,
 			px_control,
 			lookback,
-            clear
+            clearVEXAllocArray
 		);
 
-        clear = False; // only clear on the first call to lift
+        clearVEXAllocArray = False; // only clear on the first call to lift
 
 		if (temp_result == NULL || temp_result->irsb == NULL) {
 			// Lifting failed
