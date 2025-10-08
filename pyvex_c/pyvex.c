@@ -306,7 +306,7 @@ static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 
 //------------------ VEX LIFT MULTI FUNCTIONS ------------------
 
-Addr irconst_to_addr(const IRConst *c) {
+Addr irconst_to_addr(const IRConst *c) { // add to .h
     switch (c->tag) {
         case Ico_U8:
             return (Addr)c->Ico.U8;
@@ -322,7 +322,7 @@ Addr irconst_to_addr(const IRConst *c) {
     }
 }
 
-Bool is_branch_VEX_artifact_only(int branch_delay_slot, Addr branch_inst_addr, IRStmt *stmt, VEXLiftResult *lift_result) {
+Bool is_branch_VEX_artifact_only(int branch_delay_slot, Addr branch_inst_addr, IRStmt *stmt, VEXLiftResult *lift_result) { // add to .h
     return !branch_delay_slot &&
            lift_result->insts > 0 &&
            lift_result->inst_addrs[lift_result->insts - 1] != branch_inst_addr &&
