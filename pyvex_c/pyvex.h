@@ -128,7 +128,7 @@ int vex_lift_multi(
 	unsigned int lookback,
 	VEXLiftResult *lift_results
 	);
-static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queue);
+static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queue, int branch_delay_slot);
 static void post_process_irsb(IRSB *irsb, VEXLiftResult *lift_result, VexArch guest,
                               Bool collect_data_refs, Bool load_from_ro_regions, Bool const_prop);
 static void vex_prepare_vta_multi(VexArch guest, VexArchInfo archinfo, VexAbiInfo vbi, int traceflags);

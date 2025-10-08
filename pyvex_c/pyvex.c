@@ -306,8 +306,32 @@ static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 
 //------------------ VEX LIFT MULTI FUNCTIONS ------------------
 
+Addr irconst_to_addr(const IRConst *c) {
+    switch (c->tag) {
+        case Ico_U8:
+            return (Addr)c->Ico.U8;
+        case Ico_U16:
+            return (Addr)c->Ico.U16;
+        case Ico_U32:
+            return (Addr)c->Ico.U32;
+        case Ico_U64:
+            return (Addr)c->Ico.U64;
+        default:
+            pyvex_error("Invalid IRConst tag in irconst_to_addr.\n");
+            return 0;
+    }
+}
+
+Bool is_branch_VEX_artifact_only(int branch_delay_slot, Addr branch_inst_addr, IRStmt *stmt, VEXLiftResult *lift_result) {
+    return !branch_delay_slot &&
+           lift_result->insts > 0 &&
+           lift_result->inst_addrs[lift_result->insts - 1] != branch_inst_addr &&
+           irconst_to_addr(stmt->Ist.Exit.dst) == branch_inst_addr &&
+           stmt->Ist.Exit.jk == Ijk_Boring;
+}
+
 // Enqueue all exit addresses into the FIFO queue
-static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queue) {
+static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queue, int branch_delay_slot) {
 
     // Enqueue the default exit address if it is constant
 	if ( simple_irsb_result->is_default_exit_constant == 1 ){
@@ -315,8 +339,16 @@ static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queu
 	}
 
     // Enqueue all conditional exit addresses into the FIFO queue
-	for (size_t i = 0; i < simple_irsb_result->exit_count; i++) {
-		enqueue(queue, simple_irsb_result->exits[i].stmt->Ist.Exit.dst);
+	for (int i = 0; i < simple_irsb_result->exit_count; i++) {
+        // Skip branch artifacts that VEX adds for delay slots
+        if (is_branch_VEX_artifact_only(branch_delay_slot,
+                                        simple_irsb_result->exits[i].ins_addr,
+                                        simple_irsb_result->exits[i].stmt,
+                                        simple_irsb_result)) {
+            continue;
+        }
+        Addr target_addr = irconst_to_addr(simple_irsb_result->exits[i].stmt->Ist.Exit.dst);
+		enqueue(queue, target_addr);
 	}
 }
 
@@ -567,6 +599,7 @@ int vex_lift_multi(
 	int const_prop,
 	VexRegisterUpdates px_control,
 	unsigned int lookback,
+    int branch_delay_slot,
 	VEXLiftResult *lift_result_array
 	) {
 
@@ -646,7 +679,7 @@ int vex_lift_multi(
 		}
 
 		// Extract exits and add them to the queue for further lifting
-		exits_to_fifo(&_lift_result_array[blocks_lifted_count], &multi_lift_queue);
+		exits_to_fifo(&_lift_result_array[blocks_lifted_count], &multi_lift_queue, branch_delay_slot);
 
 		// Increment the lifted blocks counter
 		blocks_lifted_count++;
