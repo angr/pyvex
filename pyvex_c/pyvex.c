@@ -309,20 +309,15 @@ static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 // Enqueue all exit addresses into the FIFO queue
 static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queue) {
 
-	//printf("\nThe default exit is: 0x%llx\n", (unsigned long long)simple_irsb_result->default_exit);
-
-	// The next address is a direct jump to the default exit
+    // Enqueue the default exit address if it is constant
 	if ( simple_irsb_result->is_default_exit_constant == 1 ){
-		// First, the default exit address
 		enqueue(queue, (unsigned long long)simple_irsb_result->default_exit);
-
-		// // Enqueue all exit addresses into the FIFO queue
-		for (size_t i = 0; i < simple_irsb_result->exit_count; i++) {
-			enqueue(queue, simple_irsb_result->exits[i].ins_addr);
-		}
-
 	}
 
+    // Enqueue all conditional exit addresses into the FIFO queue
+	for (size_t i = 0; i < simple_irsb_result->exit_count; i++) {
+		enqueue(queue, simple_irsb_result->exits[i].stmt->Ist.Exit.dst);
+	}
 }
 
 // Initialize queue

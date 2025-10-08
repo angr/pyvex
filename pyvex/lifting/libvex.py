@@ -169,7 +169,7 @@ class LibVEXLifter(Lifter):
             self.irsbs: list[IRSB] = [None] * r
             for i in range(r):
                 self.irsbs[i] = IRSB.empty_block(self.arch, lift_results[i].inst_addrs[0])  # Assuming inst_addrs[0] gives the firs address of the block
-                self.irsbs[i]._from_c(lift_results[i], skip_stmts=True)
+                self.irsbs[i]._from_c(lift_results[i], skip_stmts=self.skip_stmts)
 
         finally:
             _libvex_lock.release()

@@ -595,6 +595,14 @@ class IRSB(VEXObject):
                 raise SkipStatementsError(f"const_val_count exceeded MAX_CONST_VALS ({self.MAX_CONST_VALS})")
             self.const_vals = [ConstVal.from_c(lift_r.const_vals[i]) for i in range(lift_r.const_val_count)]
 
+        print("Print blocck: ")
+        self.pp()
+        print("Print default exit: ")
+        print(hex(self.default_exit_target) if self.default_exit_target is not None else "")
+        print("Print exit statements: ")
+        for addr, stmt_idx, exit_stmt in self.exit_statements:
+            print(f"\tIns_addr: {hex(addr)} - Stmt_idx: {stmt_idx} - Exit_stmt: {exit_stmt.pp_str()}")
+
     def _set_attributes(
         self,
         statements=None,
