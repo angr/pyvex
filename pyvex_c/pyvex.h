@@ -126,6 +126,7 @@ int vex_lift_multi(
 	int const_prop,
 	VexRegisterUpdates px_control,
 	unsigned int lookback,
+    int branch_delay_slot, // is the architecture a branch delay slot architecture?
 	VEXLiftResult *lift_results
 	);
 static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queue, int branch_delay_slot);

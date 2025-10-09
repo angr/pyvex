@@ -409,9 +409,9 @@ static Bool is_queue_empty(AddressQueue *queue) {
 }
 
 // Check if a block has already been lifted to avoid duplicates
-static int is_block_already_lifted(Addr addr, VEXLiftResult *lift_results, int blocks_lifted) {
+static int is_block_already_lifted(Addr addr, Addr *lifted_addrs, int blocks_lifted) {
 	for (int i = 0; i < blocks_lifted; i++) {
-		if (lift_results[i].inst_addrs[0] == addr) {
+		if (lifted_addrs[i] == addr) {
 			return 1; // Block already lifted
 		}
 	}
@@ -581,6 +581,8 @@ VEXLiftResult *vex_lift(
  */
 
 VEXLiftResult _lift_result_array[MAX_LIFTED_BLOCKS];
+Addr blocks_already_lifted_addrs[MAX_LIFTED_BLOCKS*10]; // to keep track of already lifted blocks
+int blocks_already_lifted_idx = 0;
 
 int vex_lift_multi(
 	VexArch guest,
@@ -629,7 +631,7 @@ int vex_lift_multi(
 		Addr current_addr = dequeue(&multi_lift_queue);
 
 		// Check if this block has already been lifted
-		if (is_block_already_lifted(current_addr, _lift_result_array, blocks_lifted_count)) {
+		if (is_block_already_lifted(current_addr, blocks_already_lifted_addrs, blocks_already_lifted_idx)) {
             printf("Block at address 0x%llx has already been lifted\n", (unsigned long long)current_addr);
 			continue; // Skip already lifted block
 		}
@@ -673,10 +675,9 @@ int vex_lift_multi(
 		// Make a copy of the result to avoid pointer invalidation
 		_lift_result_array[blocks_lifted_count] = *temp_result;
 
-		if (_lift_result_array[blocks_lifted_count].irsb == NULL) {
-			printf("Failed to create deep copy of IRSB for block at address: 0x%llx\n", (unsigned long long)current_addr);
-			continue;
-		}
+        // Store the address of the lifted block
+        blocks_already_lifted_addrs[blocks_already_lifted_idx] = _lift_result_array[blocks_lifted_count].inst_addrs[0];
+        blocks_already_lifted_idx++;
 
 		// Extract exits and add them to the queue for further lifting
 		exits_to_fifo(&_lift_result_array[blocks_lifted_count], &multi_lift_queue, branch_delay_slot);

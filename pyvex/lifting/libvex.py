@@ -154,6 +154,7 @@ class LibVEXLifter(Lifter):
                 1 if self.const_prop else 0,
                 px_control,
                 self.bytes_offset,
+                self.arch.branch_delay_slot,
                 lift_results,
             )
 
