@@ -91,7 +91,7 @@ def get_initial_data_and_skip(
             assert c_data is not None
             if max_bytes is None:
                 log.debug("Cannot create py_data from c_data when no max length is given")
-                raise LiftingException( # Or maybe PyVEXError? In that case we have to modify the except statement in line 207
+                raise LiftingException( # This is a workaround for lift() to try the next lifter (line 207). Maybe it can be a PyvexError instead? Or create a new exception type?
                     "Cannot create py_data from c_data when no max length is given"
                 )
             u_data = ffi.buffer(c_data + skip, max_bytes)[:]
