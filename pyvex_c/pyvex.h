@@ -142,7 +142,7 @@ static void init_queue(AddressQueue *queue, int capacity);
 static void enqueue(AddressQueue *queue, Addr addr);
 static Addr dequeue(AddressQueue *queue);
 static Bool is_queue_empty(AddressQueue *queue);
-static int is_block_already_lifted(Addr addr, VEXLiftResult *lift_results, int blocks_lifted);
+static int is_block_already_lifted(Addr addr, Addr *lifted_addrs, int blocks_lifted);
 static void clear_queue(AddressQueue *queue);
 
 // Debug/Print functions

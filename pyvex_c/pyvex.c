@@ -636,6 +636,15 @@ int vex_lift_multi(
 			continue; // Skip already lifted block
 		}
 
+        // Check if the addres is within the provided instruction bytes range
+        if (current_addr < insn_addr || current_addr >= insn_addr + max_bytes) {
+            printf("Address 0x%llx is out of bounds (0x%llx - 0x%llx), skipping.\n",
+                   (unsigned long long)current_addr,
+                   (unsigned long long)insn_addr,
+                   (unsigned long long)(insn_addr + max_bytes));
+            continue;
+        }
+
 		// Calculate the byte pointer for the current address
 		unsigned char *current_bytes = initial_insn_start + (current_addr - insn_addr);
 
@@ -644,6 +653,9 @@ int vex_lift_multi(
             clearVEXAllocArray = True;
             first_call_to_lift = False;
         }
+
+        printf("Im going to call lift with clear array set to: %d\n", clearVEXAllocArray);
+        printf("Current address: 0x%llx\n", (unsigned long long)current_addr);
 
 		VEXLiftResult *temp_result = vex_lift(
 			guest,
