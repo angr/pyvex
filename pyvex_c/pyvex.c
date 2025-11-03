@@ -333,10 +333,16 @@ Bool is_branch_VEX_artifact_only(int branch_delay_slot, Addr branch_inst_addr, I
 // Enqueue all exit addresses into the FIFO queue
 static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queue, int branch_delay_slot) {
 
+
+    printf("EXITS COMPARISON:\n");
+    printf("\tFor block at address: 0x%llx - Exits:\n", (unsigned long long)simple_irsb_result->inst_addrs[0]);
     // Enqueue the default exit address if it is constant
 	if ( simple_irsb_result->is_default_exit_constant == 1 ){
 		enqueue(queue, (unsigned long long)simple_irsb_result->default_exit);
-	}
+        printf("\t\tDefault exit: 0x%llx\n", (unsigned long long)simple_irsb_result->default_exit);
+	} else {
+        printf("\t\tDefault exit is not constant\n");
+    }
 
     // Enqueue all conditional exit addresses into the FIFO queue
 	for (int i = 0; i < simple_irsb_result->exit_count; i++) {
@@ -349,6 +355,7 @@ static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queu
         }
         Addr target_addr = irconst_to_addr(simple_irsb_result->exits[i].stmt->Ist.Exit.dst);
 		enqueue(queue, target_addr);
+        printf("\t\tConditional exit %d: 0x%llx\n", i, (unsigned long long)target_addr);
 	}
 }
 
@@ -605,7 +612,7 @@ int vex_lift_multi(
 	VEXLiftResult *lift_result_array
 	) {
 
-	printf("Insn_addr: %llu\n", insn_addr);
+	printf("Insn_addr: 0x%llx\n", insn_addr);
 	printf("Insn_start: %p\n", insn_start);
 
 	AddressQueue multi_lift_queue; // the FIFO queue for addresses to lift
@@ -616,12 +623,28 @@ int vex_lift_multi(
 
 	// Save the initial instruction bytes pointer
 	unsigned char *initial_insn_start = insn_start;
+    unsigned int curr_max_bytes = max_bytes;
 
 	// Initialize the first address in the queue
 	enqueue(&multi_lift_queue, insn_addr);
 
     Bool first_call_to_lift = True;
     Bool clearVEXAllocArray = False;
+
+    // Check if address coming directly from python is already lifted and if it is, remove it from the already lifted list
+    if (is_block_already_lifted(insn_addr, blocks_already_lifted_addrs, blocks_already_lifted_idx)) {
+        printf("Initial block at address 0x%llx has already been lifted, removing from already lifted list to allow re-lifting.\n", (unsigned long long)insn_addr);
+        // Remove it by shifting the array
+        for (int i = 0; i < blocks_already_lifted_idx; i++) {
+            if (blocks_already_lifted_addrs[i] == insn_addr) {
+                for (int j = i; j < blocks_already_lifted_idx - 1; j++) {
+                    blocks_already_lifted_addrs[j] = blocks_already_lifted_addrs[j + 1];
+                }
+                blocks_already_lifted_idx--;
+                break;
+            }
+        }
+    }
 
     //__asm__("int $3");
 
@@ -630,14 +653,14 @@ int vex_lift_multi(
 		// Dequeue the next address to lift
 		Addr current_addr = dequeue(&multi_lift_queue);
 
-		// Check if this block has already been lifted
+        // Check if this block has already been lifted
 		if (is_block_already_lifted(current_addr, blocks_already_lifted_addrs, blocks_already_lifted_idx)) {
             printf("Block at address 0x%llx has already been lifted\n", (unsigned long long)current_addr);
 			continue; // Skip already lifted block
 		}
 
-        // Check if the addres is within the provided instruction bytes range
-        if (current_addr < insn_addr || current_addr >= insn_addr + max_bytes) {
+        // Check if the address is within the provided instruction bytes range
+        if (current_addr >= insn_addr + max_bytes) {
             printf("Address 0x%llx is out of bounds (0x%llx - 0x%llx), skipping.\n",
                    (unsigned long long)current_addr,
                    (unsigned long long)insn_addr,
@@ -648,6 +671,7 @@ int vex_lift_multi(
 		// Calculate the byte pointer for the current address
 		unsigned char *current_bytes = initial_insn_start + (current_addr - insn_addr);
 
+        curr_max_bytes = (unsigned int)(initial_insn_start + max_bytes - current_bytes);
 
         if(first_call_to_lift) {
             clearVEXAllocArray = True;
@@ -663,7 +687,7 @@ int vex_lift_multi(
 			current_bytes,
 			current_addr,
 			max_insns,
-			max_bytes,
+			curr_max_bytes,
 			opt_level,
 			traceflags,
 			allow_arch_optimizations,
