@@ -79,14 +79,13 @@ def lift(
     if isinstance(data, (bytes, bytearray, memoryview)):
         py_data = data
         c_data = None
-        allow_arch_optimizations = False
     else:
         if max_bytes is None:
             raise PyVEXError("Cannot lift block with ffi pointer and no size (max_bytes is None)")
         c_data = data
         py_data = None
-        allow_arch_optimizations = True
 
+    allow_arch_optimizations = True
     # In order to attempt to preserve the property that
     # VEX lifts the same bytes to the same IR at all times when optimizations are disabled
     # we hack off all of VEX's non-IROpt optimizations when opt_level == -1.
