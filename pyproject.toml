@@ -57,7 +57,6 @@ dev = [
 
 [tool.scikit-build]
 build-dir = "scikit_build"
-wheel.py-api = "py3"
 
 [tool.scikit-build.sdist]
 include = [
