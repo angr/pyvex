@@ -1,3 +1,4 @@
+import getpass
 import hashlib
 import importlib.resources
 import os
@@ -5,7 +6,6 @@ import pickle
 import sys
 import tempfile
 from typing import Any
-import getpass
 
 import cffi
 
