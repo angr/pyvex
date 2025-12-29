@@ -30,7 +30,7 @@ LIBVEX_SUPPORTED_ARCHES = {
 }
 
 VEX_MAX_INSTRUCTIONS = 99
-VEX_MAX_BYTES = 5000
+VEX_MAX_BYTES = 400
 
 
 class VexRegisterUpdates:
@@ -136,6 +136,8 @@ class LibVEXLifter(Lifter):
             assert vex_arch is not None
 
             px_control = self._parameters_check_and_get_px_control()
+
+            print(f"MAX BYTES EN MULTI LIFT: {self.max_bytes}")
 
             r: int = pvc.vex_lift_multi(
                 vex_arch,

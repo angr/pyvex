@@ -544,10 +544,10 @@ VEXLiftResult *vex_lift(
 
 	clear_log();
 
-    // printf("Current addr to lift: 0x%lu\n", insn_addr);
-    // printf("Current insn_start ptr: %p\n", insn_start);
-    // printf("Current max bytes: %u\n", max_bytes);
-    // printf("Current max instructions: %u\n", max_insns);
+    printf("Current addr to lift: 0x%lu\n", insn_addr);
+    printf("Current insn_start ptr: %p\n", insn_start);
+    printf("Current max bytes: %u\n", max_bytes);
+    printf("Current max instructions: %u\n", max_insns);
 
 	// Do the actual translation
 	if (setjmp(jumpout) == 0) { //jmpout saves the state to return to in case of an error
@@ -592,7 +592,7 @@ VEXLiftResult *vex_lift(
  */
 
 VEXLiftResult _lift_result_array[MAX_LIFTED_BLOCKS];
-Addr blocks_already_lifted_addrs[MAX_LIFTED_BLOCKS*10]; // to keep track of already lifted blocks
+Addr blocks_already_lifted_addrs[MAX_LIFTED_BLOCKS*100]; // to keep track of already lifted blocks
 int blocks_already_lifted_idx = 0;
 
 int vex_lift_multi(
@@ -626,19 +626,19 @@ int vex_lift_multi(
 	unsigned char *initial_insn_start = insn_start;
 
     // // Check if address coming directly from python is already lifted and if it is, remove it from the already lifted list
-    if (is_block_already_lifted(insn_addr, blocks_already_lifted_addrs, blocks_already_lifted_idx)) {
-        printf("Initial block at address 0x%llx has already been lifted, removing from already lifted list to allow re-lifting.\n", (unsigned long long)insn_addr);
-        // Remove it by shifting the array
-        for (int i = 0; i < blocks_already_lifted_idx; i++) {
-            if (blocks_already_lifted_addrs[i] == insn_addr) {
-                for (int j = i; j < blocks_already_lifted_idx - 1; j++) {
-                    blocks_already_lifted_addrs[j] = blocks_already_lifted_addrs[j + 1];
-                }
-                blocks_already_lifted_idx--;
-                break;
-            }
-        }
-    }
+    // if (is_block_already_lifted(insn_addr, blocks_already_lifted_addrs, blocks_already_lifted_idx)) {
+    //     printf("Initial block at address 0x%lu has already been lifted, removing from already lifted list to allow re-lifting.\n", (unsigned long long)insn_addr);
+    //     // Remove it by shifting the array
+    //     for (int i = 0; i < blocks_already_lifted_idx; i++) {
+    //         if (blocks_already_lifted_addrs[i] == insn_addr) {
+    //             for (int j = i; j < blocks_already_lifted_idx - 1; j++) {
+    //                 blocks_already_lifted_addrs[j] = blocks_already_lifted_addrs[j + 1];
+    //             }
+    //             blocks_already_lifted_idx--;
+    //             break;
+    //         }
+    //     }
+    // }
 
 	// Initialize the first address in the queue
 	enqueue(&multi_lift_queue, insn_addr);
@@ -653,12 +653,12 @@ int vex_lift_multi(
 		// Dequeue the next address to lift
 		Addr current_addr = dequeue(&multi_lift_queue);
 
-        printf("Testing counter: %d\n", test_counter);
-        test_counter++;
+        // printf("Testing counter: %d\n", test_counter);
+        // test_counter++;
 
         // Check if this block has already been lifted
 		if (is_block_already_lifted(current_addr, blocks_already_lifted_addrs, blocks_already_lifted_idx)) {
-            printf("Block at address 0x%llx has already been lifted\n", (unsigned long long)current_addr);
+            printf("Block at address 0x%lu has already been lifted\n", (unsigned long long)current_addr);
 			continue; // Skip already lifted block
 		}
 
