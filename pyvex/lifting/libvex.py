@@ -126,7 +126,7 @@ class LibVEXLifter(Lifter):
 
         # lift_results = pvc.VEXLiftResult * [ffi.NULL] * self.max_blocks
         lift_results = ffi.new("VEXLiftResult[]", self.max_blocks)
-        print("max blocks is ", self.max_blocks)
+
 
         try:
             _libvex_lock.acquire()
@@ -158,7 +158,6 @@ class LibVEXLifter(Lifter):
                 lift_results,
             )
 
-            print("r is ", r)
 
             log_str = self.get_vex_log()
             if r == -1:
