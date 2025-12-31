@@ -29,6 +29,7 @@ set(PYVEX_SRC
     pyvex_c/analysis.c
     pyvex_c/logging.c
     pyvex_c/postprocess.c
+    pyvex_c/lift_multi_utils.c
 )
 
 # Source files for the VEX C library

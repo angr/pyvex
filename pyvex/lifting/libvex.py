@@ -124,9 +124,7 @@ class LibVEXLifter(Lifter):
             assert isinstance(self.arch, LibvexArch)
             assert isinstance(self.data, CLiftSource)
 
-        # lift_results = pvc.VEXLiftResult * [ffi.NULL] * self.max_blocks
         lift_results = ffi.new("VEXLiftResult[]", self.max_blocks)
-
 
         try:
             _libvex_lock.acquire()
@@ -136,8 +134,6 @@ class LibVEXLifter(Lifter):
             assert vex_arch is not None
 
             px_control = self._parameters_check_and_get_px_control()
-
-            print(f"MAX BYTES EN MULTI LIFT: {self.max_bytes}")
 
             r: int = pvc.vex_lift_multi(
                 vex_arch,

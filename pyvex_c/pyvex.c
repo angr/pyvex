@@ -16,7 +16,6 @@ web site at: http://bitblaze.cs.berkeley.edu/
 // translation from binary to VEX IR.
 //
 //======================================================================
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +26,8 @@ web site at: http://bitblaze.cs.berkeley.edu/
 #include "pyvex.h"
 #include "pyvex_internal.h"
 #include "logging.h"
+#include "lift_multi_utils.h"
+
 
 //======================================================================
 //
@@ -47,6 +48,14 @@ char *msg_buffer = NULL;
 size_t msg_capacity = 0, msg_current_size = 0;
 
 jmp_buf jumpout;
+
+// Variable to store the result of a lift
+VEXLiftResult _lift_r;
+
+// Array to store multiple lifted blocks
+VEXLiftResult _lift_result_array[MAX_LIFTED_BLOCKS];
+Addr blocks_already_lifted_addrs[MAX_LIFTED_BLOCKS*100]; // to keep track of already lifted blocks
+int blocks_already_lifted_idx = 0;
 
 //======================================================================
 //
@@ -100,10 +109,10 @@ static void *dispatch(void) {
 	return NULL;
 }
 
-//----------------------------------------------------------------------
+//======================================================================
 // Initializes VEX
 // It must be called before using VEX for translation to Valgrind IR
-//----------------------------------------------------------------------
+//======================================================================
 int vex_init() {
 	static int initialized = 0;
 	pyvex_debug("Initializing VEX.\n");
@@ -304,194 +313,13 @@ static void vex_prepare_vbi(VexArch arch, VexAbiInfo *vbi) {
 	}
 }
 
-//------------------ VEX LIFT MULTI FUNCTIONS ------------------
+//======================================================================
+//
+// Lift functions
+//
+//======================================================================
 
-Addr irconst_to_addr(const IRConst *c) { // add to .h
-    switch (c->tag) {
-        case Ico_U8:
-            return (Addr)c->Ico.U8;
-        case Ico_U16:
-            return (Addr)c->Ico.U16;
-        case Ico_U32:
-            return (Addr)c->Ico.U32;
-        case Ico_U64:
-            return (Addr)c->Ico.U64;
-        default:
-            pyvex_error("Invalid IRConst tag in irconst_to_addr.\n");
-            return 0;
-    }
-}
-
-Bool is_branch_VEX_artifact_only(int branch_delay_slot, Addr branch_inst_addr, IRStmt *stmt, VEXLiftResult *lift_result) { // add to .h
-    return !branch_delay_slot &&
-           lift_result->insts > 0 &&
-           lift_result->inst_addrs[lift_result->insts - 1] != branch_inst_addr &&
-           irconst_to_addr(stmt->Ist.Exit.dst) == branch_inst_addr &&
-           stmt->Ist.Exit.jk == Ijk_Boring;
-}
-
-// Enqueue all exit addresses into the FIFO queue
-static void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queue, int branch_delay_slot) {
-
-
-
-
-    // Enqueue the default exit address if it is constant
-	if ( simple_irsb_result->is_default_exit_constant == 1 ){
-		enqueue(queue, (unsigned long long)simple_irsb_result->default_exit);
-
-	}
-    // else {
-    //     printf("\t\tDefault exit is not constant\n");
-    // }
-
-    // Enqueue all conditional exit addresses into the FIFO queue
-	for (int i = 0; i < simple_irsb_result->exit_count; i++) {
-        // Skip branch artifacts that VEX adds for delay slots
-        if (is_branch_VEX_artifact_only(branch_delay_slot,
-                                        simple_irsb_result->exits[i].ins_addr,
-                                        simple_irsb_result->exits[i].stmt,
-                                        simple_irsb_result)) {
-            continue;
-        }
-        Addr target_addr = irconst_to_addr(simple_irsb_result->exits[i].stmt->Ist.Exit.dst);
-		enqueue(queue, target_addr);
-	}
-}
-
-// Initialize queue
-static void init_queue(AddressQueue *queue, int capacity) {
-    queue->addresses = malloc(capacity * sizeof(Addr));
-    queue->front = 0;
-    queue->rear = 0;
-    queue->size = 0;
-    queue->capacity = capacity;
-}
-
-// Add address to queue
-static void enqueue(AddressQueue *queue, Addr addr) {
-
-
-    if (queue->size < queue->capacity) {
-        queue->addresses[queue->rear] = addr;
-        queue->rear = (queue->rear + 1) % queue->capacity;
-        queue->size++;
-    }
-}
-
-// Remove address from queue
-static Addr dequeue(AddressQueue *queue) {
-    if (queue->size > 0) {
-        Addr addr = queue->addresses[queue->front];
-        queue->front = (queue->front + 1) % queue->capacity;
-        queue->size--;
-        return addr;
-    }
-    return 0; // Invalid address
-}
-
-// Delete queue
-static void clear_queue(AddressQueue *queue) {
-	free(queue->addresses);
-	queue->addresses = NULL;
-	queue->front = 0;
-	queue->rear = 0;
-	queue->size = 0;
-	queue->capacity = 0;
-}
-
-// Print queue contents
-void print_queue(AddressQueue *queue) {
-	printf("\nCurrent queue state:\n");
-	printf("Queue size: %ld\n", queue->size);
-	for (int i = 0; i < queue->size; i++) {
-		printf("Queue[%d]: 0x%lx\n", i, (unsigned long)queue->addresses[(queue->front + i)%queue->capacity]);
-	}
-}
-
-// Check if queue is empty
-static Bool is_queue_empty(AddressQueue *queue) {
-    return queue->size == 0;
-}
-
-// Check if a block has already been lifted to avoid duplicates
-static int is_block_already_lifted(Addr addr, Addr *lifted_addrs, int blocks_lifted) {
-	for (int i = 0; i < blocks_lifted; i++) {
-		if (lifted_addrs[i] == addr) {
-			return 1; // Block already lifted
-		}
-	}
-	return 0; // Block not lifted yet
-}
-
-// Print function for VEXLiftResult struct
-static void print_vex_lift_result(const VEXLiftResult *result, const char *label) {
-	if (!result) {
-		printf("%s: VEXLiftResult is NULL\n", label);
-		return;
-	}
-
-
-	printf("=== VEXLiftResult ===\n");
-	printf("Block at address: 0x%llx\n", (unsigned long long)result->inst_addrs[0]);
-	printf("IRSB pointer: %p\n", (void*)result->irsb);
-	printf("Size: %d\n", result->size);
-	printf("Is noop block: %s\n", result->is_noop_block ? "True" : "False");
-
-	// Conditional exits
-	printf("Exit count: %d\n", result->exit_count);
-	for (int i = 0; i < result->exit_count && i < MAX_EXITS; i++) {
-		printf("  Exit[%d]: stmt_idx=%d, ins_addr=0x%llx, stmt=%p\n",
-			   i, result->exits[i].stmt_idx,
-			   (unsigned long long)result->exits[i].ins_addr,
-			   (void*)result->exits[i].stmt);
-	}
-
-	// Default exit
-	printf("Is default exit constant: %d\n", result->is_default_exit_constant);
-	printf("Default exit: 0x%llx\n", (unsigned long long)result->default_exit);
-
-	// Instruction addresses
-	printf("Instructions count: %d\n", result->insts);
-	for (int i = 0; i < result->insts && i < 200; i++) {
-		printf("  Inst[%d]: 0x%llx\n", i, (unsigned long long)result->inst_addrs[i]);
-	}
-
-	// Data references
-	printf("Data ref count: %d\n", result->data_ref_count);
-	for (int i = 0; i < result->data_ref_count && i < MAX_DATA_REFS; i++) {
-		const char *type_str;
-		switch (result->data_refs[i].data_type) {
-			case Dt_Unknown: type_str = "Unknown"; break;
-			case Dt_Integer: type_str = "Integer"; break;
-			case Dt_FP: type_str = "FP"; break;
-			case Dt_StoreInteger: type_str = "StoreInteger"; break;
-			default: type_str = "Invalid"; break;
-		}
-		printf("  DataRef[%d]: addr=0x%llx, size=%d, type=%s, stmt_idx=%d, ins_addr=0x%llx\n",
-			   i, (unsigned long long)result->data_refs[i].data_addr,
-			   result->data_refs[i].size, type_str,
-			   result->data_refs[i].stmt_idx,
-			   (unsigned long long)result->data_refs[i].ins_addr);
-	}
-
-	// Constant values
-	printf("Const val count: %d\n", result->const_val_count);
-	for (int i = 0; i < result->const_val_count && i < MAX_CONST_VALS; i++) {
-		printf("  ConstVal[%d]: tmp=%d, stmt_idx=%d, value=0x%llx\n",
-			   i, result->const_vals[i].tmp,
-			   result->const_vals[i].stmt_idx,
-			   (unsigned long long)result->const_vals[i].value);
-	}
-
-	printf("=== End %s ===\n\n", label);
-}
-
-VEXLiftResult _lift_r;
-
-//----------------------------------------------------------------------
-// Main entry point. Do a lift.
-//----------------------------------------------------------------------
+// Main entry point. Do a single lift and return it.
 VEXLiftResult *vex_lift(
 		VexArch guest,
 		VexArchInfo archinfo,
@@ -510,17 +338,14 @@ VEXLiftResult *vex_lift(
 		unsigned int lookback,
         Bool clearVEXAllocArray) {
 
-	// this is the level of optimization to apply to the IR
-	// (In terms of how often you are interested in updating records during translation)
 	VexRegisterUpdates pxControl = px_control;
 
-	vex_prepare_vai(guest, &archinfo); // Prepare the VexArchInfo struct
-	vex_prepare_vbi(guest, &vbi); // Prepare the VexAbiInfo struct (application Binary Interface)
+	vex_prepare_vai(guest, &archinfo);
+	vex_prepare_vbi(guest, &vbi);
 
 	pyvex_debug("Guest arch: %d\n", guest);
 	pyvex_debug("Guest arch hwcaps: %08x\n", archinfo.hwcaps);
 
-	// vta is the main structure that holds all the necessary information for the translation
 	vta.archinfo_guest = archinfo;
 	vta.arch_guest = guest;
 	vta.abiinfo_both = vbi; // Set the vbi value
@@ -529,9 +354,8 @@ VEXLiftResult *vex_lift(
 	vta.guest_bytes_addr    = (Addr64)(insn_addr);
 	vta.traceflags          = traceflags;
 
-	// vc is how the translation is controlled
-	vc.guest_max_bytes     = max_bytes; // per block
-	vc.guest_max_insns     = max_insns; // per block
+	vc.guest_max_bytes     = max_bytes;
+	vc.guest_max_insns     = max_insns;
 	vc.iropt_level         = opt_level;
 	vc.lookback_amount     = lookback;
 
@@ -544,24 +368,19 @@ VEXLiftResult *vex_lift(
 
 	clear_log();
 
-    printf("Current addr to lift: 0x%lu\n", insn_addr);
-    printf("Current insn_start ptr: %p\n", insn_start);
-    printf("Current max bytes: %u\n", max_bytes);
-    printf("Current max instructions: %u\n", max_insns);
-
 	// Do the actual translation
-	if (setjmp(jumpout) == 0) { //jmpout saves the state to return to in case of an error
+	if (setjmp(jumpout) == 0) {
 		LibVEX_Update_Control(&vc);
 		_lift_r.is_noop_block = False;
 		_lift_r.data_ref_count = 0;
 		_lift_r.const_val_count = 0;
-		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl, clearVEXAllocArray); // calls the actual lifting function from VEX
+		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl, clearVEXAllocArray);
 		if (!_lift_r.irsb) {
 			// Lifting failed
 			return NULL;
 		}
 
-		remove_noops(_lift_r.irsb); // this function removes NOPs from the IR generated by VEX
+		remove_noops(_lift_r.irsb);
 
 		if (guest == VexArchMIPS32) {
 			// This post processor may potentially remove statements.
@@ -569,11 +388,11 @@ VEXLiftResult *vex_lift(
 			mips32_post_processor_fix_unconditional_exit(_lift_r.irsb);
 		}
 		get_exits_and_inst_addrs(_lift_r.irsb, &_lift_r);
-		get_default_exit_target(_lift_r.irsb, &_lift_r); // NOTE -> This is going to be used then in the "from_c" function
+		get_default_exit_target(_lift_r.irsb, &_lift_r);
 		if (guest == VexArchARM && _lift_r.insts > 0) {
 			arm_post_processor_determine_calls(_lift_r.inst_addrs[0], _lift_r.size, _lift_r.insts, _lift_r.irsb);
 		}
-		zero_division_side_exits(_lift_r.irsb); // Note -> to avoid division by zero exceptions I think?
+		zero_division_side_exits(_lift_r.irsb);
 		get_is_noop_block(_lift_r.irsb, &_lift_r);
 		if (collect_data_refs || const_prop) {
 			execute_irsb(_lift_r.irsb, &_lift_r, guest, (Bool)load_from_ro_regions, (Bool)collect_data_refs, (Bool)const_prop);
@@ -585,16 +404,7 @@ VEXLiftResult *vex_lift(
 	}
 }
 
-/*
- * Lift multiple blocks at once starting from the given address.
- *
- * @return -1 if error, otherwise the number of blocks lifted
- */
-
-VEXLiftResult _lift_result_array[MAX_LIFTED_BLOCKS];
-Addr blocks_already_lifted_addrs[MAX_LIFTED_BLOCKS*100]; // to keep track of already lifted blocks
-int blocks_already_lifted_idx = 0;
-
+// Lift multiple blocks starting from a given address. Returns the number of blocks lifted.
 int vex_lift_multi(
 	VexArch guest,
 	VexArchInfo archinfo,
@@ -616,29 +426,16 @@ int vex_lift_multi(
 	VEXLiftResult *lift_result_array
 	) {
 
-	AddressQueue multi_lift_queue; // the FIFO queue for addresses to lift
+    // the FIFO queue for addresses to lift
+	AddressQueue multi_lift_queue;
 
 	init_queue(&multi_lift_queue, max_blocks);
 
-	int blocks_lifted_count = 0; // Counter for lifted blocks
+    // Counter for lifted blocks
+	int blocks_lifted_count = 0;
 
 	// Save the initial instruction bytes pointer
 	unsigned char *initial_insn_start = insn_start;
-
-    // // Check if address coming directly from python is already lifted and if it is, remove it from the already lifted list
-    // if (is_block_already_lifted(insn_addr, blocks_already_lifted_addrs, blocks_already_lifted_idx)) {
-    //     printf("Initial block at address 0x%lu has already been lifted, removing from already lifted list to allow re-lifting.\n", (unsigned long long)insn_addr);
-    //     // Remove it by shifting the array
-    //     for (int i = 0; i < blocks_already_lifted_idx; i++) {
-    //         if (blocks_already_lifted_addrs[i] == insn_addr) {
-    //             for (int j = i; j < blocks_already_lifted_idx - 1; j++) {
-    //                 blocks_already_lifted_addrs[j] = blocks_already_lifted_addrs[j + 1];
-    //             }
-    //             blocks_already_lifted_idx--;
-    //             break;
-    //         }
-    //     }
-    // }
 
 	// Initialize the first address in the queue
 	enqueue(&multi_lift_queue, insn_addr);
@@ -653,21 +450,18 @@ int vex_lift_multi(
 		// Dequeue the next address to lift
 		Addr current_addr = dequeue(&multi_lift_queue);
 
-        // printf("Testing counter: %d\n", test_counter);
-        // test_counter++;
-
         // Check if this block has already been lifted
 		if (is_block_already_lifted(current_addr, blocks_already_lifted_addrs, blocks_already_lifted_idx)) {
-            printf("Block at address 0x%lu has already been lifted\n", (unsigned long long)current_addr);
+            pyvex_debug("Block at address 0x%lu has already been lifted\n", (unsigned long long)current_addr);
 			continue; // Skip already lifted block
 		}
 
         // Check if the address is within the provided instruction bytes range
         if (current_addr >= insn_addr + max_bytes) {
-            // printf("Address 0x%llx is out of bounds (0x%llx - 0x%llx), skipping.\n",
-            //        (unsigned long long)current_addr,
-            //        (unsigned long long)insn_addr,
-            //        (unsigned long long)(insn_addr + max_bytes));
+            pyvex_debug("Address 0x%llx is out of bounds (0x%llx - 0x%llx), skipping.\n",
+                   (unsigned long long)current_addr,
+                   (unsigned long long)insn_addr,
+                   (unsigned long long)(insn_addr + max_bytes));
             continue;
         }
 
@@ -678,7 +472,6 @@ int vex_lift_multi(
             clearVEXAllocArray = True;
             first_call_to_lift = False;
         }
-
 
 		VEXLiftResult *temp_result = vex_lift(
 			guest,
@@ -703,7 +496,7 @@ int vex_lift_multi(
 
 		if (temp_result == NULL || temp_result->irsb == NULL) {
 			// Lifting failed
-            printf("Lifting failed for block at address: 0x%lu\n", current_addr);
+            pyvex_debug("Lifting failed for block at address: 0x%lu\n", current_addr);
 			continue;
 		}
 
@@ -722,7 +515,7 @@ int vex_lift_multi(
 
 	}
 
-	printf("\nTotal blocks lifted: %d\n", blocks_lifted_count);
+	pyvex_debug("\nTotal blocks lifted: %d\n", blocks_lifted_count);
 
 	// Clear the queue after lifting
 	clear_queue(&multi_lift_queue);
@@ -734,14 +527,5 @@ int vex_lift_multi(
         }
     }
 
-	// Note: If you need to free the deep copied IRSBs later, call:
-	// free_lift_result_array(lift_result_array, blocks_lifted_count);
-
-	// TODO: Implement this function
-	//
-	// Hints:
-	// - Read-only memory regions are stored in `regions` in `analysis.c`.
-	// - Prior to performing CFG analysis, angr calls `register_readonly_region` to register read-only memory regions.
-	// - You can call `find_region` to find the index of a region. See how `find_region` is used in `analysis.c`.
 	return blocks_lifted_count;
 }
