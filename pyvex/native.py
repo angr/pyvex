@@ -1,3 +1,4 @@
+import getpass
 import hashlib
 import importlib.resources
 import os
@@ -15,7 +16,7 @@ ffi = cffi.FFI()
 
 def _parse_ffi_str():
     hash_ = hashlib.md5(_ffi_str.encode("utf-8")).hexdigest()
-    cache_location = os.path.join(tempfile.gettempdir(), f"pyvex_ffi_parser_cache.{hash_}")
+    cache_location = os.path.join(tempfile.gettempdir(), f"pyvex_ffi_parser_cache.{getpass.getuser()}.{hash_}")
 
     if os.path.isfile(cache_location):
         # load the cache
