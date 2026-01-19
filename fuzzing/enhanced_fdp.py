@@ -16,6 +16,7 @@
 """
 Defines the EnhancedFuzzedDataProvider
 """
+
 from atheris import FuzzedDataProvider
 
 
