@@ -4,7 +4,7 @@ import logging
 from typing import Optional
 
 from . import expr, stmt
-from .const import U1, get_type_size
+from .const import U1, get_type_size, IRConst
 from .const_val import ConstVal
 from .data_ref import DataRef
 from .enums import VEXObject
@@ -27,6 +27,9 @@ from .stmt import (
 from .types import Arch
 
 log = logging.getLogger("pyvex.block")
+
+# import time
+# exit_stmts_times_dict: dict[int, float] = {}
 
 
 class IRSB(VEXObject):
@@ -202,7 +205,7 @@ class IRSB(VEXObject):
                 ins_addr = stmt_.addr + stmt_.delta
             elif type(stmt_) is Exit:
                 assert ins_addr is not None
-                exit_statements.append((ins_addr, idx, stmt_))
+                exit_statements.append((ins_addr, idx, stmt_.dst, stmt_.jumpkind))
 
         self._exit_statements = tuple(exit_statements)
         return self._exit_statements
@@ -564,15 +567,21 @@ class IRSB(VEXObject):
         # Conditional exits
         exit_statements = []
         if skip_stmts:
+            # exit_statements_init_time = time.time()
             if lift_r.exit_count > self.MAX_EXITS:
                 # There are more exits than the default size of the exits array. We will need all statements
                 raise SkipStatementsError("exit_count exceeded MAX_EXITS (%d)" % self.MAX_EXITS)
             for i in range(lift_r.exit_count):
                 ex = lift_r.exits[i]
-                exit_stmt = stmt.IRStmt._from_c(ex.stmt)
-                exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt))
+                #exit_stmt = stmt.IRStmt._from_c(ex.stmt)
+                exit_stmt_dst = IRConst._from_c(ex.stmt.Ist.Exit.dst)
+                exit_stmt_jumpkind = get_enum_from_int(ex.stmt.Ist.Exit.jk)
+                exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt_dst, exit_stmt_jumpkind))
+                #exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt.dst, exit_stmt.jumpkind))
 
             self._exit_statements = tuple(exit_statements)
+            # global exit_stmts_times_dict
+            # exit_stmts_times_dict.update({len(exit_stmts_times_dict): time.time() - exit_statements_init_time})
         else:
             self._exit_statements = None  # It will be generated when self.exit_statements is called
         # The default exit

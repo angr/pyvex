@@ -5,6 +5,7 @@
 //
 //======================================================================
 
+#include <stdio.h>
 #include "lift_multi_utils.h"
 
 //======================================================================
@@ -78,6 +79,76 @@ void exits_to_fifo (VEXLiftResult *simple_irsb_result, AddressQueue *queue, int 
         Addr target_addr = irconst_to_addr(simple_irsb_result->exits[i].stmt->Ist.Exit.dst);
 		enqueue(queue, target_addr);
 	}
+}
+
+//======================================================================
+// Hash Set Functions (for fast O(1) address lookups)
+//======================================================================
+
+// Hash function using Knuth's multiplicative method
+static size_t hash_addr(Addr addr) {
+    return (size_t)((addr * 2654435761ULL) % HASHSET_SIZE);
+}
+
+// Initialize the hash set (resets the fixed-size arrays)
+void init_address_set(AddressHashSet *set) {
+    for (size_t i = 0; i < HASHSET_SIZE; i++) {
+        set->occupied[i] = False;
+	set->buckets[i].size = 0;
+    }
+}
+
+// Check if an address exists in the set - O(1) average case
+Bool address_set_contains(AddressHashSet *set, Addr addr) {
+    size_t index = hash_addr(addr);
+    if (!set->occupied[index]) {
+	    return False;
+    }
+    AddressHashSetValues *bucket = &set->buckets[index];
+    size_t i = 0;
+
+    while (i < bucket->size) {
+        if (bucket->values[i] == addr) {
+            return True;
+        }
+        i = i + 1;
+        if (i == BUCKET_SIZE) {
+            break; // reached the end
+        }
+    }
+    return False;
+}
+
+// Insert an address into the set - O(1) average case
+void address_set_insert(AddressHashSet *set, Addr addr) {
+    size_t index = hash_addr(addr);
+    AddressHashSetValues *bucket = &set->buckets[index];
+
+    if (bucket->size >= BUCKET_SIZE) {
+        pyvex_error("AddressHashSet is full, cannot insert.\n");
+        return;
+    }
+    size_t i = 0;
+
+    while (i < bucket->size) {
+        if (bucket->values[i] == addr) {
+            return;  // Already exists
+        }
+        i = i + 1;
+    }
+
+    set->occupied[index] = 1;
+    bucket->values[i] = addr;
+    bucket->size++;
+}
+
+// Reset the hash set (no memory to free since arrays are fixed-size)
+void clear_address_set(AddressHashSet *set) {
+	return;
+    for (size_t i = 0; i < HASHSET_SIZE; i++) {
+        set->occupied[i] = False;
+	set->buckets[i].size = 0;
+    }
 }
 
 //======================================================================

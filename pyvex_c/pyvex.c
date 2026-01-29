@@ -53,9 +53,11 @@ jmp_buf jumpout;
 VEXLiftResult _lift_r;
 
 // Array to store multiple lifted blocks
-VEXLiftResult _lift_result_array[MAX_LIFTED_BLOCKS];
-Addr blocks_already_lifted_addrs[MAX_LIFTED_BLOCKS*100]; // to keep track of already lifted blocks
-int blocks_already_lifted_idx = 0;
+//VEXLiftResult _lift_result_array[MAX_LIFTED_BLOCKS];
+// Hash set to track already lifted blocks (for O(1) lookups)
+AddressHashSet blocks_lifted_set;
+// Has it been initialized?
+Bool blocks_lifted_set_init = 0;
 
 //======================================================================
 //
@@ -431,6 +433,12 @@ int vex_lift_multi(
 
 	init_queue(&multi_lift_queue, max_blocks);
 
+    if (blocks_lifted_set_init == 0) {
+    	// Initialize hash set for tracking lifted blocks
+    	init_address_set(&blocks_lifted_set);
+    	blocks_lifted_set_init = 1;
+    }
+
     // Counter for lifted blocks
 	int blocks_lifted_count = 0;
 
@@ -451,7 +459,7 @@ int vex_lift_multi(
 		Addr current_addr = dequeue(&multi_lift_queue);
 
         // Check if this block has already been lifted
-		if (is_block_already_lifted(current_addr, blocks_already_lifted_addrs, blocks_already_lifted_idx)) {
+		if (address_set_contains(&blocks_lifted_set, current_addr)) {
             pyvex_debug("Block at address 0x%lu has already been lifted\n", (unsigned long long)current_addr);
 			continue; // Skip already lifted block
 		}
@@ -501,14 +509,13 @@ int vex_lift_multi(
 		}
 
 		// Make a copy of the result to avoid pointer invalidation
-		_lift_result_array[blocks_lifted_count] = *temp_result;
+		lift_result_array[blocks_lifted_count] = *temp_result;
 
-        // Store the address of the lifted block
-        blocks_already_lifted_addrs[blocks_already_lifted_idx] = _lift_result_array[blocks_lifted_count].inst_addrs[0];
-        blocks_already_lifted_idx++;
+        // Store the address of the lifted block in the hash set
+        address_set_insert(&blocks_lifted_set, lift_result_array[blocks_lifted_count].inst_addrs[0]);
 
 		// Extract exits and add them to the queue for further lifting
-		exits_to_fifo(&_lift_result_array[blocks_lifted_count], &multi_lift_queue, branch_delay_slot);
+		exits_to_fifo(&lift_result_array[blocks_lifted_count], &multi_lift_queue, branch_delay_slot);
 
 		// Increment the lifted blocks counter
 		blocks_lifted_count++;
@@ -517,15 +524,16 @@ int vex_lift_multi(
 
 	pyvex_debug("\nTotal blocks lifted: %d\n", blocks_lifted_count);
 
-	// Clear the queue after lifting
+	// Clear the queue and hash set after lifting
 	clear_queue(&multi_lift_queue);
+    //clear_address_set(&blocks_lifted_set);
 
     // Copy results to output array
-    if (lift_result_array != NULL) {
-        for (int i = 0; i < blocks_lifted_count; i++) {
-            lift_result_array[i] = _lift_result_array[i];
-        }
-    }
+    // if (lift_result_array != NULL) {
+    //     for (int i = 0; i < blocks_lifted_count; i++) {
+    //         lift_result_array[i] = lift_result_array[i];
+    //     }
+    // }
 
 	return blocks_lifted_count;
 }

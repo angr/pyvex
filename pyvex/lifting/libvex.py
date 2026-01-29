@@ -32,6 +32,9 @@ LIBVEX_SUPPORTED_ARCHES = {
 VEX_MAX_INSTRUCTIONS = 99
 VEX_MAX_BYTES = 400
 
+# import time
+# data_tranfers_amnt: dict[int, float] = {}
+
 
 class VexRegisterUpdates:
     VexRegUpd_INVALID = 0x700
@@ -40,6 +43,9 @@ class VexRegisterUpdates:
     VexRegUpdAllregsAtMemAccess = 0x703
     VexRegUpdAllregsAtEachInsn = 0x704
     VexRegUpdLdAllregsAtEachInsn = 0x705
+
+
+lift_results = ffi.new("VEXLiftResult[]", 1000)
 
 
 class LibVEXLifter(Lifter):
@@ -85,6 +91,10 @@ class LibVEXLifter(Lifter):
             px_control = self._parameters_check_and_get_px_control()
 
             self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = ffi.NULL
+
+            # global data_tranfers_amnt
+
+            # data_tranfers_init_time = time.time()
             lift_r = pvc.vex_lift(
                 vex_arch,
                 self.irsb.arch.vex_archinfo,
@@ -101,8 +111,9 @@ class LibVEXLifter(Lifter):
                 1 if self.const_prop else 0,
                 px_control,
                 self.bytes_offset,
-                True
+                1
             )
+            # data_tranfers_amnt.update({len(data_tranfers_amnt): time.time() - data_tranfers_init_time})
             log_str = self.get_vex_log()
             if lift_r == ffi.NULL:
                 raise LiftingException("libvex: unknown error" if log_str is None else log_str)
@@ -124,7 +135,6 @@ class LibVEXLifter(Lifter):
             assert isinstance(self.arch, LibvexArch)
             assert isinstance(self.data, CLiftSource)
 
-        lift_results = ffi.new("VEXLiftResult[]", self.max_blocks)
 
         try:
             _libvex_lock.acquire()
@@ -134,6 +144,10 @@ class LibVEXLifter(Lifter):
             assert vex_arch is not None
 
             px_control = self._parameters_check_and_get_px_control()
+
+            # global data_tranfers_amnt
+
+            # data_tranfers_init_time = time.time()
 
             r: int = pvc.vex_lift_multi(
                 vex_arch,
@@ -156,6 +170,7 @@ class LibVEXLifter(Lifter):
                 lift_results,
             )
 
+            # data_tranfers_amnt.update({len(data_tranfers_amnt): time.time() - data_tranfers_init_time})
 
             log_str = self.get_vex_log()
             if r == -1:

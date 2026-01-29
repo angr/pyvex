@@ -46,9 +46,9 @@ typedef struct _ConstVal {
 	ULong value;  // 64-bit max
 } ConstVal;
 
-#define MAX_EXITS 400
-#define MAX_DATA_REFS 2000
-#define MAX_CONST_VALS 1000
+#define MAX_EXITS 100
+#define MAX_DATA_REFS 1000
+#define MAX_CONST_VALS 500
 
 typedef struct _VEXLiftResult {
 	IRSB* irsb;
