@@ -4,7 +4,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 project(pyvex LANGUAGES C)
 
 # Avoid strip
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_STRIP "")
 
 # Set the output directory for built libraries

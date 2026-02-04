@@ -481,7 +481,7 @@ int vex_lift_multi(
             first_call_to_lift = False;
         }
 
-		VEXLiftResult *temp_result = vex_lift(
+		lift_result_array[blocks_lifted_count] = *vex_lift(
 			guest,
 			archinfo,
 			current_bytes,
@@ -502,15 +502,6 @@ int vex_lift_multi(
 
         clearVEXAllocArray = False; // only clear on the first call to lift
 
-		if (temp_result == NULL || temp_result->irsb == NULL) {
-			// Lifting failed
-            pyvex_debug("Lifting failed for block at address: 0x%lu\n", current_addr);
-			continue;
-		}
-
-		// Make a copy of the result to avoid pointer invalidation
-		lift_result_array[blocks_lifted_count] = *temp_result;
-
         // Store the address of the lifted block in the hash set
         address_set_insert(&blocks_lifted_set, lift_result_array[blocks_lifted_count].inst_addrs[0]);
 
@@ -527,13 +518,6 @@ int vex_lift_multi(
 	// Clear the queue and hash set after lifting
 	clear_queue(&multi_lift_queue);
     //clear_address_set(&blocks_lifted_set);
-
-    // Copy results to output array
-    // if (lift_result_array != NULL) {
-    //     for (int i = 0; i < blocks_lifted_count; i++) {
-    //         lift_result_array[i] = lift_result_array[i];
-    //     }
-    // }
 
 	return blocks_lifted_count;
 }
