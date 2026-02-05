@@ -38,7 +38,7 @@ from .enums import (
 )
 from .errors import PyVEXError
 from .expr import get_op_retty
-from .lifting import lift, lifters, lift_multi
+from .lifting import lift, lift_multi, lifters
 from .native import ffi, pvc
 
 # aliases....

@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from typing import DefaultDict, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, DefaultDict
 
 from pyvex import const
 from pyvex.block import IRSB
@@ -8,12 +8,11 @@ from pyvex.const import vex_int_class
 from pyvex.errors import LiftingException, NeedStatementsNotification, PyVEXError, SkipStatementsError
 from pyvex.expr import Const
 from pyvex.native import ffi
-from pyvex.types import LiftSource, PyLiftSource, CLiftSource
+from pyvex.types import CLiftSource, LiftSource, PyLiftSource
 
+from .libvex import LIBVEX_SUPPORTED_ARCHES, LibVEXLifter
 from .lifter import Lifter
 from .post_processor import Postprocessor
-
-from .libvex import LibVEXLifter, LIBVEX_SUPPORTED_ARCHES
 
 if TYPE_CHECKING:
     from archinfo import Arch
@@ -23,11 +22,12 @@ log = logging.getLogger(__name__)
 lifters: DefaultDict[str, list[type[Lifter]]] = defaultdict(list)
 postprocessors: DefaultDict[str, list[type[Postprocessor]]] = defaultdict(list)
 
+
 def pre_lift_checks(
     data: LiftSource,
     max_bytes: int | None = None,
     opt_level: int = 1,
-) -> tuple[Union[PyLiftSource,None], Union[CLiftSource,None], bool, int]:
+) -> tuple[PyLiftSource | None, CLiftSource | None, bool, int]:
     if max_bytes is not None and max_bytes <= 0:
         raise PyVEXError("Cannot lift block with no data (max_bytes <= 0)")
 
@@ -60,16 +60,17 @@ def pre_lift_checks(
 
     return py_data, c_data, allow_arch_optimizations, opt_level
 
+
 def get_initial_data_and_skip(
-        lifter: Lifter,
-        addr: int,
-        data: LiftSource,
-        py_data: PyLiftSource | None,
-        c_data: LiftSource | None,
-        max_bytes: int | None,
-        bytes_offset: int,
-        arch_name: str,
-) -> tuple[Union[LiftSource,None], int, Union[int,None]]:
+    lifter: Lifter,
+    addr: int,
+    data: LiftSource,
+    py_data: PyLiftSource | None,
+    c_data: LiftSource | None,
+    max_bytes: int | None,
+    bytes_offset: int,
+    arch_name: str,
+) -> tuple[LiftSource | None, int, int | None]:
     u_data: LiftSource = data
     if lifter.REQUIRE_DATA_C:
         if c_data is None:
@@ -91,9 +92,7 @@ def get_initial_data_and_skip(
             assert c_data is not None
             if max_bytes is None:
                 log.debug("Cannot create py_data from c_data when no max length is given")
-                raise PyVEXError(
-                    "Cannot create py_data from c_data when no max length is given"
-                )
+                raise PyVEXError("Cannot create py_data from c_data when no max length is given")
             u_data = ffi.buffer(c_data + skip, max_bytes)[:]
         else:
             if max_bytes is None:
@@ -101,11 +100,10 @@ def get_initial_data_and_skip(
             else:
                 u_data = py_data[skip : skip + max_bytes]
     else:
-        raise RuntimeError(
-            "Incorrect lifter configuration. What type of data does %s expect?" % lifter.__class__
-        )
+        raise RuntimeError("Incorrect lifter configuration. What type of data does %s expect?" % lifter.__class__)
 
     return u_data, skip, max_bytes
+
 
 def lift(
     data: LiftSource,
@@ -330,6 +328,7 @@ def lift(
 
     return final_irsb
 
+
 def lift_multi(
     data: LiftSource,
     addr: int,
@@ -351,45 +350,48 @@ def lift_multi(
     """
 
     if arch.name not in LIBVEX_SUPPORTED_ARCHES:
-        raise PyVEXError("Multi-block lifting is only supported for architectures which are registered with LibVEXLifter.")
+        raise PyVEXError(
+            "Multi-block lifting is only supported for architectures which are registered with LibVEXLifter."
+        )
 
-
-
-    py_data, c_data, allow_arch_optimizations, opt_level = pre_lift_checks(data=data, max_bytes=max_bytes, opt_level=opt_level)
+    py_data, c_data, allow_arch_optimizations, opt_level = pre_lift_checks(
+        data=data, max_bytes=max_bytes, opt_level=opt_level
+    )
 
     try:
         lifter = LibVEXLifter(arch, addr)
         u_data, skip, _ = get_initial_data_and_skip(
-                lifter,
-                addr,
-                data,
-                py_data,
-                c_data,
-                max_bytes,
-                bytes_offset,
-                arch.name,
-            )
+            lifter,
+            addr,
+            data,
+            py_data,
+            c_data,
+            max_bytes,
+            bytes_offset,
+            arch.name,
+        )
 
         irsbs_list = lifter.lift_multi(
             u_data,
-            max_blocks = max_blocks,
-            bytes_offset = bytes_offset - skip,
+            max_blocks=max_blocks,
+            bytes_offset=bytes_offset - skip,
             max_bytes=max_bytes,
-            opt_level = opt_level,
-            traceflags = trace_flags,
-            allow_arch_optimizations = allow_arch_optimizations,
-            strict_block_end = strict_block_end,
-            collect_data_refs = collect_data_refs,
-            load_from_ro_regions = load_from_ro_regions,
-            const_prop = const_prop,
-            cross_insn_opt = cross_insn_opt,
-            skip_stmts= skip_stmts,
+            opt_level=opt_level,
+            traceflags=trace_flags,
+            allow_arch_optimizations=allow_arch_optimizations,
+            strict_block_end=strict_block_end,
+            collect_data_refs=collect_data_refs,
+            load_from_ro_regions=load_from_ro_regions,
+            const_prop=const_prop,
+            cross_insn_opt=cross_insn_opt,
+            skip_stmts=skip_stmts,
         )
 
         return irsbs_list
     except LiftingException as ex:
         log.debug("Lifting Exception: %s", str(ex))
         return []
+
 
 def register(lifter, arch_name):
     """

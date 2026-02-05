@@ -4,7 +4,7 @@ import logging
 from typing import Optional
 
 from . import expr, stmt
-from .const import U1, get_type_size, IRConst
+from .const import U1, IRConst, get_type_size
 from .const_val import ConstVal
 from .data_ref import DataRef
 from .enums import VEXObject
@@ -552,7 +552,7 @@ class IRSB(VEXObject):
         c_irsb = lift_r.irsb
         if not skip_stmts:
             self.statements = [stmt.IRStmt._from_c(c_irsb.stmts[i]) for i in range(c_irsb.stmts_used)]
-            self.tyenv = IRTypeEnv._from_c(self.arch, c_irsb.tyenv) # SegFault in this line
+            self.tyenv = IRTypeEnv._from_c(self.arch, c_irsb.tyenv)  # SegFault in this line
         else:
             self.statements = None
             self.tyenv = None
@@ -573,11 +573,11 @@ class IRSB(VEXObject):
                 raise SkipStatementsError("exit_count exceeded MAX_EXITS (%d)" % self.MAX_EXITS)
             for i in range(lift_r.exit_count):
                 ex = lift_r.exits[i]
-                #exit_stmt = stmt.IRStmt._from_c(ex.stmt)
+                # exit_stmt = stmt.IRStmt._from_c(ex.stmt)
                 exit_stmt_dst = IRConst._from_c(ex.stmt.Ist.Exit.dst)
                 exit_stmt_jumpkind = get_enum_from_int(ex.stmt.Ist.Exit.jk)
                 exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt_dst, exit_stmt_jumpkind))
-                #exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt.dst, exit_stmt.jumpkind))
+                # exit_statements.append((ex.ins_addr, ex.stmt_idx, exit_stmt.dst, exit_stmt.jumpkind))
 
             self._exit_statements = tuple(exit_statements)
             # global exit_stmts_times_dict

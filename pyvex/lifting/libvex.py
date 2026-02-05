@@ -111,7 +111,7 @@ class LibVEXLifter(Lifter):
                 1 if self.const_prop else 0,
                 px_control,
                 self.bytes_offset,
-                1
+                1,
             )
             # data_tranfers_amnt.update({len(data_tranfers_amnt): time.time() - data_tranfers_init_time})
             log_str = self.get_vex_log()
@@ -134,7 +134,6 @@ class LibVEXLifter(Lifter):
         if TYPE_CHECKING:
             assert isinstance(self.arch, LibvexArch)
             assert isinstance(self.data, CLiftSource)
-
 
         try:
             _libvex_lock.acquire()
@@ -181,7 +180,7 @@ class LibVEXLifter(Lifter):
 
             self.irsbs: list[IRSB] = [None] * r
             for i in range(r):
-                if lift_results[i] == ffi.NULL or lift_results[i].irsb ==ffi.NULL:
+                if lift_results[i] == ffi.NULL or lift_results[i].irsb == ffi.NULL:
                     # Opción 1: saltar este bloque
                     continue
                     # Opción 2: lanzar excepción
