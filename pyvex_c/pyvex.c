@@ -279,6 +279,9 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai) {
 		case VexArchRISCV64:
 			vai->hwcaps = 0;
 			break;
+		case VexArchTILEGX:
+			vai->hwcaps = 0;
+			break;
 		default:
 			pyvex_error("Invalid arch in vex_prepare_vai.\n");
 			break;
