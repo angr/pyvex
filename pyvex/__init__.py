@@ -22,6 +22,7 @@ from .arches import (
     ARCH_PPC64_LE,
     ARCH_RISCV64_LE,
     ARCH_S390X,
+    ARCH_TILEGX,
     ARCH_X86,
 )
 from .block import IRSB, IRTypeEnv
@@ -89,4 +90,5 @@ __all__ = [
     "ARCH_MIPS64_BE",
     "ARCH_MIPS64_LE",
     "ARCH_RISCV64_LE",
+    "ARCH_TILEGX",
 ]
