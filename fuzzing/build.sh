@@ -28,6 +28,9 @@ clang -Os -s /tmp/corpus.s -nostdlib -nostartfiles -m32 -o corpus
 zip -r "$OUT"/irsb_fuzzer_seed_corpus.zip corpus
 
 # Build fuzzers in $OUT
+# --collect-submodules=bitstring ensures all bitstring submodules are bundled by PyInstaller
 for fuzzer in $(find $SRC -name '*_fuzzer.py'); do
-  compile_python_fuzzer "$fuzzer" --add-binary="pyvex/lib/libpyvex.so:pyvex/lib"
+  compile_python_fuzzer "$fuzzer" \
+    --add-binary="pyvex/lib/libpyvex.so:pyvex/lib" \
+    --collect-submodules=bitstring
 done
