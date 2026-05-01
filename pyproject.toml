@@ -15,12 +15,11 @@ license-files = [
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "bitstring",
     "cffi>=1.0.3;implementation_name == 'cpython'",
@@ -69,7 +68,6 @@ input = "pyvex/__init__.py"
 
 [tool.black]
 line-length = 120
-target-version = ['py310']
 force-exclude = '''
 /(
   vex
