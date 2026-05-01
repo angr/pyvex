@@ -36,12 +36,6 @@ Homepage = "https://api.angr.io/projects/pyvex/en/latest/"
 Repository = "https://github.com/angr/pyvex"
 
 [project.optional-dependencies]
-docs = [
-    "furo",
-    "myst-parser",
-    "sphinx",
-    "sphinx-autodoc-typehints",
-]
 fuzzing = [
     "atheris>=2.3.0",
 ]
@@ -49,6 +43,12 @@ fuzzing = [
 [dependency-groups]
 dev = [
     "pytest>=8.4.1",
+]
+docs = [
+    "furo",
+    "myst-parser",
+    "sphinx",
+    "sphinx-autodoc-typehints",
 ]
 
 [tool.scikit-build]

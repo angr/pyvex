@@ -2,25 +2,18 @@
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 
 version: 2
-
-sphinx:
-  configuration: docs/conf.py
-
 submodules:
   include: all
-
-build:
-  os: ubuntu-22.04
-  tools:
-    python: "3.10"
-  jobs:
-    pre_install:
-      - pip install -U pip
-      - pip install git+https://github.com/angr/archinfo.git
-
+sphinx:
+  configuration: docs/conf.py
+formats: [pdf]
 python:
   install:
-    - method: pip
-      path: .
-      extra_requirements:
-        - docs
+    - method: uv
+      command: sync
+      extras: all
+      groups: [docs]
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.12"
