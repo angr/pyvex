@@ -45,10 +45,6 @@ docs = [
 fuzzing = [
     "atheris>=2.3.0",
 ]
-testing = [
-    "pytest",
-    "pytest-xdist",
-]
 
 [dependency-groups]
 dev = [
