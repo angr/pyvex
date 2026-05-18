@@ -8,9 +8,11 @@ memory load to land a 64-bit pointer in the HashHW.
 
 https://github.com/angr/pyvex/issues/539
 """
+
 import unittest
 
 import archinfo
+
 import pyvex
 
 
@@ -20,11 +22,11 @@ class TestDataRefs64BitTarget(unittest.TestCase):
         # rdi - 4 where rdi was set by the previous lea to 0x100006324,
         # so the load target should be 0x100006320.
         blob = bytes.fromhex(
-            "488d3d39b0feff"        # lea rdi, [rip - 0x14fc7]
-            "bd14000000"            # mov ebp, 0x14
-            "488d542420"            # lea rdx, [rsp + 0x20]
-            "8b4ffc"                # mov ecx, dword ptr [rdi - 4]
-            "e873300100"            # call rel32
+            "488d3d39b0feff"  # lea rdi, [rip - 0x14fc7]
+            "bd14000000"  # mov ebp, 0x14
+            "488d542420"  # lea rdx, [rsp + 0x20]
+            "8b4ffc"  # mov ecx, dword ptr [rdi - 4]
+            "e873300100"  # call rel32
         )
         irsb = pyvex.lift(
             blob,
@@ -35,10 +37,7 @@ class TestDataRefs64BitTarget(unittest.TestCase):
             opt_level=1,
             cross_insn_opt=False,
         )
-        sized_refs = [
-            r for r in (irsb.data_refs or [])
-            if r.ins_addr == 0x10001B2F5 and r.data_size == 4
-        ]
+        sized_refs = [r for r in (irsb.data_refs or []) if r.ins_addr == 0x10001B2F5 and r.data_size == 4]
         assert sized_refs, "expected one size=4 ref from `mov ecx, [rdi - 4]`"
         self.assertEqual(
             sized_refs[0].data_addr,
