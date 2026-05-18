@@ -11,12 +11,12 @@ https://github.com/angr/pyvex/issues/539
 
 import unittest
 
-import archinfo
-
 import pyvex
 
 
 class TestDataRefs64BitTarget(unittest.TestCase):
+    """Regression tests for HashHW value-slot width on 32-bit hosts."""
+
     def test_64bit_guest_pointer_survives_hashhw_roundtrip(self):
         # 5 AMD64 instructions, 25 bytes. The mov at +0xe loads from
         # rdi - 4 where rdi was set by the previous lea to 0x100006324,
@@ -31,7 +31,7 @@ class TestDataRefs64BitTarget(unittest.TestCase):
         irsb = pyvex.lift(
             blob,
             0x10001B2E4,
-            archinfo.ArchAMD64(),
+            pyvex.ARCH_AMD64,
             max_inst=5,
             collect_data_refs=True,
             opt_level=1,
