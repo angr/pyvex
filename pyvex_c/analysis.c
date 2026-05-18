@@ -210,7 +210,7 @@ typedef
    struct {
       Bool*  inuse;
       HWord* key;
-      HWord* val;
+      ULong* val;
       Int    size;
       Int    used;
    }
@@ -223,7 +223,7 @@ static HashHW* newHHW()
    h->used   = 0;
    h->inuse  = (Bool*)malloc(h->size * sizeof(Bool));
    h->key    = (HWord*)malloc(h->size * sizeof(HWord));
-   h->val    = (HWord*)malloc(h->size * sizeof(HWord));
+   h->val    = (ULong*)malloc(h->size * sizeof(ULong));
    return h;
 }
 
@@ -238,7 +238,7 @@ static void freeHHW(HashHW* h)
 
 /* Look up key in the map. */
 
-static Bool lookupHHW(HashHW* h, /*OUT*/HWord* val, HWord key)
+static Bool lookupHHW(HashHW* h, /*OUT*/ULong* val, HWord key)
 {
    Int i;
 
@@ -255,7 +255,7 @@ static Bool lookupHHW(HashHW* h, /*OUT*/HWord* val, HWord key)
 
 /* Add key->val to the map.  Replaces any existing binding for key. */
 
-static void addToHHW(HashHW* h, HWord key, HWord val)
+static void addToHHW(HashHW* h, HWord key, ULong val)
 {
    Int i, j;
 
@@ -272,7 +272,7 @@ static void addToHHW(HashHW* h, HWord key, HWord val)
       /* Copy into arrays twice the size. */
       Bool*  inuse2 = malloc(2 * h->size * sizeof(Bool));
       HWord* key2   = malloc(2 * h->size * sizeof(HWord));
-      HWord* val2   = malloc(2 * h->size * sizeof(HWord));
+      ULong* val2   = malloc(2 * h->size * sizeof(ULong));
       for (i = j = 0; i < h->size; i++) {
          if (!h->inuse[i]) continue;
          inuse2[j] = True;
@@ -811,7 +811,7 @@ void execute_irsb(
 				case Iex_Get:
 					{
 						UInt key = mk_key_GetPut(data->Iex.Get.offset, data->Iex.Get.ty);
-						HWord val;
+						ULong val;
 						if (lookupHHW(env, &val, key) == True) {
 							tmps[stmt->Ist.WrTmp.tmp].used = 1;
 							tmps[stmt->Ist.WrTmp.tmp].value = val;
