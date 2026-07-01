@@ -155,7 +155,8 @@ class Instruction_MSR(ARMInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         log.debug(
-            "Ignoring MSR instruction at %#x. VEX cannot support this instruction. See pyvex/lifting/gym/arm_spotter.py",
+            "Ignoring MSR instruction at %#x. VEX cannot support this instruction. "
+            "See pyvex/lifting/gym/arm_spotter.py",
             self.addr,
         )
 
@@ -166,7 +167,8 @@ class Instruction_MRS(ARMInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         log.debug(
-            "Ignoring MRS instruction at %#x. VEX cannot support this instruction. See pyvex/lifting/gym/arm_spotter.py",
+            "Ignoring MRS instruction at %#x. VEX cannot support this instruction. "
+            "See pyvex/lifting/gym/arm_spotter.py",
             self.addr,
         )
 
@@ -183,7 +185,8 @@ class Instruction_STM(ARMInstruction):
 
     def compute_result(self):  # pylint: disable=arguments-differ
         log.debug(
-            "Ignoring STMxx ^ instruction at %#x. This mode is not implemented by VEX! See pyvex/lifting/gym/arm_spotter.py",
+            "Ignoring STMxx ^ instruction at %#x. This mode is not implemented by VEX! "
+            "See pyvex/lifting/gym/arm_spotter.py",
             self.addr,
         )
 
