@@ -522,8 +522,7 @@ class Instruction_tMSR(ThumbInstruction):
                         spec_reg,
                     )
         else:
-            log.debug("[thumb] FIXME: tMSR at %#x is writing to SPSR."
-                "Ignoring the instruction.", self.addr)
+            log.debug("[thumb] FIXME: tMSR at %#x is writing to SPSR." "Ignoring the instruction.", self.addr)
 
 
 class Instruction_tMRS(ThumbInstruction):
@@ -708,8 +707,7 @@ class Instruction_tMRS(ThumbInstruction):
                         spec_reg,
                     )
         else:
-            log.debug("[thumb] tMRS at %#x is reading SPSR."
-                "Ignoring the instruction.", self.addr)
+            log.debug("[thumb] tMRS at %#x is reading SPSR." "Ignoring the instruction.", self.addr)
 
         if spec_val is not None:
             self.put(spec_val, dest_reg)
