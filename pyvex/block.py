@@ -1,5 +1,4 @@
 import copy
-import itertools
 import logging
 from typing import Optional
 
@@ -424,7 +423,7 @@ class IRSB(VEXObject):
                 self._instruction_addresses = ()
             else:
                 self._instruction_addresses = tuple(
-                    (s.addr + s.delta) for s in self.statements if type(s) is stmt.IMark
+                    (s.addr + s.delta) for s in self.statements if type(s) is stmt.IMark and s.len > 0
                 )
         return self._instruction_addresses
 
@@ -559,7 +558,6 @@ class IRSB(VEXObject):
         self._size = lift_r.size
         self.is_noop_block = lift_r.is_noop_block == 1
         self._instructions = lift_r.insts
-        self._instruction_addresses = tuple(itertools.islice(lift_r.inst_addrs, lift_r.insts))
 
         # Conditional exits
         exit_statements = []
