@@ -560,7 +560,6 @@ class Instruction_tMRS(ThumbInstruction):
                         "[thumb] FIXME: tMRS at %#x is reading from unsupported special register BASEPRI_MAX. Ignoring the instruction.",
                         self.addr,
                     )
-                    spec_val = self.get("basepri_max", Type.int_32)
                 case 0b00010011:  # FAULTMASK
                     spec_val = self.get("faultmask", Type.int_32)
                 case 0b00010100:  # CONTROL
@@ -620,16 +619,8 @@ class Instruction_tMRS(ThumbInstruction):
                 case 0b10010011:  # FAULTMASK_NS
                     spec_val = self.get("faultmask_ns", Type.int_32)
                 case 0b10010100:  # CONTROL_NS
-                    log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register CONTROL_NS. Ignoring the instruction.",
-                        self.addr,
-                    )
                     spec_val = self.get("control_ns", Type.int_32)
                 case 0b10011000:  # SP_NS
-                    log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register SP_NS. Ignoring the instruction.",
-                        self.addr,
-                    )
                     spec_val = self.get("sp_main_ns", Type.int_32)
                 case 0b10100000:  # PAC_KEY_P_0_NS
                     log.debug(
