@@ -384,7 +384,8 @@ class Instruction_tMSR(ThumbInstruction):
                     self.put(src_val, "basepri")
                 case 0b00010010:  # BASEPRI_MAX
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register BASEPRI_MAX. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register BASEPRI_MAX."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00010011:  # FAULTMASK
@@ -393,42 +394,50 @@ class Instruction_tMSR(ThumbInstruction):
                     self.put(src_val, "control")
                 case 0b00100000:  # PAC_KEY_P_0
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_0. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_0."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100001:  # PAC_KEY_P_1
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_1. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_1."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100010:  # PAC_KEY_P_2
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_2. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_2."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100011:  # PAC_KEY_P_3
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_3. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_3."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100100:  # PAC_KEY_U_0
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_0. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_0."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100101:  # PAC_KEY_U_1
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_1. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_1."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100110:  # PAC_KEY_U_2
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_2. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_2."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100111:  # PAC_KEY_U_3
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_3. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_3."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10001000:  # MSP_NS
@@ -447,62 +456,74 @@ class Instruction_tMSR(ThumbInstruction):
                     self.put(src_val, "faultmask_ns")
                 case 0b10010100:  # CONTROL_NS
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register CONTROL_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register CONTROL_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10011000:  # SP_NS
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register SP_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register SP_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100000:  # PAC_KEY_P_0_NS
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_0_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_0_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100001:  # PAC_KEY_P_1_NS
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_1_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_1_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100010:  # PAC_KEY_P_2_NS
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_2_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_2_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100011:  # PAC_KEY_P_3_NS
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_3_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_P_3_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100100:  # PAC_KEY_U_0_NS
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_0_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_0_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100101:  # PAC_KEY_U_1_NS
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_1_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_1_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100110:  # PAC_KEY_U_2_NS
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_2_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_2_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100111:  # PAC_KEY_U_3_NS
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_3_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PAC_KEY_U_3_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case _:
                     log.debug(
-                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register %#x. Ignoring the instruction.",
+                        "[thumb] FIXME: tMSR at %#x is writing to unsupported special register %#x."
+                        "Ignoring the instruction.",
                         self.addr,
                         spec_reg,
                     )
         else:
-            log.debug("[thumb] FIXME: tMSR at %#x is writing to SPSR. Ignoring the instruction.", self.addr)
+            log.debug("[thumb] FIXME: tMSR at %#x is writing to SPSR."
+                "Ignoring the instruction.", self.addr)
 
 
 class Instruction_tMRS(ThumbInstruction):
@@ -557,7 +578,8 @@ class Instruction_tMRS(ThumbInstruction):
                     spec_val = self.get("basepri", Type.int_32)
                 case 0b00010010:  # BASEPRI_MAX
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register BASEPRI_MAX. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register BASEPRI_MAX."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00010011:  # FAULTMASK
@@ -566,42 +588,50 @@ class Instruction_tMRS(ThumbInstruction):
                     spec_val = self.get("control", Type.int_32)
                 case 0b00100000:  # PAC_KEY_P_0
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_0. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_0."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100001:  # PAC_KEY_P_1
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_1. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_1."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100010:  # PAC_KEY_P_2
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_2. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_2."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100011:  # PAC_KEY_P_3
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_3. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_3."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100100:  # PAC_KEY_U_0
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_0. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_0."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100101:  # PAC_KEY_U_1
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_1. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_1."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100110:  # PAC_KEY_U_2
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_2. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_2."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b00100111:  # PAC_KEY_U_3
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_3. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_3."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10001000:  # MSP_NS
@@ -624,52 +654,62 @@ class Instruction_tMRS(ThumbInstruction):
                     spec_val = self.get("sp_main_ns", Type.int_32)
                 case 0b10100000:  # PAC_KEY_P_0_NS
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_0_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_0_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100001:  # PAC_KEY_P_1_NS
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_1_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_1_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100010:  # PAC_KEY_P_2_NS
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_2_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_2_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100011:  # PAC_KEY_P_3_NS
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_3_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_P_3_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100100:  # PAC_KEY_U_0_NS
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_0_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_0_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100101:  # PAC_KEY_U_1_NS
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_1_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_1_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100110:  # PAC_KEY_U_2_NS
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_2_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_2_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case 0b10100111:  # PAC_KEY_U_3_NS
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_3_NS. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PAC_KEY_U_3_NS."
+                        "Ignoring the instruction.",
                         self.addr,
                     )
                 case _:
                     log.debug(
-                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register %#x. Ignoring the instruction.",
+                        "[thumb] FIXME: tMRS at %#x is reading from unsupported special register %#x."
+                        "Ignoring the instruction.",
                         self.addr,
                         spec_reg,
                     )
         else:
-            log.debug("[thumb] tMRS at %#x is reading SPSR. Ignoring the instruction.", self.addr)
+            log.debug("[thumb] tMRS at %#x is reading SPSR."
+                "Ignoring the instruction.", self.addr)
 
         if spec_val is not None:
             self.put(spec_val, dest_reg)
