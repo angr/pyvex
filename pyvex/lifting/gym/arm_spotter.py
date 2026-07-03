@@ -298,6 +298,23 @@ class ThumbInstruction(Instruction):  # pylint: disable=abstract-method
     def mark_instruction_start(self):
         self.irsb_c.imark(self.addr - 1, self.bytewidth, 1)
 
+    def _special_reg_name(self, name, fallback=None):
+        """
+        Some MSR/MRS special registers (MSP, PSP, ...) are only banked as
+        separate registers on ArchARMCortexM. On other ARM variants, fall
+        back to a generic register (e.g. "sp") if one is given; otherwise
+        return None if this special register has no equivalent here.
+        """
+        for candidate in (name, fallback):
+            if candidate is None:
+                continue
+            try:
+                self.arch.get_register_offset(candidate)
+                return candidate
+            except (KeyError, ValueError):
+                continue
+        return None
+
 
 class Instruction_tCPSID(ThumbInstruction):
     name = "CPSID"
@@ -371,13 +388,39 @@ class Instruction_tMSR(ThumbInstruction):
                     set_ipsr(xpsr, src_val)
                     set_epsr(xpsr, src_val)
                 case 0b00001000:  # MSP
-                    self.put(src_val, "msp")
+                    reg = self._special_reg_name("msp", "sp")
+                    if reg is not None:
+                        self.put(src_val, reg)
                 case 0b00001001:  # PSP
-                    self.put(src_val, "psp")
+                    reg = self._special_reg_name("psp")
+                    if reg is not None:
+                        self.put(src_val, reg)
+                    else:
+                        log.debug(
+                            "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PSP on this "
+                            "architecture. Ignoring the instruction.",
+                            self.addr,
+                        )
                 case 0b00001010:  # MSPLIM
-                    self.put(src_val, "msplim")
+                    reg = self._special_reg_name("msplim")
+                    if reg is not None:
+                        self.put(src_val, reg)
+                    else:
+                        log.debug(
+                            "[thumb] FIXME: tMSR at %#x is writing to unsupported special register MSPLIM on this "
+                            "architecture. Ignoring the instruction.",
+                            self.addr,
+                        )
                 case 0b00001011:  # PSPLIM
-                    self.put(src_val, "psplim")
+                    reg = self._special_reg_name("psplim")
+                    if reg is not None:
+                        self.put(src_val, reg)
+                    else:
+                        log.debug(
+                            "[thumb] FIXME: tMSR at %#x is writing to unsupported special register PSPLIM on this "
+                            "architecture. Ignoring the instruction.",
+                            self.addr,
+                        )
                 case 0b00010000:  # PRIMASK
                     self.put(src_val, "primask")
                 case 0b00010001:  # BASEPRI
@@ -564,13 +607,39 @@ class Instruction_tMRS(ThumbInstruction):
                     epsr = get_epsr(xpsr)
                     spec_val = ipsr | epsr
                 case 0b00001000:  # MSP
-                    spec_val = self.get("msp", Type.int_32)
+                    reg = self._special_reg_name("msp", "sp")
+                    if reg is not None:
+                        spec_val = self.get(reg, Type.int_32)
                 case 0b00001001:  # PSP
-                    spec_val = self.get("psp", Type.int_32)
+                    reg = self._special_reg_name("psp")
+                    if reg is not None:
+                        spec_val = self.get(reg, Type.int_32)
+                    else:
+                        log.debug(
+                            "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PSP on this "
+                            "architecture. Ignoring the instruction.",
+                            self.addr,
+                        )
                 case 0b00001010:  # MSPLIM
-                    spec_val = self.get("msplim", Type.int_32)
+                    reg = self._special_reg_name("msplim")
+                    if reg is not None:
+                        spec_val = self.get(reg, Type.int_32)
+                    else:
+                        log.debug(
+                            "[thumb] FIXME: tMRS at %#x is reading from unsupported special register MSPLIM on this "
+                            "architecture. Ignoring the instruction.",
+                            self.addr,
+                        )
                 case 0b00001011:  # PSPLIM
-                    spec_val = self.get("psplim", Type.int_32)
+                    reg = self._special_reg_name("psplim")
+                    if reg is not None:
+                        spec_val = self.get(reg, Type.int_32)
+                    else:
+                        log.debug(
+                            "[thumb] FIXME: tMRS at %#x is reading from unsupported special register PSPLIM on this "
+                            "architecture. Ignoring the instruction.",
+                            self.addr,
+                        )
                 case 0b00010000:  # PRIMASK
                     spec_val = self.get("primask", Type.int_32)
                 case 0b00010001:  # BASEPRI
