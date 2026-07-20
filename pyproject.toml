@@ -69,6 +69,13 @@ py-api = "cp312"
 provider = "scikit_build_core.metadata.regex"
 input = "pyvex/__init__.py"
 
+[tool.cibuildwheel]
+build = "cp314-*"
+
+[tool.cibuildwheel.pyodide]
+test-requires = ["archinfo"]
+test-command = "python -c 'import archinfo, pyvex; block = pyvex.IRSB(bytes.fromhex(\"9090c3\"), 0x400000, archinfo.ArchAMD64()); assert block.size == 3 and block.instructions == 3'"
+
 [tool.black]
 line-length = 120
 force-exclude = '''
