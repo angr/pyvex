@@ -71,7 +71,8 @@ input = "pyvex/__init__.py"
 
 [tool.cibuildwheel.pyodide]
 build = "cp314-*"
-test-command = "pytest"
+test-requires = ["pytest"]
+test-command = "pytest {project}/tests"
 
 [tool.black]
 line-length = 120
