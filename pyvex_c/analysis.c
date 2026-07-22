@@ -437,6 +437,17 @@ Bool register_readonly_region(ULong start, ULong size, unsigned char* content)
 		return False;
 	}
 
+	// find_region's append fast-path returns the last in-use slot (not a past-the-end index) when `start` is
+	// greater than every registered region. Insert after it so the array stays sorted by start address;
+	// otherwise the memmove below would shift the last region and corrupt the ordering.
+	if (regions[pos].in_use && regions[pos].start < start) {
+		pos++;
+		if (pos >= MAX_REGION_COUNT) {
+			// no room to append
+			return False;
+		}
+	}
+
 	if (!regions[pos].in_use) {
 		// it's likely to be the end - store here
 		regions[pos].in_use = True;

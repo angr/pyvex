@@ -63,6 +63,37 @@ class TestRoRegionConstFoldAmd64(unittest.TestCase):
         refs = [(r.data_addr, r.data_size) for r in irsb.data_refs or []]
         self.assertIn((SLOT_ADDR, 8), refs)
 
+    def test_folds_with_many_regions_registered_in_ascending_order(self):
+        # Regression: register_readonly_region corrupted the sorted region array when regions were added in
+        # ascending start-address order (as iterating a PE's sections does), so a load from a non-last region
+        # failed to resolve. Register several regions below the IAT slot's section first, then the real one.
+        decoys = [
+            (0x1_4000_0000, b"\x00" * 16),
+            (0x1_4000_2000, b"\x11" * 16),
+            (0x1_4000_3000, b"\x22" * 16),
+        ]
+        region = struct.pack("<Q", TARGET)
+        buf = pyvex.ffi.from_buffer(region)
+        decoy_bufs = [pyvex.ffi.from_buffer(bytearray(d)) for _, d in decoys]
+        for (addr, d), db in zip(decoys, decoy_bufs):
+            assert pyvex.pvc.register_readonly_region(addr, len(d), db)
+        assert pyvex.pvc.register_readonly_region(SLOT_ADDR, len(region), buf)
+        # and one above, to exercise the append fast-path after the target region
+        tail = pyvex.ffi.from_buffer(bytearray(b"\x33" * 16))
+        assert pyvex.pvc.register_readonly_region(0x1_4000_9000, 16, tail)
+        try:
+            irsb = pyvex.lift(
+                b"\xff\x15\xfa\x00\x00\x00",
+                0x1_4000_1000,
+                pyvex.ARCH_AMD64,
+                load_from_ro_regions=True,
+                const_prop=True,
+                collect_data_refs=True,
+            )
+            self._assert_next_tmp_folded(irsb)
+        finally:
+            pyvex.pvc.deregister_all_readonly_regions()
+
     def test_unregistered_region_does_not_fold(self):
         irsb = pyvex.lift(
             b"\xff\x15\xfa\x00\x00\x00",
