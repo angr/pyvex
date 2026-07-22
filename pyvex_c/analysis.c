@@ -644,8 +644,9 @@ void execute_irsb(
 						}
 						// Load the value if it might be a constant pointer...
 						if (load_from_ro_regions) {
-							UInt value = 0;
-							if (load_value(data->Iex.Load.addr->Iex.Const.con->Ico.U32, size, data->Iex.Load.end, &value)) {
+							ULong value = 0;
+							Addr load_addr = get_value_from_const_expr(data->Iex.Load.addr->Iex.Const.con);
+							if (load_value(load_addr, size, data->Iex.Load.end, &value)) {
 								tmps[stmt->Ist.WrTmp.tmp].used = 1;
 								tmps[stmt->Ist.WrTmp.tmp].value = value;
 								if (const_prop) {
