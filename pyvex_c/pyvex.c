@@ -163,6 +163,9 @@ int vex_init() {
 	vta.arch_guest          = VexArch_INVALID; // to be assigned later
 #if __amd64__ || _WIN64
 	vta.arch_host = VexArchAMD64;
+#elif defined(__wasm32__)
+	/* LibVEX_Lift only needs the host word size. No x86 code is emitted. */
+	vta.arch_host = VexArchX86;
 #elif __i386__ || _WIN32
 	vta.arch_host = VexArchX86;
 #elif __arm__

@@ -106,7 +106,7 @@ set_target_properties(genoffsets PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BIN
 
 add_custom_command(
     OUTPUT ${CMAKE_SOURCE_DIR}/vex/pub/libvex_guest_offsets.h
-    COMMAND $<TARGET_FILE:genoffsets> > ${CMAKE_SOURCE_DIR}/vex/pub/libvex_guest_offsets.h
+    COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR} $<TARGET_FILE:genoffsets> > ${CMAKE_SOURCE_DIR}/vex/pub/libvex_guest_offsets.h
     DEPENDS genoffsets
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Generating pub/libvex_guest_offsets.h"
