@@ -71,7 +71,7 @@ input = "pyvex/__init__.py"
 
 [tool.cibuildwheel.pyodide]
 build = "cp314-*"
-test-command = "python -c 'import pyvex; block = pyvex.IRSB(bytes.fromhex(\"9090c3\"), 0x400000, pyvex.ARCH_AMD64); assert block.size == 3 and block.instructions == 3'"
+test-command = "pytest"
 
 [tool.black]
 line-length = 120
