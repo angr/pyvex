@@ -71,7 +71,7 @@ input = "pyvex/__init__.py"
 
 [tool.cibuildwheel.pyodide]
 build = "cp314-*"
-test-requires = ["pytest"]
+test-groups = ["dev"]
 test-command = "pytest {project}/tests"
 
 [tool.black]
