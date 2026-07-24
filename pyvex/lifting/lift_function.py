@@ -101,11 +101,18 @@ def lift(
             if lifter.REQUIRE_DATA_C:
                 if c_data is None:
                     assert py_data is not None
-                    if isinstance(py_data, (bytearray, memoryview)):
+                    max_bytes = min(len(py_data), max_bytes) if max_bytes is not None else len(py_data)
+                    # libVEX decoders may read the full length of an instruction
+                    # that *starts* inside the [bytes_offset, bytes_offset +
+                    # max_bytes) window, i.e. a few bytes past max_bytes -- and
+                    # past the end of the buffer when the window ends at (or
+                    # near) it. Lift from a copy padded with 8 NUL bytes so
+                    # such reads are deterministic instead of heap garbage;
+                    # keep the zero-copy path when there is enough slack.
+                    if isinstance(py_data, (bytearray, memoryview)) and bytes_offset + max_bytes + 8 <= len(py_data):
                         u_data = ffi.from_buffer(ffi.BVoidP, py_data)
                     else:
-                        u_data = ffi.from_buffer(ffi.BVoidP, py_data + b"\0" * 8)
-                    max_bytes = min(len(py_data), max_bytes) if max_bytes is not None else len(py_data)
+                        u_data = ffi.from_buffer(ffi.BVoidP, bytes(py_data) + b"\0" * 8)
                 else:
                     u_data = c_data
                 skip = 0
