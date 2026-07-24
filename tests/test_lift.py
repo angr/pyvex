@@ -78,6 +78,28 @@ class TestLift(unittest.TestCase):
         assert lift(data2, 0x1000, arch, max_bytes=len(data)).size == len(data)
         assert lift(data2, 0x1000, arch, max_bytes=len(data) - 1).size == len(data) - 1
 
+    def test_lift_window_overread_deterministic(self):
+        """libVEX decoders may read the full length of an instruction that
+        starts inside the lift window, i.e. a few bytes past ``max_bytes`` --
+        and past the end of the buffer when the window ends at it. Zero-copy
+        (bytearray/memoryview) inputs must be padded the same way bytes inputs
+        are, so the result does not depend on whatever happens to follow the
+        buffer in memory.
+        """
+        arch = pyvex.ARCH_S390X
+        # s390x code ending with the first 4 bytes of a 6-byte `lg`; a 0x04
+        # byte past the window would complete it into a valid instruction,
+        # flipping the block from Ijk_NoDecode to Ijk_Boring.
+        window = bytes.fromhex("070707070707eb6ff0300024b904001fa7fbff60e310f0000024c0c000000a060707e340f110")
+        backing = bytearray(window + b"\x04" * 8)
+        mv = memoryview(backing)[: len(window)]
+        ref = lift(window, 0x400B5A, arch, opt_level=1)
+        assert ref.jumpkind == "Ijk_NoDecode"
+        for data in (bytearray(window), mv):
+            irsb = lift(data, 0x400B5A, arch, opt_level=1)
+            assert irsb.jumpkind == ref.jumpkind
+            assert str(irsb) == str(ref)
+
 
 if __name__ == "__main__":
     unittest.main()
