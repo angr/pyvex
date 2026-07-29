@@ -29,7 +29,7 @@ class IRConst(VEXObject, ABC):
         if c_const[0] == ffi.NULL:
             return None
 
-        tag = get_enum_from_int(c_const.tag)
+        tag = get_enum_from_int(c_const.tag, "IRConstTag")
 
         try:
             return tag_to_const_class(tag)._from_c(c_const)
@@ -343,7 +343,33 @@ class V256(IRConst):
         return V256(real_const)
 
 
-predefined_types = [U1, U8, U16, U32, U64, F32, F32i, F64, F64i, V128, V256]
+class V512(IRConst):
+    __slots__: list[str] = []
+
+    type = "Ity_V512"
+    tag = "Ico_V512"
+    op_format = "V512"
+    c_constructor = getattr(pvc, "IRConst_V512", None)
+    size = 512
+
+    def __init__(self, value):
+        self._value = value
+
+    def __str__(self):
+        return "%x" % self.value
+
+    # see above
+    @staticmethod
+    def _from_c(c_const):
+        base_const = c_const.Ico.V512
+        real_const = 0
+        for i in range(64):
+            if (base_const >> i) & 1 == 1:
+                real_const |= 0xFF << (8 * i)
+        return V512(real_const)
+
+
+predefined_types = [U1, U8, U16, U32, U64, F32, F32i, F64, F64i, V128, V256, V512]
 predefined_types_map = {c.type: c for c in predefined_types}
 predefined_classes_map = {c.tag: c for c in predefined_types}
 

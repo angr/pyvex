@@ -43,6 +43,7 @@ class Type(metaclass=TypeMeta):
     decimal_float_128 = "Ity_D128"
     simd_vector_128 = "Ity_V128"
     simd_vector_256 = "Ity_V256"
+    simd_vector_512 = "Ity_V512"
 
 
 def get_op_format_from_const_ty(ty):

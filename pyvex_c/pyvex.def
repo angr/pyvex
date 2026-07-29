@@ -12,6 +12,7 @@ EXPORTS
   IRConst_U8
   IRConst_V128
   IRConst_V256
+  IRConst_V512
   IRExpr_Binder
   IRExpr_Binop
   IRExpr_CCall

@@ -1,5 +1,7 @@
 from typing import Any
 
+import cffi
+
 from .native import ffi, pvc
 from .utils import stable_hash
 
@@ -28,6 +30,12 @@ class VEXObject:
         return stable_hash(tuple([type(self)] + values))
 
 
+def _cstr(c_char_p) -> str:
+    """Decode a C string; ffi.string() is typed as returning bytes or str."""
+    value = ffi.string(c_char_p)
+    return value.decode() if isinstance(value, bytes) else value
+
+
 class IRCallee(VEXObject):
     """
     Describes a helper function to call.
@@ -48,7 +56,7 @@ class IRCallee(VEXObject):
     def _from_c(c_callee):
         return IRCallee(
             c_callee.regparms,
-            ffi.string(c_callee.name).decode(),
+            _cstr(c_callee.name),
             # NO. #int(ffi.cast("unsigned long long", c_callee.addr)),
             c_callee.mcx_mask,
         )
@@ -88,7 +96,7 @@ class IRRegArray(VEXObject):
 
     @staticmethod
     def _from_c(c_arr):
-        return IRRegArray(c_arr.base, ints_to_enums[c_arr.elemTy], c_arr.nElems)
+        return IRRegArray(c_arr.base, get_enum_from_int(c_arr.elemTy, "IRType"), c_arr.nElems)
 
     @staticmethod
     def _to_c(arr):
@@ -98,10 +106,60 @@ class IRRegArray(VEXObject):
 ints_to_enums: dict[int, str] = {}
 enums_to_ints: dict[str, int] = {}
 irop_enums_to_ints: dict[str, int] = {}
-will_be_overwritten = ["Ircr_GT", "Ircr_LT", "IRICB_vbit", "IRICB_iropt"]
+will_be_overwritten = ["Ircr_GT", "Ircr_LT", "IRICB_vbit", "IRICB_iropt", "Iop_FIRST_EVEX"]
+
+# Per-enum-type int -> name tables, built from cffi's own view of each C enum.
+# Unlike the flat ints_to_enums map, these cannot suffer cross-enum integer
+# collisions (e.g. Ircr_GT vs Irrm_NEAREST, both 0), so lookups made at a site
+# that knows which C enum a value belongs to should use these.  The "IROp"
+# table additionally folds in the members of the separate IROp_EVEX enum
+# (AVX-512 ops), which continue IROp's integer space.
+type_ints_to_enums: dict[str, dict[int, str]] = {}
+
+# Enum member names that are range markers rather than real members; they
+# alias real members' integer values and lose any name conflict.
+_SENTINEL_NAMES = frozenset(["Iop_FIRST_EVEX", "Iop_LAST_NOT_EVEX", "Iop_LAST"])
 
 
-def get_enum_from_int(i):
+def _build_type_tables():
+    typedef_names, _, _ = ffi.list_types()
+    enum_types = []
+    for name in typedef_names:
+        try:
+            t = ffi.typeof(name)
+        except (cffi.CDefError, cffi.FFIError):
+            continue
+        if t.kind == "enum":
+            enum_types.append((name, t))
+    for name, t in enum_types:
+        table = type_ints_to_enums.setdefault(name, {})
+        for member, value in sorted(t.relements.items()):
+            if value in table and member in _SENTINEL_NAMES:
+                continue
+            if value in table and table[value] not in _SENTINEL_NAMES:
+                continue  # first (alphabetically) real name wins
+            table[value] = member
+    # IROp_EVEX continues the IROp integer space; expose one op namespace.
+    if "IROp_EVEX" in type_ints_to_enums:
+        evex = type_ints_to_enums.pop("IROp_EVEX")
+        irop = type_ints_to_enums["IROp"]
+        for value, member in evex.items():
+            if value not in irop:
+                irop[value] = member
+
+
+def get_enum_from_int(i, enum_type=None):
+    """
+    Translate a VEX enum value to its name.
+
+    :param enum_type: The name of the C enum type ``i`` belongs to (e.g.
+                      ``"IROp"``, ``"IRType"``).  When given, the lookup uses
+                      that enum's own table and cannot be confused by another
+                      enum reusing the same integer.  When omitted, the legacy
+                      flat table is used.
+    """
+    if enum_type is not None:
+        return type_ints_to_enums[enum_type][i]
     return ints_to_enums[i]
 
 
@@ -120,8 +178,28 @@ def _add_enum(s, i=None):  # TODO get rid of this
         i = _add_enum_counter
         _add_enum_counter += 1  # Update for the next iteration
     if i in ints_to_enums:
-        if ints_to_enums[i] not in will_be_overwritten:
-            raise ValueError("Enum with intkey %d already present" % i)
+        prev = ints_to_enums[i]
+        is_op, prev_is_op = s.startswith("Iop_"), prev.startswith("Iop_")
+        if prev not in will_be_overwritten:
+            if s in _SENTINEL_NAMES or prev in _SENTINEL_NAMES:
+                pass  # range markers may alias real members; ignore
+            elif is_op != prev_is_op:
+                # The EVEX ops continue IROp's integer space past 0x1900 and so
+                # overlap IRExprTag.  Ops are always looked up through the
+                # per-type tables, so the flat table keeps the tag name.
+                pass
+            else:
+                raise ValueError("Enum with intkey %d already present" % i)
+        if s in _SENTINEL_NAMES or (is_op and not prev_is_op):
+            # Keep the already-registered name in the flat table.
+            enums_to_ints[s] = i
+            if is_op:
+                irop_enums_to_ints[s] = i
+            return
+        if prev_is_op and not is_op:
+            enums_to_ints[s] = i
+            ints_to_enums[i] = s
+            return
     enums_to_ints[s] = i
     ints_to_enums[i] = s
     if s.startswith("Iop_"):
@@ -131,6 +209,8 @@ def _add_enum(s, i=None):  # TODO get rid of this
 for attr in dir(pvc):
     if attr[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" and hasattr(pvc, attr) and isinstance(getattr(pvc, attr), int):
         _add_enum(attr, getattr(pvc, attr))
+
+_build_type_tables()
 
 
 def vex_endness_from_string(endness_str):

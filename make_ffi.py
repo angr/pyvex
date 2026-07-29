@@ -74,9 +74,14 @@ def doit(vex_path):
     if platform.system() == "Darwin":
         cpplist.insert(0, "clang")
 
+    # Preprocessor defines that must match the ones the C library is built
+    # with (e.g. AVX_512), or the cffi cdef and the compiled code disagree
+    # on enums and struct layouts.
+    defines = [d for d in os.getenv("PYVEX_FFI_DEFINES", "AVX_512").replace(",", " ").split() if d]
+
     errs = []
     for cpp in cpplist:
-        cmd = [cpp, "-I" + vex_path, os.path.join("pyvex_c", "pyvex.h")]
+        cmd = [cpp, "-I" + vex_path] + ["-D" + d for d in defines] + [os.path.join("pyvex_c", "pyvex.h")]
         if cpp in ("cl", "clang", "gcc", "cc", "clang++", "g++"):
             cmd.append("-E")
         try:
