@@ -277,8 +277,12 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai) {
 			vai->hwcaps = 0;
 			break;
 		case VexArchMIPS32:
+			// 3.27.1 gates rdhwr (TLS idiom) and other insns on the ISA level bits
+			vai->hwcaps = VEX_PRID_COMP_CAVIUM | VEX_MIPS_CPU_ISA_M32R2 | VEX_MIPS_CPU_ISA_M32R1;
+			break;
 		case VexArchMIPS64:
-			vai->hwcaps = VEX_PRID_COMP_CAVIUM;
+			vai->hwcaps = VEX_PRID_COMP_CAVIUM | VEX_MIPS_CPU_ISA_M64R2 | VEX_MIPS_CPU_ISA_M64R1
+			              | VEX_MIPS_CPU_ISA_M32R2 | VEX_MIPS_CPU_ISA_M32R1;
 			break;
 		case VexArchRISCV64:
 			vai->hwcaps = 0;
