@@ -1,0 +1,8954 @@
+[
+[
+"415e",
+"pop    %r14"
+],
+[
+"4981e6d5080000",
+"and    $0x8d5,%r14"
+],
+[
+"6202bd08ab44a608",
+"vfmsub213sd 0x40(%r14,%r12,4),%xmm8,%xmm24"
+],
+[
+"6202bd08bd44a608",
+"vfnmadd231sd 0x40(%r14,%r12,4),%xmm8,%xmm24"
+],
+[
+"62117c485ac0",
+"vcvtps2pd %ymm24,%zmm8"
+],
+[
+"62117e4812c0",
+"vmovsldup %zmm24,%zmm8"
+],
+[
+"62117e4816c0",
+"vmovshdup %zmm24,%zmm8"
+],
+[
+"6211fd485ac0",
+"vcvtpd2ps %zmm24,%ymm8"
+],
+[
+"6211fd48e6c0",
+"vcvttpd2dq %zmm24,%ymm8"
+],
+[
+"6211ff48e6c0",
+"vcvtpd2dq %zmm24,%ymm8"
+],
+[
+"6213fd4800c07c",
+"vpermq $0x7c,%zmm24,%zmm8"
+],
+[
+"62417d086ec6",
+"vmovd  %r14d,%xmm24"
+],
+[
+"6241be087bc6",
+"vcvtusi2ss %r14,%xmm8,%xmm24"
+],
+[
+"6241bf087bc6",
+"vcvtusi2sd %r14,%xmm8,%xmm24"
+],
+[
+"624245088dc0",
+"vpermb %xmm8,%xmm7,%xmm24"
+],
+[
+"6242450896c0",
+"vfmaddsub132ps %xmm8,%xmm7,%xmm24"
+],
+[
+"6242450897c0",
+"vfmsubadd132ps %xmm8,%xmm7,%xmm24"
+],
+[
+"6242450899c0",
+"vfmadd132ss %xmm8,%xmm7,%xmm24"
+],
+[
+"624245089bc0",
+"vfmsub132ss %xmm8,%xmm7,%xmm24"
+],
+[
+"624245089cc0",
+"vfnmadd132ps %xmm8,%xmm7,%xmm24"
+],
+[
+"624245089dc0",
+"vfnmadd132ss %xmm8,%xmm7,%xmm24"
+],
+[
+"624245089ec0",
+"vfnmsub132ps %xmm8,%xmm7,%xmm24"
+],
+[
+"624245089fc0",
+"vfnmsub132ss %xmm8,%xmm7,%xmm24"
+],
+[
+"6242452898c0",
+"vfmadd132ps %ymm8,%ymm7,%ymm24"
+],
+[
+"624245289ac0",
+"vfmsub132ps %ymm8,%ymm7,%ymm24"
+],
+[
+"624245488dc0",
+"vpermb %zmm8,%zmm7,%zmm24"
+],
+[
+"6242454896c0",
+"vfmaddsub132ps %zmm8,%zmm7,%zmm24"
+],
+[
+"6242454897c0",
+"vfmsubadd132ps %zmm8,%zmm7,%zmm24"
+],
+[
+"6242454898c0",
+"vfmadd132ps %zmm8,%zmm7,%zmm24"
+],
+[
+"624245489ac0",
+"vfmsub132ps %zmm8,%zmm7,%zmm24"
+],
+[
+"624245489cc0",
+"vfnmadd132ps %zmm8,%zmm7,%zmm24"
+],
+[
+"624245489ec0",
+"vfnmsub132ps %zmm8,%zmm7,%zmm24"
+],
+[
+"62427d287cc6",
+"vpbroadcastd %r14d,%ymm24"
+],
+[
+"62427d4821c0",
+"vpmovsxbd %xmm8,%zmm24"
+],
+[
+"62427d4822c0",
+"vpmovsxbq %xmm8,%zmm24"
+],
+[
+"62427d4823c0",
+"vpmovsxwd %ymm8,%zmm24"
+],
+[
+"62427d4824c0",
+"vpmovsxwq %xmm8,%zmm24"
+],
+[
+"62427d4825c0",
+"vpmovsxdq %ymm8,%zmm24"
+],
+[
+"62427d4831c0",
+"vpmovzxbd %xmm8,%zmm24"
+],
+[
+"62427d4832c0",
+"vpmovzxbq %xmm8,%zmm24"
+],
+[
+"62427d4833c0",
+"vpmovzxwd %ymm8,%zmm24"
+],
+[
+"62427d4834c0",
+"vpmovzxwq %xmm8,%zmm24"
+],
+[
+"62427d4835c0",
+"vpmovzxdq %ymm8,%zmm24"
+],
+[
+"62427d487ac6",
+"vpbroadcastb %r14d,%zmm24"
+],
+[
+"62427d487bc6",
+"vpbroadcastw %r14d,%zmm24"
+],
+[
+"62427d487cc6",
+"vpbroadcastd %r14d,%zmm24"
+],
+[
+"6242c50896c0",
+"vfmaddsub132pd %xmm8,%xmm7,%xmm24"
+],
+[
+"6242c50897c0",
+"vfmsubadd132pd %xmm8,%xmm7,%xmm24"
+],
+[
+"6242c50898c0",
+"vfmadd132pd %xmm8,%xmm7,%xmm24"
+],
+[
+"6242c50899c0",
+"vfmadd132sd %xmm8,%xmm7,%xmm24"
+],
+[
+"6242c5089ac0",
+"vfmsub132pd %xmm8,%xmm7,%xmm24"
+],
+[
+"6242c5089bc0",
+"vfmsub132sd %xmm8,%xmm7,%xmm24"
+],
+[
+"6242c5089dc0",
+"vfnmadd132sd %xmm8,%xmm7,%xmm24"
+],
+[
+"6242c5089ec0",
+"vfnmsub132pd %xmm8,%xmm7,%xmm24"
+],
+[
+"6242c5089fc0",
+"vfnmsub132sd %xmm8,%xmm7,%xmm24"
+],
+[
+"6242c5288dc0",
+"vpermw %ymm8,%ymm7,%ymm24"
+],
+[
+"6242c5289cc0",
+"vfnmadd132pd %ymm8,%ymm7,%ymm24"
+],
+[
+"6242c5488dc0",
+"vpermw %zmm8,%zmm7,%zmm24"
+],
+[
+"6242c54896c0",
+"vfmaddsub132pd %zmm8,%zmm7,%zmm24"
+],
+[
+"6242c54897c0",
+"vfmsubadd132pd %zmm8,%zmm7,%zmm24"
+],
+[
+"6242c54898c0",
+"vfmadd132pd %zmm8,%zmm7,%zmm24"
+],
+[
+"6242c5489ac0",
+"vfmsub132pd %zmm8,%zmm7,%zmm24"
+],
+[
+"6242c5489cc0",
+"vfnmadd132pd %zmm8,%zmm7,%zmm24"
+],
+[
+"6242c5489ec0",
+"vfnmsub132pd %zmm8,%zmm7,%zmm24"
+],
+[
+"6242fd087cc6",
+"vpbroadcastq %r14,%xmm24"
+],
+[
+"6242fd487cc6",
+"vpbroadcastq %r14,%zmm24"
+],
+[
+"62433d0822c602",
+"vpinsrd $0x2,%r14d,%xmm8,%xmm24"
+],
+[
+"6243bd0822c600",
+"vpinsrq $0x0,%r14,%xmm8,%xmm24"
+],
+[
+"62613c0815c7",
+"vunpckhps %xmm7,%xmm8,%xmm24"
+],
+[
+"62613c0816c7",
+"vmovlhps %xmm7,%xmm8,%xmm24"
+],
+[
+"62613c08554004",
+"vandnps 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613c08564004",
+"vorps  0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613c085cc7",
+"vsubps %xmm7,%xmm8,%xmm24"
+],
+[
+"62613c08c64004ab",
+"vshufps $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613c28154002",
+"vunpckhps 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613c28574002",
+"vxorps 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613c2858c7",
+"vaddps %ymm7,%ymm8,%ymm24"
+],
+[
+"62613c285c4002",
+"vsubps 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613c285f4002",
+"vmaxps 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613c48544001",
+"vandps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613c4854c7",
+"vandps %zmm7,%zmm8,%zmm24"
+],
+[
+"62613c48554001",
+"vandnps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613c4855c7",
+"vandnps %zmm7,%zmm8,%zmm24"
+],
+[
+"62613c48564001",
+"vorps  0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613c4856c7",
+"vorps  %zmm7,%zmm8,%zmm24"
+],
+[
+"62613c48574001",
+"vxorps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613c4857c7",
+"vxorps %zmm7,%zmm8,%zmm24"
+],
+[
+"62613c48584001",
+"vaddps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613c4858c7",
+"vaddps %zmm7,%zmm8,%zmm24"
+],
+[
+"62613c48594001",
+"vmulps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613c4859c7",
+"vmulps %zmm7,%zmm8,%zmm24"
+],
+[
+"62613c485c4001",
+"vsubps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613c485cc7",
+"vsubps %zmm7,%zmm8,%zmm24"
+],
+[
+"62613c485d4001",
+"vminps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613c485dc7",
+"vminps %zmm7,%zmm8,%zmm24"
+],
+[
+"62613c485e4001",
+"vdivps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613c485ec7",
+"vdivps %zmm7,%zmm8,%zmm24"
+],
+[
+"62613c485f4001",
+"vmaxps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613c485fc7",
+"vmaxps %zmm7,%zmm8,%zmm24"
+],
+[
+"62613c48c64001ab",
+"vshufps $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613c48c6c7ab",
+"vshufps $0xab,%zmm7,%zmm8,%zmm24"
+],
+[
+"62613d08674004",
+"vpackuswb 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613d08d2c7",
+"vpsrld %xmm7,%xmm8,%xmm24"
+],
+[
+"62613d08da4004",
+"vpminub 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613d08db4004",
+"vpandd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613d08dbc7",
+"vpandd %xmm7,%xmm8,%xmm24"
+],
+[
+"62613d08dc4004",
+"vpaddusb 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613d08dec7",
+"vpmaxub %xmm7,%xmm8,%xmm24"
+],
+[
+"62613d08df4004",
+"vpandnd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613d08e04004",
+"vpavgb 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613d08e2c7",
+"vpsrad %xmm7,%xmm8,%xmm24"
+],
+[
+"62613d08e34004",
+"vpavgw 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613d08e44004",
+"vpmulhuw 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613d08e4c7",
+"vpmulhuw %xmm7,%xmm8,%xmm24"
+],
+[
+"62613d08e5c7",
+"vpmulhw %xmm7,%xmm8,%xmm24"
+],
+[
+"62613d08e8c7",
+"vpsubsb %xmm7,%xmm8,%xmm24"
+],
+[
+"62613d08e94004",
+"vpsubsw 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613d08ebc7",
+"vpord  %xmm7,%xmm8,%xmm24"
+],
+[
+"62613d08efc7",
+"vpxord %xmm7,%xmm8,%xmm24"
+],
+[
+"62613d08f14004",
+"vpsllw 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613d08f64004",
+"vpsadbw 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613d08fac7",
+"vpsubd %xmm7,%xmm8,%xmm24"
+],
+[
+"62613d08fcc7",
+"vpaddb %xmm7,%xmm8,%xmm24"
+],
+[
+"62613d08fe4004",
+"vpaddd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613d08fec7",
+"vpaddd %xmm7,%xmm8,%xmm24"
+],
+[
+"62613d28604002",
+"vpunpcklbw 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d2867c7",
+"vpackuswb %ymm7,%ymm8,%ymm24"
+],
+[
+"62613d2868c7",
+"vpunpckhbw %ymm7,%ymm8,%ymm24"
+],
+[
+"62613d286b4002",
+"vpackssdw 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d286bc7",
+"vpackssdw %ymm7,%ymm8,%ymm24"
+],
+[
+"62613d28d8c7",
+"vpsubusb %ymm7,%ymm8,%ymm24"
+],
+[
+"62613d28dcc7",
+"vpaddusb %ymm7,%ymm8,%ymm24"
+],
+[
+"62613d28dfc7",
+"vpandnd %ymm7,%ymm8,%ymm24"
+],
+[
+"62613d28e14004",
+"vpsraw 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d28e54002",
+"vpmulhw 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d28e84002",
+"vpsubsb 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d28e9c7",
+"vpsubsw %ymm7,%ymm8,%ymm24"
+],
+[
+"62613d28ea4002",
+"vpminsw 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d28eac7",
+"vpminsw %ymm7,%ymm8,%ymm24"
+],
+[
+"62613d28eb4002",
+"vpord  0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d28ecc7",
+"vpaddsb %ymm7,%ymm8,%ymm24"
+],
+[
+"62613d28ef4002",
+"vpxord 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d28f54002",
+"vpmaddwd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d28f5c7",
+"vpmaddwd %ymm7,%ymm8,%ymm24"
+],
+[
+"62613d28f84002",
+"vpsubb 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d28f8c7",
+"vpsubb %ymm7,%ymm8,%ymm24"
+],
+[
+"62613d28f94002",
+"vpsubw 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d28f9c7",
+"vpsubw %ymm7,%ymm8,%ymm24"
+],
+[
+"62613d28fa4002",
+"vpsubd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d28fd4002",
+"vpaddw 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62613d48604001",
+"vpunpcklbw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d4860c7",
+"vpunpcklbw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48614001",
+"vpunpcklwd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d4861c7",
+"vpunpcklwd %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48634001",
+"vpacksswb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d4863c7",
+"vpacksswb %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48674001",
+"vpackuswb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d4867c7",
+"vpackuswb %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48684001",
+"vpunpckhbw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d4868c7",
+"vpunpckhbw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48694001",
+"vpunpckhwd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d4869c7",
+"vpunpckhwd %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d486b4001",
+"vpackssdw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d486bc7",
+"vpackssdw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48d1c7",
+"vpsrlw %xmm7,%zmm8,%zmm24"
+],
+[
+"62613d48d2c7",
+"vpsrld %xmm7,%zmm8,%zmm24"
+],
+[
+"62613d48d54001",
+"vpmullw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48d5c7",
+"vpmullw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48d84001",
+"vpsubusb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48d8c7",
+"vpsubusb %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48d94001",
+"vpsubusw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48d9c7",
+"vpsubusw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48da4001",
+"vpminub 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48dac7",
+"vpminub %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48db4001",
+"vpandd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48dbc7",
+"vpandd %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48dc4001",
+"vpaddusb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48dcc7",
+"vpaddusb %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48dd4001",
+"vpaddusw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48ddc7",
+"vpaddusw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48de4001",
+"vpmaxub 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48dec7",
+"vpmaxub %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48df4001",
+"vpandnd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48dfc7",
+"vpandnd %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48e04001",
+"vpavgb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48e0c7",
+"vpavgb %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48e34001",
+"vpavgw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48e3c7",
+"vpavgw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48e44001",
+"vpmulhuw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48e4c7",
+"vpmulhuw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48e54001",
+"vpmulhw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48e5c7",
+"vpmulhw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48e84001",
+"vpsubsb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48e8c7",
+"vpsubsb %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48e94001",
+"vpsubsw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48e9c7",
+"vpsubsw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48ea4001",
+"vpminsw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48eac7",
+"vpminsw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48eb4001",
+"vpord  0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48ebc7",
+"vpord  %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48ec4001",
+"vpaddsb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48ecc7",
+"vpaddsb %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48ed4001",
+"vpaddsw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48edc7",
+"vpaddsw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48ee4001",
+"vpmaxsw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48eec7",
+"vpmaxsw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48ef4001",
+"vpxord 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48efc7",
+"vpxord %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48f54001",
+"vpmaddwd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48f5c7",
+"vpmaddwd %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48f64001",
+"vpsadbw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48f6c7",
+"vpsadbw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48f84001",
+"vpsubb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48f8c7",
+"vpsubb %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48f94001",
+"vpsubw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48f9c7",
+"vpsubw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48fa4001",
+"vpsubd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48fac7",
+"vpsubd %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48fc4001",
+"vpaddb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48fcc7",
+"vpaddb %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48fd4001",
+"vpaddw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48fdc7",
+"vpaddw %zmm7,%zmm8,%zmm24"
+],
+[
+"62613d48fe4001",
+"vpaddd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62613d48fec7",
+"vpaddd %zmm7,%zmm8,%zmm24"
+],
+[
+"62613e08514010",
+"vsqrtss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613e0851c7",
+"vsqrtss %xmm7,%xmm8,%xmm24"
+],
+[
+"62613e0859c7",
+"vmulss %xmm7,%xmm8,%xmm24"
+],
+[
+"62613e085a4010",
+"vcvtss2sd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613e085c4010",
+"vsubss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613e085d4010",
+"vminss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613e085dc7",
+"vminss %xmm7,%xmm8,%xmm24"
+],
+[
+"62613e085ec7",
+"vdivss %xmm7,%xmm8,%xmm24"
+],
+[
+"62613e087b4010",
+"vcvtusi2ssl 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62613f087b4010",
+"vcvtusi2sdl 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62617c08174008",
+"vmovhps %xmm24,0x40(%rax)"
+],
+[
+"62617c08284004",
+"vmovaps 0x40(%rax),%xmm24"
+],
+[
+"62617c0828c7",
+"vmovaps %xmm7,%xmm24"
+],
+[
+"62617c082e4010",
+"vucomiss 0x40(%rax),%xmm24"
+],
+[
+"62617c082ec7",
+"vucomiss %xmm7,%xmm24"
+],
+[
+"62617c082fc7",
+"vcomiss %xmm7,%xmm24"
+],
+[
+"62617c085ac7",
+"vcvtps2pd %xmm7,%xmm24"
+],
+[
+"62617c08794004",
+"vcvtps2udq 0x40(%rax),%xmm24"
+],
+[
+"62617c282b4002",
+"vmovntps %ymm24,0x40(%rax)"
+],
+[
+"62617c285a4004",
+"vcvtps2pd 0x40(%rax),%ymm24"
+],
+[
+"62617c285b4002",
+"vcvtdq2ps 0x40(%rax),%ymm24"
+],
+[
+"62617c28784002",
+"vcvttps2udq 0x40(%rax),%ymm24"
+],
+[
+"62617c2878c7",
+"vcvttps2udq %ymm7,%ymm24"
+],
+[
+"62617c2879c7",
+"vcvtps2udq %ymm7,%ymm24"
+],
+[
+"62617c48104001",
+"vmovups 0x40(%rax),%zmm24"
+],
+[
+"62617c4810c7",
+"vmovups %zmm7,%zmm24"
+],
+[
+"62617c48284001",
+"vmovaps 0x40(%rax),%zmm24"
+],
+[
+"62617c4828c7",
+"vmovaps %zmm7,%zmm24"
+],
+[
+"62617c482b4001",
+"vmovntps %zmm24,0x40(%rax)"
+],
+[
+"62617c48514001",
+"vsqrtps 0x40(%rax),%zmm24"
+],
+[
+"62617c4851c7",
+"vsqrtps %zmm7,%zmm24"
+],
+[
+"62617c485a4002",
+"vcvtps2pd 0x40(%rax),%zmm24"
+],
+[
+"62617c485b4001",
+"vcvtdq2ps 0x40(%rax),%zmm24"
+],
+[
+"62617c485bc7",
+"vcvtdq2ps %zmm7,%zmm24"
+],
+[
+"62617c48784001",
+"vcvttps2udq 0x40(%rax),%zmm24"
+],
+[
+"62617c4878c7",
+"vcvttps2udq %zmm7,%zmm24"
+],
+[
+"62617c48794001",
+"vcvtps2udq 0x40(%rax),%zmm24"
+],
+[
+"62617c4879c7",
+"vcvtps2udq %zmm7,%zmm24"
+],
+[
+"62617d085b4004",
+"vcvtps2dq 0x40(%rax),%xmm24"
+],
+[
+"62617d086e4010",
+"vmovd  0x40(%rax),%xmm24"
+],
+[
+"62617d087a4008",
+"vcvttps2qq 0x40(%rax),%xmm24"
+],
+[
+"62617d087ac7",
+"vcvttps2qq %xmm7,%xmm24"
+],
+[
+"62617d087f4004",
+"vmovdqa32 %xmm24,0x40(%rax)"
+],
+[
+"62617d286fc7",
+"vmovdqa32 %ymm7,%ymm24"
+],
+[
+"62617d28784004",
+"vcvttps2uqq 0x40(%rax),%ymm24"
+],
+[
+"62617d2878c7",
+"vcvttps2uqq %xmm7,%ymm24"
+],
+[
+"62617d28794004",
+"vcvtps2uqq 0x40(%rax),%ymm24"
+],
+[
+"62617d2879c7",
+"vcvtps2uqq %xmm7,%ymm24"
+],
+[
+"62617d287b4004",
+"vcvtps2qq 0x40(%rax),%ymm24"
+],
+[
+"62617d287bc7",
+"vcvtps2qq %xmm7,%ymm24"
+],
+[
+"62617d485b4001",
+"vcvtps2dq 0x40(%rax),%zmm24"
+],
+[
+"62617d485bc7",
+"vcvtps2dq %zmm7,%zmm24"
+],
+[
+"62617d4870c7ab",
+"vpshufd $0xab,%zmm7,%zmm24"
+],
+[
+"62617d48784002",
+"vcvttps2uqq 0x40(%rax),%zmm24"
+],
+[
+"62617d4878c7",
+"vcvttps2uqq %ymm7,%zmm24"
+],
+[
+"62617d48794002",
+"vcvtps2uqq 0x40(%rax),%zmm24"
+],
+[
+"62617d4879c7",
+"vcvtps2uqq %ymm7,%zmm24"
+],
+[
+"62617d487a4002",
+"vcvttps2qq 0x40(%rax),%zmm24"
+],
+[
+"62617d487ac7",
+"vcvttps2qq %ymm7,%zmm24"
+],
+[
+"62617d487b4002",
+"vcvtps2qq 0x40(%rax),%zmm24"
+],
+[
+"62617d487bc7",
+"vcvtps2qq %ymm7,%zmm24"
+],
+[
+"62617d487f4001",
+"vmovdqa32 %zmm24,0x40(%rax)"
+],
+[
+"62617d48e74001",
+"vmovntdq %zmm24,0x40(%rax)"
+],
+[
+"62617e08104010",
+"vmovss 0x40(%rax),%xmm24"
+],
+[
+"62617e0812c7",
+"vmovsldup %xmm7,%xmm24"
+],
+[
+"62617e08164004",
+"vmovshdup 0x40(%rax),%xmm24"
+],
+[
+"62617e0816c7",
+"vmovshdup %xmm7,%xmm24"
+],
+[
+"62617e086fc7",
+"vmovdqu32 %xmm7,%xmm24"
+],
+[
+"62617e285b4002",
+"vcvttps2dq 0x40(%rax),%ymm24"
+],
+[
+"62617e285bc7",
+"vcvttps2dq %ymm7,%ymm24"
+],
+[
+"62617e286f4002",
+"vmovdqu32 0x40(%rax),%ymm24"
+],
+[
+"62617e287a4004",
+"vcvtudq2pd 0x40(%rax),%ymm24"
+],
+[
+"62617e287ac7",
+"vcvtudq2pd %xmm7,%ymm24"
+],
+[
+"62617e28e6c7",
+"vcvtdq2pd %xmm7,%ymm24"
+],
+[
+"62617e48124001",
+"vmovsldup 0x40(%rax),%zmm24"
+],
+[
+"62617e48164001",
+"vmovshdup 0x40(%rax),%zmm24"
+],
+[
+"62617e485b4001",
+"vcvttps2dq 0x40(%rax),%zmm24"
+],
+[
+"62617e485bc7",
+"vcvttps2dq %zmm7,%zmm24"
+],
+[
+"62617e486f4001",
+"vmovdqu32 0x40(%rax),%zmm24"
+],
+[
+"62617e48704001ab",
+"vpshufhw $0xab,0x40(%rax),%zmm24"
+],
+[
+"62617e4870c7ab",
+"vpshufhw $0xab,%zmm7,%zmm24"
+],
+[
+"62617e487a4002",
+"vcvtudq2pd 0x40(%rax),%zmm24"
+],
+[
+"62617e487ac7",
+"vcvtudq2pd %ymm7,%zmm24"
+],
+[
+"62617e48e64002",
+"vcvtdq2pd 0x40(%rax),%zmm24"
+],
+[
+"62617e48e6c7",
+"vcvtdq2pd %ymm7,%zmm24"
+],
+[
+"62617f086f4004",
+"vmovdqu8 0x40(%rax),%xmm24"
+],
+[
+"62617f08704004ab",
+"vpshuflw $0xab,0x40(%rax),%xmm24"
+],
+[
+"62617f087ac7",
+"vcvtudq2ps %xmm7,%xmm24"
+],
+[
+"62617f2870c7ab",
+"vpshuflw $0xab,%ymm7,%ymm24"
+],
+[
+"62617f287a4002",
+"vcvtudq2ps 0x40(%rax),%ymm24"
+],
+[
+"62617f486f4001",
+"vmovdqu8 0x40(%rax),%zmm24"
+],
+[
+"62617f48704001ab",
+"vpshuflw $0xab,0x40(%rax),%zmm24"
+],
+[
+"62617f4870c7ab",
+"vpshuflw $0xab,%zmm7,%zmm24"
+],
+[
+"62617f487a4001",
+"vcvtudq2ps 0x40(%rax),%zmm24"
+],
+[
+"62617f487ac7",
+"vcvtudq2ps %zmm7,%zmm24"
+],
+[
+"6261bd08164008",
+"vmovhpd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6261bd0858c7",
+"vaddpd %xmm7,%xmm8,%xmm24"
+],
+[
+"6261bd085ec7",
+"vdivpd %xmm7,%xmm8,%xmm24"
+],
+[
+"6261bd086d4004",
+"vpunpckhqdq 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6261bd086dc7",
+"vpunpckhqdq %xmm7,%xmm8,%xmm24"
+],
+[
+"6261bd08c64004ab",
+"vshufpd $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6261bd08d34004",
+"vpsrlq 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6261bd08db4004",
+"vpandq 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6261bd08df4004",
+"vpandnq 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6261bd08eb4004",
+"vporq  0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6261bd08ebc7",
+"vporq  %xmm7,%xmm8,%xmm24"
+],
+[
+"6261bd08ef4004",
+"vpxorq 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6261bd08fbc7",
+"vpsubq %xmm7,%xmm8,%xmm24"
+],
+[
+"6261bd28144002",
+"vunpcklpd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6261bd2814c7",
+"vunpcklpd %ymm7,%ymm8,%ymm24"
+],
+[
+"6261bd28154002",
+"vunpckhpd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6261bd28574002",
+"vxorpd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6261bd28584002",
+"vaddpd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6261bd28594002",
+"vmulpd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6261bd285e4002",
+"vdivpd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6261bd285f4002",
+"vmaxpd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6261bd285fc7",
+"vmaxpd %ymm7,%ymm8,%ymm24"
+],
+[
+"6261bd28dbc7",
+"vpandq %ymm7,%ymm8,%ymm24"
+],
+[
+"6261bd28dfc7",
+"vpandnq %ymm7,%ymm8,%ymm24"
+],
+[
+"6261bd28efc7",
+"vpxorq %ymm7,%ymm8,%ymm24"
+],
+[
+"6261bd28f3c7",
+"vpsllq %xmm7,%ymm8,%ymm24"
+],
+[
+"6261bd48544001",
+"vandpd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd4854c7",
+"vandpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48554001",
+"vandnpd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd4855c7",
+"vandnpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48564001",
+"vorpd  0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd4856c7",
+"vorpd  %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48574001",
+"vxorpd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd4857c7",
+"vxorpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48584001",
+"vaddpd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd4858c7",
+"vaddpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48594001",
+"vmulpd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd4859c7",
+"vmulpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd485c4001",
+"vsubpd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd485cc7",
+"vsubpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd485d4001",
+"vminpd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd485dc7",
+"vminpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd485e4001",
+"vdivpd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd485ec7",
+"vdivpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd485f4001",
+"vmaxpd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd485fc7",
+"vmaxpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48c64001ab",
+"vshufpd $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd48c6c7ab",
+"vshufpd $0xab,%zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48d44001",
+"vpaddq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd48d4c7",
+"vpaddq %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48db4001",
+"vpandq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd48dbc7",
+"vpandq %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48df4001",
+"vpandnq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd48dfc7",
+"vpandnq %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48eb4001",
+"vporq  0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd48ebc7",
+"vporq  %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48ef4001",
+"vpxorq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd48efc7",
+"vpxorq %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48f34004",
+"vpsllq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd48f44001",
+"vpmuludq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd48f4c7",
+"vpmuludq %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bd48fb4001",
+"vpsubq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6261bd48fbc7",
+"vpsubq %zmm7,%zmm8,%zmm24"
+],
+[
+"6261bf08514008",
+"vsqrtsd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6261bf085a4008",
+"vcvtsd2ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6261bf085ac7",
+"vcvtsd2ss %xmm7,%xmm8,%xmm24"
+],
+[
+"6261bf085d4008",
+"vminsd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6261bf085dc7",
+"vminsd %xmm7,%xmm8,%xmm24"
+],
+[
+"6261bf085e4008",
+"vdivsd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6261bf085ec7",
+"vdivsd %xmm7,%xmm8,%xmm24"
+],
+[
+"6261fc085bc7",
+"vcvtqq2ps %xmm7,%xmm24"
+],
+[
+"6261fc0879c7",
+"vcvtpd2udq %xmm7,%xmm24"
+],
+[
+"6261fc2878c7",
+"vcvttpd2udq %ymm7,%xmm24"
+],
+[
+"6261fc485b4001",
+"vcvtqq2ps 0x40(%rax),%ymm24"
+],
+[
+"6261fc485bc7",
+"vcvtqq2ps %zmm7,%ymm24"
+],
+[
+"6261fc48784001",
+"vcvttpd2udq 0x40(%rax),%ymm24"
+],
+[
+"6261fc4878c7",
+"vcvttpd2udq %zmm7,%ymm24"
+],
+[
+"6261fc48794001",
+"vcvtpd2udq 0x40(%rax),%ymm24"
+],
+[
+"6261fc4879c7",
+"vcvtpd2udq %zmm7,%ymm24"
+],
+[
+"6261fd08284004",
+"vmovapd 0x40(%rax),%xmm24"
+],
+[
+"6261fd0878c7",
+"vcvttpd2uqq %xmm7,%xmm24"
+],
+[
+"6261fd08794004",
+"vcvtpd2uqq 0x40(%rax),%xmm24"
+],
+[
+"6261fd087a4004",
+"vcvttpd2qq 0x40(%rax),%xmm24"
+],
+[
+"6261fd087ac7",
+"vcvttpd2qq %xmm7,%xmm24"
+],
+[
+"6261fd087bc7",
+"vcvtpd2qq %xmm7,%xmm24"
+],
+[
+"6261fd08e6c7",
+"vcvttpd2dq %xmm7,%xmm24"
+],
+[
+"6261fd28784002",
+"vcvttpd2uqq 0x40(%rax),%ymm24"
+],
+[
+"6261fd2879c7",
+"vcvtpd2uqq %ymm7,%ymm24"
+],
+[
+"6261fd287b4002",
+"vcvtpd2qq 0x40(%rax),%ymm24"
+],
+[
+"6261fd287f4002",
+"vmovdqa64 %ymm24,0x40(%rax)"
+],
+[
+"6261fd48104001",
+"vmovupd 0x40(%rax),%zmm24"
+],
+[
+"6261fd48294001",
+"vmovapd %zmm24,0x40(%rax)"
+],
+[
+"6261fd482b4001",
+"vmovntpd %zmm24,0x40(%rax)"
+],
+[
+"6261fd48514001",
+"vsqrtpd 0x40(%rax),%zmm24"
+],
+[
+"6261fd4851c7",
+"vsqrtpd %zmm7,%zmm24"
+],
+[
+"6261fd485a4001",
+"vcvtpd2ps 0x40(%rax),%ymm24"
+],
+[
+"6261fd486fc7",
+"vmovdqa64 %zmm7,%zmm24"
+],
+[
+"6261fd48784001",
+"vcvttpd2uqq 0x40(%rax),%zmm24"
+],
+[
+"6261fd4878c7",
+"vcvttpd2uqq %zmm7,%zmm24"
+],
+[
+"6261fd48794001",
+"vcvtpd2uqq 0x40(%rax),%zmm24"
+],
+[
+"6261fd4879c7",
+"vcvtpd2uqq %zmm7,%zmm24"
+],
+[
+"6261fd487a4001",
+"vcvttpd2qq 0x40(%rax),%zmm24"
+],
+[
+"6261fd487ac7",
+"vcvttpd2qq %zmm7,%zmm24"
+],
+[
+"6261fd487b4001",
+"vcvtpd2qq 0x40(%rax),%zmm24"
+],
+[
+"6261fd487bc7",
+"vcvtpd2qq %zmm7,%zmm24"
+],
+[
+"6261fd487f4001",
+"vmovdqa64 %zmm24,0x40(%rax)"
+],
+[
+"6261fd48e64001",
+"vcvttpd2dq 0x40(%rax),%ymm24"
+],
+[
+"6261fe086f4004",
+"vmovdqu64 0x40(%rax),%xmm24"
+],
+[
+"6261fe087a4004",
+"vcvtuqq2pd 0x40(%rax),%xmm24"
+],
+[
+"6261fe08e64004",
+"vcvtqq2pd 0x40(%rax),%xmm24"
+],
+[
+"6261fe286fc7",
+"vmovdqu64 %ymm7,%ymm24"
+],
+[
+"6261fe287ac7",
+"vcvtuqq2pd %ymm7,%ymm24"
+],
+[
+"6261fe28e6c7",
+"vcvtqq2pd %ymm7,%ymm24"
+],
+[
+"6261fe486f4001",
+"vmovdqu64 0x40(%rax),%zmm24"
+],
+[
+"6261fe486fc7",
+"vmovdqu64 %zmm7,%zmm24"
+],
+[
+"6261fe487a4001",
+"vcvtuqq2pd 0x40(%rax),%zmm24"
+],
+[
+"6261fe487ac7",
+"vcvtuqq2pd %zmm7,%zmm24"
+],
+[
+"6261fe48e64001",
+"vcvtqq2pd 0x40(%rax),%zmm24"
+],
+[
+"6261fe48e6c7",
+"vcvtqq2pd %zmm7,%zmm24"
+],
+[
+"6261ff08114008",
+"vmovsd %xmm24,0x40(%rax)"
+],
+[
+"6261ff08124008",
+"vmovddup 0x40(%rax),%xmm24"
+],
+[
+"6261ff086fc7",
+"vmovdqu16 %xmm7,%xmm24"
+],
+[
+"6261ff286f4002",
+"vmovdqu16 0x40(%rax),%ymm24"
+],
+[
+"6261ff287ac7",
+"vcvtuqq2ps %ymm7,%xmm24"
+],
+[
+"6261ff48124001",
+"vmovddup 0x40(%rax),%zmm24"
+],
+[
+"6261ff4812c7",
+"vmovddup %zmm7,%zmm24"
+],
+[
+"6261ff487a4001",
+"vcvtuqq2ps 0x40(%rax),%ymm24"
+],
+[
+"6261ff487ac7",
+"vcvtuqq2ps %zmm7,%ymm24"
+],
+[
+"6261ff487f4001",
+"vmovdqu16 %zmm24,0x40(%rax)"
+],
+[
+"6261ff48e64001",
+"vcvtpd2dq 0x40(%rax),%ymm24"
+],
+[
+"62623d080b4004",
+"vpmulhrsw 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d080cc7",
+"vpermilps %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08144004",
+"vprorvd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d0815c7",
+"vprolvd %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d082b4004",
+"vpackusdw 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d082cc7",
+"vscalefps %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d082d4010",
+"vscalefss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d082dc7",
+"vscalefss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d083ec7",
+"vpmaxuw %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d083fc7",
+"vpmaxud %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08434010",
+"vgetexpss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d0843c7",
+"vgetexpss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d0845c7",
+"vpsrlvd %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d084d4010",
+"vrcp14ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d084dc7",
+"vrcp14ss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d084f4010",
+"vrsqrt14ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d084fc7",
+"vrsqrt14ss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d0864c7",
+"vpblendmd %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08654004",
+"vblendmps 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08664004",
+"vpblendmb 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d0866c7",
+"vpblendmb %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08764004",
+"vpermi2d 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d0876c7",
+"vpermi2d %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08774004",
+"vpermi2ps 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d087dc7",
+"vpermt2b %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d087f4004",
+"vpermt2ps 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08a64004",
+"vfmaddsub213ps 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08a6c7",
+"vfmaddsub213ps %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08a74004",
+"vfmsubadd213ps 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08a7c7",
+"vfmsubadd213ps %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08a94010",
+"vfmadd213ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08a9c7",
+"vfmadd213ss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08aa4004",
+"vfmsub213ps 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08ab4010",
+"vfmsub213ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08abc7",
+"vfmsub213ss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08ac4004",
+"vfnmadd213ps 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08acc7",
+"vfnmadd213ps %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08ad4010",
+"vfnmadd213ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08adc7",
+"vfnmadd213ss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08af4010",
+"vfnmsub213ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08afc7",
+"vfnmsub213ss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08b64004",
+"vfmaddsub231ps 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08b7c7",
+"vfmsubadd231ps %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08b94010",
+"vfmadd231ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08b9c7",
+"vfmadd231ss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08ba4004",
+"vfmsub231ps 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08bb4010",
+"vfmsub231ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08bbc7",
+"vfmsub231ss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08bc4004",
+"vfnmadd231ps 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08bcc7",
+"vfnmadd231ps %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08bd4010",
+"vfnmadd231ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08bdc7",
+"vfnmadd231ss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08be4004",
+"vfnmsub231ps 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08bf4010",
+"vfnmsub231ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08bfc7",
+"vfnmsub231ss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08cb4010",
+"vrcp28ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08cbc7",
+"vrcp28ss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d08cd4010",
+"vrsqrt28ss 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62623d08cdc7",
+"vrsqrt28ss %xmm7,%xmm8,%xmm24"
+],
+[
+"62623d2814c7",
+"vprorvd %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d28154002",
+"vprolvd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d28164002",
+"vpermps 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d282c4002",
+"vscalefps 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d2836c7",
+"vpermd %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d2838c7",
+"vpminsb %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d283d4002",
+"vpmaxsd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d2840c7",
+"vpmulld %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d28644002",
+"vpblendmd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d2865c7",
+"vblendmps %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d28754002",
+"vpermi2b 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d2875c7",
+"vpermi2b %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d2877c7",
+"vpermi2ps %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d287d4002",
+"vpermt2b 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d287e4002",
+"vpermt2d 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d287ec7",
+"vpermt2d %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d287fc7",
+"vpermt2ps %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d288d4002",
+"vpermb 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d28a84002",
+"vfmadd213ps 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d28a8c7",
+"vfmadd213ps %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d28aac7",
+"vfmsub213ps %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d28ae4002",
+"vfnmsub213ps 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d28aec7",
+"vfnmsub213ps %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d28b6c7",
+"vfmaddsub231ps %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d28b74002",
+"vfmsubadd231ps 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d28b84002",
+"vfmadd231ps 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62623d28b8c7",
+"vfmadd231ps %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d28bac7",
+"vfmsub231ps %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d28bec7",
+"vfnmsub231ps %ymm7,%ymm8,%ymm24"
+],
+[
+"62623d48004001",
+"vpshufb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4800c7",
+"vpshufb %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48044001",
+"vpmaddubsw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4804c7",
+"vpmaddubsw %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d480b4001",
+"vpmulhrsw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d480bc7",
+"vpmulhrsw %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d480c4001",
+"vpermilps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d480cc7",
+"vpermilps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48144001",
+"vprorvd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4814c7",
+"vprorvd %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48154001",
+"vprolvd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4815c7",
+"vprolvd %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48164001",
+"vpermps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4816c7",
+"vpermps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d482b4001",
+"vpackusdw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d482bc7",
+"vpackusdw %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d482c4001",
+"vscalefps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d482cc7",
+"vscalefps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48364001",
+"vpermd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4836c7",
+"vpermd %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48384001",
+"vpminsb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4838c7",
+"vpminsb %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48394001",
+"vpminsd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4839c7",
+"vpminsd %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d483a4001",
+"vpminuw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d483ac7",
+"vpminuw %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d483b4001",
+"vpminud 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d483bc7",
+"vpminud %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d483c4001",
+"vpmaxsb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d483cc7",
+"vpmaxsb %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d483d4001",
+"vpmaxsd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d483dc7",
+"vpmaxsd %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d483e4001",
+"vpmaxuw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d483ec7",
+"vpmaxuw %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d483f4001",
+"vpmaxud 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d483fc7",
+"vpmaxud %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48404001",
+"vpmulld 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4840c7",
+"vpmulld %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48454001",
+"vpsrlvd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4845c7",
+"vpsrlvd %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48464001",
+"vpsravd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4846c7",
+"vpsravd %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48644001",
+"vpblendmd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4864c7",
+"vpblendmd %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48654001",
+"vblendmps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4865c7",
+"vblendmps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48664001",
+"vpblendmb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4866c7",
+"vpblendmb %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48754001",
+"vpermi2b 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4875c7",
+"vpermi2b %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48764001",
+"vpermi2d 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4876c7",
+"vpermi2d %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48774001",
+"vpermi2ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d4877c7",
+"vpermi2ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d487d4001",
+"vpermt2b 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d487dc7",
+"vpermt2b %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d487e4001",
+"vpermt2d 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d487ec7",
+"vpermt2d %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d487f4001",
+"vpermt2ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d487fc7",
+"vpermt2ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d488d4001",
+"vpermb 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48a64001",
+"vfmaddsub213ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48a6c7",
+"vfmaddsub213ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48a74001",
+"vfmsubadd213ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48a7c7",
+"vfmsubadd213ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48a84001",
+"vfmadd213ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48a8c7",
+"vfmadd213ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48aa4001",
+"vfmsub213ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48aac7",
+"vfmsub213ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48ac4001",
+"vfnmadd213ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48acc7",
+"vfnmadd213ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48ae4001",
+"vfnmsub213ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48aec7",
+"vfnmsub213ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48b64001",
+"vfmaddsub231ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48b6c7",
+"vfmaddsub231ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48b74001",
+"vfmsubadd231ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48b7c7",
+"vfmsubadd231ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48b84001",
+"vfmadd231ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48b8c7",
+"vfmadd231ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48ba4001",
+"vfmsub231ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48bac7",
+"vfmsub231ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48bc4001",
+"vfnmadd231ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48bcc7",
+"vfnmadd231ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62623d48be4001",
+"vfnmsub231ps 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62623d48bec7",
+"vfnmsub231ps %zmm7,%zmm8,%zmm24"
+],
+[
+"62624508974004",
+"vfmsubadd132ps 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"62624508994010",
+"vfmadd132ss 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"626245089a4004",
+"vfmsub132ps 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"626245089b4010",
+"vfmsub132ss 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"626245089d4010",
+"vfnmadd132ss 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"626245089e4004",
+"vfnmsub132ps 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"626245089f4010",
+"vfnmsub132ss 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"62624528964002",
+"vfmaddsub132ps 0x40(%rax),%ymm7,%ymm24"
+],
+[
+"62624528984002",
+"vfmadd132ps 0x40(%rax),%ymm7,%ymm24"
+],
+[
+"626245289c4002",
+"vfnmadd132ps 0x40(%rax),%ymm7,%ymm24"
+],
+[
+"62624548964001",
+"vfmaddsub132ps 0x40(%rax),%zmm7,%zmm24"
+],
+[
+"62624548974001",
+"vfmsubadd132ps 0x40(%rax),%zmm7,%zmm24"
+],
+[
+"62624548984001",
+"vfmadd132ps 0x40(%rax),%zmm7,%zmm24"
+],
+[
+"626245489a4001",
+"vfmsub132ps 0x40(%rax),%zmm7,%zmm24"
+],
+[
+"626245489c4001",
+"vfnmadd132ps 0x40(%rax),%zmm7,%zmm24"
+],
+[
+"626245489e4001",
+"vfnmsub132ps 0x40(%rax),%zmm7,%zmm24"
+],
+[
+"62627d08134008",
+"vcvtph2ps 0x40(%rax),%xmm24"
+],
+[
+"62627d08184010",
+"vbroadcastss 0x40(%rax),%xmm24"
+],
+[
+"62627d0832c7",
+"vpmovzxbq %xmm7,%xmm24"
+],
+[
+"62627d08334008",
+"vpmovzxwd 0x40(%rax),%xmm24"
+],
+[
+"62627d0835c7",
+"vpmovzxdq %xmm7,%xmm24"
+],
+[
+"62627d08444004",
+"vplzcntd 0x40(%rax),%xmm24"
+],
+[
+"62627d0844c7",
+"vplzcntd %xmm7,%xmm24"
+],
+[
+"62627d084ec7",
+"vrsqrt14ps %xmm7,%xmm24"
+],
+[
+"62627d0859c7",
+"vbroadcasti32x2 %xmm7,%xmm24"
+],
+[
+"62627d0888c7",
+"vexpandps %xmm7,%xmm24"
+],
+[
+"62627d0889c7",
+"vpexpandd %xmm7,%xmm24"
+],
+[
+"62627d088a4010",
+"vcompressps %xmm24,0x40(%rax)"
+],
+[
+"62627d088b4010",
+"vpcompressd %xmm24,0x40(%rax)"
+],
+[
+"62627d08c44004",
+"vpconflictd 0x40(%rax),%xmm24"
+],
+[
+"62627d2813c7",
+"vcvtph2ps %xmm7,%ymm24"
+],
+[
+"62627d2818c7",
+"vbroadcastss %xmm7,%ymm24"
+],
+[
+"62627d28194008",
+"vbroadcastf32x2 0x40(%rax),%ymm24"
+],
+[
+"62627d281a4004",
+"vbroadcastf32x4 0x40(%rax),%ymm24"
+],
+[
+"62627d281c4002",
+"vpabsb 0x40(%rax),%ymm24"
+],
+[
+"62627d281d4002",
+"vpabsw 0x40(%rax),%ymm24"
+],
+[
+"62627d281dc7",
+"vpabsw %ymm7,%ymm24"
+],
+[
+"62627d281ec7",
+"vpabsd %ymm7,%ymm24"
+],
+[
+"62627d28244008",
+"vpmovsxwq 0x40(%rax),%ymm24"
+],
+[
+"62627d28254004",
+"vpmovsxdq 0x40(%rax),%ymm24"
+],
+[
+"62627d282a4002",
+"vmovntdqa 0x40(%rax),%ymm24"
+],
+[
+"62627d2830c7",
+"vpmovzxbw %xmm7,%ymm24"
+],
+[
+"62627d2834c7",
+"vpmovzxwq %xmm7,%ymm24"
+],
+[
+"62627d28424002",
+"vgetexpps 0x40(%rax),%ymm24"
+],
+[
+"62627d2842c7",
+"vgetexpps %ymm7,%ymm24"
+],
+[
+"62627d284c4002",
+"vrcp14ps 0x40(%rax),%ymm24"
+],
+[
+"62627d284cc7",
+"vrcp14ps %ymm7,%ymm24"
+],
+[
+"62627d284e4002",
+"vrsqrt14ps 0x40(%rax),%ymm24"
+],
+[
+"62627d28584010",
+"vpbroadcastd 0x40(%rax),%ymm24"
+],
+[
+"62627d28594008",
+"vbroadcasti32x2 0x40(%rax),%ymm24"
+],
+[
+"62627d285a4004",
+"vbroadcasti32x4 0x40(%rax),%ymm24"
+],
+[
+"62627d28784040",
+"vpbroadcastb 0x40(%rax),%ymm24"
+],
+[
+"62627d28884010",
+"vexpandps 0x40(%rax),%ymm24"
+],
+[
+"62627d28894010",
+"vpexpandd 0x40(%rax),%ymm24"
+],
+[
+"62627d288ac7",
+"vcompressps %ymm24,%ymm7"
+],
+[
+"62627d288bc7",
+"vpcompressd %ymm24,%ymm7"
+],
+[
+"62627d28c4c7",
+"vpconflictd %ymm7,%ymm24"
+],
+[
+"62627d48134002",
+"vcvtph2ps 0x40(%rax),%zmm24"
+],
+[
+"62627d4813c7",
+"vcvtph2ps %ymm7,%zmm24"
+],
+[
+"62627d48184010",
+"vbroadcastss 0x40(%rax),%zmm24"
+],
+[
+"62627d4818c7",
+"vbroadcastss %xmm7,%zmm24"
+],
+[
+"62627d48194008",
+"vbroadcastf32x2 0x40(%rax),%zmm24"
+],
+[
+"62627d481a4004",
+"vbroadcastf32x4 0x40(%rax),%zmm24"
+],
+[
+"62627d481b4002",
+"vbroadcastf32x8 0x40(%rax),%zmm24"
+],
+[
+"62627d481c4001",
+"vpabsb 0x40(%rax),%zmm24"
+],
+[
+"62627d481cc7",
+"vpabsb %zmm7,%zmm24"
+],
+[
+"62627d481d4001",
+"vpabsw 0x40(%rax),%zmm24"
+],
+[
+"62627d481dc7",
+"vpabsw %zmm7,%zmm24"
+],
+[
+"62627d481e4001",
+"vpabsd 0x40(%rax),%zmm24"
+],
+[
+"62627d481ec7",
+"vpabsd %zmm7,%zmm24"
+],
+[
+"62627d48204002",
+"vpmovsxbw 0x40(%rax),%zmm24"
+],
+[
+"62627d4820c7",
+"vpmovsxbw %ymm7,%zmm24"
+],
+[
+"62627d48214004",
+"vpmovsxbd 0x40(%rax),%zmm24"
+],
+[
+"62627d48224008",
+"vpmovsxbq 0x40(%rax),%zmm24"
+],
+[
+"62627d48234002",
+"vpmovsxwd 0x40(%rax),%zmm24"
+],
+[
+"62627d48244004",
+"vpmovsxwq 0x40(%rax),%zmm24"
+],
+[
+"62627d48254002",
+"vpmovsxdq 0x40(%rax),%zmm24"
+],
+[
+"62627d482a4001",
+"vmovntdqa 0x40(%rax),%zmm24"
+],
+[
+"62627d48304002",
+"vpmovzxbw 0x40(%rax),%zmm24"
+],
+[
+"62627d4830c7",
+"vpmovzxbw %ymm7,%zmm24"
+],
+[
+"62627d48314004",
+"vpmovzxbd 0x40(%rax),%zmm24"
+],
+[
+"62627d48324008",
+"vpmovzxbq 0x40(%rax),%zmm24"
+],
+[
+"62627d48334002",
+"vpmovzxwd 0x40(%rax),%zmm24"
+],
+[
+"62627d48344004",
+"vpmovzxwq 0x40(%rax),%zmm24"
+],
+[
+"62627d48354002",
+"vpmovzxdq 0x40(%rax),%zmm24"
+],
+[
+"62627d48424001",
+"vgetexpps 0x40(%rax),%zmm24"
+],
+[
+"62627d4842c7",
+"vgetexpps %zmm7,%zmm24"
+],
+[
+"62627d4844c7",
+"vplzcntd %zmm7,%zmm24"
+],
+[
+"62627d484c4001",
+"vrcp14ps 0x40(%rax),%zmm24"
+],
+[
+"62627d484cc7",
+"vrcp14ps %zmm7,%zmm24"
+],
+[
+"62627d484e4001",
+"vrsqrt14ps 0x40(%rax),%zmm24"
+],
+[
+"62627d484ec7",
+"vrsqrt14ps %zmm7,%zmm24"
+],
+[
+"62627d48584010",
+"vpbroadcastd 0x40(%rax),%zmm24"
+],
+[
+"62627d48594008",
+"vbroadcasti32x2 0x40(%rax),%zmm24"
+],
+[
+"62627d4859c7",
+"vbroadcasti32x2 %xmm7,%zmm24"
+],
+[
+"62627d485a4004",
+"vbroadcasti32x4 0x40(%rax),%zmm24"
+],
+[
+"62627d485b4002",
+"vbroadcasti32x8 0x40(%rax),%zmm24"
+],
+[
+"62627d48784040",
+"vpbroadcastb 0x40(%rax),%zmm24"
+],
+[
+"62627d48794020",
+"vpbroadcastw 0x40(%rax),%zmm24"
+],
+[
+"62627d48884010",
+"vexpandps 0x40(%rax),%zmm24"
+],
+[
+"62627d4888c7",
+"vexpandps %zmm7,%zmm24"
+],
+[
+"62627d48894010",
+"vpexpandd 0x40(%rax),%zmm24"
+],
+[
+"62627d4889c7",
+"vpexpandd %zmm7,%zmm24"
+],
+[
+"62627d488a4010",
+"vcompressps %zmm24,0x40(%rax)"
+],
+[
+"62627d488ac7",
+"vcompressps %zmm24,%zmm7"
+],
+[
+"62627d488b4010",
+"vpcompressd %zmm24,0x40(%rax)"
+],
+[
+"62627d488bc7",
+"vpcompressd %zmm24,%zmm7"
+],
+[
+"62627d48c44001",
+"vpconflictd 0x40(%rax),%zmm24"
+],
+[
+"62627d48c4c7",
+"vpconflictd %zmm7,%zmm24"
+],
+[
+"62627d48c84001",
+"vexp2ps 0x40(%rax),%zmm24"
+],
+[
+"62627d48c8c7",
+"vexp2ps %zmm7,%zmm24"
+],
+[
+"62627d48ca4001",
+"vrcp28ps 0x40(%rax),%zmm24"
+],
+[
+"62627d48cac7",
+"vrcp28ps %zmm7,%zmm24"
+],
+[
+"62627d48cc4001",
+"vrsqrt28ps 0x40(%rax),%zmm24"
+],
+[
+"62627d48ccc7",
+"vrsqrt28ps %zmm7,%zmm24"
+],
+[
+"62627e08104008",
+"vpmovuswb %xmm24,0x40(%rax)"
+],
+[
+"62627e0811c7",
+"vpmovusdb %xmm24,%xmm7"
+],
+[
+"62627e08134008",
+"vpmovusdw %xmm24,0x40(%rax)"
+],
+[
+"62627e08144010",
+"vpmovusqw %xmm24,0x40(%rax)"
+],
+[
+"62627e0814c7",
+"vpmovusqw %xmm24,%xmm7"
+],
+[
+"62627e0820c7",
+"vpmovswb %xmm24,%xmm7"
+],
+[
+"62627e08214010",
+"vpmovsdb %xmm24,0x40(%rax)"
+],
+[
+"62627e08224020",
+"vpmovsqb %xmm24,0x40(%rax)"
+],
+[
+"62627e0822c7",
+"vpmovsqb %xmm24,%xmm7"
+],
+[
+"62627e08244010",
+"vpmovsqw %xmm24,0x40(%rax)"
+],
+[
+"62627e08254008",
+"vpmovsqd %xmm24,0x40(%rax)"
+],
+[
+"62627e0825c7",
+"vpmovsqd %xmm24,%xmm7"
+],
+[
+"62627e08304008",
+"vpmovwb %xmm24,0x40(%rax)"
+],
+[
+"62627e0830c7",
+"vpmovwb %xmm24,%xmm7"
+],
+[
+"62627e08314010",
+"vpmovdb %xmm24,0x40(%rax)"
+],
+[
+"62627e0831c7",
+"vpmovdb %xmm24,%xmm7"
+],
+[
+"62627e08344010",
+"vpmovqw %xmm24,0x40(%rax)"
+],
+[
+"62627e0835c7",
+"vpmovqd %xmm24,%xmm7"
+],
+[
+"62627e083ac5",
+"vpbroadcastmw2d %k5,%xmm24"
+],
+[
+"62627e2810c7",
+"vpmovuswb %ymm24,%xmm7"
+],
+[
+"62627e28114008",
+"vpmovusdb %ymm24,0x40(%rax)"
+],
+[
+"62627e28124010",
+"vpmovusqb %ymm24,0x40(%rax)"
+],
+[
+"62627e2812c7",
+"vpmovusqb %ymm24,%xmm7"
+],
+[
+"62627e2813c7",
+"vpmovusdw %ymm24,%xmm7"
+],
+[
+"62627e28154004",
+"vpmovusqd %ymm24,0x40(%rax)"
+],
+[
+"62627e2815c7",
+"vpmovusqd %ymm24,%xmm7"
+],
+[
+"62627e28204004",
+"vpmovswb %ymm24,0x40(%rax)"
+],
+[
+"62627e2821c7",
+"vpmovsdb %ymm24,%xmm7"
+],
+[
+"62627e28234004",
+"vpmovsdw %ymm24,0x40(%rax)"
+],
+[
+"62627e2823c7",
+"vpmovsdw %ymm24,%xmm7"
+],
+[
+"62627e2824c7",
+"vpmovsqw %ymm24,%xmm7"
+],
+[
+"62627e2828c4",
+"vpmovm2b %k4,%ymm24"
+],
+[
+"62627e28324010",
+"vpmovqb %ymm24,0x40(%rax)"
+],
+[
+"62627e2832c7",
+"vpmovqb %ymm24,%xmm7"
+],
+[
+"62627e28334004",
+"vpmovdw %ymm24,0x40(%rax)"
+],
+[
+"62627e2833c7",
+"vpmovdw %ymm24,%xmm7"
+],
+[
+"62627e2834c7",
+"vpmovqw %ymm24,%xmm7"
+],
+[
+"62627e28354004",
+"vpmovqd %ymm24,0x40(%rax)"
+],
+[
+"62627e2838c4",
+"vpmovm2d %k4,%ymm24"
+],
+[
+"62627e48104002",
+"vpmovuswb %zmm24,0x40(%rax)"
+],
+[
+"62627e4810c7",
+"vpmovuswb %zmm24,%ymm7"
+],
+[
+"62627e48114004",
+"vpmovusdb %zmm24,0x40(%rax)"
+],
+[
+"62627e4811c7",
+"vpmovusdb %zmm24,%xmm7"
+],
+[
+"62627e48124008",
+"vpmovusqb %zmm24,0x40(%rax)"
+],
+[
+"62627e4812c7",
+"vpmovusqb %zmm24,%xmm7"
+],
+[
+"62627e48134002",
+"vpmovusdw %zmm24,0x40(%rax)"
+],
+[
+"62627e4813c7",
+"vpmovusdw %zmm24,%ymm7"
+],
+[
+"62627e48144004",
+"vpmovusqw %zmm24,0x40(%rax)"
+],
+[
+"62627e4814c7",
+"vpmovusqw %zmm24,%xmm7"
+],
+[
+"62627e48154002",
+"vpmovusqd %zmm24,0x40(%rax)"
+],
+[
+"62627e4815c7",
+"vpmovusqd %zmm24,%ymm7"
+],
+[
+"62627e48204002",
+"vpmovswb %zmm24,0x40(%rax)"
+],
+[
+"62627e4820c7",
+"vpmovswb %zmm24,%ymm7"
+],
+[
+"62627e48214004",
+"vpmovsdb %zmm24,0x40(%rax)"
+],
+[
+"62627e4821c7",
+"vpmovsdb %zmm24,%xmm7"
+],
+[
+"62627e48224008",
+"vpmovsqb %zmm24,0x40(%rax)"
+],
+[
+"62627e4822c7",
+"vpmovsqb %zmm24,%xmm7"
+],
+[
+"62627e48234002",
+"vpmovsdw %zmm24,0x40(%rax)"
+],
+[
+"62627e4823c7",
+"vpmovsdw %zmm24,%ymm7"
+],
+[
+"62627e48244004",
+"vpmovsqw %zmm24,0x40(%rax)"
+],
+[
+"62627e4824c7",
+"vpmovsqw %zmm24,%xmm7"
+],
+[
+"62627e48254002",
+"vpmovsqd %zmm24,0x40(%rax)"
+],
+[
+"62627e4825c7",
+"vpmovsqd %zmm24,%ymm7"
+],
+[
+"62627e4828c4",
+"vpmovm2b %k4,%zmm24"
+],
+[
+"62627e48304002",
+"vpmovwb %zmm24,0x40(%rax)"
+],
+[
+"62627e4830c7",
+"vpmovwb %zmm24,%ymm7"
+],
+[
+"62627e48314004",
+"vpmovdb %zmm24,0x40(%rax)"
+],
+[
+"62627e4831c7",
+"vpmovdb %zmm24,%xmm7"
+],
+[
+"62627e48324008",
+"vpmovqb %zmm24,0x40(%rax)"
+],
+[
+"62627e4832c7",
+"vpmovqb %zmm24,%xmm7"
+],
+[
+"62627e48334002",
+"vpmovdw %zmm24,0x40(%rax)"
+],
+[
+"62627e4833c7",
+"vpmovdw %zmm24,%ymm7"
+],
+[
+"62627e48344004",
+"vpmovqw %zmm24,0x40(%rax)"
+],
+[
+"62627e4834c7",
+"vpmovqw %zmm24,%xmm7"
+],
+[
+"62627e48354002",
+"vpmovqd %zmm24,0x40(%rax)"
+],
+[
+"62627e4835c7",
+"vpmovqd %zmm24,%ymm7"
+],
+[
+"62627e4838c4",
+"vpmovm2d %k4,%zmm24"
+],
+[
+"62627e483ac5",
+"vpbroadcastmw2d %k5,%zmm24"
+],
+[
+"6262bd08104004",
+"vpsrlvw 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd0810c7",
+"vpsrlvw %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08114004",
+"vpsravw 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08154004",
+"vprolvq 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd0815c7",
+"vprolvq %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd082c4004",
+"vscalefpd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd082cc7",
+"vscalefpd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd082d4008",
+"vscalefsd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd082dc7",
+"vscalefsd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd083b4004",
+"vpminuq 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd083fc7",
+"vpmaxuq %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08404004",
+"vpmullq 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd0840c7",
+"vpmullq %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08434008",
+"vgetexpsd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd0843c7",
+"vgetexpsd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd0845c7",
+"vpsrlvq %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08464004",
+"vpsravq 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd0846c7",
+"vpsravq %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd084d4008",
+"vrcp14sd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd084dc7",
+"vrcp14sd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd084f4008",
+"vrsqrt14sd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd084fc7",
+"vrsqrt14sd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd0864c7",
+"vpblendmq %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd0865c7",
+"vblendmpd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd0866c7",
+"vpblendmw %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08774004",
+"vpermi2pd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd0877c7",
+"vpermi2pd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd087d4004",
+"vpermt2w 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd087e4004",
+"vpermt2q 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd087ec7",
+"vpermt2q %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd087fc7",
+"vpermt2pd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd088d4004",
+"vpermw 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd089f4008",
+"vfnmsub132sd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08a74004",
+"vfmsubadd213pd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08a7c7",
+"vfmsubadd213pd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08a84004",
+"vfmadd213pd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08a8c7",
+"vfmadd213pd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08a94008",
+"vfmadd213sd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08a9c7",
+"vfmadd213sd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08aac7",
+"vfmsub213pd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08abc7",
+"vfmsub213sd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08acc7",
+"vfnmadd213pd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08ad4008",
+"vfnmadd213sd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08adc7",
+"vfnmadd213sd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08ae4004",
+"vfnmsub213pd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08af4008",
+"vfnmsub213sd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08afc7",
+"vfnmsub213sd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08b6c7",
+"vfmaddsub231pd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08b74004",
+"vfmsubadd231pd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08b84004",
+"vfmadd231pd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08b8c7",
+"vfmadd231pd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08b94008",
+"vfmadd231sd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08b9c7",
+"vfmadd231sd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08ba4004",
+"vfmsub231pd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08bb4008",
+"vfmsub231sd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08bbc7",
+"vfmsub231sd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08bc4004",
+"vfnmadd231pd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08bdc7",
+"vfnmadd231sd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08be4004",
+"vfnmsub231pd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08bf4008",
+"vfnmsub231sd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08bfc7",
+"vfnmsub231sd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08cb4008",
+"vrcp28sd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08cbc7",
+"vrcp28sd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd08cd4008",
+"vrsqrt28sd 0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6262bd08cdc7",
+"vrsqrt28sd %xmm7,%xmm8,%xmm24"
+],
+[
+"6262bd2811c7",
+"vpsravw %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd28124002",
+"vpsllvw 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd2812c7",
+"vpsllvw %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd28144002",
+"vprorvq 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd2814c7",
+"vprorvq %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd28284002",
+"vpmuldq 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd28364002",
+"vpermq 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd28394002",
+"vpminsq 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd2839c7",
+"vpminsq %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd283bc7",
+"vpminuq %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd283d4002",
+"vpmaxsq 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd283dc7",
+"vpmaxsq %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd283f4002",
+"vpmaxuq 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd28644002",
+"vpblendmq 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd28654002",
+"vblendmpd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd28664002",
+"vpblendmw 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd28754002",
+"vpermi2w 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd2875c7",
+"vpermi2w %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd28764002",
+"vpermi2q 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd2876c7",
+"vpermi2q %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd287dc7",
+"vpermt2w %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd287f4002",
+"vpermt2pd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd28a64002",
+"vfmaddsub213pd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd28a6c7",
+"vfmaddsub213pd %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd28aa4002",
+"vfmsub213pd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd28ac4002",
+"vfnmadd213pd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd28aec7",
+"vfnmsub213pd %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd28b64002",
+"vfmaddsub231pd 0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6262bd28b7c7",
+"vfmsubadd231pd %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd28bac7",
+"vfmsub231pd %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd28bcc7",
+"vfnmadd231pd %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd28bec7",
+"vfnmsub231pd %ymm7,%ymm8,%ymm24"
+],
+[
+"6262bd480dc7",
+"vpermilpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48104001",
+"vpsrlvw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4810c7",
+"vpsrlvw %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48114001",
+"vpsravw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4811c7",
+"vpsravw %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48124001",
+"vpsllvw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4812c7",
+"vpsllvw %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48144001",
+"vprorvq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4814c7",
+"vprorvq %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48154001",
+"vprolvq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4815c7",
+"vprolvq %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48164001",
+"vpermpd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4816c7",
+"vpermpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48284001",
+"vpmuldq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4828c7",
+"vpmuldq %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd482c4001",
+"vscalefpd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd482cc7",
+"vscalefpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48394001",
+"vpminsq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4839c7",
+"vpminsq %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd483b4001",
+"vpminuq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd483bc7",
+"vpminuq %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd483d4001",
+"vpmaxsq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd483dc7",
+"vpmaxsq %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd483f4001",
+"vpmaxuq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd483fc7",
+"vpmaxuq %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48404001",
+"vpmullq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4840c7",
+"vpmullq %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48454001",
+"vpsrlvq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4845c7",
+"vpsrlvq %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd4846c7",
+"vpsravq %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48644001",
+"vpblendmq 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4864c7",
+"vpblendmq %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48654001",
+"vblendmpd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4865c7",
+"vblendmpd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48664001",
+"vpblendmw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4866c7",
+"vpblendmw %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48754001",
+"vpermi2w 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4875c7",
+"vpermi2w %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48764001",
+"vpermi2q 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4876c7",
+"vpermi2q %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48774001",
+"vpermi2pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd4877c7",
+"vpermi2pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd487d4001",
+"vpermt2w 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd487dc7",
+"vpermt2w %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd487e4001",
+"vpermt2q 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd487ec7",
+"vpermt2q %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd487f4001",
+"vpermt2pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd487fc7",
+"vpermt2pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd488d4001",
+"vpermw 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48a64001",
+"vfmaddsub213pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48a6c7",
+"vfmaddsub213pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48a74001",
+"vfmsubadd213pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48a7c7",
+"vfmsubadd213pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48a84001",
+"vfmadd213pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48a8c7",
+"vfmadd213pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48aa4001",
+"vfmsub213pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48aac7",
+"vfmsub213pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48ac4001",
+"vfnmadd213pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48acc7",
+"vfnmadd213pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48ae4001",
+"vfnmsub213pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48aec7",
+"vfnmsub213pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48b64001",
+"vfmaddsub231pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48b6c7",
+"vfmaddsub231pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48b74001",
+"vfmsubadd231pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48b7c7",
+"vfmsubadd231pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48b84001",
+"vfmadd231pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48b8c7",
+"vfmadd231pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48ba4001",
+"vfmsub231pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48bac7",
+"vfmsub231pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48bc4001",
+"vfnmadd231pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48bcc7",
+"vfnmadd231pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262bd48be4001",
+"vfnmsub231pd 0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6262bd48bec7",
+"vfnmsub231pd %zmm7,%zmm8,%zmm24"
+],
+[
+"6262c508964004",
+"vfmaddsub132pd 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"6262c508994008",
+"vfmadd132sd 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"6262c5089b4008",
+"vfmsub132sd 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"6262c5089c4004",
+"vfnmadd132pd 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"6262c5089d4008",
+"vfnmadd132sd 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"6262c5089e4004",
+"vfnmsub132pd 0x40(%rax),%xmm7,%xmm24"
+],
+[
+"6262c528974002",
+"vfmsubadd132pd 0x40(%rax),%ymm7,%ymm24"
+],
+[
+"6262c528984002",
+"vfmadd132pd 0x40(%rax),%ymm7,%ymm24"
+],
+[
+"6262c5289a4002",
+"vfmsub132pd 0x40(%rax),%ymm7,%ymm24"
+],
+[
+"6262c548964001",
+"vfmaddsub132pd 0x40(%rax),%zmm7,%zmm24"
+],
+[
+"6262c548974001",
+"vfmsubadd132pd 0x40(%rax),%zmm7,%zmm24"
+],
+[
+"6262c548984001",
+"vfmadd132pd 0x40(%rax),%zmm7,%zmm24"
+],
+[
+"6262c5489a4001",
+"vfmsub132pd 0x40(%rax),%zmm7,%zmm24"
+],
+[
+"6262c5489c4001",
+"vfnmadd132pd 0x40(%rax),%zmm7,%zmm24"
+],
+[
+"6262c5489e4001",
+"vfnmsub132pd 0x40(%rax),%zmm7,%zmm24"
+],
+[
+"6262fd081f4004",
+"vpabsq 0x40(%rax),%xmm24"
+],
+[
+"6262fd081fc7",
+"vpabsq %xmm7,%xmm24"
+],
+[
+"6262fd08424004",
+"vgetexppd 0x40(%rax),%xmm24"
+],
+[
+"6262fd08444004",
+"vplzcntq 0x40(%rax),%xmm24"
+],
+[
+"6262fd084e4004",
+"vrsqrt14pd 0x40(%rax),%xmm24"
+],
+[
+"6262fd08894008",
+"vpexpandq 0x40(%rax),%xmm24"
+],
+[
+"6262fd088a4008",
+"vcompresspd %xmm24,0x40(%rax)"
+],
+[
+"6262fd088ac7",
+"vcompresspd %xmm24,%xmm7"
+],
+[
+"6262fd08c44004",
+"vpconflictq 0x40(%rax),%xmm24"
+],
+[
+"6262fd08c4c7",
+"vpconflictq %xmm7,%xmm24"
+],
+[
+"6262fd2819c7",
+"vbroadcastsd %xmm7,%ymm24"
+],
+[
+"6262fd281a4004",
+"vbroadcastf64x2 0x40(%rax),%ymm24"
+],
+[
+"6262fd2842c7",
+"vgetexppd %ymm7,%ymm24"
+],
+[
+"6262fd2844c7",
+"vplzcntq %ymm7,%ymm24"
+],
+[
+"6262fd284c4002",
+"vrcp14pd 0x40(%rax),%ymm24"
+],
+[
+"6262fd284cc7",
+"vrcp14pd %ymm7,%ymm24"
+],
+[
+"6262fd284ec7",
+"vrsqrt14pd %ymm7,%ymm24"
+],
+[
+"6262fd285a4004",
+"vbroadcasti64x2 0x40(%rax),%ymm24"
+],
+[
+"6262fd28884008",
+"vexpandpd 0x40(%rax),%ymm24"
+],
+[
+"6262fd2888c7",
+"vexpandpd %ymm7,%ymm24"
+],
+[
+"6262fd2889c7",
+"vpexpandq %ymm7,%ymm24"
+],
+[
+"6262fd288b4008",
+"vpcompressq %ymm24,0x40(%rax)"
+],
+[
+"6262fd288bc7",
+"vpcompressq %ymm24,%ymm7"
+],
+[
+"6262fd48194008",
+"vbroadcastsd 0x40(%rax),%zmm24"
+],
+[
+"6262fd4819c7",
+"vbroadcastsd %xmm7,%zmm24"
+],
+[
+"6262fd481a4004",
+"vbroadcastf64x2 0x40(%rax),%zmm24"
+],
+[
+"6262fd481b4002",
+"vbroadcastf64x4 0x40(%rax),%zmm24"
+],
+[
+"6262fd481f4001",
+"vpabsq 0x40(%rax),%zmm24"
+],
+[
+"6262fd481fc7",
+"vpabsq %zmm7,%zmm24"
+],
+[
+"6262fd48424001",
+"vgetexppd 0x40(%rax),%zmm24"
+],
+[
+"6262fd4842c7",
+"vgetexppd %zmm7,%zmm24"
+],
+[
+"6262fd4844c7",
+"vplzcntq %zmm7,%zmm24"
+],
+[
+"6262fd484c4001",
+"vrcp14pd 0x40(%rax),%zmm24"
+],
+[
+"6262fd484cc7",
+"vrcp14pd %zmm7,%zmm24"
+],
+[
+"6262fd484e4001",
+"vrsqrt14pd 0x40(%rax),%zmm24"
+],
+[
+"6262fd484ec7",
+"vrsqrt14pd %zmm7,%zmm24"
+],
+[
+"6262fd48594008",
+"vpbroadcastq 0x40(%rax),%zmm24"
+],
+[
+"6262fd485a4004",
+"vbroadcasti64x2 0x40(%rax),%zmm24"
+],
+[
+"6262fd485b4002",
+"vbroadcasti64x4 0x40(%rax),%zmm24"
+],
+[
+"6262fd48884008",
+"vexpandpd 0x40(%rax),%zmm24"
+],
+[
+"6262fd4888c7",
+"vexpandpd %zmm7,%zmm24"
+],
+[
+"6262fd48894008",
+"vpexpandq 0x40(%rax),%zmm24"
+],
+[
+"6262fd4889c7",
+"vpexpandq %zmm7,%zmm24"
+],
+[
+"6262fd488a4008",
+"vcompresspd %zmm24,0x40(%rax)"
+],
+[
+"6262fd488ac7",
+"vcompresspd %zmm24,%zmm7"
+],
+[
+"6262fd488b4008",
+"vpcompressq %zmm24,0x40(%rax)"
+],
+[
+"6262fd488bc7",
+"vpcompressq %zmm24,%zmm7"
+],
+[
+"6262fd48c44001",
+"vpconflictq 0x40(%rax),%zmm24"
+],
+[
+"6262fd48c4c7",
+"vpconflictq %zmm7,%zmm24"
+],
+[
+"6262fd48c84001",
+"vexp2pd 0x40(%rax),%zmm24"
+],
+[
+"6262fd48c8c7",
+"vexp2pd %zmm7,%zmm24"
+],
+[
+"6262fd48ca4001",
+"vrcp28pd 0x40(%rax),%zmm24"
+],
+[
+"6262fd48cac7",
+"vrcp28pd %zmm7,%zmm24"
+],
+[
+"6262fe082ac5",
+"vpbroadcastmb2q %k5,%xmm24"
+],
+[
+"6262fe2828c4",
+"vpmovm2w %k4,%ymm24"
+],
+[
+"6262fe2838c4",
+"vpmovm2q %k4,%ymm24"
+],
+[
+"6262fe4828c4",
+"vpmovm2w %k4,%zmm24"
+],
+[
+"6262fe482ac5",
+"vpbroadcastmb2q %k5,%zmm24"
+],
+[
+"6262fe4838c4",
+"vpmovm2q %k4,%zmm24"
+],
+[
+"62633d080a4010ab",
+"vrndscaless $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62633d080ac7ab",
+"vrndscaless $0xab,%xmm7,%xmm8,%xmm24"
+],
+[
+"62633d08214010ab",
+"vinsertps $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62633d08254004ab",
+"vpternlogd $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62633d08274010ab",
+"vgetmantss $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62633d0827c7ab",
+"vgetmantss $0xab,%xmm7,%xmm8,%xmm24"
+],
+[
+"62633d08424004ab",
+"vdbpsadbw $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62633d08514010ab",
+"vrangess $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62633d0851c7ab",
+"vrangess $0xab,%xmm7,%xmm8,%xmm24"
+],
+[
+"62633d08544004ab",
+"vfixupimmps $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62633d0854c7ab",
+"vfixupimmps $0xab,%xmm7,%xmm8,%xmm24"
+],
+[
+"62633d08554010ab",
+"vfixupimmss $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62633d0855c7ab",
+"vfixupimmss $0xab,%xmm7,%xmm8,%xmm24"
+],
+[
+"62633d08574010ab",
+"vreducess $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"62633d0857c7ab",
+"vreducess $0xab,%xmm7,%xmm8,%xmm24"
+],
+[
+"62633d28034002ab",
+"valignd $0xab,0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62633d2803c7ab",
+"valignd $0xab,%ymm7,%ymm8,%ymm24"
+],
+[
+"62633d280f4002ab",
+"vpalignr $0xab,0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62633d28184004ab",
+"vinsertf32x4 $0xab,0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62633d2818c7ab",
+"vinsertf32x4 $0xab,%xmm7,%ymm8,%ymm24"
+],
+[
+"62633d28234002ab",
+"vshuff32x4 $0xab,0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62633d2823c7ab",
+"vshuff32x4 $0xab,%ymm7,%ymm8,%ymm24"
+],
+[
+"62633d2825c7ab",
+"vpternlogd $0xab,%ymm7,%ymm8,%ymm24"
+],
+[
+"62633d28384004ab",
+"vinserti32x4 $0xab,0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62633d2838c7ab",
+"vinserti32x4 $0xab,%xmm7,%ymm8,%ymm24"
+],
+[
+"62633d2842c7ab",
+"vdbpsadbw $0xab,%ymm7,%ymm8,%ymm24"
+],
+[
+"62633d28434002ab",
+"vshufi32x4 $0xab,0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62633d2843c7ab",
+"vshufi32x4 $0xab,%ymm7,%ymm8,%ymm24"
+],
+[
+"62633d28504002ab",
+"vrangeps $0xab,0x40(%rax),%ymm8,%ymm24"
+],
+[
+"62633d2850c7ab",
+"vrangeps $0xab,%ymm7,%ymm8,%ymm24"
+],
+[
+"62633d48034001ab",
+"valignd $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62633d4803c7ab",
+"valignd $0xab,%zmm7,%zmm8,%zmm24"
+],
+[
+"62633d480f4001ab",
+"vpalignr $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62633d480fc7ab",
+"vpalignr $0xab,%zmm7,%zmm8,%zmm24"
+],
+[
+"62633d48184004ab",
+"vinsertf32x4 $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62633d4818c7ab",
+"vinsertf32x4 $0xab,%xmm7,%zmm8,%zmm24"
+],
+[
+"62633d481a4002ab",
+"vinsertf32x8 $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62633d481ac7ab",
+"vinsertf32x8 $0xab,%ymm7,%zmm8,%zmm24"
+],
+[
+"62633d48254001ab",
+"vpternlogd $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62633d4825c7ab",
+"vpternlogd $0xab,%zmm7,%zmm8,%zmm24"
+],
+[
+"62633d48384004ab",
+"vinserti32x4 $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62633d4838c7ab",
+"vinserti32x4 $0xab,%xmm7,%zmm8,%zmm24"
+],
+[
+"62633d483a4002ab",
+"vinserti32x8 $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62633d483ac7ab",
+"vinserti32x8 $0xab,%ymm7,%zmm8,%zmm24"
+],
+[
+"62633d48424001ab",
+"vdbpsadbw $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62633d4842c7ab",
+"vdbpsadbw $0xab,%zmm7,%zmm8,%zmm24"
+],
+[
+"62633d48504001ab",
+"vrangeps $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62633d4850c7ab",
+"vrangeps $0xab,%zmm7,%zmm8,%zmm24"
+],
+[
+"62633d48544001ab",
+"vfixupimmps $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"62633d4854c7ab",
+"vfixupimmps $0xab,%zmm7,%zmm8,%zmm24"
+],
+[
+"62637d08084004ab",
+"vrndscaleps $0xab,0x40(%rax),%xmm24"
+],
+[
+"62637d08264004ab",
+"vgetmantps $0xab,0x40(%rax),%xmm24"
+],
+[
+"62637d08564004ab",
+"vreduceps $0xab,0x40(%rax),%xmm24"
+],
+[
+"62637d0856c7ab",
+"vreduceps $0xab,%xmm7,%xmm24"
+],
+[
+"62637d2808c7ab",
+"vrndscaleps $0xab,%ymm7,%ymm24"
+],
+[
+"62637d28194004ab",
+"vextractf32x4 $0xab,%ymm24,0x40(%rax)"
+],
+[
+"62637d2819c7ab",
+"vextractf32x4 $0xab,%ymm24,%xmm7"
+],
+[
+"62637d281d400400",
+"vcvtps2ph $0x0,%ymm24,0x40(%rax)"
+],
+[
+"62637d2826c7ab",
+"vgetmantps $0xab,%ymm7,%ymm24"
+],
+[
+"62637d28394004ab",
+"vextracti32x4 $0xab,%ymm24,0x40(%rax)"
+],
+[
+"62637d2839c7ab",
+"vextracti32x4 $0xab,%ymm24,%xmm7"
+],
+[
+"62637d48084001ab",
+"vrndscaleps $0xab,0x40(%rax),%zmm24"
+],
+[
+"62637d4808c7ab",
+"vrndscaleps $0xab,%zmm7,%zmm24"
+],
+[
+"62637d48194004ab",
+"vextractf32x4 $0xab,%zmm24,0x40(%rax)"
+],
+[
+"62637d4819c7ab",
+"vextractf32x4 $0xab,%zmm24,%xmm7"
+],
+[
+"62637d481b4002ab",
+"vextractf32x8 $0xab,%zmm24,0x40(%rax)"
+],
+[
+"62637d481bc7ab",
+"vextractf32x8 $0xab,%zmm24,%ymm7"
+],
+[
+"62637d481d400201",
+"vcvtps2ph $0x1,%zmm24,0x40(%rax)"
+],
+[
+"62637d48264001ab",
+"vgetmantps $0xab,0x40(%rax),%zmm24"
+],
+[
+"62637d4826c7ab",
+"vgetmantps $0xab,%zmm7,%zmm24"
+],
+[
+"62637d48394004ab",
+"vextracti32x4 $0xab,%zmm24,0x40(%rax)"
+],
+[
+"62637d4839c7ab",
+"vextracti32x4 $0xab,%zmm24,%xmm7"
+],
+[
+"62637d483b4002ab",
+"vextracti32x8 $0xab,%zmm24,0x40(%rax)"
+],
+[
+"62637d483bc7ab",
+"vextracti32x8 $0xab,%zmm24,%ymm7"
+],
+[
+"62637d48564001ab",
+"vreduceps $0xab,0x40(%rax),%zmm24"
+],
+[
+"62637d4856c7ab",
+"vreduceps $0xab,%zmm7,%zmm24"
+],
+[
+"6263bd08034004ab",
+"valignq $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6263bd080b4008ab",
+"vrndscalesd $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6263bd080bc7ab",
+"vrndscalesd $0xab,%xmm7,%xmm8,%xmm24"
+],
+[
+"6263bd0822400801",
+"vpinsrq $0x1,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6263bd08274008ab",
+"vgetmantsd $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6263bd0827c7ab",
+"vgetmantsd $0xab,%xmm7,%xmm8,%xmm24"
+],
+[
+"6263bd08504004ab",
+"vrangepd $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6263bd08514008ab",
+"vrangesd $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6263bd0851c7ab",
+"vrangesd $0xab,%xmm7,%xmm8,%xmm24"
+],
+[
+"6263bd08544004ab",
+"vfixupimmpd $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6263bd0854c7ab",
+"vfixupimmpd $0xab,%xmm7,%xmm8,%xmm24"
+],
+[
+"6263bd08554008ab",
+"vfixupimmsd $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6263bd0855c7ab",
+"vfixupimmsd $0xab,%xmm7,%xmm8,%xmm24"
+],
+[
+"6263bd08574008ab",
+"vreducesd $0xab,0x40(%rax),%xmm8,%xmm24"
+],
+[
+"6263bd0857c7ab",
+"vreducesd $0xab,%xmm7,%xmm8,%xmm24"
+],
+[
+"6263bd2803c7ab",
+"valignq $0xab,%ymm7,%ymm8,%ymm24"
+],
+[
+"6263bd28184004ab",
+"vinsertf64x2 $0xab,0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6263bd2818c7ab",
+"vinsertf64x2 $0xab,%xmm7,%ymm8,%ymm24"
+],
+[
+"6263bd28234002ab",
+"vshuff64x2 $0xab,0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6263bd2823c7ab",
+"vshuff64x2 $0xab,%ymm7,%ymm8,%ymm24"
+],
+[
+"6263bd28254002ab",
+"vpternlogq $0xab,0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6263bd2825c7ab",
+"vpternlogq $0xab,%ymm7,%ymm8,%ymm24"
+],
+[
+"6263bd28384004ab",
+"vinserti64x2 $0xab,0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6263bd2838c7ab",
+"vinserti64x2 $0xab,%xmm7,%ymm8,%ymm24"
+],
+[
+"6263bd28434002ab",
+"vshufi64x2 $0xab,0x40(%rax),%ymm8,%ymm24"
+],
+[
+"6263bd2843c7ab",
+"vshufi64x2 $0xab,%ymm7,%ymm8,%ymm24"
+],
+[
+"6263bd2850c7ab",
+"vrangepd $0xab,%ymm7,%ymm8,%ymm24"
+],
+[
+"6263bd48034001ab",
+"valignq $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6263bd4803c7ab",
+"valignq $0xab,%zmm7,%zmm8,%zmm24"
+],
+[
+"6263bd48184004ab",
+"vinsertf64x2 $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6263bd4818c7ab",
+"vinsertf64x2 $0xab,%xmm7,%zmm8,%zmm24"
+],
+[
+"6263bd481a4002ab",
+"vinsertf64x4 $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6263bd481ac7ab",
+"vinsertf64x4 $0xab,%ymm7,%zmm8,%zmm24"
+],
+[
+"6263bd48254001ab",
+"vpternlogq $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6263bd4825c7ab",
+"vpternlogq $0xab,%zmm7,%zmm8,%zmm24"
+],
+[
+"6263bd48384004ab",
+"vinserti64x2 $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6263bd4838c7ab",
+"vinserti64x2 $0xab,%xmm7,%zmm8,%zmm24"
+],
+[
+"6263bd483a4002ab",
+"vinserti64x4 $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6263bd483ac7ab",
+"vinserti64x4 $0xab,%ymm7,%zmm8,%zmm24"
+],
+[
+"6263bd48504001ab",
+"vrangepd $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6263bd4850c7ab",
+"vrangepd $0xab,%zmm7,%zmm8,%zmm24"
+],
+[
+"6263bd48544001ab",
+"vfixupimmpd $0xab,0x40(%rax),%zmm8,%zmm24"
+],
+[
+"6263bd4854c7ab",
+"vfixupimmpd $0xab,%zmm7,%zmm8,%zmm24"
+],
+[
+"6263fd08094004ab",
+"vrndscalepd $0xab,0x40(%rax),%xmm24"
+],
+[
+"6263fd0809c7ab",
+"vrndscalepd $0xab,%xmm7,%xmm24"
+],
+[
+"6263fd0826c7ab",
+"vgetmantpd $0xab,%xmm7,%xmm24"
+],
+[
+"6263fd28014002ab",
+"vpermpd $0xab,0x40(%rax),%ymm24"
+],
+[
+"6263fd28194004ab",
+"vextractf64x2 $0xab,%ymm24,0x40(%rax)"
+],
+[
+"6263fd2819c7ab",
+"vextractf64x2 $0xab,%ymm24,%xmm7"
+],
+[
+"6263fd28264002ab",
+"vgetmantpd $0xab,0x40(%rax),%ymm24"
+],
+[
+"6263fd28394004ab",
+"vextracti64x2 $0xab,%ymm24,0x40(%rax)"
+],
+[
+"6263fd2839c7ab",
+"vextracti64x2 $0xab,%ymm24,%xmm7"
+],
+[
+"6263fd28564002ab",
+"vreducepd $0xab,0x40(%rax),%ymm24"
+],
+[
+"6263fd2856c7ab",
+"vreducepd $0xab,%ymm7,%ymm24"
+],
+[
+"6263fd48054001ab",
+"vpermilpd $0xab,0x40(%rax),%zmm24"
+],
+[
+"6263fd48094001ab",
+"vrndscalepd $0xab,0x40(%rax),%zmm24"
+],
+[
+"6263fd4809c7ab",
+"vrndscalepd $0xab,%zmm7,%zmm24"
+],
+[
+"6263fd48194004ab",
+"vextractf64x2 $0xab,%zmm24,0x40(%rax)"
+],
+[
+"6263fd4819c7ab",
+"vextractf64x2 $0xab,%zmm24,%xmm7"
+],
+[
+"6263fd481b4002ab",
+"vextractf64x4 $0xab,%zmm24,0x40(%rax)"
+],
+[
+"6263fd481bc7ab",
+"vextractf64x4 $0xab,%zmm24,%ymm7"
+],
+[
+"6263fd48264001ab",
+"vgetmantpd $0xab,0x40(%rax),%zmm24"
+],
+[
+"6263fd4826c7ab",
+"vgetmantpd $0xab,%zmm7,%zmm24"
+],
+[
+"6263fd48394004ab",
+"vextracti64x2 $0xab,%zmm24,0x40(%rax)"
+],
+[
+"6263fd4839c7ab",
+"vextracti64x2 $0xab,%zmm24,%xmm7"
+],
+[
+"6263fd483b4002ab",
+"vextracti64x4 $0xab,%zmm24,0x40(%rax)"
+],
+[
+"6263fd483bc7ab",
+"vextracti64x4 $0xab,%zmm24,%ymm7"
+],
+[
+"6263fd48564001ab",
+"vreducepd $0xab,0x40(%rax),%zmm24"
+],
+[
+"6263fd4856c7ab",
+"vreducepd $0xab,%zmm7,%zmm24"
+],
+[
+"62713c40144001",
+"vunpcklps 0x40(%rax),%zmm24,%zmm8"
+],
+[
+"62713c40154001",
+"vunpckhps 0x40(%rax),%zmm24,%zmm8"
+],
+[
+"62713d40624001",
+"vpunpckldq 0x40(%rax),%zmm24,%zmm8"
+],
+[
+"62713d406a4001",
+"vpunpckhdq 0x40(%rax),%zmm24,%zmm8"
+],
+[
+"62713d40e24004",
+"vpsrad 0x40(%rax),%zmm24,%zmm8"
+],
+[
+"62713e002a4010",
+"vcvtsi2ssl 0x40(%rax),%xmm24,%xmm8"
+],
+[
+"6271bd40144001",
+"vunpcklpd 0x40(%rax),%zmm24,%zmm8"
+],
+[
+"6271bd40154001",
+"vunpckhpd 0x40(%rax),%zmm24,%zmm8"
+],
+[
+"6271bd406c4001",
+"vpunpcklqdq 0x40(%rax),%zmm24,%zmm8"
+],
+[
+"6271bd406d4001",
+"vpunpckhqdq 0x40(%rax),%zmm24,%zmm8"
+],
+[
+"6271fe08787010",
+"vcvttss2usi 0x40(%rax),%r14"
+],
+[
+"6271fe0878f7",
+"vcvttss2usi %xmm7,%r14"
+],
+[
+"6271fe08797010",
+"vcvtss2usi 0x40(%rax),%r14"
+],
+[
+"6271fe0879f7",
+"vcvtss2usi %xmm7,%r14"
+],
+[
+"6271ff08787008",
+"vcvttsd2usi 0x40(%rax),%r14"
+],
+[
+"6271ff0878f7",
+"vcvttsd2usi %xmm7,%r14"
+],
+[
+"6271ff08797008",
+"vcvtsd2usi 0x40(%rax),%r14"
+],
+[
+"6271ff0879f7",
+"vcvtsd2usi %xmm7,%r14"
+],
+[
+"6272bd40364001",
+"vpermq 0x40(%rax),%zmm24,%zmm8"
+],
+[
+"62733d40234001ba",
+"vshuff32x4 $0xba,0x40(%rax),%zmm24,%zmm8"
+],
+[
+"62733d40434001ba",
+"vshufi32x4 $0xba,0x40(%rax),%zmm24,%zmm8"
+],
+[
+"6273bd40234001ba",
+"vshuff64x2 $0xba,0x40(%rax),%zmm24,%zmm8"
+],
+[
+"6273bd40434001ba",
+"vshufi64x2 $0xba,0x40(%rax),%zmm24,%zmm8"
+],
+[
+"62913c4814f8",
+"vunpcklps %zmm24,%zmm8,%zmm7"
+],
+[
+"62913c4815f8",
+"vunpckhps %zmm24,%zmm8,%zmm7"
+],
+[
+"62913d4862f8",
+"vpunpckldq %zmm24,%zmm8,%zmm7"
+],
+[
+"62913d486af8",
+"vpunpckhdq %zmm24,%zmm8,%zmm7"
+],
+[
+"62913d4876e0",
+"vpcmpeqd %zmm24,%zmm8,%k4"
+],
+[
+"62917d486ff8",
+"vmovdqa32 %zmm24,%zmm7"
+],
+[
+"62917e486ff8",
+"vmovdqu32 %zmm24,%zmm7"
+],
+[
+"62917f286ff8",
+"vmovdqu8 %ymm24,%ymm7"
+],
+[
+"62917f486ff8",
+"vmovdqu8 %zmm24,%zmm7"
+],
+[
+"6291bd4814f8",
+"vunpcklpd %zmm24,%zmm8,%zmm7"
+],
+[
+"6291bd4815f8",
+"vunpckhpd %zmm24,%zmm8,%zmm7"
+],
+[
+"6291bd486cf8",
+"vpunpcklqdq %zmm24,%zmm8,%zmm7"
+],
+[
+"6291bd486df8",
+"vpunpckhqdq %zmm24,%zmm8,%zmm7"
+],
+[
+"6291fd0810f8",
+"vmovupd %xmm24,%xmm7"
+],
+[
+"6291fd286ff8",
+"vmovdqa64 %ymm24,%ymm7"
+],
+[
+"6291fd4810f8",
+"vmovupd %zmm24,%zmm7"
+],
+[
+"6291fd4828f8",
+"vmovapd %zmm24,%zmm7"
+],
+[
+"6291ff486ff8",
+"vmovdqu16 %zmm24,%zmm7"
+],
+[
+"6292bd4829e0",
+"vpcmpeqq %zmm24,%zmm8,%k4"
+],
+[
+"6292bd4837e0",
+"vpcmpgtq %zmm24,%zmm8,%k4"
+],
+[
+"62933d4823f87c",
+"vshuff32x4 $0x7c,%zmm24,%zmm8,%zmm7"
+],
+[
+"62933d4843f87c",
+"vshufi32x4 $0x7c,%zmm24,%zmm8,%zmm7"
+],
+[
+"62937d281df802",
+"vcvtps2ph $0x2,%ymm7,%xmm24"
+],
+[
+"62937d481df800",
+"vcvtps2ph $0x0,%zmm7,%ymm24"
+],
+[
+"6293bd4823f87c",
+"vshuff64x2 $0x7c,%zmm24,%zmm8,%zmm7"
+],
+[
+"6293bd4843f87c",
+"vshufi64x2 $0x7c,%zmm24,%zmm8,%zmm7"
+],
+[
+"62b13d2872f219",
+"vpslld $0x19,%ymm18,%ymm8"
+],
+[
+"62b1452864ea",
+"vpcmpgtb %ymm18,%ymm7,%k5"
+],
+[
+"62b1452865ea",
+"vpcmpgtw %ymm18,%ymm7,%k5"
+],
+[
+"62b1454864ea",
+"vpcmpgtb %zmm18,%zmm7,%k5"
+],
+[
+"62b1454865ea",
+"vpcmpgtw %zmm18,%zmm7,%k5"
+],
+[
+"62b1bd48c2e204",
+"vcmpneqpd %zmm18,%zmm8,%k4"
+],
+[
+"62b1ed4073f23a",
+"vpsllq $0x3a,%zmm18,%zmm18"
+],
+[
+"62b23d4847fa",
+"vpsllvd %zmm18,%zmm8,%zmm7"
+],
+[
+"62b23e4827e2",
+"vptestnmd %zmm18,%zmm8,%k4"
+],
+[
+"62b2bd4847fa",
+"vpsllvq %zmm18,%zmm8,%zmm7"
+],
+[
+"62b33d481ee200",
+"vpcmpequd %zmm18,%zmm8,%k4"
+],
+[
+"62b33d481ee201",
+"vpcmpltud %zmm18,%zmm8,%k4"
+],
+[
+"62b33d481ee202",
+"vpcmpleud %zmm18,%zmm8,%k4"
+],
+[
+"62b33d481ee205",
+"vpcmpnltud %zmm18,%zmm8,%k4"
+],
+[
+"62b33d481fe201",
+"vpcmpltd %zmm18,%zmm8,%k4"
+],
+[
+"62b3bd481ee202",
+"vpcmpleuq %zmm18,%zmm8,%k4"
+],
+[
+"62b3bd481fe206",
+"vpcmpnleq %zmm18,%zmm8,%k4"
+],
+[
+"62d13c40c2e000",
+"vcmpeqps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e001",
+"vcmpltps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e002",
+"vcmpleps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e003",
+"vcmpunordps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e004",
+"vcmpneqps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e005",
+"vcmpnltps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e006",
+"vcmpnleps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e007",
+"vcmpordps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e008",
+"vcmpeq_uqps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e009",
+"vcmpngeps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e00a",
+"vcmpngtps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e00b",
+"vcmpfalseps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e00c",
+"vcmpneq_oqps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e00d",
+"vcmpgeps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e00e",
+"vcmpgtps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e00f",
+"vcmptrueps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e010",
+"vcmpeq_osps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e011",
+"vcmplt_oqps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e012",
+"vcmple_oqps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e013",
+"vcmpunord_sps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e014",
+"vcmpneq_usps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e015",
+"vcmpnlt_uqps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e016",
+"vcmpnle_uqps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e017",
+"vcmpord_sps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e018",
+"vcmpeq_usps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e019",
+"vcmpnge_uqps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e01a",
+"vcmpngt_uqps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e01b",
+"vcmpfalse_osps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e01c",
+"vcmpneq_osps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e01d",
+"vcmpge_oqps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e01e",
+"vcmpgt_oqps %zmm8,%zmm24,%k4"
+],
+[
+"62d13c40c2e01f",
+"vcmptrue_usps %zmm8,%zmm24,%k4"
+],
+[
+"62d13e00c2e000",
+"vcmpeqss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e001",
+"vcmpltss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e002",
+"vcmpless %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e003",
+"vcmpunordss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e004",
+"vcmpneqss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e005",
+"vcmpnltss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e006",
+"vcmpnless %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e007",
+"vcmpordss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e008",
+"vcmpeq_uqss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e00a",
+"vcmpngtss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e00b",
+"vcmpfalsess %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e00c",
+"vcmpneq_oqss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e00d",
+"vcmpgess %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e00e",
+"vcmpgtss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e00f",
+"vcmptruess %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e010",
+"vcmpeq_osss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e011",
+"vcmplt_oqss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e012",
+"vcmple_oqss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e013",
+"vcmpunord_sss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e014",
+"vcmpneq_usss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e015",
+"vcmpnlt_uqss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e016",
+"vcmpnle_uqss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e017",
+"vcmpord_sss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e018",
+"vcmpeq_usss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e019",
+"vcmpnge_uqss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e01a",
+"vcmpngt_uqss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e01b",
+"vcmpfalse_osss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e01c",
+"vcmpneq_osss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e01d",
+"vcmpge_oqss %xmm8,%xmm24,%k4"
+],
+[
+"62d13e00c2e01f",
+"vcmptrue_usss %xmm8,%xmm24,%k4"
+],
+[
+"62d1bd40c2e000",
+"vcmpeqpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e001",
+"vcmpltpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e002",
+"vcmplepd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e003",
+"vcmpunordpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e005",
+"vcmpnltpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e006",
+"vcmpnlepd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e007",
+"vcmpordpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e008",
+"vcmpeq_uqpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e009",
+"vcmpngepd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e00a",
+"vcmpngtpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e00b",
+"vcmpfalsepd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e00c",
+"vcmpneq_oqpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e00d",
+"vcmpgepd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e00e",
+"vcmpgtpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e00f",
+"vcmptruepd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e010",
+"vcmpeq_ospd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e011",
+"vcmplt_oqpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e012",
+"vcmple_oqpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e013",
+"vcmpunord_spd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e014",
+"vcmpneq_uspd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e015",
+"vcmpnlt_uqpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e016",
+"vcmpnle_uqpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e017",
+"vcmpord_spd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e018",
+"vcmpeq_uspd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e019",
+"vcmpnge_uqpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e01a",
+"vcmpngt_uqpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e01b",
+"vcmpfalse_ospd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e01c",
+"vcmpneq_ospd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e01d",
+"vcmpge_oqpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e01e",
+"vcmpgt_oqpd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bd40c2e01f",
+"vcmptrue_uspd %zmm8,%zmm24,%k4"
+],
+[
+"62d1bf00c2e000",
+"vcmpeqsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e001",
+"vcmpltsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e002",
+"vcmplesd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e003",
+"vcmpunordsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e004",
+"vcmpneqsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e005",
+"vcmpnltsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e006",
+"vcmpnlesd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e007",
+"vcmpordsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e008",
+"vcmpeq_uqsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e00a",
+"vcmpngtsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e00b",
+"vcmpfalsesd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e00c",
+"vcmpneq_oqsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e00d",
+"vcmpgesd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e00e",
+"vcmpgtsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e00f",
+"vcmptruesd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e010",
+"vcmpeq_ossd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e011",
+"vcmplt_oqsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e012",
+"vcmple_oqsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e013",
+"vcmpunord_ssd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e014",
+"vcmpneq_ussd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e015",
+"vcmpnlt_uqsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e016",
+"vcmpnle_uqsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e017",
+"vcmpord_ssd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e018",
+"vcmpeq_ussd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e019",
+"vcmpnge_uqsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e01a",
+"vcmpngt_uqsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e01b",
+"vcmpfalse_ossd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e01c",
+"vcmpneq_ossd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e01d",
+"vcmpge_oqsd %xmm8,%xmm24,%k4"
+],
+[
+"62d1bf00c2e01f",
+"vcmptrue_ussd %xmm8,%xmm24,%k4"
+],
+[
+"62e1fd082e5008",
+"vucomisd 0x40(%rax),%xmm18"
+],
+[
+"62f13c08c260040b",
+"vcmpfalseps 0x40(%rax),%xmm8,%k4"
+],
+[
+"62f13c08c26004ab",
+"vcmpps $0xab,0x40(%rax),%xmm8,%k4"
+],
+[
+"62f13c28c2e70b",
+"vcmpfalseps %ymm7,%ymm8,%k4"
+],
+[
+"62f13c28c2e7ab",
+"vcmpps $0xab,%ymm7,%ymm8,%k4"
+],
+[
+"62f13c40c2600100",
+"vcmpeqps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600101",
+"vcmpltps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600102",
+"vcmpleps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600103",
+"vcmpunordps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600104",
+"vcmpneqps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600105",
+"vcmpnltps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600106",
+"vcmpnleps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600107",
+"vcmpordps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600108",
+"vcmpeq_uqps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600109",
+"vcmpngeps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c260010a",
+"vcmpngtps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c260010b",
+"vcmpfalseps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c260010c",
+"vcmpneq_oqps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c260010d",
+"vcmpgeps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c260010e",
+"vcmpgtps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c260010f",
+"vcmptrueps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600110",
+"vcmpeq_osps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600111",
+"vcmplt_oqps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600112",
+"vcmple_oqps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600113",
+"vcmpunord_sps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600114",
+"vcmpneq_usps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600115",
+"vcmpnlt_uqps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600116",
+"vcmpnle_uqps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600117",
+"vcmpord_sps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600118",
+"vcmpeq_usps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c2600119",
+"vcmpnge_uqps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c260011a",
+"vcmpngt_uqps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c260011b",
+"vcmpfalse_osps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c260011c",
+"vcmpneq_osps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c260011d",
+"vcmpge_oqps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c260011e",
+"vcmpgt_oqps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c40c260011f",
+"vcmptrue_usps 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13c48c26001ab",
+"vcmpps $0xab,0x40(%rax),%zmm8,%k4"
+],
+[
+"62f13c48c2e7ab",
+"vcmpps $0xab,%zmm7,%zmm8,%k4"
+],
+[
+"62f13d0071d708",
+"vpsrlw $0x8,%xmm7,%xmm24"
+],
+[
+"62f13d08666004",
+"vpcmpgtd 0x40(%rax),%xmm8,%k4"
+],
+[
+"62f13d0874ef",
+"vpcmpeqb %xmm7,%xmm8,%k5"
+],
+[
+"62f13d0876ef",
+"vpcmpeqd %xmm7,%xmm8,%k5"
+],
+[
+"62f13d2071500208",
+"vpsrlw $0x8,0x40(%rax),%ymm24"
+],
+[
+"62f13d2073580280",
+"vpsrldq $0x80,0x40(%rax),%ymm24"
+],
+[
+"62f13d2073780208",
+"vpslldq $0x8,0x40(%rax),%ymm24"
+],
+[
+"62f13d2866e7",
+"vpcmpgtd %ymm7,%ymm8,%k4"
+],
+[
+"62f13d28716002ab",
+"{evex} vpsraw $0xab,0x40(%rax),%ymm8"
+],
+[
+"62f13d28746802",
+"vpcmpeqb 0x40(%rax),%ymm8,%k5"
+],
+[
+"62f13d28756802",
+"vpcmpeqw 0x40(%rax),%ymm8,%k5"
+],
+[
+"62f13d2875ef",
+"vpcmpeqw %ymm7,%ymm8,%k5"
+],
+[
+"62f13d28766802",
+"vpcmpeqd 0x40(%rax),%ymm8,%k5"
+],
+[
+"62f13d40666001",
+"vpcmpgtd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13d4071500108",
+"vpsrlw $0x8,0x40(%rax),%zmm24"
+],
+[
+"62f13d4071700180",
+"vpsllw $0x80,0x40(%rax),%zmm24"
+],
+[
+"62f13d4073580108",
+"vpsrldq $0x8,0x40(%rax),%zmm24"
+],
+[
+"62f13d4073df80",
+"vpsrldq $0x80,%zmm7,%zmm24"
+],
+[
+"62f13d40766001",
+"vpcmpeqd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f13d4866e7",
+"vpcmpgtd %zmm7,%zmm8,%k4"
+],
+[
+"62f13d48716001ab",
+"vpsraw $0xab,0x40(%rax),%zmm8"
+],
+[
+"62f13d4871e7ab",
+"vpsraw $0xab,%zmm7,%zmm8"
+],
+[
+"62f13d4871f7ab",
+"vpsllw $0xab,%zmm7,%zmm8"
+],
+[
+"62f13d48737801ab",
+"vpslldq $0xab,0x40(%rax),%zmm8"
+],
+[
+"62f13d4873ffab",
+"vpslldq $0xab,%zmm7,%zmm8"
+],
+[
+"62f13d48746801",
+"vpcmpeqb 0x40(%rax),%zmm8,%k5"
+],
+[
+"62f13d4874ef",
+"vpcmpeqb %zmm7,%zmm8,%k5"
+],
+[
+"62f13d48756801",
+"vpcmpeqw 0x40(%rax),%zmm8,%k5"
+],
+[
+"62f13d4875ef",
+"vpcmpeqw %zmm7,%zmm8,%k5"
+],
+[
+"62f13e00c2601000",
+"vcmpeqss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601001",
+"vcmpltss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601002",
+"vcmpless 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601003",
+"vcmpunordss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601004",
+"vcmpneqss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601005",
+"vcmpnltss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601006",
+"vcmpnless 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601007",
+"vcmpordss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601008",
+"vcmpeq_uqss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c260100a",
+"vcmpngtss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c260100b",
+"vcmpfalsess 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c260100c",
+"vcmpneq_oqss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c260100d",
+"vcmpgess 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c260100e",
+"vcmpgtss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c260100f",
+"vcmptruess 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601010",
+"vcmpeq_osss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601011",
+"vcmplt_oqss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601012",
+"vcmple_oqss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601013",
+"vcmpunord_sss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601014",
+"vcmpneq_usss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601015",
+"vcmpnlt_uqss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601016",
+"vcmpnle_uqss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601017",
+"vcmpord_sss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601018",
+"vcmpeq_usss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c2601019",
+"vcmpnge_uqss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c260101a",
+"vcmpngt_uqss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c260101b",
+"vcmpfalse_osss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c260101c",
+"vcmpneq_osss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c260101d",
+"vcmpge_oqss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e00c260101f",
+"vcmptrue_usss 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f13e08c26810ab",
+"vcmpss $0xab,0x40(%rax),%xmm8,%k5"
+],
+[
+"62f13e08c2efab",
+"vcmpss $0xab,%xmm7,%xmm8,%k5"
+],
+[
+"62f16d00724804ab",
+"vprold $0xab,0x40(%rax),%xmm18"
+],
+[
+"62f16d0072500408",
+"vpsrld $0x8,0x40(%rax),%xmm18"
+],
+[
+"62f16d0072700408",
+"vpslld $0x8,0x40(%rax),%xmm18"
+],
+[
+"62f16d0072cfab",
+"vprold $0xab,%xmm7,%xmm18"
+],
+[
+"62f16d20646802",
+"vpcmpgtb 0x40(%rax),%ymm18,%k5"
+],
+[
+"62f16d20656802",
+"vpcmpgtw 0x40(%rax),%ymm18,%k5"
+],
+[
+"62f16d20724002ab",
+"vprord $0xab,0x40(%rax),%ymm18"
+],
+[
+"62f16d20726002ab",
+"vpsrad $0xab,0x40(%rax),%ymm18"
+],
+[
+"62f16d2072c708",
+"vprord $0x8,%ymm7,%ymm18"
+],
+[
+"62f16d40646801",
+"vpcmpgtb 0x40(%rax),%zmm18,%k5"
+],
+[
+"62f16d40656801",
+"vpcmpgtw 0x40(%rax),%zmm18,%k5"
+],
+[
+"62f16d4072400108",
+"vprord $0x8,0x40(%rax),%zmm18"
+],
+[
+"62f16d4072480108",
+"vprold $0x8,0x40(%rax),%zmm18"
+],
+[
+"62f16d4072500108",
+"vpsrld $0x8,0x40(%rax),%zmm18"
+],
+[
+"62f16d4072700108",
+"vpslld $0x8,0x40(%rax),%zmm18"
+],
+[
+"62f16d4072c708",
+"vprord $0x8,%zmm7,%zmm18"
+],
+[
+"62f16d4072cf08",
+"vprold $0x8,%zmm7,%zmm18"
+],
+[
+"62f16d4072e708",
+"vpsrad $0x8,%zmm7,%zmm18"
+],
+[
+"62f16d4072f708",
+"vpslld $0x8,%zmm7,%zmm18"
+],
+[
+"62f1bd08c260040b",
+"vcmpfalsepd 0x40(%rax),%xmm8,%k4"
+],
+[
+"62f1bd08c2ef0b",
+"vcmpfalsepd %xmm7,%xmm8,%k5"
+],
+[
+"62f1bd28c26802ab",
+"vcmppd $0xab,0x40(%rax),%ymm8,%k5"
+],
+[
+"62f1bd28c2e7ab",
+"vcmppd $0xab,%ymm7,%ymm8,%k4"
+],
+[
+"62f1bd4072480108",
+"vprolq $0x8,0x40(%rax),%zmm24"
+],
+[
+"62f1bd4072600180",
+"vpsraq $0x80,0x40(%rax),%zmm24"
+],
+[
+"62f1bd4072cf08",
+"vprolq $0x8,%zmm7,%zmm24"
+],
+[
+"62f1bd4072e780",
+"vpsraq $0x80,%zmm7,%zmm24"
+],
+[
+"62f1bd4073500108",
+"vpsrlq $0x8,0x40(%rax),%zmm24"
+],
+[
+"62f1bd4073d7ab",
+"vpsrlq $0xab,%zmm7,%zmm24"
+],
+[
+"62f1bd40c2600100",
+"vcmpeqpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600101",
+"vcmpltpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600102",
+"vcmplepd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600103",
+"vcmpunordpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600104",
+"vcmpneqpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600105",
+"vcmpnltpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600106",
+"vcmpnlepd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600107",
+"vcmpordpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600108",
+"vcmpeq_uqpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600109",
+"vcmpngepd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c260010a",
+"vcmpngtpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c260010c",
+"vcmpneq_oqpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c260010d",
+"vcmpgepd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c260010e",
+"vcmpgtpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c260010f",
+"vcmptruepd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600110",
+"vcmpeq_ospd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600111",
+"vcmplt_oqpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600112",
+"vcmple_oqpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600113",
+"vcmpunord_spd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600114",
+"vcmpneq_uspd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600115",
+"vcmpnlt_uqpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600116",
+"vcmpnle_uqpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600117",
+"vcmpord_spd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600118",
+"vcmpeq_uspd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c2600119",
+"vcmpnge_uqpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c260011a",
+"vcmpngt_uqpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c260011b",
+"vcmpfalse_ospd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c260011c",
+"vcmpneq_ospd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c260011d",
+"vcmpge_oqpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c260011e",
+"vcmpgt_oqpd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd40c260011f",
+"vcmptrue_uspd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f1bd48c268010b",
+"vcmpfalsepd 0x40(%rax),%zmm8,%k5"
+],
+[
+"62f1bd48c26801ab",
+"vcmppd $0xab,0x40(%rax),%zmm8,%k5"
+],
+[
+"62f1bd48c2efab",
+"vcmppd $0xab,%zmm7,%zmm8,%k5"
+],
+[
+"62f1bf00c2600800",
+"vcmpeqsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600801",
+"vcmpltsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600802",
+"vcmplesd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600803",
+"vcmpunordsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600804",
+"vcmpneqsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600805",
+"vcmpnltsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600806",
+"vcmpnlesd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600807",
+"vcmpordsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600808",
+"vcmpeq_uqsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c260080a",
+"vcmpngtsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c260080c",
+"vcmpneq_oqsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c260080d",
+"vcmpgesd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c260080e",
+"vcmpgtsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c260080f",
+"vcmptruesd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600810",
+"vcmpeq_ossd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600811",
+"vcmplt_oqsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600812",
+"vcmple_oqsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600813",
+"vcmpunord_ssd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600814",
+"vcmpneq_ussd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600815",
+"vcmpnlt_uqsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600816",
+"vcmpnle_uqsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600817",
+"vcmpord_ssd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600818",
+"vcmpeq_ussd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c2600819",
+"vcmpnge_uqsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c260081a",
+"vcmpngt_uqsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c260081b",
+"vcmpfalse_ossd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c260081c",
+"vcmpneq_ossd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c260081d",
+"vcmpge_oqsd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf00c260081f",
+"vcmptrue_ussd 0x40(%rax),%xmm24,%k4"
+],
+[
+"62f1bf08c260080b",
+"vcmpfalsesd 0x40(%rax),%xmm8,%k4"
+],
+[
+"62f1bf08c26008ab",
+"vcmpsd $0xab,0x40(%rax),%xmm8,%k4"
+],
+[
+"62f1bf08c2e7ab",
+"vcmpsd $0xab,%xmm7,%xmm8,%k4"
+],
+[
+"62f1ed00724804ab",
+"vprolq $0xab,0x40(%rax),%xmm18"
+],
+[
+"62f1ed0073d7ab",
+"vpsrlq $0xab,%xmm7,%xmm18"
+],
+[
+"62f1ed2072400208",
+"vprorq $0x8,0x40(%rax),%ymm18"
+],
+[
+"62f1ed20726002ab",
+"vpsraq $0xab,0x40(%rax),%ymm18"
+],
+[
+"62f1ed2072c7ab",
+"vprorq $0xab,%ymm7,%ymm18"
+],
+[
+"62f1ed2072cfab",
+"vprolq $0xab,%ymm7,%ymm18"
+],
+[
+"62f1ed2072e7ab",
+"vpsraq $0xab,%ymm7,%ymm18"
+],
+[
+"62f1ed2073700208",
+"vpsllq $0x8,0x40(%rax),%ymm18"
+],
+[
+"62f1ed40724001ab",
+"vprorq $0xab,0x40(%rax),%zmm18"
+],
+[
+"62f1ed4072c7ab",
+"vprorq $0xab,%zmm7,%zmm18"
+],
+[
+"62f23d28266802",
+"vptestmb 0x40(%rax),%ymm8,%k5"
+],
+[
+"62f23d2826ef",
+"vptestmb %ymm7,%ymm8,%k5"
+],
+[
+"62f23d28276802",
+"vptestmd 0x40(%rax),%ymm8,%k5"
+],
+[
+"62f23d2827ef",
+"vptestmd %ymm7,%ymm8,%k5"
+],
+[
+"62f23d48266801",
+"vptestmb 0x40(%rax),%zmm8,%k5"
+],
+[
+"62f23d4826ef",
+"vptestmb %zmm7,%zmm8,%k5"
+],
+[
+"62f23d48276801",
+"vptestmd 0x40(%rax),%zmm8,%k5"
+],
+[
+"62f23d4827ef",
+"vptestmd %zmm7,%zmm8,%k5"
+],
+[
+"62f23d48477801",
+"vpsllvd 0x40(%rax),%zmm8,%zmm7"
+],
+[
+"62f23e0826ef",
+"vptestnmb %xmm7,%xmm8,%k5"
+],
+[
+"62f23e08276804",
+"vptestnmd 0x40(%rax),%xmm8,%k5"
+],
+[
+"62f23e28266802",
+"vptestnmb 0x40(%rax),%ymm8,%k5"
+],
+[
+"62f23e2827ef",
+"vptestnmd %ymm7,%ymm8,%k5"
+],
+[
+"62f23e40276001",
+"vptestnmd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f23e48266801",
+"vptestnmb 0x40(%rax),%zmm8,%k5"
+],
+[
+"62f23e4826ef",
+"vptestnmb %zmm7,%zmm8,%k5"
+],
+[
+"62f27e0829ef",
+"vpmovb2m %xmm7,%k5"
+],
+[
+"62f27e0839ef",
+"vpmovd2m %xmm7,%k5"
+],
+[
+"62f27e4829ef",
+"vpmovb2m %zmm7,%k5"
+],
+[
+"62f27e4839ef",
+"vpmovd2m %zmm7,%k5"
+],
+[
+"62f2bd08296804",
+"vpcmpeqq 0x40(%rax),%xmm8,%k5"
+],
+[
+"62f2bd08376804",
+"vpcmpgtq 0x40(%rax),%xmm8,%k5"
+],
+[
+"62f2bd28266802",
+"vptestmw 0x40(%rax),%ymm8,%k5"
+],
+[
+"62f2bd2826ef",
+"vptestmw %ymm7,%ymm8,%k5"
+],
+[
+"62f2bd28276802",
+"vptestmq 0x40(%rax),%ymm8,%k5"
+],
+[
+"62f2bd2827ef",
+"vptestmq %ymm7,%ymm8,%k5"
+],
+[
+"62f2bd2829ef",
+"vpcmpeqq %ymm7,%ymm8,%k5"
+],
+[
+"62f2bd2837ef",
+"vpcmpgtq %ymm7,%ymm8,%k5"
+],
+[
+"62f2bd40276001",
+"vptestmq 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f2bd40296001",
+"vpcmpeqq 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f2bd40376001",
+"vpcmpgtq 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f2bd48266801",
+"vptestmw 0x40(%rax),%zmm8,%k5"
+],
+[
+"62f2bd4826ef",
+"vptestmw %zmm7,%zmm8,%k5"
+],
+[
+"62f2bd4827ef",
+"vptestmq %zmm7,%zmm8,%k5"
+],
+[
+"62f2bd48467801",
+"vpsravq 0x40(%rax),%zmm8,%zmm7"
+],
+[
+"62f2bd48477801",
+"vpsllvq 0x40(%rax),%zmm8,%zmm7"
+],
+[
+"62f2be08266804",
+"vptestnmw 0x40(%rax),%xmm8,%k5"
+],
+[
+"62f2be2826ef",
+"vptestnmw %ymm7,%ymm8,%k5"
+],
+[
+"62f2be28276802",
+"vptestnmq 0x40(%rax),%ymm8,%k5"
+],
+[
+"62f2be2827ef",
+"vptestnmq %ymm7,%ymm8,%k5"
+],
+[
+"62f2be40276001",
+"vptestnmq 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f2be48266801",
+"vptestnmw 0x40(%rax),%zmm8,%k5"
+],
+[
+"62f2be4826ef",
+"vptestnmw %zmm7,%zmm8,%k5"
+],
+[
+"62f2be4827ef",
+"vptestnmq %zmm7,%zmm8,%k5"
+],
+[
+"62f2fe0829ef",
+"vpmovw2m %xmm7,%k5"
+],
+[
+"62f2fe0839ef",
+"vpmovq2m %xmm7,%k5"
+],
+[
+"62f2fe4829ef",
+"vpmovw2m %zmm7,%k5"
+],
+[
+"62f2fe4839ef",
+"vpmovq2m %zmm7,%k5"
+],
+[
+"62f33d081e6804ab",
+"vpcmpud $0xab,0x40(%rax),%xmm8,%k5"
+],
+[
+"62f33d081eefab",
+"vpcmpud $0xab,%xmm7,%xmm8,%k5"
+],
+[
+"62f33d081f6804ab",
+"vpcmpd $0xab,0x40(%rax),%xmm8,%k5"
+],
+[
+"62f33d083e6804ab",
+"vpcmpub $0xab,0x40(%rax),%xmm8,%k5"
+],
+[
+"62f33d083fefab",
+"vpcmpb $0xab,%xmm7,%xmm8,%k5"
+],
+[
+"62f33d281fefab",
+"vpcmpd $0xab,%ymm7,%ymm8,%k5"
+],
+[
+"62f33d283eefab",
+"vpcmpub $0xab,%ymm7,%ymm8,%k5"
+],
+[
+"62f33d283f6802ab",
+"vpcmpb $0xab,0x40(%rax),%ymm8,%k5"
+],
+[
+"62f33d401e600100",
+"vpcmpequd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f33d401e600101",
+"vpcmpltud 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f33d401e600102",
+"vpcmpleud 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f33d401e600105",
+"vpcmpnltud 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f33d401f600101",
+"vpcmpltd 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f33d401f600106",
+"vpcmpnled 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f33d481e6801ab",
+"vpcmpud $0xab,0x40(%rax),%zmm8,%k5"
+],
+[
+"62f33d481eefab",
+"vpcmpud $0xab,%zmm7,%zmm8,%k5"
+],
+[
+"62f33d481f6801ab",
+"vpcmpd $0xab,0x40(%rax),%zmm8,%k5"
+],
+[
+"62f33d481fefab",
+"vpcmpd $0xab,%zmm7,%zmm8,%k5"
+],
+[
+"62f33d483e6801ab",
+"vpcmpub $0xab,0x40(%rax),%zmm8,%k5"
+],
+[
+"62f33d483eefab",
+"vpcmpub $0xab,%zmm7,%zmm8,%k5"
+],
+[
+"62f33d483f6801ab",
+"vpcmpb $0xab,0x40(%rax),%zmm8,%k5"
+],
+[
+"62f33d483fefab",
+"vpcmpb $0xab,%zmm7,%zmm8,%k5"
+],
+[
+"62f37d0866efab",
+"vfpclassps $0xab,%xmm7,%k5"
+],
+[
+"62f37d08676810ab",
+"vfpclassss $0xab,0x40(%rax),%k5"
+],
+[
+"62f37d0867efab",
+"vfpclassss $0xab,%xmm7,%k5"
+],
+[
+"62f37d4866efab",
+"vfpclassps $0xab,%zmm7,%k5"
+],
+[
+"62f3bd081fefab",
+"vpcmpq $0xab,%xmm7,%xmm8,%k5"
+],
+[
+"62f3bd083eefab",
+"vpcmpuw $0xab,%xmm7,%xmm8,%k5"
+],
+[
+"62f3bd083f6804ab",
+"vpcmpw $0xab,0x40(%rax),%xmm8,%k5"
+],
+[
+"62f3bd281e6802ab",
+"vpcmpuq $0xab,0x40(%rax),%ymm8,%k5"
+],
+[
+"62f3bd281eefab",
+"vpcmpuq $0xab,%ymm7,%ymm8,%k5"
+],
+[
+"62f3bd281f6802ab",
+"vpcmpq $0xab,0x40(%rax),%ymm8,%k5"
+],
+[
+"62f3bd283e6802ab",
+"vpcmpuw $0xab,0x40(%rax),%ymm8,%k5"
+],
+[
+"62f3bd283fefab",
+"vpcmpw $0xab,%ymm7,%ymm8,%k5"
+],
+[
+"62f3bd401e600102",
+"vpcmpleuq 0x40(%rax),%zmm24,%k4"
+],
+[
+"62f3bd481e6801ab",
+"vpcmpuq $0xab,0x40(%rax),%zmm8,%k5"
+],
+[
+"62f3bd481eefab",
+"vpcmpuq $0xab,%zmm7,%zmm8,%k5"
+],
+[
+"62f3bd481f6801ab",
+"vpcmpq $0xab,0x40(%rax),%zmm8,%k5"
+],
+[
+"62f3bd481fefab",
+"vpcmpq $0xab,%zmm7,%zmm8,%k5"
+],
+[
+"62f3bd483e6801ab",
+"vpcmpuw $0xab,0x40(%rax),%zmm8,%k5"
+],
+[
+"62f3bd483eefab",
+"vpcmpuw $0xab,%zmm7,%zmm8,%k5"
+],
+[
+"62f3bd483f6801ab",
+"vpcmpw $0xab,0x40(%rax),%zmm8,%k5"
+],
+[
+"62f3bd483fefab",
+"vpcmpw $0xab,%zmm7,%zmm8,%k5"
+],
+[
+"62f3fd0866efab",
+"vfpclasspd $0xab,%xmm7,%k5"
+],
+[
+"62f3fd08676808ab",
+"vfpclasssd $0xab,0x40(%rax),%k5"
+],
+[
+"62f3fd0867efab",
+"vfpclasssd $0xab,%xmm7,%k5"
+],
+[
+"62f3fd4866efab",
+"vfpclasspd $0xab,%zmm7,%k5"
+],
+[
+"66440f28c8",
+"movapd %xmm0,%xmm9"
+],
+[
+"9c",
+"pushf"
+],
+[
+"c40249924c8603",
+"vgatherdps %xmm6,0x3(%r14,%xmm8,4),%xmm9"
+],
+[
+"c40249934c8603",
+"vgatherqps %xmm6,0x3(%r14,%xmm8,4),%xmm9"
+],
+[
+"c4024d904c8603",
+"vpgatherdd %ymm6,0x3(%r14,%ymm8,4),%ymm9"
+],
+[
+"c402c9914cc603",
+"vpgatherqq %xmm6,0x3(%r14,%xmm8,8),%xmm9"
+],
+[
+"c402cd904cc603",
+"vpgatherdq %ymm6,0x3(%r14,%xmm8,8),%ymm9"
+],
+[
+"c402cd924cc603",
+"vgatherdpd %ymm6,0x3(%r14,%xmm8,8),%ymm9"
+],
+[
+"c4224d910c0501000000",
+"vpgatherqd %xmm6,0x1(,%ymm8,1),%xmm9"
+],
+[
+"c422c9930c0501000000",
+"vgatherqpd %xmm6,0x1(,%xmm8,1),%xmm9"
+],
+[
+"c4414210c1",
+"vmovss %xmm9,%xmm7,%xmm8"
+],
+[
+"c4414310c1",
+"vmovsd %xmm9,%xmm7,%xmm8"
+],
+[
+"c4414cc6c9dd",
+"vshufps $0xdd,%ymm9,%ymm6,%ymm9"
+],
+[
+"c4417970c139",
+"vpshufd $0x39,%xmm9,%xmm8"
+],
+[
+"c44179f7c8",
+"vmaskmovdqu %xmm8,%xmm9"
+],
+[
+"c4417a2df0",
+"vcvtss2si %xmm8,%r14d"
+],
+[
+"c4417b2df0",
+"vcvtsd2si %xmm8,%r14d"
+],
+[
+"c4417c50f1",
+"vmovmskps %ymm9,%r14d"
+],
+[
+"c4417d50f1",
+"vmovmskpd %ymm9,%r14d"
+],
+[
+"c4417dd7f0",
+"vpmovmskb %ymm8,%r14d"
+],
+[
+"c441fa2cf0",
+"vcvttss2si %xmm8,%r14"
+],
+[
+"c442790ec8",
+"vtestps %xmm8,%xmm9"
+],
+[
+"c4434518c100",
+"vinsertf128 $0x0,%xmm9,%ymm7,%ymm8"
+],
+[
+"c4434538c100",
+"vinserti128 $0x0,%xmm9,%ymm7,%ymm8"
+],
+[
+"c443454ac090",
+"vblendvps %ymm9,%ymm8,%ymm7,%ymm8"
+],
+[
+"c443454bc060",
+"vblendvpd %ymm6,%ymm8,%ymm7,%ymm8"
+],
+[
+"c443490ac800",
+"vroundss $0x0,%xmm8,%xmm6,%xmm9"
+],
+[
+"c443490bc803",
+"vroundsd $0x3,%xmm8,%xmm6,%xmm9"
+],
+[
+"c4437908c802",
+"vroundps $0x2,%xmm8,%xmm9"
+],
+[
+"c4437909c801",
+"vroundpd $0x1,%xmm8,%xmm9"
+],
+[
+"c4437914c609",
+"vpextrb $0x9,%xmm8,%r14d"
+],
+[
+"c4437917c601",
+"vextractps $0x1,%xmm8,%r14d"
+],
+[
+"c461fa2c7040",
+"vcvttss2si 0x40(%rax),%r14"
+],
+[
+"c461fa2d30",
+"vcvtss2si (%rax),%r14"
+],
+[
+"c461fb2cf7",
+"vcvttsd2si %xmm7,%r14"
+],
+[
+"c461fb2d30",
+"vcvtsd2si (%rax),%r14"
+],
+[
+"c4624516ce",
+"vpermps %ymm6,%ymm7,%ymm9"
+],
+[
+"c462452e00",
+"vmaskmovps %ymm8,%ymm7,(%rax)"
+],
+[
+"c462453608",
+"vpermd (%rax),%ymm7,%ymm9"
+],
+[
+"c4624d2d0c80",
+"vmaskmovpd (%rax,%rax,4),%ymm6,%ymm9"
+],
+[
+"c4624d8e0c80",
+"vpmaskmovd %ymm9,%ymm6,(%rax,%rax,4)"
+],
+[
+"c462790fc6",
+"vtestpd %xmm6,%xmm8"
+],
+[
+"c462791700",
+"vptest (%rax),%xmm8"
+],
+[
+"c4627917c6",
+"vptest %xmm6,%xmm8"
+],
+[
+"c462791e00",
+"vpabsd (%rax),%xmm8"
+],
+[
+"c462792100",
+"vpmovsxbd (%rax),%xmm8"
+],
+[
+"c462792300",
+"vpmovsxwd (%rax),%xmm8"
+],
+[
+"c4627925c6",
+"vpmovsxdq %xmm6,%xmm8"
+],
+[
+"c462793200",
+"vpmovzxbq (%rax),%xmm8"
+],
+[
+"c462793400",
+"vpmovzxwq (%rax),%xmm8"
+],
+[
+"c462793500",
+"vpmovzxdq (%rax),%xmm8"
+],
+[
+"c4627941c6",
+"vphminposuw %xmm6,%xmm8"
+],
+[
+"c4627d0e00",
+"vtestps (%rax),%ymm8"
+],
+[
+"c4627d0f00",
+"vtestpd (%rax),%ymm8"
+],
+[
+"c4627d1900",
+"vbroadcastsd (%rax),%ymm8"
+],
+[
+"c4627d1a08",
+"vbroadcastf128 (%rax),%ymm9"
+],
+[
+"c4627d2000",
+"vpmovsxbw (%rax),%ymm8"
+],
+[
+"c4627d20c6",
+"vpmovsxbw %xmm6,%ymm8"
+],
+[
+"c4627d21c6",
+"vpmovsxbd %xmm6,%ymm8"
+],
+[
+"c4627d2200",
+"vpmovsxbq (%rax),%ymm8"
+],
+[
+"c4627d22c6",
+"vpmovsxbq %xmm6,%ymm8"
+],
+[
+"c4627d23c6",
+"vpmovsxwd %xmm6,%ymm8"
+],
+[
+"c4627d24c6",
+"vpmovsxwq %xmm6,%ymm8"
+],
+[
+"c4627d3000",
+"vpmovzxbw (%rax),%ymm8"
+],
+[
+"c4627d3100",
+"vpmovzxbd (%rax),%ymm8"
+],
+[
+"c4627d31c6",
+"vpmovzxbd %xmm6,%ymm8"
+],
+[
+"c4627d33c6",
+"vpmovzxwd %xmm6,%ymm8"
+],
+[
+"c4627d5a08",
+"vbroadcasti128 (%rax),%ymm9"
+],
+[
+"c462c98c0c80",
+"vpmaskmovq (%rax,%rax,4),%xmm6,%xmm9"
+],
+[
+"c46345180001",
+"vinsertf128 $0x1,(%rax),%ymm7,%ymm8"
+],
+[
+"c46345380000",
+"vinserti128 $0x0,(%rax),%ymm7,%ymm8"
+],
+[
+"c463490a0805",
+"vroundss $0x5,(%rax),%xmm6,%xmm9"
+],
+[
+"c463490b0804",
+"vroundsd $0x4,(%rax),%xmm6,%xmm9"
+],
+[
+"c46379080803",
+"vroundps $0x3,(%rax),%xmm9"
+],
+[
+"c46379090804",
+"vroundpd $0x4,(%rax),%xmm9"
+],
+[
+"c4637914000f",
+"vpextrb $0xf,%xmm8,(%rax)"
+],
+[
+"c46379170002",
+"vextractps $0x2,%xmm8,(%rax)"
+],
+[
+"c46379600045",
+"vpcmpestrm $0x45,(%rax),%xmm8"
+],
+[
+"c4637960c745",
+"vpcmpestrm $0x45,%xmm7,%xmm8"
+],
+[
+"c4637d04001e",
+"vpermilps $0x1e,(%rax),%ymm8"
+],
+[
+"c4637d05c605",
+"vpermilpd $0x5,%ymm6,%ymm8"
+],
+[
+"c4c13859f9",
+"vmulps %xmm9,%xmm8,%xmm7"
+],
+[
+"c4c1385ff9",
+"vmaxps %xmm9,%xmm8,%xmm7"
+],
+[
+"c4c1395df9",
+"vminpd %xmm9,%xmm8,%xmm7"
+],
+[
+"c4c139c2f800",
+"vcmpeqpd %xmm8,%xmm8,%xmm7"
+],
+[
+"c4c139c4fe04",
+"vpinsrw $0x4,%r14d,%xmm8,%xmm7"
+],
+[
+"c4c139d9f9",
+"vpsubusw %xmm9,%xmm8,%xmm7"
+],
+[
+"c4c13a5af9",
+"vcvtss2sd %xmm9,%xmm8,%xmm7"
+],
+[
+"c4c13b2afe",
+"vcvtsi2sd %r14d,%xmm8,%xmm7"
+],
+[
+"c4c13c5df9",
+"vminps %ymm9,%ymm8,%ymm7"
+],
+[
+"c4c13d74f9",
+"vpcmpeqb %ymm9,%ymm8,%ymm7"
+],
+[
+"c4c13dc6f900",
+"vshufpd $0x0,%ymm9,%ymm8,%ymm7"
+],
+[
+"c4c13dd5f9",
+"vpmullw %ymm9,%ymm8,%ymm7"
+],
+[
+"c4c13ddbf9",
+"vpand  %ymm9,%ymm8,%ymm7"
+],
+[
+"c4c13dddf9",
+"vpaddusw %ymm9,%ymm8,%ymm7"
+],
+[
+"c4c13ddff9",
+"vpandn %ymm9,%ymm8,%ymm7"
+],
+[
+"c4c14171f105",
+"vpsllw $0x5,%xmm9,%xmm7"
+],
+[
+"c4c1795bf8",
+"vcvtps2dq %xmm8,%xmm7"
+],
+[
+"c4c17b12f8",
+"vmovddup %xmm8,%xmm7"
+],
+[
+"c4c17b92ee",
+"kmovd  %r14d,%k5"
+],
+[
+"c4c17c5bf1",
+"vcvtdq2ps %ymm9,%ymm6"
+],
+[
+"c4c17d5af8",
+"vcvtpd2ps %ymm8,%xmm7"
+],
+[
+"c4c17e70f939",
+"vpshufhw $0x39,%ymm9,%ymm7"
+],
+[
+"c4c17fe6f1",
+"vcvtpd2dq %ymm9,%xmm6"
+],
+[
+"c4c1ba2afe",
+"vcvtsi2ss %r14,%xmm8,%xmm7"
+],
+[
+"c4c1fb92ee",
+"kmovq  %r14,%k5"
+],
+[
+"c4c27978f9",
+"vpbroadcastb %xmm9,%xmm7"
+],
+[
+"c4c27979f9",
+"vpbroadcastw %xmm9,%xmm7"
+],
+[
+"c4c33920fe06",
+"vpinsrb $0x6,%r14d,%xmm8,%xmm7"
+],
+[
+"c4c37916fe03",
+"vpextrd $0x3,%xmm7,%r14d"
+],
+[
+"c4c37d19f900",
+"vextractf128 $0x0,%ymm7,%xmm9"
+],
+[
+"c4c37d39f901",
+"vextracti128 $0x1,%ymm7,%xmm9"
+],
+[
+"c4c3f916fe00",
+"vpextrq $0x0,%xmm7,%r14"
+],
+[
+"c4e1ba2a38",
+"vcvtsi2ssq (%rax),%xmm8,%xmm7"
+],
+[
+"c4e1bb2a38",
+"vcvtsi2sdq (%rax),%xmm8,%xmm7"
+],
+[
+"c4e1d441ec",
+"kandq  %k4,%k5,%k5"
+],
+[
+"c4e1d442ec",
+"kandnq %k4,%k5,%k5"
+],
+[
+"c4e1d445ec",
+"korq   %k4,%k5,%k5"
+],
+[
+"c4e1d446ec",
+"kxnorq %k4,%k5,%k5"
+],
+[
+"c4e1d447ec",
+"kxorq  %k4,%k5,%k5"
+],
+[
+"c4e1d44aec",
+"kaddq  %k4,%k5,%k5"
+],
+[
+"c4e1d44bec",
+"kunpckdq %k4,%k5,%k5"
+],
+[
+"c4e1d541ec",
+"kandd  %k4,%k5,%k5"
+],
+[
+"c4e1d542ec",
+"kandnd %k4,%k5,%k5"
+],
+[
+"c4e1d545ec",
+"kord   %k4,%k5,%k5"
+],
+[
+"c4e1d546ec",
+"kxnord %k4,%k5,%k5"
+],
+[
+"c4e1d547ec",
+"kxord  %k4,%k5,%k5"
+],
+[
+"c4e1d54aec",
+"kaddd  %k4,%k5,%k5"
+],
+[
+"c4e1f844ec",
+"knotq  %k4,%k5"
+],
+[
+"c4e1f8916840",
+"kmovq  %k5,0x40(%rax)"
+],
+[
+"c4e1f898ec",
+"kortestq %k4,%k5"
+],
+[
+"c4e1f899ec",
+"ktestq %k4,%k5"
+],
+[
+"c4e1f944ec",
+"knotd  %k4,%k5"
+],
+[
+"c4e1f9906840",
+"kmovd  0x40(%rax),%k5"
+],
+[
+"c4e1f998ec",
+"kortestd %k4,%k5"
+],
+[
+"c4e1f999ec",
+"ktestd %k4,%k5"
+],
+[
+"c4e2390038",
+"vpshufb (%rax),%xmm8,%xmm7"
+],
+[
+"c4e23900fe",
+"vpshufb %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e2390238",
+"vphaddd (%rax),%xmm8,%xmm7"
+],
+[
+"c4e2390738",
+"vphsubsw (%rax),%xmm8,%xmm7"
+],
+[
+"c4e23909fe",
+"vpsignw %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e2390afe",
+"vpsignd %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e2390d38",
+"vpermilpd (%rax),%xmm8,%xmm7"
+],
+[
+"c4e2392938",
+"vpcmpeqq (%rax),%xmm8,%xmm7"
+],
+[
+"c4e2392bfe",
+"vpackusdw %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e23937fe",
+"vpcmpgtq %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e2393838",
+"vpminsb (%rax),%xmm8,%xmm7"
+],
+[
+"c4e23939fe",
+"vpminsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e2393afe",
+"vpminuw %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e2393dfe",
+"vpmaxsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e2393f38",
+"vpmaxud (%rax),%xmm8,%xmm7"
+],
+[
+"c4e2394038",
+"vpmulld (%rax),%xmm8,%xmm7"
+],
+[
+"c4e2394538",
+"vpsrlvd (%rax),%xmm8,%xmm7"
+],
+[
+"c4e2394638",
+"vpsravd (%rax),%xmm8,%xmm7"
+],
+[
+"c4e23946fe",
+"vpsravd %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e23947fe",
+"vpsllvd %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e239dc38",
+"vaesenc (%rax),%xmm8,%xmm7"
+],
+[
+"c4e239dcfe",
+"vaesenc %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e239dd38",
+"vaesenclast (%rax),%xmm8,%xmm7"
+],
+[
+"c4e239ddfe",
+"vaesenclast %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e239de38",
+"vaesdec (%rax),%xmm8,%xmm7"
+],
+[
+"c4e239defe",
+"vaesdec %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e239df38",
+"vaesdeclast (%rax),%xmm8,%xmm7"
+],
+[
+"c4e239dffe",
+"vaesdeclast %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e23d0138",
+"vphaddw (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d01fe",
+"vphaddw %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d02fe",
+"vphaddd %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d0338",
+"vphaddsw (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d03fe",
+"vphaddsw %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d0438",
+"vpmaddubsw (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d04fe",
+"vpmaddubsw %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d0538",
+"vphsubw (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d05fe",
+"vphsubw %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d0638",
+"vphsubd (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d06fe",
+"vphsubd %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d07fe",
+"vphsubsw %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d0838",
+"vpsignb (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d08fe",
+"vpsignb %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d0938",
+"vpsignw (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d0a38",
+"vpsignd (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d0bfe",
+"vpmulhrsw %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d28fe",
+"vpmuldq %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d29fe",
+"vpcmpeqq %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d3738",
+"vpcmpgtq (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d3938",
+"vpminsd (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d3a38",
+"vpminuw (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d3b38",
+"vpminud (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d3bfe",
+"vpminud %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d3c38",
+"vpmaxsb (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d3cfe",
+"vpmaxsb %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e23d3e38",
+"vpmaxuw (%rax),%ymm8,%ymm7"
+],
+[
+"c4e23d4738",
+"vpsllvd (%rax),%ymm8,%ymm7"
+],
+[
+"c4e2794138",
+"vphminposuw (%rax),%xmm7"
+],
+[
+"c4e2795938",
+"vpbroadcastq (%rax),%xmm7"
+],
+[
+"c4e279db38",
+"vaesimc (%rax),%xmm7"
+],
+[
+"c4e279dbfe",
+"vaesimc %xmm6,%xmm7"
+],
+[
+"c4e27d1cfe",
+"vpabsb %ymm6,%ymm7"
+],
+[
+"c4e27d7938",
+"vpbroadcastw (%rax),%ymm7"
+],
+[
+"c4e2bd4538",
+"vpsrlvq (%rax),%ymm8,%ymm7"
+],
+[
+"c4e2bd4738",
+"vpsllvq (%rax),%ymm8,%ymm7"
+],
+[
+"c4e2bd47fe",
+"vpsllvq %ymm6,%ymm8,%ymm7"
+],
+[
+"c4e331403073",
+"vdpps  $0x73,(%rax),%xmm9,%xmm6"
+],
+[
+"c4e331413073",
+"vdppd  $0x73,(%rax),%xmm9,%xmm6"
+],
+[
+"c4e339023807",
+"vpblendd $0x7,(%rax),%xmm8,%xmm7"
+],
+[
+"c4e33902fe06",
+"vpblendd $0x6,%xmm6,%xmm8,%xmm7"
+],
+[
+"c4e3390c380f",
+"vblendps $0xf,(%rax),%xmm8,%xmm7"
+],
+[
+"c4e3390cfe06",
+"vblendps $0x6,%xmm6,%xmm8,%xmm7"
+],
+[
+"c4e3390efefe",
+"vpblendw $0xfe,%xmm6,%xmm8,%xmm7"
+],
+[
+"c4e339203803",
+"vpinsrb $0x3,(%rax),%xmm8,%xmm7"
+],
+[
+"c4e33921fe39",
+"vinsertps $0x39,%xmm6,%xmm8,%xmm7"
+],
+[
+"c4e339223803",
+"vpinsrd $0x3,(%rax),%xmm8,%xmm7"
+],
+[
+"c4e33941fef0",
+"vdppd  $0xf0,%xmm6,%xmm8,%xmm7"
+],
+[
+"c4e339443800",
+"vpclmullqlqdq (%rax),%xmm8,%xmm7"
+],
+[
+"c4e339443801",
+"vpclmulhqlqdq (%rax),%xmm8,%xmm7"
+],
+[
+"c4e339443810",
+"vpclmullqhqdq (%rax),%xmm8,%xmm7"
+],
+[
+"c4e339443811",
+"vpclmulhqhqdq (%rax),%xmm8,%xmm7"
+],
+[
+"c4e3394438ff",
+"vpclmulqdq $0xff,(%rax),%xmm8,%xmm7"
+],
+[
+"c4e33944fe00",
+"vpclmullqlqdq %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e33944fe01",
+"vpclmulhqlqdq %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e33944fe10",
+"vpclmullqhqdq %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e33944fe11",
+"vpclmulhqhqdq %xmm6,%xmm8,%xmm7"
+],
+[
+"c4e33944feff",
+"vpclmulqdq $0xff,%xmm6,%xmm8,%xmm7"
+],
+[
+"c4e3394a3890",
+"vblendvps %xmm9,(%rax),%xmm8,%xmm7"
+],
+[
+"c4e3394b3890",
+"vblendvpd %xmm9,(%rax),%xmm8,%xmm7"
+],
+[
+"c4e3394cfe90",
+"vpblendvb %xmm9,%xmm6,%xmm8,%xmm7"
+],
+[
+"c4e33d063812",
+"vperm2f128 $0x12,(%rax),%ymm8,%ymm7"
+],
+[
+"c4e33d06fe30",
+"vperm2f128 $0x30,%ymm6,%ymm8,%ymm7"
+],
+[
+"c4e33d0d380f",
+"vblendpd $0xf,(%rax),%ymm8,%ymm7"
+],
+[
+"c4e33d0dfe00",
+"vblendpd $0x0,%ymm6,%ymm8,%ymm7"
+],
+[
+"c4e33d0e3892",
+"vpblendw $0x92,(%rax),%ymm8,%ymm7"
+],
+[
+"c4e33d0ffe0c",
+"vpalignr $0xc,%ymm6,%ymm8,%ymm7"
+],
+[
+"c4e33d40fe5a",
+"vdpps  $0x5a,%ymm6,%ymm8,%ymm7"
+],
+[
+"c4e33d42381d",
+"vmpsadbw $0x1d,(%rax),%ymm8,%ymm7"
+],
+[
+"c4e33d42fe1d",
+"vmpsadbw $0x1d,%ymm6,%ymm8,%ymm7"
+],
+[
+"c4e33d463803",
+"vperm2i128 $0x3,(%rax),%ymm8,%ymm7"
+],
+[
+"c4e33d46fe85",
+"vperm2i128 $0x85,%ymm6,%ymm8,%ymm7"
+],
+[
+"c4e33d4c3890",
+"vpblendvb %ymm9,(%rax),%ymm8,%ymm7"
+],
+[
+"c4e379153803",
+"vpextrw $0x3,%xmm7,(%rax)"
+],
+[
+"c4e379163800",
+"vpextrd $0x0,%xmm7,(%rax)"
+],
+[
+"c4e37930ecab",
+"kshiftrb $0xab,%k4,%k5"
+],
+[
+"c4e37931ecab",
+"kshiftrd $0xab,%k4,%k5"
+],
+[
+"c4e37932ecab",
+"kshiftlb $0xab,%k4,%k5"
+],
+[
+"c4e37933ecab",
+"kshiftld $0xab,%k4,%k5"
+],
+[
+"c4e379df38b2",
+"vaeskeygenassist $0xb2,(%rax),%xmm7"
+],
+[
+"c4e379dffeb2",
+"vaeskeygenassist $0xb2,%xmm6,%xmm7"
+],
+[
+"c4e37d193801",
+"vextractf128 $0x1,%ymm7,(%rax)"
+],
+[
+"c4e37d393801",
+"vextracti128 $0x1,%ymm7,(%rax)"
+],
+[
+"c4e3f9163801",
+"vpextrq $0x1,%xmm7,(%rax)"
+],
+[
+"c4e3f930ecab",
+"kshiftrw $0xab,%k4,%k5"
+],
+[
+"c4e3f931ecab",
+"kshiftrq $0xab,%k4,%k5"
+],
+[
+"c4e3f932ecab",
+"kshiftlw $0xab,%k4,%k5"
+],
+[
+"c4e3f933ecab",
+"kshiftlq $0xab,%k4,%k5"
+],
+[
+"c4e3fd00fe85",
+"vpermq $0x85,%ymm6,%ymm7"
+],
+[
+"c4e3fd01fefe",
+"vpermpd $0xfe,%ymm6,%ymm7"
+],
+[
+"c5782f00",
+"vcomiss (%rax),%xmm8"
+],
+[
+"c5785200",
+"vrsqrtps (%rax),%xmm8"
+],
+[
+"c57852c6",
+"vrsqrtps %xmm6,%xmm8"
+],
+[
+"c5785300",
+"vrcpps (%rax),%xmm8"
+],
+[
+"c57893f4",
+"kmovw  %k4,%r14d"
+],
+[
+"c57929ce",
+"vmovapd %xmm9,%xmm6"
+],
+[
+"c5792b08",
+"vmovntpd %xmm9,(%rax)"
+],
+[
+"c5792ec6",
+"vucomisd %xmm6,%xmm8"
+],
+[
+"c5792f00",
+"vcomisd (%rax),%xmm8"
+],
+[
+"c5792fc6",
+"vcomisd %xmm6,%xmm8"
+],
+[
+"c5795a08",
+"vcvtpd2psx (%rax),%xmm9"
+],
+[
+"c5796f08",
+"vmovdqa (%rax),%xmm9"
+],
+[
+"c5797fce",
+"vmovdqa %xmm9,%xmm6"
+],
+[
+"c579c5f706",
+"vpextrw $0x6,%xmm7,%r14d"
+],
+[
+"c57a7e08",
+"vmovq  (%rax),%xmm9"
+],
+[
+"c57a7ec7",
+"vmovq  %xmm7,%xmm8"
+],
+[
+"c57ae600",
+"vcvtdq2pd (%rax),%xmm8"
+],
+[
+"c57b2c30",
+"vcvttsd2si (%rax),%r14d"
+],
+[
+"c57bf04001",
+"vlddqu 0x1(%rax),%xmm8"
+],
+[
+"c57c10c6",
+"vmovups %ymm6,%ymm8"
+],
+[
+"c57c5100",
+"vsqrtps (%rax),%ymm8"
+],
+[
+"c57c51c6",
+"vsqrtps %ymm6,%ymm8"
+],
+[
+"c57c53c6",
+"vrcpps %ymm6,%ymm8"
+],
+[
+"c57d5100",
+"vsqrtpd (%rax),%ymm8"
+],
+[
+"c57d51c6",
+"vsqrtpd %ymm6,%ymm8"
+],
+[
+"c57d5a08",
+"vcvtpd2psy (%rax),%xmm9"
+],
+[
+"c57de700",
+"vmovntdq %ymm8,(%rax)"
+],
+[
+"c57e7000c6",
+"vpshufhw $0xc6,(%rax),%ymm8"
+],
+[
+"c57e7fce",
+"vmovdqu %ymm9,%ymm6"
+],
+[
+"c5b812fe",
+"vmovhlps %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b814fe",
+"vunpcklps %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b85438",
+"vandps (%rax),%xmm8,%xmm7"
+],
+[
+"c5b854fe",
+"vandps %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b85d38",
+"vminps (%rax),%xmm8,%xmm7"
+],
+[
+"c5b915fe",
+"vunpckhpd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b954fe",
+"vandpd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b95538",
+"vandnpd (%rax),%xmm8,%xmm7"
+],
+[
+"c5b955fe",
+"vandnpd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b95638",
+"vorpd  (%rax),%xmm8,%xmm7"
+],
+[
+"c5b95c38",
+"vsubpd (%rax),%xmm8,%xmm7"
+],
+[
+"c5b95cfe",
+"vsubpd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b96238",
+"vpunpckldq (%rax),%xmm8,%xmm7"
+],
+[
+"c5b96338",
+"vpacksswb (%rax),%xmm8,%xmm7"
+],
+[
+"c5b963fe",
+"vpacksswb %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b96438",
+"vpcmpgtb (%rax),%xmm8,%xmm7"
+],
+[
+"c5b964fe",
+"vpcmpgtb %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b965fe",
+"vpcmpgtw %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b96638",
+"vpcmpgtd (%rax),%xmm8,%xmm7"
+],
+[
+"c5b966fe",
+"vpcmpgtd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b96838",
+"vpunpckhbw (%rax),%xmm8,%xmm7"
+],
+[
+"c5b96938",
+"vpunpckhwd (%rax),%xmm8,%xmm7"
+],
+[
+"c5b969fe",
+"vpunpckhwd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b96a38",
+"vpunpckhdq (%rax),%xmm8,%xmm7"
+],
+[
+"c5b96afe",
+"vpunpckhdq %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b96cfe",
+"vpunpcklqdq %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b971e7ab",
+"vpsraw $0xab,%xmm7,%xmm8"
+],
+[
+"c5b973dfab",
+"vpsrldq $0xab,%xmm7,%xmm8"
+],
+[
+"c5b97438",
+"vpcmpeqb (%rax),%xmm8,%xmm7"
+],
+[
+"c5b97638",
+"vpcmpeqd (%rax),%xmm8,%xmm7"
+],
+[
+"c5b97cfe",
+"vhaddpd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b9c43805",
+"vpinsrw $0x5,(%rax),%xmm8,%xmm7"
+],
+[
+"c5b9d438",
+"vpaddq (%rax),%xmm8,%xmm7"
+],
+[
+"c5b9d4fe",
+"vpaddq %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b9d538",
+"vpmullw (%rax),%xmm8,%xmm7"
+],
+[
+"c5b9d938",
+"vpsubusw (%rax),%xmm8,%xmm7"
+],
+[
+"c5b9db38",
+"vpand  (%rax),%xmm8,%xmm7"
+],
+[
+"c5b9dd38",
+"vpaddusw (%rax),%xmm8,%xmm7"
+],
+[
+"c5b9e0fe",
+"vpavgb %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b9e3fe",
+"vpavgw %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b9ed38",
+"vpaddsw (%rax),%xmm8,%xmm7"
+],
+[
+"c5b9edfe",
+"vpaddsw %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b9ee38",
+"vpmaxsw (%rax),%xmm8,%xmm7"
+],
+[
+"c5b9eefe",
+"vpmaxsw %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b9effe",
+"vpxor  %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b9f438",
+"vpmuludq (%rax),%xmm8,%xmm7"
+],
+[
+"c5b9f6fe",
+"vpsadbw %xmm6,%xmm8,%xmm7"
+],
+[
+"c5b9fb38",
+"vpsubq (%rax),%xmm8,%xmm7"
+],
+[
+"c5b9fc38",
+"vpaddb (%rax),%xmm8,%xmm7"
+],
+[
+"c5ba5238",
+"vrsqrtss (%rax),%xmm8,%xmm7"
+],
+[
+"c5ba52fe",
+"vrsqrtss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5ba5338",
+"vrcpss (%rax),%xmm8,%xmm7"
+],
+[
+"c5ba53fe",
+"vrcpss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5ba5838",
+"vaddss (%rax),%xmm8,%xmm7"
+],
+[
+"c5ba58fe",
+"vaddss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5ba5938",
+"vmulss (%rax),%xmm8,%xmm7"
+],
+[
+"c5ba5cfe",
+"vsubss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5ba5e38",
+"vdivss (%rax),%xmm8,%xmm7"
+],
+[
+"c5ba5f38",
+"vmaxss (%rax),%xmm8,%xmm7"
+],
+[
+"c5ba5ffe",
+"vmaxss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac23800",
+"vcmpeqss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23801",
+"vcmpltss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23802",
+"vcmpless (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23803",
+"vcmpunordss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23804",
+"vcmpneqss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23805",
+"vcmpnltss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23806",
+"vcmpnless (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23807",
+"vcmpordss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23808",
+"vcmpeq_uqss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23809",
+"vcmpngess (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac2380a",
+"vcmpngtss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac2380c",
+"vcmpneq_oqss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac2380d",
+"vcmpgess (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac2380e",
+"vcmpgtss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23810",
+"vcmpeq_osss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23811",
+"vcmplt_oqss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23812",
+"vcmple_oqss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23813",
+"vcmpunord_sss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23814",
+"vcmpneq_usss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23815",
+"vcmpnlt_uqss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23816",
+"vcmpnle_uqss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23817",
+"vcmpord_sss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23818",
+"vcmpeq_usss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac23819",
+"vcmpnge_uqss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac2381a",
+"vcmpngt_uqss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac2381c",
+"vcmpneq_osss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac2381d",
+"vcmpge_oqss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac2381e",
+"vcmpgt_oqss (%rax),%xmm8,%xmm7"
+],
+[
+"c5bac2fe00",
+"vcmpeqss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe01",
+"vcmpltss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe02",
+"vcmpless %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe03",
+"vcmpunordss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe04",
+"vcmpneqss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe05",
+"vcmpnltss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe06",
+"vcmpnless %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe07",
+"vcmpordss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe08",
+"vcmpeq_uqss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe09",
+"vcmpngess %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe0a",
+"vcmpngtss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe0c",
+"vcmpneq_oqss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe0d",
+"vcmpgess %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe0e",
+"vcmpgtss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe10",
+"vcmpeq_osss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe11",
+"vcmplt_oqss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe12",
+"vcmple_oqss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe13",
+"vcmpunord_sss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe14",
+"vcmpneq_usss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe15",
+"vcmpnlt_uqss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe16",
+"vcmpnle_uqss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe17",
+"vcmpord_sss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe18",
+"vcmpeq_usss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe19",
+"vcmpnge_uqss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe1a",
+"vcmpngt_uqss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe1c",
+"vcmpneq_osss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe1d",
+"vcmpge_oqss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bac2fe1e",
+"vcmpgt_oqss %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bb2a38",
+"vcvtsi2sdl (%rax),%xmm8,%xmm7"
+],
+[
+"c5bb51fe",
+"vsqrtsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bb5838",
+"vaddsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bb58fe",
+"vaddsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bb5938",
+"vmulsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bb59fe",
+"vmulsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bb5c38",
+"vsubsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bb5cfe",
+"vsubsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bb5f38",
+"vmaxsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bb5ffe",
+"vmaxsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bb7c38",
+"vhaddps (%rax),%xmm8,%xmm7"
+],
+[
+"c5bb7d38",
+"vhsubps (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23800",
+"vcmpeqsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23801",
+"vcmpltsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23802",
+"vcmplesd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23803",
+"vcmpunordsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23804",
+"vcmpneqsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23805",
+"vcmpnltsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23806",
+"vcmpnlesd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23807",
+"vcmpordsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23808",
+"vcmpeq_uqsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc2380a",
+"vcmpngtsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc2380c",
+"vcmpneq_oqsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc2380d",
+"vcmpgesd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc2380e",
+"vcmpgtsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23810",
+"vcmpeq_ossd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23811",
+"vcmplt_oqsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23812",
+"vcmple_oqsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23813",
+"vcmpunord_ssd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23814",
+"vcmpneq_ussd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23815",
+"vcmpnlt_uqsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23816",
+"vcmpnle_uqsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23817",
+"vcmpord_ssd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23818",
+"vcmpeq_ussd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc23819",
+"vcmpnge_uqsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc2381a",
+"vcmpngt_uqsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc2381c",
+"vcmpneq_ossd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc2381d",
+"vcmpge_oqsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc2381e",
+"vcmpgt_oqsd (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbc2fe00",
+"vcmpeqsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe01",
+"vcmpltsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe02",
+"vcmplesd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe03",
+"vcmpunordsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe04",
+"vcmpneqsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe05",
+"vcmpnltsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe06",
+"vcmpnlesd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe07",
+"vcmpordsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe08",
+"vcmpeq_uqsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe0a",
+"vcmpngtsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe0c",
+"vcmpneq_oqsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe0d",
+"vcmpgesd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe0e",
+"vcmpgtsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe10",
+"vcmpeq_ossd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe11",
+"vcmplt_oqsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe12",
+"vcmple_oqsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe13",
+"vcmpunord_ssd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe14",
+"vcmpneq_ussd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe15",
+"vcmpnlt_uqsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe16",
+"vcmpnle_uqsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe17",
+"vcmpord_ssd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe18",
+"vcmpeq_ussd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe19",
+"vcmpnge_uqsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe1a",
+"vcmpngt_uqsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe1c",
+"vcmpneq_ossd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe1d",
+"vcmpge_oqsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbc2fe1e",
+"vcmpgt_oqsd %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bbd038",
+"vaddsubps (%rax),%xmm8,%xmm7"
+],
+[
+"c5bbd0fe",
+"vaddsubps %xmm6,%xmm8,%xmm7"
+],
+[
+"c5bc1438",
+"vunpcklps (%rax),%ymm8,%ymm7"
+],
+[
+"c5bc55fe",
+"vandnps %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bc56fe",
+"vorps  %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bc5838",
+"vaddps (%rax),%ymm8,%ymm7"
+],
+[
+"c5bc5938",
+"vmulps (%rax),%ymm8,%ymm7"
+],
+[
+"c5bc5e38",
+"vdivps (%rax),%ymm8,%ymm7"
+],
+[
+"c5bc5efe",
+"vdivps %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bcc23804",
+"vcmpneqps (%rax),%ymm8,%ymm7"
+],
+[
+"c5bcc2fe04",
+"vcmpneqps %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bd5438",
+"vandpd (%rax),%ymm8,%ymm7"
+],
+[
+"c5bd56fe",
+"vorpd  %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bd59fe",
+"vmulpd %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bd5d38",
+"vminpd (%rax),%ymm8,%ymm7"
+],
+[
+"c5bd60fe",
+"vpunpcklbw %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bd6138",
+"vpunpcklwd (%rax),%ymm8,%ymm7"
+],
+[
+"c5bd61fe",
+"vpunpcklwd %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bd62fe",
+"vpunpckldq %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bd6538",
+"vpcmpgtw (%rax),%ymm8,%ymm7"
+],
+[
+"c5bd6c38",
+"vpunpcklqdq (%rax),%ymm8,%ymm7"
+],
+[
+"c5bd73ffab",
+"vpslldq $0xab,%ymm7,%ymm8"
+],
+[
+"c5bd7538",
+"vpcmpeqw (%rax),%ymm8,%ymm7"
+],
+[
+"c5bd75fe",
+"vpcmpeqw %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bd76fe",
+"vpcmpeqd %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bd7c38",
+"vhaddpd (%rax),%ymm8,%ymm7"
+],
+[
+"c5bd7d38",
+"vhsubpd (%rax),%ymm8,%ymm7"
+],
+[
+"c5bd7dfe",
+"vhsubpd %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bdc23804",
+"vcmpneqpd (%rax),%ymm8,%ymm7"
+],
+[
+"c5bdc2fe04",
+"vcmpneqpd %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bdd038",
+"vaddsubpd (%rax),%ymm8,%ymm7"
+],
+[
+"c5bdd0fe",
+"vaddsubpd %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bdd838",
+"vpsubusb (%rax),%ymm8,%ymm7"
+],
+[
+"c5bddafe",
+"vpminub %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bdde38",
+"vpmaxub (%rax),%ymm8,%ymm7"
+],
+[
+"c5bddf38",
+"vpandn (%rax),%ymm8,%ymm7"
+],
+[
+"c5bdeb38",
+"vpor   (%rax),%ymm8,%ymm7"
+],
+[
+"c5bdebfe",
+"vpor   %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bdec38",
+"vpaddsb (%rax),%ymm8,%ymm7"
+],
+[
+"c5bdef38",
+"vpxor  (%rax),%ymm8,%ymm7"
+],
+[
+"c5bdf4fe",
+"vpmuludq %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bdfdfe",
+"vpaddw %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bf7cfe",
+"vhaddps %ymm6,%ymm8,%ymm7"
+],
+[
+"c5bf7dfe",
+"vhsubps %ymm6,%ymm8,%ymm7"
+],
+[
+"c5cc57f6",
+"vxorps %ymm6,%ymm6,%ymm6"
+],
+[
+"c5cd57f6",
+"vxorpd %ymm6,%ymm6,%ymm6"
+],
+[
+"c5d441ec",
+"kandw  %k4,%k5,%k5"
+],
+[
+"c5d442ec",
+"kandnw %k4,%k5,%k5"
+],
+[
+"c5d445ec",
+"korw   %k4,%k5,%k5"
+],
+[
+"c5d446ec",
+"kxnorw %k4,%k5,%k5"
+],
+[
+"c5d447ec",
+"kxorw  %k4,%k5,%k5"
+],
+[
+"c5d44aec",
+"kaddw  %k4,%k5,%k5"
+],
+[
+"c5d44bec",
+"kunpckwd %k4,%k5,%k5"
+],
+[
+"c5d541ec",
+"kandb  %k4,%k5,%k5"
+],
+[
+"c5d542ec",
+"kandnb %k4,%k5,%k5"
+],
+[
+"c5d545ec",
+"korb   %k4,%k5,%k5"
+],
+[
+"c5d546ec",
+"kxnorb %k4,%k5,%k5"
+],
+[
+"c5d547ec",
+"kxorb  %k4,%k5,%k5"
+],
+[
+"c5d54aec",
+"kaddb  %k4,%k5,%k5"
+],
+[
+"c5d54bec",
+"kunpckbw %k4,%k5,%k5"
+],
+[
+"c5f811bc2410020000",
+"vmovups %xmm7,0x210(%rsp)"
+],
+[
+"c5f81338",
+"vmovlps %xmm7,(%rax)"
+],
+[
+"c5f844ec",
+"knotw  %k4,%k5"
+],
+[
+"c5f8916840",
+"kmovw  %k5,0x40(%rax)"
+],
+[
+"c5f898ec",
+"kortestw %k4,%k5"
+],
+[
+"c5f899ec",
+"ktestw %k4,%k5"
+],
+[
+"c5f91338",
+"vmovlpd %xmm7,(%rax)"
+],
+[
+"c5f944ec",
+"knotb  %k4,%k5"
+],
+[
+"c5f990ec",
+"kmovb  %k4,%k5"
+],
+[
+"c5f9916840",
+"kmovb  %k5,0x40(%rax)"
+],
+[
+"c5f998ec",
+"kortestb %k4,%k5"
+],
+[
+"c5f999ec",
+"ktestb %k4,%k5"
+],
+[
+"c5f9e638",
+"vcvttpd2dqx (%rax),%xmm7"
+],
+[
+"c5fbe638",
+"vcvtpd2dqx (%rax),%xmm7"
+],
+[
+"c5fd1038",
+"vmovupd (%rax),%ymm7"
+],
+[
+"c5fd7038c6",
+"vpshufd $0xc6,(%rax),%ymm7"
+],
+[
+"c5fde638",
+"vcvttpd2dqy (%rax),%xmm7"
+],
+[
+"c5fe1238",
+"vmovsldup (%rax),%ymm7"
+],
+[
+"c5fe7f38",
+"vmovdqu %ymm7,(%rax)"
+],
+[
+"c5ffe638",
+"vcvtpd2dqy (%rax),%xmm7"
+]
+]

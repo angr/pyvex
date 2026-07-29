@@ -644,8 +644,18 @@ class LoadG(IRStmt):
 
         if guardty is None or altty is None:
             return False
-        if dstty != "Ity_I32" or altty != "Ity_I32":
-            log.debug("dst and alt must be Ity_I32")
+        # The conversion decides the result width: the Ident* conversions keep
+        # the loaded width, everything else widens to 32 bits.
+        ident_widths = {
+            "ILGop_IdentV128": "Ity_V128",
+            "ILGop_Ident64": "Ity_I64",
+            "ILGop_Ident32": "Ity_I32",
+            "ILGop_Ident16": "Ity_I16",
+            "ILGop_Ident8": "Ity_I8",
+        }
+        expected = ident_widths.get(self.cvt, "Ity_I32")
+        if dstty != expected or altty != expected:
+            log.debug("dst and alt must be %s for %s", expected, self.cvt)
             return False
         if guardty != "Ity_I1":
             log.debug("guard must be Ity_I1")

@@ -137,6 +137,18 @@ install(
     FILES ${CMAKE_SOURCE_DIR}/vex/pub/libvex_guest_offsets.h
     DESTINATION pyvex/include
 )
+# Ship the rest of the VEX public headers and pyvex.h too: downstream native
+# code (angr's unicornlib) compiles against them via importlib.resources, and
+# an include directory holding only libvex_guest_offsets.h fails to build.
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/vex/pub/
+    DESTINATION pyvex/include
+    FILES_MATCHING PATTERN "*.h"
+)
+install(
+    FILES ${CMAKE_SOURCE_DIR}/pyvex_c/pyvex.h
+    DESTINATION pyvex/include
+)
 
 add_dependencies(vex generate_offsets_header)
 # --- END: Generate pub/libvex_guest_offsets.h ---
