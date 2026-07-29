@@ -125,7 +125,7 @@ int vex_init() {
 	//vc.iropt_precise_memory_exns    = False;
 	vc.iropt_unroll_thresh          = 0;
 	vc.guest_max_insns              = 1;    // By default, we vex 1 instruction at a time
-	vc.guest_chase_thresh           = 0;
+	vc.guest_chase                  = False; // Never follow branches into the next block
 	vc.arm64_allow_reordered_writeback = 0;
 	vc.x86_optimize_callpop_idiom = 0;
 	vc.strict_block_end = 0;
@@ -164,7 +164,7 @@ int vex_init() {
 #if __amd64__ || _WIN64
 	vta.arch_host = VexArchAMD64;
 #elif defined(__wasm32__)
-	/* LibVEX_Lift only needs the host word size. No x86 code is emitted. */
+	/* LibVEX_FrontEnd only needs the host word size. No x86 code is emitted. */
 	vta.arch_host = VexArchX86;
 #elif __i386__ || _WIN32
 	vta.arch_host = VexArchX86;
@@ -175,7 +175,7 @@ int vex_init() {
 	vta.arch_host = VexArchARM64;
 #elif __s390x__
 	vta.arch_host = VexArchS390X;
-	vai_host.hwcaps = VEX_HWCAPS_S390X_LDISP;
+	vai_host.hwcaps = 0; // no code is emitted; LDISP hwcap no longer exists upstream
 #elif defined(__powerpc__) && defined(__NetBSD__)
 #  if defined(__LONG_WIDTH__) && (__LONG_WIDTH__ == 32)
 	vta.arch_host = VexArchPPC32;
@@ -236,6 +236,7 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai) {
 			break;
 		case VexArchAMD64:
 			vai->hwcaps =   VEX_HWCAPS_AMD64_SSE3 |
+							VEX_HWCAPS_AMD64_SSSE3 | // 3.27.1 check_hwcaps: AVX requires SSSE3
 							VEX_HWCAPS_AMD64_CX16 |
 							VEX_HWCAPS_AMD64_LZCNT |
 							VEX_HWCAPS_AMD64_AVX |
@@ -345,6 +346,15 @@ VEXLiftResult *vex_lift(
 	vta.guest_bytes_addr    = (Addr64)(insn_addr);
 	vta.traceflags          = traceflags;
 
+	// The old fork's LibVEX_Update_Control vasserted these per lift;
+	// upstream's LibVEX_set_VexControl does not validate. Preserve the old
+	// contract: invalid values fail the lift (callers rely on the resulting
+	// LiftingException to fall through to Python fallback lifters).
+	if (opt_level < 0 || opt_level > 2 || max_insns < 1 || max_insns > 100) {
+		pyvex_error("vex_lift: invalid opt_level (%d) or max_insns (%u).\n", opt_level, max_insns);
+		return NULL;
+	}
+
 	vc.guest_max_bytes     = max_bytes;
 	vc.guest_max_insns     = max_insns;
 	vc.iropt_level         = opt_level;
@@ -357,15 +367,20 @@ VEXLiftResult *vex_lift(
 
 	vc.strict_block_end = strict_block_end;
 
+	// LibVEX_FrontEnd overwrites *pxControl with this default; setting it here
+	// is how the caller's px_control takes effect (the old IN/OUT semantics of
+	// the pxControl parameter are gone upstream).
+	vc.iropt_register_updates_default = px_control;
+
 	clear_log();
 
 	// Do the actual translation
 	if (setjmp(jumpout) == 0) {
-		LibVEX_Update_Control(&vc);
+		LibVEX_set_VexControl(vc);
 		_lift_r.is_noop_block = False;
 		_lift_r.data_ref_count = 0;
 		_lift_r.const_val_count = 0;
-		_lift_r.irsb = LibVEX_Lift(&vta, &vtr, &pxControl);
+		_lift_r.irsb = LibVEX_FrontEnd(&vta, &vtr, &pxControl);
 		if (!_lift_r.irsb) {
 			// Lifting failed
 			return NULL;

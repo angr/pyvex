@@ -98,7 +98,7 @@ class IRRegArray(VEXObject):
 ints_to_enums: dict[int, str] = {}
 enums_to_ints: dict[str, int] = {}
 irop_enums_to_ints: dict[str, int] = {}
-will_be_overwritten = ["Ircr_GT", "Ircr_LT"]
+will_be_overwritten = ["Ircr_GT", "Ircr_LT", "IRICB_vbit", "IRICB_iropt"]
 
 
 def get_enum_from_int(i):
