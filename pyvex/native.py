@@ -20,14 +20,13 @@ class _RestrictedUnpickler(pickle.Unpickler):
     local user in a shared temporary directory) from executing arbitrary code
     during ``import pyvex`` (CWE-502)."""
 
-    _ALLOWED = frozenset(
-        name for name in dir(cffi.model) if isinstance(getattr(cffi.model, name), type)
-    )
+    _ALLOWED = frozenset(name for name in dir(cffi.model) if isinstance(getattr(cffi.model, name), type))
 
     def find_class(self, module, name):
         if module == "cffi.model" and name in self._ALLOWED:
             return getattr(cffi.model, name)
         raise pickle.UnpicklingError(f"pyvex FFI cache: refusing to load {module}.{name}")
+
 
 ffi = cffi.FFI()
 
