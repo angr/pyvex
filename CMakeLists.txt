@@ -129,6 +129,8 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E env
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/make_ffi.py ${CMAKE_SOURCE_DIR}/vex/pub
     DEPENDS ${CMAKE_SOURCE_DIR}/vex/pub/libvex_guest_offsets.h
+            ${CMAKE_SOURCE_DIR}/vex/pub/libvex.h
+            ${CMAKE_SOURCE_DIR}/pyvex_c/pyvex.h
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Generating pyvex/vex_ffi.py using make_ffi.py"
 )

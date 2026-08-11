@@ -48,6 +48,7 @@ EXPORTS
   typeOfPrimop
   clear_log
   vex_lift
+  vex_lift_with_buffer_size
   vex_init
   register_readonly_region
   deregister_all_readonly_regions
