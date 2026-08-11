@@ -88,6 +88,28 @@ VEXLiftResult *vex_lift(
 		VexRegisterUpdates px_control,
 		unsigned int lookback_amount);
 
+// As vex_lift, but the caller also states how many bytes are readable at
+// insn_start. A decoder that looks outside the block it is lifting -- the
+// s390x EXRL target is read out of the buffer -- stays inside that. Zero
+// means unstated, in which case no more than max_bytes is read.
+VEXLiftResult *vex_lift_with_buffer_size(
+		VexArch guest,
+		VexArchInfo archinfo,
+		unsigned char *insn_start,
+		unsigned long long insn_addr,
+		unsigned int max_insns,
+		unsigned int max_bytes,
+		unsigned int buffer_size,
+		int opt_level,
+		int traceflags,
+		int allow_arch_optimizations,
+		int strict_block_end,
+		int collect_data_refs,
+		int load_from_ro_regions,
+		int const_prop,
+		VexRegisterUpdates px_control,
+		unsigned int lookback_amount);
+
 Bool register_readonly_region(ULong start, ULong size, unsigned char* content);
 void deregister_all_readonly_regions();
 Bool register_initial_register_value(UInt offset, UInt size, ULong value);

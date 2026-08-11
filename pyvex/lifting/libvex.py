@@ -30,6 +30,8 @@ LIBVEX_SUPPORTED_ARCHES = {
 
 VEX_MAX_INSTRUCTIONS = 99
 VEX_MAX_BYTES = 5000
+# libVEX stores the buffer size in an Int.
+VEX_MAX_BUFFER_SIZE = 0x7FFFFFFF
 
 
 class VexRegisterUpdates:
@@ -78,19 +80,29 @@ class LibVEXLifter(Lifter):
             if strict_block_end is None:
                 strict_block_end = True
 
+            # The s390x EXRL target is read straight out of the buffer, and it
+            # can sit well past max_bytes, so libVEX needs to know how much of
+            # the buffer is there. A bare pointer carries no size; leave it
+            # unstated then, and libVEX reads no further than max_bytes.
+            if ffi.typeof(self.data).kind == "array":
+                buffer_size = min(max(ffi.sizeof(self.data) - self.bytes_offset, 0), VEX_MAX_BUFFER_SIZE)
+            else:
+                buffer_size = 0
+
             if self.cross_insn_opt:
                 px_control = VexRegisterUpdates.VexRegUpdUnwindregsAtMemAccess
             else:
                 px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
 
             self.irsb.arch.vex_archinfo["hwcache_info"]["caches"] = ffi.NULL
-            lift_r = pvc.vex_lift(
+            lift_r = pvc.vex_lift_with_buffer_size(
                 vex_arch,
                 self.irsb.arch.vex_archinfo,
                 self.data + self.bytes_offset,
                 self.irsb.addr,
                 max_inst,
                 max_bytes,
+                buffer_size,
                 self.opt_level,
                 self.traceflags,
                 self.allow_arch_optimizations,

@@ -329,6 +329,28 @@ VEXLiftResult *vex_lift(
 		int const_prop,
 		VexRegisterUpdates px_control,
 		unsigned int lookback) {
+	return vex_lift_with_buffer_size(guest, archinfo, insn_start, insn_addr, max_insns, max_bytes,
+			0 /* buffer_size */, opt_level, traceflags, allow_arch_optimizations, strict_block_end,
+			collect_data_refs, load_from_ro_regions, const_prop, px_control, lookback);
+}
+
+VEXLiftResult *vex_lift_with_buffer_size(
+		VexArch guest,
+		VexArchInfo archinfo,
+		unsigned char *insn_start,
+		unsigned long long insn_addr,
+		unsigned int max_insns,
+		unsigned int max_bytes,
+		unsigned int buffer_size,
+		int opt_level,
+		int traceflags,
+		int allow_arch_optimizations,
+		int strict_block_end,
+		int collect_data_refs,
+		int load_from_ro_regions,
+		int const_prop,
+		VexRegisterUpdates px_control,
+		unsigned int lookback) {
 	VexRegisterUpdates pxControl = px_control;
 
 	vex_prepare_vai(guest, &archinfo);
@@ -346,6 +368,7 @@ VEXLiftResult *vex_lift(
 	vta.traceflags          = traceflags;
 
 	vc.guest_max_bytes     = max_bytes;
+	vc.guest_bytes_size    = buffer_size;
 	vc.guest_max_insns     = max_insns;
 	vc.iropt_level         = opt_level;
 	vc.lookback_amount     = lookback;
