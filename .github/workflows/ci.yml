@@ -18,6 +18,8 @@ jobs:
         os: [windows-2022, macos-15-intel, macos-15, ubuntu-24.04]
       fail-fast: false
     runs-on: ${{ matrix.os }}
+    env:
+      PYVEX_TEST_BINARIES_ROOT: ${{ github.workspace }}/.ci-binaries
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -26,6 +28,16 @@ jobs:
       - name: Activate msvc
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1
         if: startsWith(runner.os, 'windows')
+      - name: Resolve test fixtures
+        id: binaries
+        uses: angr/ci-settings/actions/binaries-ref@master
+      - name: Checkout test fixtures
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          repository: angr/binaries
+          ref: ${{ steps.binaries.outputs.ref }}
+          path: .ci-binaries
+          sparse-checkout: tests/s390x
       - name: Setup uv
         uses: astral-sh/setup-uv@445689ea25e0de0a23313031f5fe577c74ae45a1 # v6
       - name: Sync dependencies
@@ -36,11 +48,23 @@ jobs:
   pyodide:
     name: Test (Pyodide)
     runs-on: ubuntu-24.04
+    env:
+      PYVEX_TEST_BINARIES_ROOT: ${{ github.workspace }}/.ci-binaries
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           submodules: 'recursive'
+      - name: Resolve test fixtures
+        id: binaries
+        uses: angr/ci-settings/actions/binaries-ref@master
+      - name: Checkout test fixtures
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          repository: angr/binaries
+          ref: ${{ steps.binaries.outputs.ref }}
+          path: .ci-binaries
+          sparse-checkout: tests/s390x
       - name: Build and test Pyodide wheel
         uses: pypa/cibuildwheel@v4.1.0
         env:
