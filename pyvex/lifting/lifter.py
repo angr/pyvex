@@ -24,6 +24,7 @@ class Lifter:
         "const_prop",
         "disasm",
         "dump_irsb",
+        "vex_archinfo",
     )
 
     """
@@ -67,6 +68,7 @@ class Lifter:
         const_prop: bool = False,
         disasm: bool = False,
         dump_irsb: bool = False,
+        vex_archinfo: dict | None = None,
     ):
         """
         Wrapper around the `_lift` method on Lifters. Should not be overridden in child classes.
@@ -89,6 +91,8 @@ class Lifter:
         :param cross_insn_opt:      If cross-instruction-boundary optimizations are allowed or not.
         :param disasm:              Should the GymratLifter generate disassembly during lifting.
         :param dump_irsb:           Should the GymratLifter log the lifted IRSB.
+        :param vex_archinfo:        A dict to use in place of ``arch.vex_archinfo`` for this lift.
+                                    Most likely will be ignored in any lifter other than LibVEX.
         """
         irsb: IRSB = IRSB.empty_block(self.arch, self.addr)
         self.data = data
@@ -107,6 +111,7 @@ class Lifter:
         self.const_prop = const_prop
         self.disasm = disasm
         self.dump_irsb = dump_irsb
+        self.vex_archinfo = vex_archinfo
         self._lift()
         return self.irsb
 

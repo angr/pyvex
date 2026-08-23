@@ -35,6 +35,7 @@ def lift(
     cross_insn_opt=True,
     load_from_ro_regions=False,
     const_prop=False,
+    vex_archinfo=None,
 ):
     """
     Recursively lifts blocks using the registered lifters and postprocessors. Tries each lifter in the order in
@@ -55,6 +56,8 @@ def lift(
                             optimizations, 1 performs constant propogation, and 2 performs loop unrolling,
                             which honestly doesn't make much sense in the context of pyvex. The default is 1.
     :param traceflags:      The libVEX traceflags, controlling VEX debug prints.
+    :param vex_archinfo:    A dict to use in place of ``arch.vex_archinfo`` for this lift. When None,
+                            ``arch.vex_archinfo`` is used.
 
     .. note:: Explicitly specifying the number of instructions to lift (`max_inst`) may not always work
               exactly as expected. For example, on MIPS, it is meaningless to lift a branch or jump
@@ -152,6 +155,7 @@ def lift(
                     cross_insn_opt=cross_insn_opt,
                     load_from_ro_regions=load_from_ro_regions,
                     const_prop=const_prop,
+                    vex_archinfo=vex_archinfo,
                 )
             except SkipStatementsError:
                 assert skip_stmts is True
@@ -169,6 +173,7 @@ def lift(
                     cross_insn_opt=cross_insn_opt,
                     load_from_ro_regions=load_from_ro_regions,
                     const_prop=const_prop,
+                    vex_archinfo=vex_archinfo,
                 )
             break
         except LiftingException as ex:
@@ -221,6 +226,7 @@ def lift(
                 collect_data_refs=collect_data_refs,
                 load_from_ro_regions=load_from_ro_regions,
                 const_prop=const_prop,
+                vex_archinfo=vex_archinfo,
             )
 
         next_addr = addr + final_irsb.size
@@ -248,6 +254,7 @@ def lift(
                 collect_data_refs=collect_data_refs,
                 load_from_ro_regions=load_from_ro_regions,
                 const_prop=const_prop,
+                vex_archinfo=vex_archinfo,
             )
             if more_irsb.size:
                 # Successfully decoded more bytes
@@ -288,6 +295,7 @@ def lift(
                     collect_data_refs=collect_data_refs,
                     load_from_ro_regions=load_from_ro_regions,
                     const_prop=const_prop,
+                    vex_archinfo=vex_archinfo,
                 )
             except LiftingException:
                 continue
