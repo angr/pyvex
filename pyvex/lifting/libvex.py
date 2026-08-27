@@ -17,6 +17,9 @@ LIBVEX_SUPPORTED_ARCHES = {
     "AMD64",
     "MIPS32",
     "MIPS64",
+    # n32 and O64: a 64-bit MIPS instruction stream with 32-bit pointers, so the guest is
+    # VexArchMIPS64 while the architecture's word size is 32.
+    "MIPSN32",
     "ARM",
     "ARMEL",
     "ARMHF",

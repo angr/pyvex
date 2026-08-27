@@ -27,6 +27,8 @@ class PyvexArch:
             "S390X": "VexArchS390X",
             "MIPS32": "VexArchMIPS32",
             "MIPS64": "VexArchMIPS64",
+            # n32/O64: a 64-bit instruction stream with 32-bit pointers.
+            "MIPSN32": "VexArchMIPS64",
             "RISCV64": "VexArchRISCV64",
         }[name]
         self.ip_offset = guest_offsets[
@@ -42,6 +44,7 @@ class PyvexArch:
                     "S390X": "ia",
                     "MIPS32": "pc",
                     "MIPS64": "pc",
+                    "MIPSN32": "pc",
                     "RISCV64": "pc",
                 }[name],
             )
@@ -91,4 +94,6 @@ ARCH_MIPS32_BE = PyvexArch("MIPS32", 32, "Iend_BE")
 ARCH_MIPS32_LE = PyvexArch("MIPS32", 32, "Iend_LE")
 ARCH_MIPS64_BE = PyvexArch("MIPS64", 64, "Iend_BE")
 ARCH_MIPS64_LE = PyvexArch("MIPS64", 64, "Iend_LE")
+ARCH_MIPSN32_BE = PyvexArch("MIPSN32", 32, "Iend_BE")
+ARCH_MIPSN32_LE = PyvexArch("MIPSN32", 32, "Iend_LE")
 ARCH_RISCV64_LE = PyvexArch("RISCV64", 64, "Iend_LE", instruction_endness="Iend_LE")
