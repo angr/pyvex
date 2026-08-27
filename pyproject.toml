@@ -5,7 +5,7 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "pyvex"
 description = "A Python interface to libVEX and VEX IR"
-license = "BSD-2-Clause AND GPL-2.0-only"
+license = "BSD-2-Clause AND GPL-2.0-or-later"
 license-files = [
   "LICENSE",
   "pyvex_c/LICENSE",
