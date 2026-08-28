@@ -49,8 +49,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
+          path: pyvex
           submodules: 'recursive'
+      - id: binaries-ref
+        uses: angr/ci-settings/actions/binaries-ref@master
+      - name: Checkout binaries
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          repository: angr/binaries
+          path: binaries
+          ref: ${{ steps.binaries-ref.outputs.ref }}
       - name: Build and test Pyodide wheel
         uses: pypa/cibuildwheel@v4.1.0
+        with:
+          package-dir: pyvex
         env:
           CIBW_PLATFORM: pyodide
