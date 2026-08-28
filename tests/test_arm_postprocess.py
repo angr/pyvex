@@ -1,4 +1,17 @@
+import os
+
 import pyvex
+
+test_location = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../binaries/tests")
+THUMB_IT_LOOKBACK_WIDTHS = "armel/thumb_it_lookback_widths.bin"
+
+
+def _read_test_bytes(relative_path, offset, size):
+    with open(os.path.join(test_location, relative_path), "rb") as f:
+        f.seek(offset)
+        data = f.read(size)
+    assert len(data) == size
+    return data
 
 
 ##########################
@@ -368,23 +381,22 @@ def test_arm_postprocess_ret():
 
 
 def test_thumb_it_lookback_mixed_width_group_ends_before_block():
-    # newlib memchr in DecBench's O2-noinline libopencm3 adc-dac-printf.elf. The block begins after an ITTT
-    # group containing 16-, 32-, and 16-bit instructions.
-    data = bytes.fromhex("07d1013015f4807f02bf013015f4c03f0130f0bc0138704700bf")
+    # The block begins after an ITTT group containing 16-, 32-, and 16-bit instructions.
+    data = _read_test_bytes(THUMB_IT_LOOKBACK_WIDTHS, 0x00, 0x14)
     itstate_offset = pyvex.ARCH_ARM_LE.get_register_offset("itstate")
     for opt_level in range(3):
         irsb = pyvex.IRSB(
             data=data,
-            mem_addr=0x80024E9,
+            mem_addr=0x110C7,
             arch=pyvex.ARCH_ARM_LE,
-            max_bytes=6,
-            num_inst=3,
-            bytes_offset=19,
+            max_bytes=2,
+            num_inst=1,
+            bytes_offset=0x13,
             opt_level=opt_level,
         )
 
-        assert irsb.instructions == 3
-        assert irsb.size == 6
+        assert irsb.instructions == 1
+        assert irsb.size == 2
         assert irsb.jumpkind == "Ijk_Ret"
         assert all(not isinstance(expr, pyvex.IRExpr.Get) or expr.offset != itstate_offset for expr in irsb.expressions)
         if opt_level > 0:
@@ -393,17 +405,16 @@ def test_thumb_it_lookback_mixed_width_group_ends_before_block():
 
 def test_thumb_it_lookback_without_proof_stays_conditional():
     cases = (
-        (bytes.fromhex("f0bc01387047"), 1, 1),
-        (bytes.fromhex("07d1013015f4807f02bf013015f4c03f0130f0bc01387047"), 19, -1),
-        (bytes.fromhex("000000000000000000000000000008bf00f0f0bc01387047"), 19, 1),
+        (_read_test_bytes(THUMB_IT_LOOKBACK_WIDTHS, 0x12, 0x02), 0x110C7, 1, 1),
+        (_read_test_bytes(THUMB_IT_LOOKBACK_WIDTHS, 0x00, 0x14), 0x110C7, 0x13, -1),
     )
-    for data, bytes_offset, opt_level in cases:
+    for data, mem_addr, bytes_offset, opt_level in cases:
         irsb = pyvex.IRSB(
             data=data,
-            mem_addr=0x80024E9,
+            mem_addr=mem_addr,
             arch=pyvex.ARCH_ARM_LE,
-            max_bytes=6,
-            num_inst=3,
+            max_bytes=2,
+            num_inst=1,
             bytes_offset=bytes_offset,
             opt_level=opt_level,
         )
@@ -411,37 +422,37 @@ def test_thumb_it_lookback_without_proof_stays_conditional():
         assert irsb.exit_statements
         exit_stmt = irsb.exit_statements[0][2]
         assert isinstance(exit_stmt, pyvex.IRStmt.Exit)
-        assert exit_stmt.dst.value == 0x80024EB
+        assert exit_stmt.dst.value == mem_addr + 2
 
 
 def test_thumb_it_lookback_checks_older_candidates():
     # The second halfword of the first guarded instruction (ldrex r11, [r0, #32]) resembles a one-instruction IT.
-    # It expires at the current pop, but the earlier real four-instruction IT still guards the pop.
+    # It expires at the current pop, but the earlier real three-instruction IT still guards the pop.
     irsb = pyvex.IRSB(
-        data=bytes.fromhex("0000000000000000000001bf50e808bf0130f0bc00bf"),
-        mem_addr=0x1013,
+        data=_read_test_bytes(THUMB_IT_LOOKBACK_WIDTHS, 0x14, 0x18),
+        mem_addr=0x110DB,
         arch=pyvex.ARCH_ARM_LE,
         max_bytes=2,
         num_inst=1,
-        bytes_offset=19,
+        bytes_offset=0x13,
         opt_level=1,
     )
 
     assert irsb.exit_statements
     exit_stmt = irsb.exit_statements[0][2]
     assert isinstance(exit_stmt, pyvex.IRStmt.Exit)
-    assert exit_stmt.dst.value == 0x1015
+    assert exit_stmt.dst.value == 0x110DD
 
 
 def test_thumb_it_lookback_window_edge():
     # Four 32-bit guarded instructions put the IT at the oldest halfword that can still affect this boundary.
     irsb = pyvex.IRSB(
-        data=bytes.fromhex("01bf4ff006014ff006014ff006014ff00601f0bc00bf"),
-        mem_addr=0x1013,
+        data=_read_test_bytes(THUMB_IT_LOOKBACK_WIDTHS, 0x2C, 0x14),
+        mem_addr=0x110F3,
         arch=pyvex.ARCH_ARM_LE,
         max_bytes=2,
         num_inst=1,
-        bytes_offset=19,
+        bytes_offset=0x13,
         opt_level=1,
     )
 
