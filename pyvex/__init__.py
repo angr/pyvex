@@ -17,6 +17,8 @@ from .arches import (
     ARCH_MIPS32_LE,
     ARCH_MIPS64_BE,
     ARCH_MIPS64_LE,
+    ARCH_MIPSN32_BE,
+    ARCH_MIPSN32_LE,
     ARCH_PPC32,
     ARCH_PPC64_BE,
     ARCH_PPC64_LE,
@@ -88,5 +90,7 @@ __all__ = [
     "ARCH_MIPS32_LE",
     "ARCH_MIPS64_BE",
     "ARCH_MIPS64_LE",
+    "ARCH_MIPSN32_BE",
+    "ARCH_MIPSN32_LE",
     "ARCH_RISCV64_LE",
 ]

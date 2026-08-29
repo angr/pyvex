@@ -17,6 +17,7 @@ LIBVEX_SUPPORTED_ARCHES = {
     "AMD64",
     "MIPS32",
     "MIPS64",
+    "MIPSN32",
     "ARM",
     "ARMEL",
     "ARMHF",
