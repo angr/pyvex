@@ -1,4 +1,3 @@
-# pylint: disable=missing-class-docstring
 import os
 import unittest
 
@@ -32,23 +31,22 @@ def fcmp_encodings(data: bytes) -> dict[int, str]:
     return found
 
 
-class TestRiscvFcmp(unittest.TestCase):
-    @unittest.skipUnless(os.path.exists(RISCV_BINARY), "the angr/binaries checkout is not beside this one")
-    def test_float_comparisons_decode(self):
-        with open(RISCV_BINARY, "rb") as fp:
-            data = fp.read()
+@unittest.skipUnless(os.path.exists(RISCV_BINARY), "the angr/binaries checkout is not beside this one")
+def test_float_comparisons_decode():
+    with open(RISCV_BINARY, "rb") as fp:
+        data = fp.read()
 
-        encodings = fcmp_encodings(data)
-        assert len(encodings) >= 25, f"expected the fixture to carry comparisons, found {len(encodings)}"
+    encodings = fcmp_encodings(data)
+    assert len(encodings) >= 25, f"expected the fixture to carry comparisons, found {len(encodings)}"
 
-        undecoded = {}
-        for offset, mnemonic in encodings.items():
-            irsb = pyvex.lift(data[offset : offset + 4], RISCV_BASE + offset, pyvex.ARCH_RISCV64_LE)
-            if irsb.size != 4 or irsb.jumpkind == "Ijk_NoDecode":
-                undecoded[hex(RISCV_BASE + offset)] = mnemonic
+    undecoded = {}
+    for offset, mnemonic in encodings.items():
+        irsb = pyvex.lift(data[offset : offset + 4], RISCV_BASE + offset, pyvex.ARCH_RISCV64_LE)
+        if irsb.size != 4 or irsb.jumpkind == "Ijk_NoDecode":
+            undecoded[hex(RISCV_BASE + offset)] = mnemonic
 
-        assert not undecoded, f"pyvex failed to decode {len(undecoded)} float comparisons: {undecoded}"
+    assert not undecoded, f"pyvex failed to decode {len(undecoded)} float comparisons: {undecoded}"
 
 
 if __name__ == "__main__":
-    unittest.main()
+    test_float_comparisons_decode()
