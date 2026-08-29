@@ -27,7 +27,6 @@ class PyvexArch:
             "S390X": "VexArchS390X",
             "MIPS32": "VexArchMIPS32",
             "MIPS64": "VexArchMIPS64",
-            # n32/O64: a 64-bit instruction stream with 32-bit pointers.
             "MIPSN32": "VexArchMIPS64",
             "RISCV64": "VexArchRISCV64",
         }[name]
