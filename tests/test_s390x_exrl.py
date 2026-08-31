@@ -1,4 +1,30 @@
+import os
+import unittest
+
 import pyvex
+
+# angr/binaries is checked out beside the repository under test in the
+# ecosystem CI job. The standalone platform jobs check out pyvex alone, so the
+# real-binary test below skips there.
+BINARIES = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..", "binaries", "tests")
+ACME_CLIENT = os.path.join(BINARIES, "s390x", "exrl", "acme-client")
+
+# angr maps that PIE at 0x400000 and CFGFast scans the executable segment for
+# code, which lands it on 0x40723a. Nothing executes there: the entry stub ends
+# at 0x407233 and branches to 0x407240, and 0x40723a is two bytes into the word
+# at 0x407238 that the stub loads to find _DYNAMIC. Its low half plus the
+# padding after it read as exrl %r6 with a target 235,802,126 bytes ahead.
+# tests/s390x/exrl/README.md in angr/binaries has the rest.
+LOAD_BASE = 0x400000
+ENTRY_OFFSET = 0x7210
+EXRL_OFFSET = 0x723A
+
+
+def read_acme_client():
+    if not os.path.isdir(BINARIES):
+        raise unittest.SkipTest(f"angr/binaries is not checked out beside pyvex: {BINARIES} is missing")
+    with open(ACME_CLIENT, "rb") as fp:
+        return fp.read()
 
 
 def test_s390x_exrl():
@@ -130,6 +156,39 @@ def test_s390x_exrl_truncated():
     assert irsb.jumpkind == "Ijk_Boring"
 
 
+def test_s390x_exrl_real_binary():
+    """A compiler-produced object that this used to kill the process on:
+    acme-client 1.3.5 for s390x, out of Alpine v3.23. CFGFast's scan reaches a
+    data word between two functions, the six bytes there decode as an EXRL
+    aiming 235,802,126 bytes ahead, and libVEX fetched that out of the
+    translation buffer without a bounds check -- around 225 MiB past the end of
+    the 73,920-byte executable segment cle hands over.
+    """
+    image = read_acme_client()
+    arch = pyvex.ARCH_S390X
+
+    # The entry stub, lifted out of the file. Nothing in it reads outside the
+    # buffer, so it says the fixture is being read and lifted correctly. Its
+    # last instruction is the branch to 0x407240, which is why nothing ever
+    # runs the bytes the scan trips on.
+    irsb = pyvex.lift(image, LOAD_BASE + ENTRY_OFFSET, arch, bytes_offset=ENTRY_OFFSET)
+    assert irsb.size == 36
+    assert irsb.jumpkind == "Ijk_Boring"
+    assert "PUT(ia) = 0x0000000000407240; Ijk_Boring" in str(irsb)
+
+    # And the address the scan reaches, both as the whole file and as the six
+    # bytes a block cut at max_bytes leaves. The target is far outside the
+    # buffer either way, so it is not prefetched and the run-time lookup is
+    # emitted instead.
+    for data, offset in ((image, EXRL_OFFSET), (image[EXRL_OFFSET : EXRL_OFFSET + 6], 0)):
+        irsb = pyvex.lift(data, LOAD_BASE + EXRL_OFFSET, arch, bytes_offset=offset)
+        irsb_str = str(irsb)
+        assert "LDbe:I64(0x000000000e4e8048)" in irsb_str
+        assert "s390x_dirtyhelper_EX" in irsb_str
+        assert irsb.size == 6
+        assert irsb.jumpkind == "Ijk_InvalICache"
+
+
 if __name__ == "__main__":
     test_s390x_exrl()
     test_s390x_exrl_target_before_buffer()
@@ -137,3 +196,4 @@ if __name__ == "__main__":
     test_s390x_exrl_target_past_max_bytes()
     test_s390x_exrl_inside_a_larger_buffer()
     test_s390x_exrl_truncated()
+    test_s390x_exrl_real_binary()
