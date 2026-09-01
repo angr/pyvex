@@ -944,6 +944,19 @@ for cls in _globals.values():
 del cls
 
 
+class DataSensitiveRdTmp(RdTmp):
+    """
+    An RdTmp tagged with the block it was read in, so that data-sensitive analyses can tell
+    apart temporaries with the same index in different blocks.
+    """
+
+    __slots__ = ["block_id"]
+
+    def __init__(self, tmp, block_id):
+        super().__init__(tmp)
+        self.block_id = block_id
+
+
 def tag_to_expr_class(tag):
     """
     Convert a tag string to the corresponding IRExpr class type.
