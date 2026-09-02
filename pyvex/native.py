@@ -30,16 +30,20 @@ def _parse_ffi_str():
         ffi._parser._int_constants = cache["_int_constants"]
     else:
         ffi.cdef(_ffi_str)
-        # cache the result
         cache = {
             "_declarations": ffi._parser._declarations,
             "_int_constants": ffi._parser._int_constants,
         }
-        # atomically write cache
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            temp_file.write(pickle.dumps(cache))
-            temp_file_name = temp_file.name
-        os.replace(temp_file_name, cache_location)
+        # Publishing the cache is best-effort: the declarations are already complete, and a
+        # process that cannot write the file loses nothing because whichever one wins the race
+        # writes the same bytes. Either way the temporary file goes away with the block.
+        try:
+            with tempfile.NamedTemporaryFile(delete_on_close=False) as temp_file:
+                temp_file.write(pickle.dumps(cache))
+                temp_file.close()
+                os.replace(temp_file.name, cache_location)
+        except OSError:
+            pass
 
 
 def _find_c_lib():
