@@ -112,10 +112,12 @@ def lift(
                     # near) it. Lift from a copy padded with 8 NUL bytes so
                     # such reads are deterministic instead of heap garbage;
                     # keep the zero-copy path when there is enough slack.
+                    # The result is a sized char[]; libvex.py passes that size
+                    # on for decoders that read outside the block.
                     if isinstance(py_data, (bytearray, memoryview)) and bytes_offset + max_bytes + 8 <= len(py_data):
-                        u_data = ffi.from_buffer(ffi.BVoidP, py_data)
+                        u_data = ffi.from_buffer(py_data)
                     else:
-                        u_data = ffi.from_buffer(ffi.BVoidP, bytes(py_data) + b"\0" * 8)
+                        u_data = ffi.from_buffer(bytes(py_data) + b"\0" * 8)
                 else:
                     u_data = c_data
                 skip = 0
