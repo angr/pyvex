@@ -26,61 +26,70 @@ set(PYVEX_SRC
 
 # Source files for the VEX C library
 set(VEX_SRC
-	vex/priv/ir_defs.c
-	vex/priv/ir_match.c
-	vex/priv/ir_opt.c
-	vex/priv/ir_inject.c
-	vex/priv/main_globals.c
-	vex/priv/main_util.c
-	vex/priv/s390_disasm.c
-	vex/priv/host_x86_defs.c
+	vex/priv/guest_amd64_helpers.c
+	vex/priv/guest_amd64_toIR.c
+	vex/priv/guest_arm64_helpers.c
+	vex/priv/guest_arm64_toIR.c
+	vex/priv/guest_arm_helpers.c
+	vex/priv/guest_arm_toIR.c
+	vex/priv/guest_generic_bb_to_IR.c
+	vex/priv/guest_generic_x87.c
+	vex/priv/guest_mips_helpers.c
+	vex/priv/guest_mips_toIR.c
+	vex/priv/guest_mipsdsp_toIR.c
+	vex/priv/guest_nanomips_helpers.c
+	vex/priv/guest_nanomips_toIR.c
+	vex/priv/guest_ppc_helpers.c
+	vex/priv/guest_ppc_toIR.c
+	vex/priv/guest_riscv64_helpers.c
+	vex/priv/guest_riscv64_toIR.c
+	vex/priv/guest_s390_helpers.c
+	vex/priv/guest_s390_toIR.c
+	vex/priv/guest_x86_helpers.c
+	vex/priv/guest_x86_toIR.c
 	vex/priv/host_amd64_defs.c
-	vex/priv/host_arm_defs.c
-	vex/priv/host_arm64_defs.c
-	vex/priv/host_ppc_defs.c
-	vex/priv/host_riscv64_defs.c
-	vex/priv/host_s390_defs.c
-	vex/priv/host_mips_defs.c
-	vex/priv/host_x86_isel.c
 	vex/priv/host_amd64_isel.c
-	vex/priv/host_arm_isel.c
+	vex/priv/host_amd64_maddf.c
+	vex/priv/host_arm64_defs.c
 	vex/priv/host_arm64_isel.c
-	vex/priv/host_ppc_isel.c
-	vex/priv/host_riscv64_isel.c
-	vex/priv/host_s390_isel.c
-	vex/priv/host_mips_isel.c
+	vex/priv/host_arm_defs.c
+	vex/priv/host_arm_isel.c
 	vex/priv/host_generic_maddf.c
-	vex/priv/host_generic_regs.c
-	vex/priv/host_generic_simd64.c
-	vex/priv/host_generic_simd128.c
-	vex/priv/host_generic_simd256.c
 	vex/priv/host_generic_reg_alloc2.c
 	vex/priv/host_generic_reg_alloc3.c
-	vex/priv/guest_generic_x87.c
-	vex/priv/guest_generic_bb_to_IR.c
-	vex/priv/guest_x86_helpers.c
-	vex/priv/guest_amd64_helpers.c
-	vex/priv/guest_arm_helpers.c
-	vex/priv/guest_arm64_helpers.c
-	vex/priv/guest_ppc_helpers.c
-	vex/priv/guest_riscv64_helpers.c
-	vex/priv/guest_s390_helpers.c
-	vex/priv/guest_mips_helpers.c
-	vex/priv/guest_x86_toIR.c
-	vex/priv/guest_amd64_toIR.c
-	vex/priv/guest_arm_toIR.c
-	vex/priv/guest_arm64_toIR.c
-	vex/priv/guest_ppc_toIR.c
-	vex/priv/guest_riscv64_toIR.c
-	vex/priv/guest_s390_toIR.c
-	vex/priv/guest_mips_toIR.c
-    vex/priv/multiarch_main_main.c
+	vex/priv/host_generic_regs.c
+	vex/priv/host_generic_simd128.c
+	vex/priv/host_generic_simd256.c
+	vex/priv/host_generic_simd64.c
+	vex/priv/host_mips_defs.c
+	vex/priv/host_mips_isel.c
+	vex/priv/host_nanomips_defs.c
+	vex/priv/host_nanomips_isel.c
+	vex/priv/host_ppc_defs.c
+	vex/priv/host_ppc_isel.c
+	vex/priv/host_riscv64_defs.c
+	vex/priv/host_riscv64_isel.c
+	vex/priv/host_s390_defs.c
+	vex/priv/host_s390_isel.c
+	vex/priv/host_x86_defs.c
+	vex/priv/host_x86_isel.c
+	vex/priv/ir_defs.c
+	vex/priv/ir_inject.c
+	vex/priv/ir_match.c
+	vex/priv/ir_opt.c
+	vex/priv/main_globals.c
+	vex/priv/main_util.c
+	vex/priv/multiarch_main_main.c
+	vex/priv/objdump/dis-init.c
+	vex/priv/objdump/s390-dis.c
+	vex/priv/objdump/s390-opc.c
 )
 
 # Build the VEX static library
 add_library(vex STATIC ${VEX_SRC})
 target_compile_definitions(vex PRIVATE PYVEX)
 target_include_directories(vex PUBLIC ${CMAKE_SOURCE_DIR}/vex/pub)
+target_include_directories(vex PRIVATE ${CMAKE_SOURCE_DIR}/vex/priv)
 
 # Build the shared library
 add_library(pyvex SHARED ${PYVEX_SRC})
