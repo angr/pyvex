@@ -9,7 +9,10 @@ test_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".
 
 
 class Instruction_IMAGINARY(Instruction):
-    bin_format = bin(0x0F0B)[2:].zfill(16)
+    # 0f ff (ud0) is a two-byte encoding libVEX refuses to decode on x86, so the bytes reach the
+    # fallback lifters. Do not use ud2 (0f 0b) here: libVEX decodes that one itself and would
+    # never hand it over.
+    bin_format = bin(0x0FFF)[2:].zfill(16)
     name = "IMAGINARY"
 
     def compute_result(self):
@@ -36,12 +39,12 @@ IRSB {
 
 
 def test_basic():
-    b = pyvex.block.IRSB(b"\x0f\x0b", 1, pyvex.ARCH_X86)
+    b = pyvex.block.IRSB(b"\x0f\xff", 1, pyvex.ARCH_X86)
     assert str(b).strip() == basic_goal.strip()
 
 
 def test_embedded():
-    b = pyvex.block.IRSB(b"\x50" * 3 + b"\x0f\x0b" + b"\x50" * 6, 1, pyvex.ARCH_X86)
+    b = pyvex.block.IRSB(b"\x50" * 3 + b"\x0f\xff" + b"\x50" * 6, 1, pyvex.ARCH_X86)
     for i, stmt in enumerate(b.statements):
         if type(stmt) is pyvex.stmt.IMark and stmt.addr == 0x4 and stmt.len == 2 and stmt.delta == 0:
             imaginary_trans_stmt = b.statements[i + 1]

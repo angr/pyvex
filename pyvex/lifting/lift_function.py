@@ -193,7 +193,7 @@ def lift(
     if final_irsb.size > 0 and final_irsb.jumpkind == "Ijk_NoDecode":
         # We have decoded a few bytes before we hit an undecodeable instruction.
 
-        # Determine if this is an intentional NoDecode, like the ud2 instruction on AMD64
+        # Determine if this is an intentional NoDecode, like the ud2 instruction on x86 and AMD64
         nodecode_addr_expr = final_irsb.next
         if type(nodecode_addr_expr) is Const:
             nodecode_addr = nodecode_addr_expr.con.value
