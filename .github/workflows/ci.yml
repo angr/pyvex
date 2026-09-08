@@ -22,16 +22,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
+          path: pyvex
           submodules: 'recursive'
+      - id: binaries-ref
+        uses: angr/ci-settings/actions/binaries-ref@master
+      - name: Checkout binaries
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          repository: angr/binaries
+          path: binaries
+          ref: ${{ steps.binaries-ref.outputs.ref }}
       - name: Activate msvc
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1
         if: startsWith(runner.os, 'windows')
       - name: Setup uv
         uses: astral-sh/setup-uv@445689ea25e0de0a23313031f5fe577c74ae45a1 # v6
       - name: Sync dependencies
-        run: uv sync -p 3.12
+        run: uv sync --directory pyvex -p 3.12
       - name: Run tests
-        run: uv run pytest tests
+        run: uv --directory pyvex run pytest tests
 
   pyodide:
     name: Test (Pyodide)
@@ -40,8 +49,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
+          path: pyvex
           submodules: 'recursive'
+      - id: binaries-ref
+        uses: angr/ci-settings/actions/binaries-ref@master
+      - name: Checkout binaries
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          repository: angr/binaries
+          path: binaries
+          ref: ${{ steps.binaries-ref.outputs.ref }}
       - name: Build and test Pyodide wheel
         uses: pypa/cibuildwheel@v4.1.0
+        with:
+          package-dir: pyvex
         env:
           CIBW_PLATFORM: pyodide
+          CIBW_TEST_COMMAND: pytest {project}/pyvex/tests
