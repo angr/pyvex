@@ -555,7 +555,7 @@ class IRSB(VEXObject):
             self.tyenv = None
 
         self.next = expr.IRExpr._from_c(c_irsb.next)
-        self.jumpkind = get_enum_from_int(c_irsb.jumpkind)
+        self.jumpkind = get_enum_from_int(c_irsb.jumpkind, "IRJumpKind")
         self._size = lift_r.size
         self.is_noop_block = lift_r.is_noop_block == 1
         self._instructions = lift_r.insts
@@ -679,7 +679,7 @@ class IRTypeEnv(VEXObject):
 
     @staticmethod
     def _from_c(arch, c_tyenv):
-        return IRTypeEnv(arch, [get_enum_from_int(c_tyenv.types[t]) for t in range(c_tyenv.types_used)])
+        return IRTypeEnv(arch, [get_enum_from_int(c_tyenv.types[t], "IRType") for t in range(c_tyenv.types_used)])
 
     @staticmethod
     def _to_c(tyenv):

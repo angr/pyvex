@@ -242,7 +242,14 @@ static void vex_prepare_vai(VexArch arch, VexArchInfo *vai) {
 							VEX_HWCAPS_AMD64_AVX |
 							VEX_HWCAPS_AMD64_RDTSCP |
 							VEX_HWCAPS_AMD64_BMI |
-							VEX_HWCAPS_AMD64_AVX2;
+							VEX_HWCAPS_AMD64_AVX2
+#ifdef AVX_512
+							/* SKX (F/CD/VL/BW/DQ), the mainstream AVX-512
+							   feature set.  The KNL bit is left unset so
+							   CPUID reports an SKX-like machine. */
+							| VEX_HWCAPS_AMD64_AVX512_SKX
+#endif
+							;
 			break;
 		case VexArchARM:
 			vai->hwcaps = VEX_ARM_ARCHLEVEL(8) |

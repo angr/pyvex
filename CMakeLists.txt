@@ -25,8 +25,14 @@ set(PYVEX_SRC
 )
 
 # Source files for the VEX C library
+# AVX-512 lifting support is always enabled.  This define must be seen
+# consistently by libvex, pyvex_c, genoffsets, and make_ffi.py (cffi cdef),
+# or the C library and the Python layer disagree on the guest state layout.
+add_compile_definitions(AVX_512)
+
 set(VEX_SRC
 	vex/priv/guest_amd64_helpers.c
+	vex/priv/guest_amd64_helpers_AVX512.c
 	vex/priv/guest_amd64_toIR.c
 	vex/priv/guest_arm64_helpers.c
 	vex/priv/guest_arm64_toIR.c
@@ -57,6 +63,7 @@ set(VEX_SRC
 	vex/priv/host_generic_maddf.c
 	vex/priv/host_generic_reg_alloc2.c
 	vex/priv/host_generic_reg_alloc3.c
+	vex/priv/host_generic_AVX512_stub.c
 	vex/priv/host_generic_regs.c
 	vex/priv/host_generic_simd128.c
 	vex/priv/host_generic_simd256.c
@@ -74,10 +81,12 @@ set(VEX_SRC
 	vex/priv/host_x86_defs.c
 	vex/priv/host_x86_isel.c
 	vex/priv/ir_defs.c
+	vex/priv/ir_defs_AVX512.c
 	vex/priv/ir_inject.c
 	vex/priv/ir_match.c
 	vex/priv/ir_opt.c
 	vex/priv/main_globals.c
+	vex/priv/main_main_AVX512.c
 	vex/priv/main_util.c
 	vex/priv/multiarch_main_main.c
 	vex/priv/objdump/dis-init.c
@@ -128,6 +137,18 @@ install(
     FILES ${CMAKE_SOURCE_DIR}/vex/pub/libvex_guest_offsets.h
     DESTINATION pyvex/include
 )
+# Ship the rest of the VEX public headers and pyvex.h too: downstream native
+# code (angr's unicornlib) compiles against them via importlib.resources, and
+# an include directory holding only libvex_guest_offsets.h fails to build.
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/vex/pub/
+    DESTINATION pyvex/include
+    FILES_MATCHING PATTERN "*.h"
+)
+install(
+    FILES ${CMAKE_SOURCE_DIR}/pyvex_c/pyvex.h
+    DESTINATION pyvex/include
+)
 
 add_dependencies(vex generate_offsets_header)
 # --- END: Generate pub/libvex_guest_offsets.h ---
@@ -135,9 +156,16 @@ add_dependencies(vex generate_offsets_header)
 # --- BEGIN: Generate pyvex/vex_ffi.py ---
 add_custom_command(
     OUTPUT ${CMAKE_SOURCE_DIR}/pyvex/vex_ffi.py
-    COMMAND ${CMAKE_COMMAND} -E env
+    COMMAND ${CMAKE_COMMAND} -E env PYVEX_FFI_DEFINES=AVX_512
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/make_ffi.py ${CMAKE_SOURCE_DIR}/vex/pub
     DEPENDS ${CMAKE_SOURCE_DIR}/vex/pub/libvex_guest_offsets.h
+        ${CMAKE_SOURCE_DIR}/vex/pub/libvex.h
+        ${CMAKE_SOURCE_DIR}/vex/pub/libvex_ir.h
+        ${CMAKE_SOURCE_DIR}/vex/pub/libvex_ir_AVX512.h
+        ${CMAKE_SOURCE_DIR}/vex/pub/libvex_basictypes.h
+        ${CMAKE_SOURCE_DIR}/vex/pub/libvex_basictypes_AVX512.h
+        ${CMAKE_SOURCE_DIR}/pyvex_c/pyvex.h
+        ${CMAKE_SOURCE_DIR}/make_ffi.py
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Generating pyvex/vex_ffi.py using make_ffi.py"
 )
@@ -169,5 +197,6 @@ add_custom_target(copy_headers ALL
     DEPENDS ${CMAKE_SOURCE_DIR}/pyvex/include/pub ${CMAKE_SOURCE_DIR}/pyvex/include/pyvex.h
 )
 add_dependencies(pyvex copy_headers)
+add_dependencies(vex copy_headers)
 add_dependencies(copy_headers generate_offsets_header)
 # --- END: Copy headers to pyvex/include ---

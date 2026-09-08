@@ -57,7 +57,7 @@ class IRStmt(VEXObject):
         try:
             stmt_class = enum_to_stmt_class(c_stmt.tag)
         except KeyError:
-            raise PyVEXError("Unknown/unsupported IRStmtTag %s.\n" % get_enum_from_int(c_stmt.tag))
+            raise PyVEXError("Unknown/unsupported IRStmtTag %s.\n" % get_enum_from_int(c_stmt.tag, "IRStmtTag"))
         return stmt_class._from_c(c_stmt)
 
     def typecheck(self, tyenv: IRTypeEnv) -> bool:  # pylint: disable=unused-argument,no-self-use
@@ -295,7 +295,7 @@ class Store(IRStmt):
         return Store(
             IRExpr._from_c(c_stmt.Ist.Store.addr),
             IRExpr._from_c(c_stmt.Ist.Store.data),
-            get_enum_from_int(c_stmt.Ist.Store.end),
+            get_enum_from_int(c_stmt.Ist.Store.end, "IREndness"),
         )
 
     def typecheck(self, tyenv):
@@ -352,7 +352,7 @@ class CAS(IRStmt):
             IRExpr._from_c(c_stmt.Ist.CAS.details.expdHi),
             c_stmt.Ist.CAS.details.oldLo,
             c_stmt.Ist.CAS.details.oldHi,
-            get_enum_from_int(c_stmt.Ist.CAS.details.end),
+            get_enum_from_int(c_stmt.Ist.CAS.details.end, "IREndness"),
         )
 
     def typecheck(self, tyenv):
@@ -431,7 +431,7 @@ class LLSC(IRStmt):
             IRExpr._from_c(c_stmt.Ist.LLSC.addr),
             IRExpr._from_c(c_stmt.Ist.LLSC.storedata),
             c_stmt.Ist.LLSC.result,
-            get_enum_from_int(c_stmt.Ist.LLSC.end),
+            get_enum_from_int(c_stmt.Ist.LLSC.end, "IREndness"),
         )
 
     def typecheck(self, tyenv):
@@ -471,7 +471,7 @@ class MBE(IRStmt):
 
     @staticmethod
     def _from_c(c_stmt):
-        return MBE(get_enum_from_int(c_stmt.Ist.MBE.event))
+        return MBE(get_enum_from_int(c_stmt.Ist.MBE.event, "IRMBusEvent"))
 
 
 class Dirty(IRStmt):
@@ -517,7 +517,7 @@ class Dirty(IRStmt):
             IRExpr._from_c(c_stmt.Ist.Dirty.details.guard),
             tuple(args),
             c_stmt.Ist.Dirty.details.tmp,
-            get_enum_from_int(c_stmt.Ist.Dirty.details.mFx),
+            get_enum_from_int(c_stmt.Ist.Dirty.details.mFx, "IREffect"),
             IRExpr._from_c(c_stmt.Ist.Dirty.details.mAddr),
             c_stmt.Ist.Dirty.details.mSize,
             c_stmt.Ist.Dirty.details.nFxState,
@@ -561,7 +561,7 @@ class Exit(IRStmt):
         return Exit(
             IRExpr._from_c(c_stmt.Ist.Exit.guard),
             IRConst._from_c(c_stmt.Ist.Exit.dst),
-            get_enum_from_int(c_stmt.Ist.Exit.jk),
+            get_enum_from_int(c_stmt.Ist.Exit.jk, "IRJumpKind"),
             c_stmt.Ist.Exit.offsIP,
         )
 
@@ -600,7 +600,7 @@ class LoadG(IRStmt):
         pvc.typeOfIRLoadGOp(get_int_from_enum(self.cvt), type_out, type_in)
         type_in = ffi.cast("int *", type_in)[0]
         type_out = ffi.cast("int *", type_out)[0]
-        self.cvt_types = (get_enum_from_int(type_in), get_enum_from_int(type_out))
+        self.cvt_types = (get_enum_from_int(type_in, "IRType"), get_enum_from_int(type_out, "IRType"))
 
     @property
     def endness(self):
@@ -619,8 +619,8 @@ class LoadG(IRStmt):
     @staticmethod
     def _from_c(c_stmt):
         return LoadG(
-            get_enum_from_int(c_stmt.Ist.LoadG.details.end),
-            get_enum_from_int(c_stmt.Ist.LoadG.details.cvt),
+            get_enum_from_int(c_stmt.Ist.LoadG.details.end, "IREndness"),
+            get_enum_from_int(c_stmt.Ist.LoadG.details.cvt, "IRLoadGOp"),
             c_stmt.Ist.LoadG.details.dst,
             IRExpr._from_c(c_stmt.Ist.LoadG.details.addr),
             IRExpr._from_c(c_stmt.Ist.LoadG.details.alt),
@@ -644,8 +644,18 @@ class LoadG(IRStmt):
 
         if guardty is None or altty is None:
             return False
-        if dstty != "Ity_I32" or altty != "Ity_I32":
-            log.debug("dst and alt must be Ity_I32")
+        # The conversion decides the result width: the Ident* conversions keep
+        # the loaded width, everything else widens to 32 bits.
+        ident_widths = {
+            "ILGop_IdentV128": "Ity_V128",
+            "ILGop_Ident64": "Ity_I64",
+            "ILGop_Ident32": "Ity_I32",
+            "ILGop_Ident16": "Ity_I16",
+            "ILGop_Ident8": "Ity_I8",
+        }
+        expected = ident_widths.get(self.cvt, "Ity_I32")
+        if dstty != expected or altty != expected:
+            log.debug("dst and alt must be %s for %s", expected, self.cvt)
             return False
         if guardty != "Ity_I1":
             log.debug("guard must be Ity_I1")
@@ -681,7 +691,7 @@ class StoreG(IRStmt):
     @staticmethod
     def _from_c(c_stmt):
         return StoreG(
-            get_enum_from_int(c_stmt.Ist.StoreG.details.end),
+            get_enum_from_int(c_stmt.Ist.StoreG.details.end, "IREndness"),
             IRExpr._from_c(c_stmt.Ist.StoreG.details.addr),
             IRExpr._from_c(c_stmt.Ist.StoreG.details.data),
             IRExpr._from_c(c_stmt.Ist.StoreG.details.guard),
@@ -737,4 +747,4 @@ def enum_to_stmt_class(tag_enum):
     try:
         return enum_to_stmt_mapping[tag_enum]
     except KeyError:
-        raise KeyError("No statement class for tag %s." % get_enum_from_int(tag_enum))
+        raise KeyError("No statement class for tag %s." % get_enum_from_int(tag_enum, "IRStmtTag"))

@@ -107,7 +107,7 @@ class IRExpr(VEXObject):
         try:
             return enum_to_expr_class(c_expr.tag)._from_c(c_expr)
         except KeyError:
-            raise PyVEXError("Unknown/unsupported IRExprTag %s\n" % get_enum_from_int(c_expr.tag))
+            raise PyVEXError("Unknown/unsupported IRExprTag %s\n" % get_enum_from_int(c_expr.tag, "IRExprTag"))
 
     _translate = _from_c
 
@@ -296,11 +296,11 @@ class Get(IRExpr):
 
     @property
     def ty(self):
-        return get_enum_from_int(self.ty_int)
+        return get_enum_from_int(self.ty_int, "IRType")
 
     @property
     def type(self):
-        return get_enum_from_int(self.ty_int)
+        return get_enum_from_int(self.ty_int, "IRType")
 
     def _pp_str(self):
         return f"GET:{self.ty[4:]}(offset={self.offset})"
@@ -312,7 +312,7 @@ class Get(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return Get(c_expr.Iex.Get.offset, get_enum_from_int(c_expr.Iex.Get.ty))
+        return Get(c_expr.Iex.Get.offset, get_enum_from_int(c_expr.Iex.Get.ty, "IRType"))
 
     @staticmethod
     def _to_c(expr):
@@ -350,7 +350,7 @@ class Qop(IRExpr):
     @staticmethod
     def _from_c(c_expr):
         return Qop(
-            get_enum_from_int(c_expr.Iex.Qop.details.op),
+            get_enum_from_int(c_expr.Iex.Qop.details.op, "IROp"),
             [
                 IRExpr._from_c(arg)
                 for arg in [
@@ -419,7 +419,7 @@ class Triop(IRExpr):
     @staticmethod
     def _from_c(c_expr):
         return Triop(
-            get_enum_from_int(c_expr.Iex.Triop.details.op),
+            get_enum_from_int(c_expr.Iex.Triop.details.op, "IROp"),
             [
                 IRExpr._from_c(arg)
                 for arg in [c_expr.Iex.Triop.details.arg1, c_expr.Iex.Triop.details.arg2, c_expr.Iex.Triop.details.arg3]
@@ -474,7 +474,7 @@ class Binop(IRExpr):
     @property
     def op(self):
         if self._op is None:
-            self._op = get_enum_from_int(self.op_int)
+            self._op = get_enum_from_int(self.op_int, "IROp")
         return self._op
 
     @property
@@ -540,7 +540,7 @@ class Unop(IRExpr):
 
     @staticmethod
     def _from_c(c_expr):
-        return Unop(get_enum_from_int(c_expr.Iex.Unop.op), [IRExpr._from_c(c_expr.Iex.Unop.arg)])
+        return Unop(get_enum_from_int(c_expr.Iex.Unop.op, "IROp"), [IRExpr._from_c(c_expr.Iex.Unop.arg)])
 
     @staticmethod
     def _to_c(expr):
@@ -590,8 +590,8 @@ class Load(IRExpr):
     @staticmethod
     def _from_c(c_expr):
         return Load(
-            get_enum_from_int(c_expr.Iex.Load.end),
-            get_enum_from_int(c_expr.Iex.Load.ty),
+            get_enum_from_int(c_expr.Iex.Load.end, "IREndness"),
+            get_enum_from_int(c_expr.Iex.Load.ty, "IRType"),
             IRExpr._from_c(c_expr.Iex.Load.addr),
         )
 
@@ -751,7 +751,9 @@ class CCall(IRExpr):
             args.append(IRExpr._from_c(arg))
             i += 1
 
-        return CCall(get_enum_from_int(c_expr.Iex.CCall.retty), IRCallee._from_c(c_expr.Iex.CCall.cee), tuple(args))
+        return CCall(
+            get_enum_from_int(c_expr.Iex.CCall.retty, "IRType"), IRCallee._from_c(c_expr.Iex.CCall.cee), tuple(args)
+        )
 
     @staticmethod
     def _to_c(expr):
@@ -789,9 +791,9 @@ def _request_op_type_from_libvex(op):
         numargs = arg_ty_vals.index(Ity_INVALID)
     except ValueError:
         numargs = 4
-    args_tys_list = [get_enum_from_int(arg_ty_vals[i]) for i in range(numargs)]
+    args_tys_list = [get_enum_from_int(arg_ty_vals[i], "IRType") for i in range(numargs)]
 
-    op_ty_sig = (get_enum_from_int(res_ty[0]), tuple(args_tys_list))
+    op_ty_sig = (get_enum_from_int(res_ty[0], "IRType"), tuple(args_tys_list))
     op_signatures[op] = op_ty_sig
     return op_ty_sig
 
@@ -971,4 +973,4 @@ def enum_to_expr_class(tag_enum):
     try:
         return enum_to_expr_mapping[tag_enum]
     except KeyError:
-        raise KeyError("Cannot find expression class for type %s." % get_enum_from_int(tag_enum))
+        raise KeyError("Cannot find expression class for type %s." % get_enum_from_int(tag_enum, "IRExprTag"))
