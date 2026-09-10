@@ -480,8 +480,8 @@ Bool register_readonly_region(ULong start, ULong size, unsigned char* content)
 
 void deregister_all_readonly_regions()
 {
+	memset(regions, 0, sizeof(Region) * next_unused_region_id);
 	next_unused_region_id = 0;
-	regions[next_unused_region_id].in_use = 0;
 }
 
 Bool load_value(ULong addr, int size, int endness, void *value) {

@@ -94,6 +94,34 @@ class TestRoRegionConstFoldAmd64(unittest.TestCase):
         finally:
             pyvex.pvc.deregister_all_readonly_regions()
 
+    def test_folds_again_after_a_deregister_and_reregister_cycle(self):
+        # Regression: deregister_all_readonly_regions() cleared only the first slot, so the slots after it kept
+        # in_use set. The next registration pass then took register_readonly_region's overwrite path without
+        # incrementing the region count, and the following region overwrote that slot, silently dropping one.
+        decoy_lo = bytearray(b"\x00" * 16)
+        decoy_hi = bytearray(b"\x33" * 16)
+        region = struct.pack("<Q", TARGET)
+        for _ in range(4):
+            bufs = [
+                (0x1_4000_0000, len(decoy_lo), pyvex.ffi.from_buffer(decoy_lo)),
+                (SLOT_ADDR, len(region), pyvex.ffi.from_buffer(region)),
+                (0x1_4000_9000, len(decoy_hi), pyvex.ffi.from_buffer(decoy_hi)),
+            ]
+            for addr, size, buf in bufs:
+                assert pyvex.pvc.register_readonly_region(addr, size, buf)
+            try:
+                irsb = pyvex.lift(
+                    b"\xff\x15\xfa\x00\x00\x00",
+                    0x1_4000_1000,
+                    pyvex.ARCH_AMD64,
+                    load_from_ro_regions=True,
+                    const_prop=True,
+                    collect_data_refs=True,
+                )
+                self._assert_next_tmp_folded(irsb)
+            finally:
+                pyvex.pvc.deregister_all_readonly_regions()
+
     def test_unregistered_region_does_not_fold(self):
         irsb = pyvex.lift(
             b"\xff\x15\xfa\x00\x00\x00",
