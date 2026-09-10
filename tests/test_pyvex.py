@@ -139,6 +139,15 @@ class TestPyvex(unittest.TestCase):
         irsb2.tyenv = copy.deepcopy(irsb.tyenv)
         print(irsb2.tyenv)
 
+    def test_irsb_instruction_addresses_contains_empty_imarks(self):
+        # 0x2000: MOV R0, 3
+        # 0x2004: SEV
+        # 0x2008: SEV
+        # 0x200C: MOV R1, 3
+        opcodes = b"\x03\x00\xa0\xe3\x04\xf0\x20\xe3\x04\xf0\x20\xe3\x03\x10\xa0\xe3"
+        irsb = pyvex.IRSB(data=opcodes, mem_addr=0x2000, arch=pyvex.ARCH_ARM_LE)
+        assert irsb.instruction_addresses == (0x2000, 0x2004, 0x2008, 0x200C)
+
     ##################
     ### Statements ###
     ##################
