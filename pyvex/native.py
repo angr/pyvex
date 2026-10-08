@@ -43,6 +43,7 @@ def _parse_ffi_str():
                 # On windows, multiple processes might try to write to the same cache file simultaneously.
                 pass
 
+
 def _find_c_lib():
     # Load the c library for calling into VEX
     if sys.platform in ("win32", "cygwin"):
