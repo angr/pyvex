@@ -33,7 +33,11 @@ def find_good_scan(questionable):
             questionable = questionable[1:]
             end_line = len(questionable)
         except cffi.CDefError as e:
-            if "<cdef source string>" in str(e):
+            if "Unmatched '}'" in str(e):
+                # pycparser >= 3.1 raises this instead of an AssertionError
+                questionable = questionable[1:]
+                end_line = len(questionable)
+            elif "<cdef source string>" in str(e):
                 failed_line = int(str(e).split("\n")[-1].split(":")[1]) - 1
             elif str(e).count(":") >= 2:
                 failed_line = int(str(e).split("\n")[1].split(":")[1])
