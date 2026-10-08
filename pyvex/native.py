@@ -35,11 +35,13 @@ def _parse_ffi_str():
             "_declarations": ffi._parser._declarations,
             "_int_constants": ffi._parser._int_constants,
         }
-        # atomically write cache
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            temp_file.write(pickle.dumps(cache))
-            temp_file_name = temp_file.name
-        os.replace(temp_file_name, cache_location)
+        pickle_output = pickle.dumps(cache)
+        with open(cache_location, "wb") as f:
+            try:
+                f.write(pickle_output)
+            except OSError:
+                # On windows, multiple processes might try to write to the same cache file simultaneously.
+                pass
 
 
 def _find_c_lib():
