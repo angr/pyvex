@@ -921,6 +921,9 @@ _request_funcs = [_request_op_type_from_cache, _request_op_type_from_libvex, _re
 
 
 def op_arg_types(op):
+    if op == "Iop_INVALID":
+        raise ValueError(f"Cannot find type of op {op}")
+
     for _request_func in _request_funcs:
         try:
             return _request_func(op)

@@ -15,6 +15,11 @@ if sys.platform == "linux":
 
 # pylint: disable=R0201
 class TestPyvex(unittest.TestCase):
+    def test_op_arg_types_rejects_invalid_op(self):
+        self.assertEqual(pyvex.expr.op_arg_types("Iop_Add32"), ("Ity_I32", ("Ity_I32", "Ity_I32")))
+        with self.assertRaisesRegex(ValueError, "Cannot find type of op Iop_INVALID"):
+            pyvex.expr.op_arg_types("Iop_INVALID")
+
     @unittest.skipUnless(
         sys.platform == "linux", "Cannot import the resource package on windows, values different on macos."
     )
