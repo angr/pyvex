@@ -21,7 +21,7 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "bitstring",
+    "bitstring<5",
     "cffi>=1.0.3;implementation_name == 'cpython'",
 ]
 dynamic = ["version"]
