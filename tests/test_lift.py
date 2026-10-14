@@ -31,6 +31,25 @@ class TestLift(unittest.TestCase):
         assert block.instructions == 1
         assert block.jumpkind == JumpKind.NoDecode
 
+    def test_decode_error_reaches_the_caller_as_itself(self):
+        """This tests that a failure before the first instruction is decoded reaches
+        the caller as itself, rather than as an UnboundLocalError raised by the
+        handler that reports it.
+        """
+
+        class CreateBitstrmError(Exception):
+            pass
+
+        class BrokenLifter(GymratLifter):
+            instrs = []
+
+            def create_bitstrm(self):
+                raise CreateBitstrmError("no stream")
+
+        lifter = BrokenLifter(pyvex.ARCH_AMD64, 0)
+        with self.assertRaises(CreateBitstrmError):
+            lifter.lift(b"\x90")
+
     def test_skipstmts_toomanyexits(self):
         # https://github.com/angr/pyvex/issues/153
 
