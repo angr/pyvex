@@ -104,7 +104,14 @@ def lift(
             if lifter.REQUIRE_DATA_C:
                 if c_data is None:
                     assert py_data is not None
-                    max_bytes = min(len(py_data), max_bytes) if max_bytes is not None else len(py_data)
+                    # The window starts at bytes_offset (one byte earlier for THUMB), not at the start of py_data
+                    if bytes_offset and arch.name.startswith("ARM") and (addr & 1) == 1:
+                        remaining = len(py_data) - (bytes_offset - 1)
+                    else:
+                        remaining = len(py_data) - bytes_offset
+                    if remaining <= 0:
+                        raise PyVEXError("Cannot lift block with no data (bytes_offset is past the end of data)")
+                    max_bytes = min(remaining, max_bytes) if max_bytes is not None else remaining
                     # libVEX decoders may read the full length of an instruction
                     # that *starts* inside the [bytes_offset, bytes_offset +
                     # max_bytes) window, i.e. a few bytes past max_bytes -- and
