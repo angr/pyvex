@@ -135,6 +135,25 @@ class TestRoRegionConstFoldAmd64(unittest.TestCase):
         assert isinstance(irsb.next, pyvex.expr.RdTmp)
         self.assertNotIn(irsb.next.tmp, folded)
 
+    def test_load_wrapping_past_top_of_address_space_does_not_fold(self):
+        # Regression: load_value() bounds-checked with addr + size, which wraps for a load near 2**64. With a
+        # region mapped at 0 the check passed and the load read from before the region's buffer.
+        backing = bytearray(b"\xaa" * 8 + b"\x11" * 16)
+        buf = pyvex.ffi.from_buffer(backing)
+        assert pyvex.pvc.register_readonly_region(0, 16, pyvex.ffi.cast("unsigned char *", buf) + 8)
+        try:
+            # movabs rax, [0xfffffffffffffffc]
+            irsb = pyvex.lift(
+                b"\x48\xa1" + struct.pack("<Q", 0xFFFF_FFFF_FFFF_FFFC),
+                0x1000,
+                pyvex.ARCH_AMD64,
+                load_from_ro_regions=True,
+                const_prop=True,
+            )
+        finally:
+            pyvex.pvc.deregister_all_readonly_regions()
+        self.assertEqual(irsb.const_vals or [], [])
+
 
 if __name__ == "__main__":
     unittest.main()
