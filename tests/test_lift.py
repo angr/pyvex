@@ -100,6 +100,23 @@ class TestLift(unittest.TestCase):
             assert irsb.jumpkind == ref.jumpkind
             assert str(irsb) == str(ref)
 
+    def test_lift_window_bytes_offset(self):
+        """The lift window must be capped at the bytes remaining after
+        ``bytes_offset``, not at ``len(data)``; otherwise libVEX reads up to
+        ``bytes_offset`` bytes past the end of the buffer.
+        """
+        data = b"\x90" * 100
+        irsb = lift(data, 0x1000, pyvex.ARCH_AMD64, bytes_offset=90, opt_level=0)
+        assert irsb.size == 10
+        assert irsb.instructions == 10
+
+        # THUMB: an odd bytes_offset of 1 still covers the whole buffer
+        irsb = lift(b"\x00\xbf\x00\xbf", 0x1001, pyvex.ARCH_ARM_LE, bytes_offset=1, opt_level=0)
+        assert irsb.size == 4
+
+        with self.assertRaises(PyVEXError):
+            lift(data, 0x1000, pyvex.ARCH_AMD64, bytes_offset=100)
+
 
 if __name__ == "__main__":
     unittest.main()
