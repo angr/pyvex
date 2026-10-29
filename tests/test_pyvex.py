@@ -494,6 +494,14 @@ class TestPyvex(unittest.TestCase):
         assert ue.con.value == u1.value
         assert ue.con.value != f64.value
 
+    def test_irconst_int_class_size(self):
+        # vex_int_class() builds classes for widths without a predefined IRConst; they need .size too
+        u128 = pyvex.const.vex_int_class(128)(5)
+        assert type(u128).__name__ == "U128"
+        assert u128.type == "Ity_I128"
+        assert u128.size == 128
+        assert pyvex.const.vex_int_class(64).size == 64
+
     def test_irexpr_ite(self):
         a = pyvex.IRExpr.Get(0, "Ity_I64")
         iffalse = pyvex.IRExpr.RdTmp.get_instance(1)
