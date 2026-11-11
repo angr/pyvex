@@ -55,7 +55,11 @@ class LibVEXLifter(Lifter):
         if TYPE_CHECKING:
             assert isinstance(self.irsb.arch, LibvexArch)
             assert isinstance(self.data, CLiftSource)
-        vex_archinfo = self.vex_archinfo if self.vex_archinfo is not None else self.irsb.arch.vex_archinfo
+        arch_vex_archinfo = self.vex_archinfo if self.vex_archinfo is not None else self.irsb.arch.vex_archinfo
+        # Do not mutate the (possibly shared) arch object: libvex needs an explicit NULL for the cache pointer, so hand
+        # it a copy with that field filled in instead.
+        vex_archinfo = dict(arch_vex_archinfo)
+        vex_archinfo["hwcache_info"] = {**arch_vex_archinfo["hwcache_info"], "caches": ffi.NULL}
         try:
             _libvex_lock.acquire()
 
@@ -85,7 +89,6 @@ class LibVEXLifter(Lifter):
             else:
                 px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
 
-            vex_archinfo["hwcache_info"]["caches"] = ffi.NULL
             lift_r = pvc.vex_lift(
                 vex_arch,
                 vex_archinfo,
@@ -116,4 +119,3 @@ class LibVEXLifter(Lifter):
                 raise LiftingException("libvex: could not decode any instructions @ 0x%x" % self.addr)
         finally:
             _libvex_lock.release()
-            vex_archinfo["hwcache_info"]["caches"] = None
