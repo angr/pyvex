@@ -80,11 +80,12 @@ class GymratLifter(Lifter):
         log.debug("Address: %#08x" % addr)
 
     def decode(self):
+        addr = self.irsb.addr
+        bytepos = 0
         try:
             self.create_bitstrm()
             count = 0
             disas = []
-            addr = self.irsb.addr
             log.debug("Starting block at address: " + hex(addr))
             bytepos = self.bitstrm.bytepos
 
