@@ -88,6 +88,20 @@ def lift(
         c_data = data
         py_data = None
 
+    # The block starts at bytes_offset. For ARM THUMB code, both addr and bytes_offset carry the THUMB bit, so the block
+    # starts one byte earlier.
+    if bytes_offset and arch.name.startswith("ARM") and (addr & 1) == 1:
+        block_offset = bytes_offset - 1
+    else:
+        block_offset = bytes_offset
+
+    if py_data is not None:
+        available_bytes = len(py_data) - block_offset
+        if available_bytes <= 0:
+            raise PyVEXError("Cannot lift block with no data (bytes_offset is past the end of data)")
+        # Never lift past the end of data
+        max_bytes = available_bytes if max_bytes is None else min(max_bytes, available_bytes)
+
     allow_arch_optimizations = True
     # In order to attempt to preserve the property that
     # VEX lifts the same bytes to the same IR at all times when optimizations are disabled
@@ -103,8 +117,7 @@ def lift(
             u_data: LiftSource = data
             if lifter.REQUIRE_DATA_C:
                 if c_data is None:
-                    assert py_data is not None
-                    max_bytes = min(len(py_data), max_bytes) if max_bytes is not None else len(py_data)
+                    assert py_data is not None and max_bytes is not None
                     # libVEX decoders may read the full length of an instruction
                     # that *starts* inside the [bytes_offset, bytes_offset +
                     # max_bytes) window, i.e. a few bytes past max_bytes -- and
@@ -120,10 +133,7 @@ def lift(
                     u_data = c_data
                 skip = 0
             elif lifter.REQUIRE_DATA_PY:
-                if bytes_offset and arch.name.startswith("ARM") and (addr & 1) == 1:
-                    skip = bytes_offset - 1
-                else:
-                    skip = bytes_offset
+                skip = block_offset
                 if py_data is None:
                     assert c_data is not None
                     if max_bytes is None:
@@ -131,10 +141,8 @@ def lift(
                         continue
                     u_data = ffi.buffer(c_data + skip, max_bytes)[:]
                 else:
-                    if max_bytes is None:
-                        u_data = py_data[skip:]
-                    else:
-                        u_data = py_data[skip : skip + max_bytes]
+                    assert max_bytes is not None
+                    u_data = py_data[skip : skip + max_bytes]
             else:
                 raise RuntimeError(
                     "Incorrect lifter configuration. What type of data does %s expect?" % lifter.__class__

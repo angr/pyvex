@@ -78,6 +78,29 @@ class TestLift(unittest.TestCase):
         assert lift(data2, 0x1000, arch, max_bytes=len(data)).size == len(data)
         assert lift(data2, 0x1000, arch, max_bytes=len(data) - 1).size == len(data) - 1
 
+    def test_max_bytes_with_bytes_offset(self):
+        # https://github.com/angr/pyvex/issues/482
+        # Lifting must stop at the end of data, not bytes_offset bytes past it.
+        prefix = bytes.fromhex("31c0e8a932f9ff")
+        data = prefix + bytes.fromhex("c7442408b55f5999896c2404")  # mov dword ptr [rsp+8], imm32; mov [rsp+4], ebp
+        arch = pyvex.ARCH_AMD64
+        addr = 0x1000 + len(prefix)
+        for buf in (data, bytearray(data), memoryview(data)):
+            irsb = lift(buf, addr, arch, bytes_offset=len(prefix))
+            assert irsb.size == len(data) - len(prefix)
+            assert irsb.instructions == 2
+            irsb = lift(buf, addr, arch, max_bytes=len(data), bytes_offset=len(prefix))
+            assert irsb.size == len(data) - len(prefix)
+            assert irsb.instructions == 2
+
+        self.assertRaises(PyVEXError, lift, data, 0x1000 + len(data), arch, bytes_offset=len(data))
+
+        # For THUMB, both addr and bytes_offset carry the THUMB bit
+        data = bytes.fromhex("aaaa00bf00bf")  # junk, nop, nop
+        irsb = lift(data, 0x1003, pyvex.ARCH_ARM_LE, bytes_offset=3)
+        assert irsb.size == 4
+        assert irsb.instructions == 2
+
     def test_lift_window_overread_deterministic(self):
         """libVEX decoders may read the full length of an instruction that
         starts inside the lift window, i.e. a few bytes past ``max_bytes`` --
