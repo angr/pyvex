@@ -210,7 +210,7 @@ class IRSB(VEXObject):
     def copy(self) -> "IRSB":
         return copy.deepcopy(self)
 
-    def extend(self, extendwith: "IRSB") -> None:
+    def extend(self, extendwith) -> None:
         """
         Appends an irsb to the current irsb. The appended irsb's jumpkind and default exit are used.
 
@@ -221,7 +221,7 @@ class IRSB(VEXObject):
         """
         self._extend(extendwith, copy_statements=True)
 
-    def _extend(self, extendwith: "IRSB", copy_statements: bool) -> None:
+    def _extend(self, extendwith, copy_statements: bool) -> None:
         """
         Appends `extendwith` to this IRSB, see :meth:`extend`.
 

@@ -19,6 +19,15 @@ def _ins_addr_of_stmt(irsb: pyvex.IRSB, stmt_idx: int) -> int:
     raise AssertionError(f"Statement {stmt_idx} is not preceded by an IMark")
 
 
+def _exit_targets(irsb: pyvex.IRSB) -> list[tuple[int, int]]:
+    targets = []
+    for ins_addr, stmt_idx, stmt in irsb.exit_statements:
+        assert isinstance(stmt, pyvex.stmt.Exit)
+        assert irsb.statements[stmt_idx] is stmt
+        targets.append((ins_addr, stmt.dst.value))
+    return targets
+
+
 class TestIRSBExtend(unittest.TestCase):
     def test_extend_does_not_modify_the_appended_irsb(self):
         # Two blocks at the same address, so that each of them is contiguous with the appended block
@@ -55,9 +64,7 @@ class TestIRSBExtend(unittest.TestCase):
         assert irsb.exit_statements == ()  # computes and caches the exits
         irsb.extend(pyvex.lift(b"\x74\x02", 0x1001, pyvex.ARCH_X86))  # je 0x1005
 
-        assert [(ins_addr, stmt.dst.value) for ins_addr, _, stmt in irsb.exit_statements] == [(0x1001, 0x1005)]
-        for _, stmt_idx, stmt in irsb.exit_statements:
-            assert irsb.statements[stmt_idx] is stmt
+        assert _exit_targets(irsb) == [(0x1001, 0x1005)]
         assert irsb.default_exit_target == 0x1003
         assert irsb.constant_jump_targets == {0x1003, 0x1005}
 
@@ -84,12 +91,12 @@ class TestIRSBExtend(unittest.TestCase):
 
         assert irsb.default_exit_target == fallthrough
         assert irsb.constant_jump_targets == {0x1000, fallthrough}
-        assert [(ins_addr, stmt.dst.value) for ins_addr, _, stmt in irsb.exit_statements] == [(jz_addr, 0x1000)]
+        assert _exit_targets(irsb) == [(jz_addr, 0x1000)]
 
-        refs = {(ref.data_addr, ref.ins_addr) for ref in irsb.data_refs}
+        refs = {(ref.data_addr, ref.ins_addr) for ref in irsb.data_refs or []}
         assert (0x400107, 0x400000) in refs
         assert (0x400211, 0x40000A) in refs
-        for ref in irsb.data_refs:
+        for ref in irsb.data_refs or []:
             assert _ins_addr_of_stmt(irsb, ref.stmt_idx) == ref.ins_addr
 
     def test_lift_through_spotter_keeps_const_vals(self):
@@ -120,10 +127,10 @@ class TestIRSBExtend(unittest.TestCase):
         assert isinstance(irsb.next, pyvex.expr.RdTmp)
         folded = {cv.tmp: cv.value for cv in irsb.const_vals or []}
         assert folded.get(irsb.next.tmp) == target
-        for cv in irsb.const_vals:
+        for cv in irsb.const_vals or []:
             stmt = irsb.statements[cv.stmt_idx]
             assert type(stmt) is pyvex.stmt.WrTmp and stmt.tmp == cv.tmp
-        assert (slot_addr, call_addr) in {(ref.data_addr, ref.ins_addr) for ref in irsb.data_refs}
+        assert (slot_addr, call_addr) in {(ref.data_addr, ref.ins_addr) for ref in irsb.data_refs or []}
 
 
 if __name__ == "__main__":
