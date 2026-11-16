@@ -210,15 +210,33 @@ class IRSB(VEXObject):
     def copy(self) -> "IRSB":
         return copy.deepcopy(self)
 
-    def extend(self, extendwith) -> None:
+    def extend(self, extendwith: "IRSB") -> None:
         """
-        Appends an irsb to the current irsb. The irsb that is appended is invalidated. The appended irsb's jumpkind and
-        default exit are used.
+        Appends an irsb to the current irsb. The appended irsb's jumpkind and default exit are used.
+
+        The appended irsb is not modified, so it remains usable and may be appended to more than one irsb.
+
         :param extendwith:     The IRSB to append to this IRSB
         :vartype extendwith:   :class:`IRSB`
         """
+        self._extend(extendwith, copy_statements=True)
+
+    def _extend(self, extendwith: "IRSB", copy_statements: bool) -> None:
+        """
+        Appends `extendwith` to this IRSB, see :meth:`extend`.
+
+        :param extendwith:      The IRSB to append to this IRSB
+        :param copy_statements: Whether to copy the statements of `extendwith` before renumbering their tmps. Only
+                                pass False if `extendwith` is discarded afterwards, as it is left invalid.
+        """
         if self.stmts_used == 0:
             self._from_py(extendwith)
+            # Later calls append to the statement list and the type environment, so they must not be shared
+            self.statements = list(self.statements)
+            self.tyenv = copy.deepcopy(self.tyenv)
+            self.data_refs = copy.copy(extendwith.data_refs)
+            self.const_vals = copy.copy(extendwith.const_vals)
+            self.is_noop_block = extendwith.is_noop_block
             return
 
         conversion_dict = {}
@@ -226,7 +244,12 @@ class IRSB(VEXObject):
 
         new_size = self.size + extendwith.size
         new_instructions = self.instructions + extendwith.instructions
+        new_instruction_addresses = self.instruction_addresses + extendwith.instruction_addresses
         new_direct_next = extendwith.direct_next
+        stmt_idx_offset = len(self.statements)
+        # Tmps in the appended statements are renumbered in place below. Unless they are copied first, the appended IRSB
+        # is left referring to tmps that do not exist in its own type environment.
+        statements = copy.deepcopy(extendwith.statements) if copy_statements else extendwith.statements
 
         def convert_tmp(tmp):
             """
@@ -250,7 +273,7 @@ class IRSB(VEXObject):
                 return RdTmp.get_instance(convert_tmp(expr_.tmp))
             return expr_
 
-        for stmt_ in extendwith.statements:
+        for stmt_ in statements:
             stmttype = type(stmt_)
             if stmttype is WrTmp:
                 stmt_.tmp = convert_tmp(stmt_.tmp)
@@ -261,8 +284,6 @@ class IRSB(VEXObject):
             elif stmttype is Dirty:
                 if stmt_.tmp not in invalid_vals:
                     stmt_.tmp = convert_tmp(stmt_.tmp)
-                for e in stmt_.args:
-                    convert_expr(e)
             elif stmttype is CAS:
                 if stmt_.oldLo not in invalid_vals:
                     stmt_.oldLo = convert_tmp(stmt_.oldLo)
@@ -277,14 +298,27 @@ class IRSB(VEXObject):
             stmt_.replace_expression(to_replace)
             # Add the converted statement to self.statements
             self.statements.append(stmt_)
-        extendwith.next = convert_expr(extendwith.next)
-        self.next = extendwith.next
-        self.jumpkind = extendwith.jumpkind
+
+        if extendwith.data_refs:
+            self.data_refs = list(self.data_refs or ()) + [
+                DataRef(ref.data_addr, ref.data_size, ref.data_type, ref.stmt_idx + stmt_idx_offset, ref.ins_addr)
+                for ref in extendwith.data_refs
+            ]
+        if extendwith.const_vals:
+            self.const_vals = list(self.const_vals or ()) + [
+                ConstVal(convert_tmp(cv.tmp), cv.value, cv.stmt_idx + stmt_idx_offset) for cv in extendwith.const_vals
+            ]
+
         self._size = new_size
         self._instructions = new_instructions
+        self._instruction_addresses = new_instruction_addresses
+        # Recomputed from the statements on the next access
+        self._exit_statements = None
+        self.next = convert_expr(extendwith.next)
+        self.jumpkind = extendwith.jumpkind
         self._direct_next = new_direct_next
-
-        # TODO: Change exit_statements, data_references, etc.
+        self.default_exit_target = extendwith.default_exit_target
+        self.is_noop_block = self.is_noop_block and extendwith.is_noop_block
 
     def invalidate_direct_next(self) -> None:
         self._direct_next = None

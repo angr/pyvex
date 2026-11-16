@@ -265,8 +265,8 @@ def lift(
                 vex_archinfo=vex_archinfo,
             )
             if more_irsb.size:
-                # Successfully decoded more bytes
-                final_irsb.extend(more_irsb)
+                # Successfully decoded more bytes. more_irsb is discarded afterwards, so its statements need no copy.
+                final_irsb._extend(more_irsb, copy_statements=False)  # pylint: disable=protected-access
         elif max_bytes == 0:
             # We have no more bytes left. Mark the jumpkind of the IRSB as Ijk_Boring
             if final_irsb.size > 0 and final_irsb.jumpkind == "Ijk_NoDecode":
