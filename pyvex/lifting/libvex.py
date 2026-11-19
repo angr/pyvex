@@ -122,11 +122,13 @@ class LibVEXLifter(Lifter):
             else:
                 px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
 
+            data = self.data + self.bytes_offset
+
             def vex_lift(inst_limit):
                 return pvc.vex_lift(
                     vex_arch,
                     vex_archinfo,
-                    self.data + self.bytes_offset,
+                    data,
                     self.irsb.addr,
                     inst_limit,
                     max_bytes,
@@ -152,12 +154,6 @@ class LibVEXLifter(Lifter):
                 if lift_r == ffi.NULL:
                     raise LiftingException("libvex: unknown error" if log_str is None else log_str)
                 partial = True
-                log.debug(
-                    "libvex failed to lift the block @ %#x, lifted only its first %d instructions: %s",
-                    self.addr,
-                    lift_r.insts,
-                    log_str,
-                )
             elif log_str is not None:
                 log.debug(log_str)
 
@@ -165,6 +161,12 @@ class LibVEXLifter(Lifter):
             if partial:
                 self.irsb.jumpkind = "Ijk_NoDecode"
                 self.irsb.default_exit_target = None
+                log.debug(
+                    "libvex failed to lift the block @ %#x, lifted only its first %d instructions: %s",
+                    self.addr,
+                    self.irsb.instructions,
+                    log_str,
+                )
             if self.irsb.size == 0:
                 log.debug("raising lifting exception")
                 raise LiftingException("libvex: could not decode any instructions @ 0x%x" % self.addr)
