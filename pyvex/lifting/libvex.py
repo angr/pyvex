@@ -51,6 +51,39 @@ class LibVEXLifter(Lifter):
     def get_vex_log():
         return bytes(ffi.buffer(pvc.msg_buffer, pvc.msg_current_size)).decode() if pvc.msg_buffer != ffi.NULL else None
 
+    @staticmethod
+    def _lift_decodable_prefix(vex_lift, max_inst):
+        """
+        Lift the longest run of instructions at the start of a block that libVEX failed to lift as a whole.
+
+        If libVEX panics on the n-th instruction, lifting up to n - 1 instructions succeeds and lifting n or more fails,
+        so the longest run that lifts can be found with a binary search over the instruction limit.
+
+        :param vex_lift:    A function that lifts the block with the given instruction limit.
+        :param max_inst:    The instruction limit that the block failed to lift with.
+        :return:            The lift result, or NULL if not even the first instruction can be lifted.
+        """
+        if max_inst <= 1:
+            return ffi.NULL
+        # libVEX most often fails on the very first instruction, e.g., when lift() resumes lifting at the instruction
+        # that a previous lift failed on. Rule that out with a single lift before searching.
+        lift_r = vex_lift(1)
+        if lift_r == ffi.NULL:
+            return lift_r
+        lifted, failed = 1, max_inst
+        latest_failed = False
+        while failed - lifted > 1:
+            n = (lifted + failed) // 2
+            latest_failed = vex_lift(n) == ffi.NULL
+            if latest_failed:
+                failed = n
+            else:
+                lifted = n
+        if latest_failed:
+            # Every lift reuses the same result buffer, so the last successful lift has been overwritten
+            lift_r = vex_lift(lifted)
+        return lift_r
+
     def _lift(self):
         if TYPE_CHECKING:
             assert isinstance(self.irsb.arch, LibvexArch)
@@ -89,31 +122,51 @@ class LibVEXLifter(Lifter):
             else:
                 px_control = VexRegisterUpdates.VexRegUpdLdAllregsAtEachInsn
 
-            lift_r = pvc.vex_lift(
-                vex_arch,
-                vex_archinfo,
-                self.data + self.bytes_offset,
-                self.irsb.addr,
-                max_inst,
-                max_bytes,
-                self.opt_level,
-                self.traceflags,
-                self.allow_arch_optimizations,
-                strict_block_end,
-                1 if self.collect_data_refs else 0,
-                1 if self.load_from_ro_regions else 0,
-                1 if self.const_prop else 0,
-                px_control,
-                self.bytes_offset,
-            )
+            data = self.data + self.bytes_offset
+
+            def vex_lift(inst_limit):
+                return pvc.vex_lift(
+                    vex_arch,
+                    vex_archinfo,
+                    data,
+                    self.irsb.addr,
+                    inst_limit,
+                    max_bytes,
+                    self.opt_level,
+                    self.traceflags,
+                    self.allow_arch_optimizations,
+                    strict_block_end,
+                    1 if self.collect_data_refs else 0,
+                    1 if self.load_from_ro_regions else 0,
+                    1 if self.const_prop else 0,
+                    px_control,
+                    self.bytes_offset,
+                )
+
+            lift_r = vex_lift(max_inst)
             log_str = self.get_vex_log()
+            partial = False
             if lift_r == ffi.NULL:
-                raise LiftingException("libvex: unknown error" if log_str is None else log_str)
-            else:
-                if log_str is not None:
-                    log.debug(log_str)
+                # libVEX discards the whole block when it panics (e.g., an internal assertion fails) while decoding an
+                # instruction, even if every instruction before it decoded fine. Lift those instructions on their own
+                # and report the instruction that libVEX failed on as undecodable.
+                lift_r = self._lift_decodable_prefix(vex_lift, max_inst)
+                if lift_r == ffi.NULL:
+                    raise LiftingException("libvex: unknown error" if log_str is None else log_str)
+                partial = True
+            elif log_str is not None:
+                log.debug(log_str)
 
             self.irsb._from_c(lift_r, skip_stmts=self.skip_stmts)
+            if partial:
+                self.irsb.jumpkind = "Ijk_NoDecode"
+                self.irsb.default_exit_target = None
+                log.debug(
+                    "libvex failed to lift the block @ %#x, lifted only its first %d instructions: %s",
+                    self.addr,
+                    self.irsb.instructions,
+                    log_str,
+                )
             if self.irsb.size == 0:
                 log.debug("raising lifting exception")
                 raise LiftingException("libvex: could not decode any instructions @ 0x%x" % self.addr)
