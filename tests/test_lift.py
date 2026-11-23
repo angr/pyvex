@@ -123,6 +123,44 @@ class TestLift(unittest.TestCase):
             assert irsb.jumpkind == ref.jumpkind
             assert str(irsb) == str(ref)
 
+    def test_lift_instructions_before_vex_panic(self):
+        # https://github.com/angr/pyvex/issues/425
+        # libVEX panics on an instruction that references a nonexistent segment register. The instructions before it
+        # must still be lifted, and the block must end with an Ijk_NoDecode at that instruction.
+        arch = pyvex.ARCH_AMD64
+        mov = bytes.fromhex("66c705000000009090")  # mov word ptr [rip], 0x9090
+        bad = bytes.fromhex("8cf0")  # mov eax, <segment register 6>
+
+        irsb = lift(mov + bad, 0x1000, arch)
+        assert irsb.size == len(mov)
+        assert irsb.instructions == 1
+        assert irsb.jumpkind == "Ijk_NoDecode"
+        assert irsb.next.con.value == 0x1000 + len(mov)
+        assert irsb.default_exit_target is None
+        assert not irsb.direct_next
+        assert irsb.statements == lift(mov, 0x1000, arch).statements
+
+        # Every number of instructions before the one that libVEX fails on
+        for n in (*range(1, 12), 50, 98):
+            for skip_stmts in (False, True):
+                irsb = lift(b"\x90" * n + bad + b"\x90" * 4, 0x1000, arch, skip_stmts=skip_stmts)
+                assert irsb.size == n
+                assert irsb.instructions == n
+                assert irsb.jumpkind == "Ijk_NoDecode"
+                assert irsb.next.con.value == 0x1000 + n
+            # The instruction limit is honored, and blocks that end before the instruction are not affected
+            irsb = lift(b"\x90" * n + bad, 0x1000, arch, max_inst=n)
+            assert irsb.instructions == n
+            assert irsb.jumpkind == "Ijk_Boring"
+            irsb = lift(b"\x90" * n + b"\xc3" + bad, 0x1000, arch)
+            assert irsb.instructions == n + 1
+            assert irsb.jumpkind == "Ijk_Ret"
+
+        # Nothing can be lifted when libVEX fails on the first instruction
+        irsb = lift(bad + b"\x90" * 4, 0x1000, arch)
+        assert irsb.size == 0
+        assert irsb.jumpkind == "Ijk_NoDecode"
+
 
 if __name__ == "__main__":
     unittest.main()
