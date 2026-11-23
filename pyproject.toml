@@ -65,8 +65,9 @@ exclude = [
 [tool.scikit-build.wheel]
 py-api = "cp312"
 
-[tool.scikit-build.metadata.version]
+[[tool.dynamic-metadata]]
 provider = "scikit_build_core.metadata.regex"
+field = "version"
 input = "pyvex/__init__.py"
 
 [tool.cibuildwheel.pyodide]
