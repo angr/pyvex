@@ -1,6 +1,7 @@
 import getpass
 import hashlib
 import importlib.resources
+import logging
 import os
 import pickle
 import sys
@@ -12,36 +13,45 @@ import cffi
 from .vex_ffi import ffi_str as _ffi_str
 
 ffi = cffi.FFI()
+log = logging.getLogger(__name__)
 
 
 def _parse_ffi_str():
     hash_ = hashlib.md5(_ffi_str.encode("utf-8")).hexdigest()
     try:
-        username = getpass.getuser()
-    except OSError:
-        username = str(os.getuid())
-    cache_location = os.path.join(tempfile.gettempdir(), f"pyvex_ffi_parser_cache.{username}.{hash_}")
+        uid = os.getuid()
+    except AttributeError:
+        uid = getpass.getuser()
+
+    cache_location = os.path.join(tempfile.gettempdir(), f"pyvex_ffi_parser_cache.{uid}.{hash_}")
 
     if os.path.isfile(cache_location):
         # load the cache
         with open(cache_location, "rb") as f:
-            cache = pickle.loads(f.read())
-        ffi._parser._declarations = cache["_declarations"]
-        ffi._parser._int_constants = cache["_int_constants"]
-    else:
-        ffi.cdef(_ffi_str)
-        # cache the result
-        cache = {
-            "_declarations": ffi._parser._declarations,
-            "_int_constants": ffi._parser._int_constants,
-        }
-        pickle_output = pickle.dumps(cache)
-        with open(cache_location, "wb") as f:
-            try:
-                f.write(pickle_output)
-            except OSError:
-                # On windows, multiple processes might try to write to the same cache file simultaneously.
-                pass
+            stat = os.stat(f.fileno())
+            if (isinstance(uid, int) and stat.st_uid != uid) or stat.st_mode & 0o022:
+                log.warning("Cannot load cache file; it's owned by another user or world-writable")
+                cache = None
+            else:
+                cache = pickle.loads(f.read())
+        if cache is not None:
+            ffi._parser._declarations = cache["_declarations"]
+            ffi._parser._int_constants = cache["_int_constants"]
+            return
+
+    ffi.cdef(_ffi_str)
+    # cache the result
+    cache = {
+        "_declarations": ffi._parser._declarations,
+        "_int_constants": ffi._parser._int_constants,
+    }
+    pickle_output = pickle.dumps(cache)
+    with open(cache_location, "wb") as f:
+        try:
+            f.write(pickle_output)
+        except OSError:
+            # On windows, multiple processes might try to write to the same cache file simultaneously.
+            pass
 
 
 def _find_c_lib():
